@@ -1,4 +1,4 @@
-from project_name import __version__
+from simple_python_boilerplate import __version__
 
 
 def test_version_exists():
