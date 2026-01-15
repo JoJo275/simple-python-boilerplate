@@ -127,3 +127,10 @@ dmypy.json
 # =========================================
 # macOS Finder metadata
 .DS_Store
+
+# Windows Explorer metadata
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
