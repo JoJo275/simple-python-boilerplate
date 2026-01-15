@@ -129,3 +129,45 @@ Use it as:
 - A starting point
 - A reference
 - A reminder of how Python packaging actually works
+
+Where Python should come from (common best choices)
+
+For most developers on Windows, the most predictable options are:
+
+python.org installer
+
+Standard, widely documented, easy PATH behavior
+
+Windows package manager (winget)
+
+Also predictable, easy updates
+
+Conda / Miniconda
+
+Useful if you need heavy scientific/native dependencies, but adds its own environment system
+
+If your priority is “stable and unsurprising for packaging + venv,” the python.org installer (or winget) is usually the simplest.
+
+What you should do in practice (simple and safe)
+In each repo
+
+Create venv:
+
+python -m venv .venv
+
+
+Activate it:
+
+.\.venv\Scripts\Activate.ps1
+
+
+Install:
+
+python -m pip install -e .
+
+To confirm you’re using the repo’s venv
+echo $env:VIRTUAL_ENV
+python -c "import sys; print(sys.executable)"
+
+To leave a venv
+deactivate
