@@ -4,10 +4,25 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 
 > A living repository containing structure based on my learning path. Cut down, this is one template based on one mindset. May update as I learn more.
 
-This repository is intended as:
+**This repository is intended as:**
+
 - A learning reference
 - A reusable starting point for small Python projects
 - A correct baseline for Python packaging and testing
+
+---
+
+## Table of Contents
+
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Setup (Development)](#setup-development)
+- [Running Tests](#running-tests)
+- [Versioning](#versioning)
+- [Quick Reference](#quick-reference)
+- [Where Should Python Come From?](#where-should-python-come-from)
+- [Notes](#notes)
+- [License](#license)
 
 ---
 
@@ -48,14 +63,14 @@ The `src/` layout prevents accidental imports from the working directory and ens
 python -m venv .venv
 ```
 
-Activate it:
-
 **Windows (PowerShell):**
+
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
 **macOS / Linux:**
+
 ```bash
 source .venv/bin/activate
 ```
@@ -66,13 +81,15 @@ source .venv/bin/activate
 python -m pip install -e .
 ```
 
-#### Why this is required
+### Why is editable install required?
 
-This project uses a `src/` layout. Python will not automatically find packages inside `src/` unless one of the following is true:
-- The project is installed, or
+This project uses a `src/` layout. Python will not automatically find packages inside `src/` unless:
+
+- The project is installed, **or**
 - `src/` is manually added to `PYTHONPATH`
 
 Editable install (`-e`) links your source directory into Python's environment so that:
+
 - Imports work correctly
 - `pytest` can find your package
 - Code changes are reflected immediately without reinstalling
@@ -107,9 +124,50 @@ The version is defined in code and should match the version declared in `pyproje
 
 ---
 
-## License
+## Quick Reference
 
-MIT License. See the [LICENSE](LICENSE) file for details.
+### Per-Repository Workflow
+
+```bash
+# 1. Create virtual environment
+python -m venv .venv
+
+# 2. Activate it (Windows PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# 3. Install project in editable mode
+python -m pip install -e .
+```
+
+### Verify Your Environment
+
+```powershell
+# Check which venv is active
+echo $env:VIRTUAL_ENV
+
+# Check Python executable path
+python -c "import sys; print(sys.executable)"
+```
+
+### Deactivate Environment
+
+```bash
+deactivate
+```
+
+---
+
+## Where Should Python Come From?
+
+For most developers on Windows, the most predictable options are:
+
+| Source | Notes |
+|--------|-------|
+| [python.org](https://www.python.org/downloads/) | Standard, widely documented, easy PATH behavior |
+| `winget install Python.Python.3.12` | Easy updates via Windows package manager |
+| Conda / Miniconda | Useful for heavy scientific/native dependencies, but adds its own environment system |
+
+> **Recommendation:** If your priority is "stable and unsurprising for packaging + venv," the python.org installer (or winget) is usually the simplest.
 
 ---
 
@@ -118,56 +176,10 @@ MIT License. See the [LICENSE](LICENSE) file for details.
 - The distribution name (`simple-python-boilerplate`) may contain hyphens.
 - The import package name (`simple_python_boilerplate`) must use underscores.
 - `__init__.py` is intentionally included for clarity and tooling compatibility.
+- This repo is intentionally small and explicit—it favors correctness and clarity over convenience or abstraction.
 
 ---
 
-## Intended Use
+## License
 
-This repo is intentionally small and explicit. It favors correctness and clarity over convenience or abstraction.
-
-Use it as:
-- A starting point
-- A reference
-- A reminder of how Python packaging actually works
-
-Where Python should come from (common best choices)
-
-For most developers on Windows, the most predictable options are:
-
-python.org installer
-
-Standard, widely documented, easy PATH behavior
-
-Windows package manager (winget)
-
-Also predictable, easy updates
-
-Conda / Miniconda
-
-Useful if you need heavy scientific/native dependencies, but adds its own environment system
-
-If your priority is “stable and unsurprising for packaging + venv,” the python.org installer (or winget) is usually the simplest.
-
-What you should do in practice (simple and safe)
-In each repo
-
-Create venv:
-
-python -m venv .venv
-
-
-Activate it:
-
-.\.venv\Scripts\Activate.ps1
-
-
-Install:
-
-python -m pip install -e .
-
-To confirm you’re using the repo’s venv
-echo $env:VIRTUAL_ENV
-python -c "import sys; print(sys.executable)"
-
-To leave a venv
-deactivate
+MIT License. See the [LICENSE](LICENSE) file for details.
