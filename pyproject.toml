@@ -1,0 +1,8 @@
+[project]
+name = "professor"
+version = "1.0.0"
+description = "A simple Python project"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
