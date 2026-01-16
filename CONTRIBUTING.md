@@ -98,15 +98,15 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ### Types
 
-| Type       | Description                                      |
-|------------|--------------------------------------------------|
-| `feat`     | A new feature                                    |
-| `fix`      | A bug fix                                        |
-| `docs`     | Documentation only changes                       |
-| `style`    | Changes that do not affect the meaning of code   |
-| `refactor` | A code change that neither fixes a bug nor adds a feature |
-| `test`     | Adding missing tests or correcting existing tests |
-| `chore`    | Changes to the build process or auxiliary tools  |
+| Type        | Description                                                |
+|-------------|------------------------------------------------------------|
+| `feat`      | A new feature                                              |
+| `fix`       | A bug fix                                                  |
+| `docs`      | Documentation only changes                                 |
+| `style`     | Changes that do not affect the meaning of code             |
+| `refactor`  | A code change that neither fixes a bug nor adds a feature  |
+| `test`      | Adding missing tests or correcting existing tests          |
+| `chore`     | Changes to the build process or auxiliary tools            |
 
 ### Using Commitizen
 
