@@ -22,6 +22,8 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 - [Quick Reference](#quick-reference)
 - [Where Should Python Come From?](#where-should-python-come-from)
 - [Notes](#notes)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -44,8 +46,6 @@ simple-python-boilerplate/
 ├── pyproject.toml
 └── README.md
 ```
-
-For developer tooling and contribution guidelines, see [docs/development.md](docs/development.md).
 
 ### Why `src/` layout?
 
@@ -182,6 +182,18 @@ For most developers on Windows, the most predictable options are:
 - The import package name (`simple_python_boilerplate`) must use underscores.
 - `__init__.py` is intentionally included for clarity and tooling compatibility.
 - This repo is intentionally small and explicit—it favors correctness and clarity over convenience or abstraction.
+
+---
+
+## Documentation
+
+For developer tooling details, see [docs/development.md](docs/development.md).
+
+---
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
