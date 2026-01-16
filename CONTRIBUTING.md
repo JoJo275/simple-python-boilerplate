@@ -112,7 +112,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ### Using Commitizen
 
-We recommend using Commitizen to create properly formatted commits, but it is not required:
+We recommend using Commitizen to create properly formatted commits, but certainly not required:
 
 ```bash
 pipx install commitizen
