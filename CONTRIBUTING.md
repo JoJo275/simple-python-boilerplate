@@ -148,7 +148,7 @@ When reporting issues, please include:
 
 ## Code of Conduct
 
-Please be respectful and constructive in all interactions. We are committed to providing a welcoming and inclusive environment for everyone.
+Please be respectful and constructive in all interactions. See our [Code of Conduct](CODE_OF_CONDUCT.md) for details.
 
 ---
 

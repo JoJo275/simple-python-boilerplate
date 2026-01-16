@@ -42,6 +42,8 @@ simple-python-boilerplate/
 │   └── unit_test.py
 ├── .gitattributes
 ├── .gitignore
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
 ├── LICENSE
 ├── pyproject.toml
 └── README.md
