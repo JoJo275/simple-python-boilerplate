@@ -71,6 +71,8 @@ See [docs/development.md](docs/development.md) for developer tooling details.
    git checkout -b feature/your-feature-name
    ```
 
+   Use descriptive branch names such as `fix/login-timeout` or `feat/add-cli`.
+
 2. Make your changes
 3. Run tests to ensure nothing is broken:
 
@@ -110,7 +112,7 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ### Using Commitizen
 
-We recommend using Commitizen to create properly formatted commits but certainly not required:
+We recommend using Commitizen to create properly formatted commits, but it is not required:
 
 ```bash
 pipx install commitizen
