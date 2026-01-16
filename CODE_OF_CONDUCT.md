@@ -56,6 +56,8 @@ All complaints will be reviewed and investigated promptly and sincerely.
 
 Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, issues, and other contributions that are not aligned with this Code of Conduct.
 
+All community leaders are obligated to respect the privacy and security of the reporter of any incident.
+
 ---
 
 ## Attribution
