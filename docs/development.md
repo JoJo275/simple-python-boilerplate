@@ -16,4 +16,6 @@ pipx install commitizen
 
 Create commits with:
 
+```bash
 cz commit
+```
