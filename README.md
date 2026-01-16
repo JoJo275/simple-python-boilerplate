@@ -185,5 +185,4 @@ For most developers on Windows, the most predictable options are:
 
 This project is licensed under the Apache License 2.0 to allow unrestricted use, modification, and commercial distribution while providing explicit patent protection and legal clarity for users and contributors.
 
-
-MIT License. See the [LICENSE](LICENSE) file for details.
+Apache License 2.0. See the [LICENSE](LICENSE) file for details.
