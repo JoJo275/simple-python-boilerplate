@@ -36,7 +36,23 @@ This Code of Conduct applies within all project spaces, including issues, pull r
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project maintainers. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting our team at:
+
+Project Maintainer: JoJo275
+- **GitHub:** [@JoJo275](https://github.com/JoJo275)
+- **Email:** [joseph26584@gmail.com](mailto:joseph26584@gmail.com)
+
+Contributer A:
+
+- **GitHub:** [@exampleA](https://github.com/exampleA)
+- **Email:** [exampleA@gmail.com](mailto:exampleA@gmail.com)
+
+Contributer B:
+
+- **GitHub:** [@exampleB](https://github.com/exampleB)
+- **Email:** [exampleB@gmail.com](mailto:exampleB@gmail.com)
+
+All complaints will be reviewed and investigated promptly and sincerely.
 
 Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, issues, and other contributions that are not aligned with this Code of Conduct.
 
@@ -44,7 +60,7 @@ Project maintainers have the right and responsibility to remove, edit, or reject
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.
+This Code of Conduct is inspired by the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.
 
 ---
 
