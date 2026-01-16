@@ -38,16 +38,17 @@ This Code of Conduct applies within all project spaces, including issues, pull r
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting our team at:
 
-Project Maintainer: JoJo275
+**Project Maintainer: JoJo275**
+
 - **GitHub:** [@JoJo275](https://github.com/JoJo275)
 - **Email:** [joseph26584@gmail.com](mailto:joseph26584@gmail.com)
 
-Contributer A:
+**Contributor A:**
 
 - **GitHub:** [@exampleA](https://github.com/exampleA)
 - **Email:** [exampleA@gmail.com](mailto:exampleA@gmail.com)
 
-Contributer B:
+**Contributor B:**
 
 - **GitHub:** [@exampleB](https://github.com/exampleB)
 - **Email:** [exampleB@gmail.com](mailto:exampleB@gmail.com)
