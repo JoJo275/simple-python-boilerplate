@@ -2,9 +2,10 @@
 
 Brief description of the changes in this PR.
 
-What changes you made:
+**What changes you made:**
 
-Why you made them:
+
+**Why you made them:**
 
 
 ## Related Issue
