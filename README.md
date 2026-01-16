@@ -30,6 +30,8 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 
 ```
 simple-python-boilerplate/
+├── docs/
+│   └── development.md
 ├── src/
 │   └── simple_python_boilerplate/
 │       ├── __init__.py
@@ -42,6 +44,8 @@ simple-python-boilerplate/
 ├── pyproject.toml
 └── README.md
 ```
+
+For developer tooling and contribution guidelines, see [docs/development.md](docs/development.md).
 
 ### Why `src/` layout?
 
