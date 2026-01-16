@@ -1,0 +1,8 @@
+# ==============
+# SQL Language
+# ==============
+
+# Ensure SQL is counted
+*.sql linguist-language=SQL
+*.sql linguist-detectable=true
+*.sql linguist-vendored=false
