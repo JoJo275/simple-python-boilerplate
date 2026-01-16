@@ -36,10 +36,11 @@ simple-python-boilerplate/
 │       └── main.py
 ├── tests/
 │   └── unit_test.py
-├── pyproject.toml
-├── README.md
+├── .gitattributes
+├── .gitignore
 ├── LICENSE
-└── .gitignore
+├── pyproject.toml
+└── README.md
 ```
 
 ### Why `src/` layout?
