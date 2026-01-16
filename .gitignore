@@ -134,3 +134,10 @@ ehthumbs.db
 ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# =========================================
+# Project-specific directories
+# =========================================
+# Local experiments folder
+/experiments/
+
