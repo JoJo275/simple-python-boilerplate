@@ -1,0 +1,15 @@
+# Code Owners
+# These users will be automatically requested for review on PRs
+
+# Default owner for everything in the repo
+* @JoJo275
+
+# Python source code
+/src/ @JoJo275
+
+# Tests
+/tests/ @JoJo275
+
+# Documentation
+*.md @JoJo275
+/docs/ @JoJo275
