@@ -24,6 +24,7 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 - [Notes](#notes)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
+- [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
 ---
@@ -196,6 +197,12 @@ For developer tooling details, see [docs/development.md](docs/development.md).
 ## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## Code of Conduct
+
+We are committed to a welcoming and inclusive community. Please see our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
