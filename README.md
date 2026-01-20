@@ -215,3 +215,13 @@ Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 Questions, ideas, and open-ended discussion may be handled via GitHub Discussions if enabled in the future. For now, please use Issues for bugs or concrete proposals.
 
+or
+
+
+
+How to use this repository
+
+1. Click "Use this template" on GitHub
+2. Rename the package directory
+3. Update pyproject.toml name and description
+
