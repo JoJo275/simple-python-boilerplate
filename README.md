@@ -211,3 +211,7 @@ We are committed to a welcoming and inclusive community. Please see our [Code of
 This project is licensed under the Apache License 2.0 to allow unrestricted use, modification, and commercial distribution while providing explicit patent protection and legal clarity for users and contributors.
 
 Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+
+
+Questions, ideas, and open-ended discussion may be handled via GitHub Discussions if enabled in the future. For now, please use Issues for bugs or concrete proposals.
+
