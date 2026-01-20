@@ -241,3 +241,20 @@ stuff I may add in the future
 - deployment configuration
 - style/linting configuration
 
+## Future Improvements
+
+This repository is intentionally minimal while I learn and solidify concepts.
+
+Potential additions in the future:
+
+- Continuous Integration (GitHub Actions)
+- Docker support for reproducible environments
+- Automated release and deployment workflows
+- docker config
+- more github actions/workflows/configs
+- more testing examples (integration, e2e, etc)
+- more ci/cd examples
+- deployment configuration
+- style/linting configuration
+
+These may be added once I have covered the relevant concepts.
