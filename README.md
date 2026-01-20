@@ -227,3 +227,6 @@ How to use this repository
 
 Scope: Many parts if not all can be adapted and changed as needed for a myriad of very valid reasons. This is simply one way to do it that I have found useful and educational.
 
+If you do not want any templates, dependabot configs, or other files, please delete them as needed.
+
+If you have any questions on how to do something or why something is done a certain way, please post in the disucssion. 
