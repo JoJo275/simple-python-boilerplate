@@ -232,4 +232,12 @@ If you do not want any templates, dependabot configs, or other files, please del
 
 If you have any questions on how to do something or why something is done a certain way, please post in the disucssion.
 
+stuff I may add in the future
+
+- docker config
+- more github actions/workflows/configs
+- more testing examples (integration, e2e, etc)
+- more ci/cd examples
+- deployment configuration
+- style/linting configuration
 
