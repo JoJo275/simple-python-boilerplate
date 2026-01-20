@@ -225,3 +225,5 @@ How to use this repository
 2. Rename the package directory
 3. Update pyproject.toml name and description
 
+Scope: Many parts if not all can be adapted and changed as needed for a myriad of very valid reasons. This is simply one way to do it that I have found useful and educational.
+
