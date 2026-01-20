@@ -212,12 +212,13 @@ This project is licensed under the Apache License 2.0 to allow unrestricted use,
 
 Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
+---
 
 Questions, ideas, and open-ended discussion may be handled via GitHub Discussions if enabled in the future. For now, please use Issues for bugs or concrete proposals.
 
 or
 
-
+...
 
 How to use this repository
 
@@ -229,4 +230,6 @@ Scope: Many parts if not all can be adapted and changed as needed for a myriad o
 
 If you do not want any templates, dependabot configs, or other files, please delete them as needed.
 
-If you have any questions on how to do something or why something is done a certain way, please post in the disucssion. 
+If you have any questions on how to do something or why something is done a certain way, please post in the disucssion.
+
+
