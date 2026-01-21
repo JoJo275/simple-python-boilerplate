@@ -20,7 +20,7 @@ A clear and concise description of what actually happened.
 
 ## Steps to Reproduce
 
-> Please provide the *smallest possible* example that reproduces the issue.
+> Please provide the *smallest possible* example that reliably reproduces the issue.
 
 1. Go to '...'
 2. Run '...'
@@ -53,7 +53,7 @@ Add any other context about the problem here.
 - [ ] Incorrect behavior
 - [ ] Performance issue
 - [ ] Minor / Cosmetic
-- [ ] Other (please describe):
+- [ ] Other (please describe below):
 
 ## Regression?
 
