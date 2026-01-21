@@ -61,3 +61,8 @@ Add any other context about the problem here.
 - [ ] This has never worked
 - [ ] Unsure
 
+## Checklist
+
+- [ ] I have searched existing issues
+- [ ] I can reproduce this consistently
+- [ ] I included relevant logs or errors
