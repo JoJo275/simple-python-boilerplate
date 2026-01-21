@@ -31,6 +31,7 @@ A clear and concise description of what actually happened.
 - **OS:** [e.g., Windows 11, macOS 14, Ubuntu 22.04]
 - **Python Version:** [e.g., 3.11.5]
 - **Package Version:** [e.g., 0.1.0]
+- **Execution Context:** [CLI, imported as library, tests, etc.]
 
 ## Error Messages / Logs
 
@@ -49,3 +50,10 @@ Add any other context about the problem here.
 - [ ] Performance issue
 - [ ] Minor / Cosmetic
 - [ ] Other (please describe):
+
+## Regression?
+
+- [ ] This worked in a previous version
+- [ ] This has never worked
+- [ ] Unsure
+
