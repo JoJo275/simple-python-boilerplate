@@ -39,6 +39,10 @@ A clear and concise description of what actually happened.
 Paste any relevant error messages or logs here
 ```
 
+## Screenshots / Output (Optional)
+
+Attach screenshots or paste terminal output if helpful.
+
 ## Additional Context
 
 Add any other context about the problem here.
