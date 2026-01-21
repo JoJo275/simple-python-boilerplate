@@ -118,6 +118,17 @@ body:
       required: true
 
   - type: textarea
+    id: context_other
+    attributes:
+      label: Execution Context – Other (if applicable)
+      description: >
+        If you selected "Other" above, please describe the execution context
+        (e.g., REPL, notebook, embedded usage, custom runner, etc.).
+      placeholder: Describe the execution context if "Other" was selected.
+    validations:
+      required: false
+
+  - type: textarea
     id: logs
     attributes:
       label: Error Messages / Logs
