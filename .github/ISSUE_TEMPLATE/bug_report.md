@@ -49,6 +49,8 @@ A clear and concise description of what actually happened.
 - [ ] Minor / Cosmetic
 - [ ] Other (please describe below):
 
+> If you selected **Other**, please explain below in Additional Context.
+
 ## Regression?
 
 - [ ] This worked in a previous version
@@ -61,7 +63,10 @@ A clear and concise description of what actually happened.
 - **Python Version:** [e.g., 3.11.5]
 - **Package Version:** [e.g., 0.1.0]
 - **Install Method:** [e.g., pip install (from PyPI), pip install -e ., uv pip install / uv sync, poetry install, pdm install, conda / mamba, Manual / from source, Other]
-- **Execution Context:** [CLI, Imported as a library, Running tests, Other]
+- **Execution Context:** [CLI, Imported as a library, Running tests, Other]  
+(e.g., REPL, Jupyter notebook, embedded usage if Other)
+
+> If you selected **Other** on any fields, please explain below in Additional Context.
 
 ## Error Messages / Logs
 
