@@ -14,7 +14,7 @@ Please provide the **smallest possible example** that **reliably** reproduces th
 
 ## Description
 
-A clear and concise description of what the bug is.
+<!-- A clear and concise description of what the bug is. -->
 
 ## Steps to Reproduce
 
@@ -24,34 +24,33 @@ A clear and concise description of what the bug is.
 
 ## Minimal Reproduction Code
 
-> Provide the smallest possible code snippet that reproduces the issue. Leave blank if not applicable.
+<!-- Provide the smallest possible code snippet that reproduces the issue. Delete this section if not applicable. -->
 
 ```python
-from simple_python_boilerplate import something
 
-# Minimal code that triggers the bug
-something.do_thing()
 ```
 
 ## Expected Behavior
 
-A clear and concise description of what you expected to happen.
+<!-- A clear and concise description of what you expected to happen. -->
 
 ## Actual Behavior
 
-A clear and concise description of what actually happened.
+<!-- A clear and concise description of what actually happened. -->
 
 ## Severity
+
+<!-- Select one: -->
 
 - [ ] Crash / Data loss
 - [ ] Incorrect behavior
 - [ ] Performance issue
 - [ ] Minor / Cosmetic
-- [ ] Other (please describe below):
-
-> If you selected **Other**, please explain below in Additional Context.
+- [ ] Other: <!-- Describe -->
 
 ## Regression?
+
+<!-- Select one: -->
 
 - [ ] This worked in a previous version
 - [ ] This has never worked
@@ -59,40 +58,33 @@ A clear and concise description of what actually happened.
 
 ## Environment
 
-- **OS:** [e.g., Windows 11, macOS 14, Ubuntu 22.04]
-- **Python Version:** [e.g., 3.11.5]
-- **Package Version:** [e.g., 0.1.0]
-- **Install Method:** [e.g., pip install (from PyPI), pip install -e ., uv pip install / uv sync, poetry install, pdm install, conda / mamba, Manual / from source, Other]
-- **Execution Context:** [CLI, Imported as a library, Running tests, Other]  
-(e.g., REPL, Jupyter notebook, embedded usage if Other)
-
-> If you selected **Other** on any fields, please explain below in Additional Context.
+| Field | Value |
+|-------|-------|
+| **OS** | <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 --> |
+| **Python Version** | <!-- e.g., 3.11.5 --> |
+| **Package Version** | <!-- e.g., 0.1.0 --> |
+| **Install Method** | <!-- pip, pip -e, uv, poetry, pdm, conda, source, other --> |
+| **Execution Context** | <!-- CLI, library, tests, REPL, notebook, other --> |
 
 ## Error Messages / Logs
 
+<!-- Paste relevant logs or error output. Delete this section if not applicable. -->
+
 ```shell
-Paste any relevant error messages or logs here
+
 ```
 
-## Screenshots / Output (Optional)
+## Screenshots / Output
 
-Attach screenshots or paste terminal output if helpful.
+<!-- Attach screenshots or paste terminal output if helpful. Delete this section if not applicable. -->
 
-## Workaround (Optional)
+## Workaround
 
-If you found a workaround for this issue, please share it. This helps others and aids in prioritization.
+<!-- If you found a workaround, please share it. Delete this section if not applicable. -->
 
 ## Additional Context
 
-Add any other context about the problem here (related issues, attempted fixes, environment quirks, etc.).
-
-> If you selected **Other** on any fields above, please explain below.
-
-- Install Method:
-- Execution Context:
-- Severity:
-- Additional Context:
-- etc...:
+<!-- Add any other context: related issues, attempted fixes, environment quirks, explanations for "Other" selections above, etc. -->
 
 ## Checklist
 
