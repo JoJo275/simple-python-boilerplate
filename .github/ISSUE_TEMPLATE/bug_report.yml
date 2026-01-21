@@ -109,6 +109,7 @@ body:
     id: context
     attributes:
       label: Execution Context
+      description: How was the code run when the issue occurred?
       options:
         - CLI
         - Imported as a library
