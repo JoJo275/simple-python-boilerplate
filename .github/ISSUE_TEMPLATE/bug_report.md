@@ -6,46 +6,40 @@ labels: bug
 assignees: ''
 ---
 
+<!--
+Thanks for taking the time to report a bug! 🐛
+
+Please provide the **smallest possible example** that **reliably** reproduces the issue.
+-->
+
 ## Description
 
 A clear and concise description of what the bug is.
 
-## Expected Behavior
-
-A clear and concise description of what you expected to happen. 
-
-## Actual Behavior
-
-A clear and concise description of what actually happened.
-
 ## Steps to Reproduce
-
-> Please provide the *smallest possible* example that reliably reproduces the issue.
 
 1. Go to '...'
 2. Run '...'
 3. See error
 
-## Environment
+## Minimal Reproduction Code
 
-- **OS:** [e.g., Windows 11, macOS 14, Ubuntu 22.04]
-- **Python Version:** [e.g., 3.11.5]
-- **Package Version:** [e.g., 0.1.0]
-- **Execution Context:** [CLI, imported as library, tests, etc.]
+> Provide the smallest possible code snippet that reproduces the issue. Leave blank if not applicable.
 
-## Error Messages / Logs
+```python
+from simple_python_boilerplate import something
 
-```
-Paste any relevant error messages or logs here
+# Minimal code that triggers the bug
+something.do_thing()
 ```
 
-## Screenshots / Output (Optional)
+## Expected Behavior
 
-Attach screenshots or paste terminal output if helpful.
+A clear and concise description of what you expected to happen.
 
-## Additional Context
+## Actual Behavior
 
-Add any other context about the problem here.
+A clear and concise description of what actually happened.
 
 ## Severity
 
@@ -60,6 +54,32 @@ Add any other context about the problem here.
 - [ ] This worked in a previous version
 - [ ] This has never worked
 - [ ] Unsure
+
+## Environment
+
+- **OS:** [e.g., Windows 11, macOS 14, Ubuntu 22.04]
+- **Python Version:** [e.g., 3.11.5]
+- **Package Version:** [e.g., 0.1.0]
+- **Install Method:** [e.g., pip install (from PyPI), pip install -e ., uv pip install / uv sync, poetry install, pdm install, conda / mamba, Manual / from source, Other]
+- **Execution Context:** [CLI, Imported as a library, Running tests, Other]
+
+## Error Messages / Logs
+
+```shell
+Paste any relevant error messages or logs here
+```
+
+## Screenshots / Output (Optional)
+
+Attach screenshots or paste terminal output if helpful.
+
+## Workaround (Optional)
+
+If you found a workaround for this issue, please share it. This helps others and aids in prioritization.
+
+## Additional Context
+
+Add any other context about the problem here (related issues, attempted fixes, environment quirks, etc.).
 
 ## Checklist
 
