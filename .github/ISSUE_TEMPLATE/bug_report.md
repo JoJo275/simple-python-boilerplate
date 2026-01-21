@@ -12,6 +12,8 @@ A clear and concise description of what the bug is.
 
 ## Steps to Reproduce
 
+> Please provide the *smallest possible* example that reproduces the issue.
+
 1. Go to '...'
 2. Run '...'
 3. See error
