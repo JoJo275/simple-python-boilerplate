@@ -60,6 +60,16 @@ body:
     validations:
       required: true
 
+  - type: textarea
+    id: severity_other
+    attributes:
+      label: Severity – Other (if applicable)
+      description: >
+        If you selected "Other" above, please explain what kind of severity this issue represents.
+      placeholder: Explain the severity if "Other" was selected.
+    validations:
+      required: false
+
   - type: dropdown
     id: regression
     attributes:
