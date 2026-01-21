@@ -88,6 +88,6 @@ Please provide the **smallest possible example** that **reliably** reproduces th
 
 ## Checklist
 
-- [ ] I have searched existing issues
-- [ ] I can reproduce this consistently
+- [ ] I searched existing issues
+- [ ] I reproduced this consistently
 - [ ] I included relevant logs or errors
