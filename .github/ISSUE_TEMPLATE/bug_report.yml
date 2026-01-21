@@ -3,7 +3,7 @@
 # =============================================================================
 # This template collects information needed to diagnose and fix bugs.
 # Sections: Introduction, Bug Details, Severity & Regression, Environment,
-#           Logs & Screenshots, Checklist
+#           Logs & Screenshots, Additional Information, Checklist
 # =============================================================================
 
 name: Bug Report
@@ -51,6 +51,22 @@ body:
         3. See error
     validations:
       required: true
+
+  - type: textarea
+    id: reproduction_code
+    attributes:
+      label: Minimal Reproduction Code
+      description: >
+        Provide the smallest possible code snippet that reproduces the issue.
+        Leave blank if not applicable.
+      placeholder: |
+        from simple_python_boilerplate import something
+
+        # Minimal code that triggers the bug
+        something.do_thing()
+      render: python
+    validations:
+      required: false
 
   - type: textarea
     id: expected
@@ -156,7 +172,9 @@ body:
         - pip install (from PyPI)
         - pip install -e . (editable/development)
         - pip install git+...
+        - uv pip install / uv sync
         - poetry install
+        - pdm install
         - conda / mamba
         - Manual / from source
         - Other
@@ -203,6 +221,13 @@ body:
   # Additional diagnostic information such as error messages, stack traces,
   # or visual evidence of the issue.
   # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Logs & Screenshots
+
+        Provide any error messages, stack traces, or visual evidence that may help diagnose the issue.
+
   - type: textarea
     id: logs
     attributes:
@@ -221,6 +246,33 @@ body:
       required: false
 
   # ---------------------------------------------------------------------------
+  # Additional Information
+  # ---------------------------------------------------------------------------
+  # Workarounds, related issues, and any other relevant context.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround (Optional)
+      description: >
+        If you found a workaround for this issue, please share it.
+        This helps others and aids in prioritization.
+      placeholder: Describe any workaround you've found.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: >
+        Add any other context about the problem here (related issues, attempted
+        fixes, environment quirks, etc.).
+      placeholder: Any other information that might be helpful.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
   # Checklist
   # ---------------------------------------------------------------------------
   # Final confirmation that the reporter has done due diligence before
@@ -232,7 +284,7 @@ body:
       label: Checklist
       options:
         - label: I have searched existing issues
-          required: false
+          required: true
         - label: I can reproduce this consistently
           required: false
         - label: I included relevant logs or errors
