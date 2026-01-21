@@ -25,9 +25,9 @@ body:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior (include a minimal reproduction if possible).
       placeholder: |
-        1. go to '...'
+        1. Go to '...'
         2. Run '...'
-        3. see error
+        3. See error
     validations:
       required: true
 
