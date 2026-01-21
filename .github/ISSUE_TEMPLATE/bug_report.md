@@ -10,6 +10,14 @@ assignees: ''
 
 A clear and concise description of what the bug is.
 
+## Expected Behavior
+
+A clear and concise description of what you expected to happen. 
+
+## Actual Behavior
+
+A clear and concise description of what actually happened.
+
 ## Steps to Reproduce
 
 > Please provide the *smallest possible* example that reproduces the issue.
@@ -17,14 +25,6 @@ A clear and concise description of what the bug is.
 1. Go to '...'
 2. Run '...'
 3. See error
-
-## Expected Behavior
-
-A clear and concise description of what you expected to happen.
-
-## Actual Behavior
-
-A clear and concise description of what actually happened.
 
 ## Environment
 
