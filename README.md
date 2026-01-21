@@ -10,6 +10,8 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 - A reusable starting point for small Python projects
 - A correct baseline for Python packaging and testing
 
+Edit, delete, and adapt as needed for your own projects!
+
 ---
 
 ## Table of Contents
