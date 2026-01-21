@@ -256,5 +256,9 @@ Potential additions in the future:
 - more ci/cd examples
 - deployment configuration
 - style/linting configuration
+- SLSA workflows for supply chain security
 
 These may be added once I have covered the relevant concepts.
+
+[Developer note]  
+*Developer notes are formatted like this.*
