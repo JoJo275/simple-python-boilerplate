@@ -1,5 +1,22 @@
+# =============================================================================
+# Issue Template Chooser Configuration
+# =============================================================================
+# Controls the GitHub issue template selection screen.
+# - blank_issues_enabled: Allow users to create issues without a template
+# - contact_links: Additional links shown on the issue creation screen
+# =============================================================================
+
 blank_issues_enabled: true
+
 contact_links:
-  - name: Documentation
+  - name: 📖 Documentation
     url: https://github.com/JoJo275/simple-python-boilerplate#readme
     about: Check the README for setup and usage instructions
+
+  - name: 🤝 Contributing Guidelines
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md
+    about: Read before submitting issues or pull requests
+
+  - name: 📜 Code of Conduct
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CODE_OF_CONDUCT.md
+    about: Our community standards and expectations
