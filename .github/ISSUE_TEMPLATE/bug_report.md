@@ -41,3 +41,11 @@ Paste any relevant error messages or logs here
 ## Additional Context
 
 Add any other context about the problem here.
+
+## Severity
+
+- [ ] Crash / Data loss
+- [ ] Incorrect behavior
+- [ ] Performance issue
+- [ ] Minor / Cosmetic
+- [ ] Other (please describe):
