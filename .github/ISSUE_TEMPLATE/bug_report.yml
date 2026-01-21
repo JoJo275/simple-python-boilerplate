@@ -1,3 +1,11 @@
+# =============================================================================
+# Bug Report Issue Template
+# =============================================================================
+# This template collects information needed to diagnose and fix bugs.
+# Sections: Introduction, Bug Details, Severity & Regression, Environment,
+#           Logs & Screenshots, Checklist
+# =============================================================================
+
 name: Bug Report
 description: Report a bug to help us improve
 title: "[BUG] Short description of the issue"
@@ -5,11 +13,24 @@ labels: ["bug"]
 assignees: []
 
 body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for the reporter on how to submit a helpful bug report.
+  # ---------------------------------------------------------------------------
   - type: markdown
     attributes:
       value: |
-        Please provide the smallest possible example that **reliably** reproduces the issue.
+        Thanks for taking the time to report a bug! 🐛
 
+        Please provide the **smallest possible example** that **reliably** reproduces the issue.
+
+  # ---------------------------------------------------------------------------
+  # Bug Details
+  # ---------------------------------------------------------------------------
+  # Core information about the bug: description, reproduction steps, and
+  # expected vs actual behavior.
+  # ---------------------------------------------------------------------------
   - type: textarea
     id: description
     attributes:
@@ -47,6 +68,12 @@ body:
     validations:
       required: true
 
+  # ---------------------------------------------------------------------------
+  # Severity & Regression
+  # ---------------------------------------------------------------------------
+  # Helps prioritize the issue and understand if this is a new or recurring
+  # problem.
+  # ---------------------------------------------------------------------------
   - type: dropdown
     id: severity
     attributes:
@@ -82,6 +109,20 @@ body:
     validations:
       required: true
 
+  # ---------------------------------------------------------------------------
+  # Environment
+  # ---------------------------------------------------------------------------
+  # System and runtime details to help reproduce the issue in the same context.
+  # Includes OS, Python version, package version, install method, and how the
+  # code was executed.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+
+        Please provide details about your system and how the package was installed.
+
   - type: input
     id: os
     attributes:
@@ -103,6 +144,32 @@ body:
     attributes:
       label: Package Version
       placeholder: "0.1.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Install Method
+      description: How did you install this package?
+      options:
+        - pip install (from PyPI)
+        - pip install -e . (editable/development)
+        - pip install git+...
+        - poetry install
+        - conda / mamba
+        - Manual / from source
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: install_method_other
+    attributes:
+      label: Install Method – Other (if applicable)
+      description: >
+        If you selected "Other" above, please describe how you installed the package.
+      placeholder: Describe your install method if "Other" was selected.
     validations:
       required: false
 
@@ -130,6 +197,12 @@ body:
     validations:
       required: false
 
+  # ---------------------------------------------------------------------------
+  # Logs & Screenshots
+  # ---------------------------------------------------------------------------
+  # Additional diagnostic information such as error messages, stack traces,
+  # or visual evidence of the issue.
+  # ---------------------------------------------------------------------------
   - type: textarea
     id: logs
     attributes:
@@ -147,6 +220,12 @@ body:
     validations:
       required: false
 
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  # Final confirmation that the reporter has done due diligence before
+  # submitting.
+  # ---------------------------------------------------------------------------
   - type: checkboxes
     id: checklist
     attributes:
