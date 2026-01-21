@@ -86,6 +86,14 @@ If you found a workaround for this issue, please share it. This helps others and
 
 Add any other context about the problem here (related issues, attempted fixes, environment quirks, etc.).
 
+> If you selected **Other** on any fields above, please explain below.
+
+- Install Method:
+- Execution Context:
+- Severity:
+- Additional Context:
+- etc...:
+
 ## Checklist
 
 - [ ] I have searched existing issues
