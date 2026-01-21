@@ -58,13 +58,13 @@ Please provide the **smallest possible example** that **reliably** reproduces th
 
 ## Environment
 
-| Field | Value |
-|-------|-------|
-| **OS** | <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 --> |
-| **Python Version** | <!-- e.g., 3.11.5 --> |
-| **Package Version** | <!-- e.g., 0.1.0 --> |
-| **Install Method** | <!-- pip, pip -e, uv, poetry, pdm, conda, source, other --> |
-| **Execution Context** | <!-- CLI, library, tests, REPL, notebook, other --> |
+| Field                   | Value                                                        |
+|-------------------------|--------------------------------------------------------------|
+| **OS**                  | <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 -->            |
+| **Python Version**      | <!-- e.g., 3.11.5 -->                                        |
+| **Package Version**     | <!-- e.g., 0.1.0 -->                                         |
+| **Install Method**      | <!-- pip, pip -e, uv, poetry, pdm, conda, source, other -->  |
+| **Execution Context**   | <!-- CLI, library, tests, REPL, notebook, other -->          |
 
 ## Error Messages / Logs
 
