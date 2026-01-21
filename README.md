@@ -268,7 +268,7 @@ These may be added once I have covered the relevant concepts.
 This repository includes two bug report templates:
 
 - `bug_report.md` – Markdown-based (default, flexible)
-- `bug_report.form.yml` – GitHub Issue Form (structured, enforced)
+- `bug_report.yml.disabled` – GitHub Issue Form (structured, enforced)
 
 Choose one:
 1. Keep the template you prefer
