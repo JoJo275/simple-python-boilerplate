@@ -13,7 +13,7 @@ description: >
   For early-stage ideas or discussions, please use Discussions first.
 title: "[FEATURE] Short description of the feature"
 labels: ["enhancement"]
-assignees: []
+assignees: [] # Optionally assign specific team members to review requests built from this template
 
 body:
   # ---------------------------------------------------------------------------
