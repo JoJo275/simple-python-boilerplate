@@ -5,6 +5,14 @@
 # - blank_issues_enabled: Allow users to create issues without a template
 # - contact_links: Additional links shown on the issue creation screen
 # =============================================================================
+#
+# config.yml can be used to generate buttons on the issue template selection on GitHub.
+# This can reduce developer workload by directing users to relevant resources
+# before they create an issue.
+#
+# Basically giving users the correct tools instead of creating an unwarranted issue
+# if the information is already available elsewhere.
+#
 
 blank_issues_enabled: false
 
