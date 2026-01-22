@@ -275,3 +275,10 @@ This repository includes two bug report templates:
 Choose one:
 1. Keep the template you prefer
 2. Delete or rename the other
+
+## Getting Help
+
+- Questions → Discussions
+- Bugs → Issues (confirmed defects only)
+- Security → Security Policy
+
