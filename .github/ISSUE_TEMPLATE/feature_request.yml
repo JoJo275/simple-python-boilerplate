@@ -162,6 +162,7 @@ body:
         - High – Significant improvement to my workflow
         - Medium – Nice to have
         - Low – Minor convenience
+        - Unsure
     validations:
       required: true
 
