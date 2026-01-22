@@ -74,17 +74,18 @@ body:
         - Developer experience / tooling
         - Documentation improvement
         - Performance improvement
+        - Unsure
         - Other
     validations:
       required: true
 
   - type: textarea
-    id: request_type_other
+    id: request_type_other_unsure
     attributes:
-      label: Request Type – Other (if applicable)
+      label: Request Type – Other / Unsure (if applicable)
       description: >
-        If you selected "Other" above, please describe the type of request.
-      placeholder: Describe the request type if "Other" was selected.
+        If you selected "Other" or "Unsure" above, please describe the type of request.
+      placeholder: Describe the request type if "Other" or "Unsure" was selected.
     validations:
       required: false
 
@@ -101,17 +102,18 @@ body:
         - Testing / CI
         - Build / Packaging
         - Multiple areas
-        - Other / Unsure
+        - Unsure
+        - Other
     validations:
       required: true
 
   - type: textarea
-    id: affected_area_other
+    id: affected_area_other_unsure
     attributes:
-      label: Affected Area – Other (if applicable)
+      label: Affected Area – Other / Unsure (if applicable)
       description: >
-        If you selected "Other / Unsure" above, please describe the affected area.
-      placeholder: Describe the affected area if "Other / Unsure" was selected.
+        If you selected "Other" or "Unsure" above, please describe the affected area.
+      placeholder: Describe the affected area if "Other" or "Unsure" was selected.
     validations:
       required: false
 

@@ -122,12 +122,12 @@ body:
       required: true
 
   - type: textarea
-    id: severity_other
+    id: severity_other_unsure
     attributes:
-      label: Severity – Other (if applicable)
+      label: Severity – Other / Unsure (if applicable)
       description: >
-        If you selected "Other" above, please explain what kind of severity this issue represents.
-      placeholder: Explain the severity if "Other" was selected.
+        If you selected "Other" or "Unsure" above, please explain what kind of severity this issue represents.
+      placeholder: Explain the severity if "Other" or "Unsure" was selected.
     validations:
       required: false
 
@@ -200,12 +200,12 @@ body:
       required: true
 
   - type: textarea
-    id: install_method_other
+    id: install_method_other_unsure
     attributes:
-      label: Install Method – Other (if applicable)
+      label: Install Method – Other / Unsure (if applicable)
       description: >
-        If you selected "Other" above, please describe how you installed the package.
-      placeholder: Describe your install method if "Other" was selected.
+        If you selected "Other" or "Unsure" above, please describe how you installed the package.
+      placeholder: Describe your install method if "Other" or "Unsure" was selected.
     validations:
       required: false
 
@@ -224,13 +224,13 @@ body:
       required: true
 
   - type: textarea
-    id: context_other
+    id: context_other_unsure
     attributes:
-      label: Execution Context – Other (if applicable)
+      label: Execution Context – Other / Unsure (if applicable)
       description: >
-        If you selected "Other" above, please describe the execution context
+        If you selected "Other" or "Unsure" above, please describe the execution context
         (e.g., REPL, notebook, embedded usage, custom runner, etc.).
-      placeholder: Describe the execution context if "Other" was selected.
+      placeholder: Describe the execution context if "Other" or "Unsure" was selected.
     validations:
       required: false
 
