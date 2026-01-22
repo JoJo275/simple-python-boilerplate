@@ -11,6 +11,10 @@ assignees: ''
 Thanks for taking the time to report a bug! 🐛
 
 Please provide the **smallest possible example** that **reliably** reproduces the issue.
+
+⚠️ **Before submitting**
+- If you have a question or need advice, use Discussions instead.
+- If this is not a confirmed bug, please do not file an issue.
 -->
 
 ## Description
