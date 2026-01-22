@@ -26,7 +26,7 @@ contact_links:
     about: Our community standards and expectations
 
   - name: 🔒 Security Policy
-    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md
+    url: https://github.com/JoJo275/simple-python-boilerplate/security/policy
     about: Report security vulnerabilities responsibly
 
   - name: 💬 Discussions
