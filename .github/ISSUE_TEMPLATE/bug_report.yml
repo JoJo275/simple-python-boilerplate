@@ -116,6 +116,7 @@ body:
         - Incorrect behavior
         - Performance issue
         - Minor / Cosmetic
+        - Unsure
         - Other
     validations:
       required: true
@@ -193,6 +194,7 @@ body:
         - pdm install
         - conda / mamba
         - Manual / from source
+        - Unsure
         - Other
     validations:
       required: true
@@ -216,6 +218,7 @@ body:
         - CLI
         - Imported as a library
         - Running tests
+        - Unsure
         - Other
     validations:
       required: true
