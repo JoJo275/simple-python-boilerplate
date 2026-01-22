@@ -88,6 +88,33 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this feature affect?
+      options:
+        - Core library / API
+        - CLI
+        - Configuration
+        - Documentation
+        - Testing / CI
+        - Build / Packaging
+        - Multiple areas
+        - Other / Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_area_other
+    attributes:
+      label: Affected Area – Other (if applicable)
+      description: >
+        If you selected "Other / Unsure" above, please describe the affected area.
+      placeholder: Describe the affected area if "Other / Unsure" was selected.
+    validations:
+      required: false
+
   # ---------------------------------------------------------------------------
   # Proposed Solution
   # ---------------------------------------------------------------------------
