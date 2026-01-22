@@ -19,29 +19,29 @@ blank_issues_enabled: false
 contact_links:
   - name: 📖 Documentation
     url: https://github.com/JoJo275/simple-python-boilerplate#readme
-    about: Check the README for setup and usage instructions
+    about: Start here — setup, installation, and usage instructions that may answer your question
 
-  - name: 🛠️ Development Guide
-    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/docs/development.md
-    about: Setup instructions for contributors and developers
-
-  - name: 🤝 Contributing Guidelines
-    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md
-    about: Read before submitting issues or pull requests
-
-  - name: 📜 Code of Conduct
-    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CODE_OF_CONDUCT.md
-    about: Our community standards and expectations
-
-  - name: 🔒 Security Policy
-    url: https://github.com/JoJo275/simple-python-boilerplate/security/policy
-    about: Report security vulnerabilities responsibly
-
-  - name: 💬 Discussions
+  - name: 💬 Discussions (Q&A)
     url: https://github.com/JoJo275/simple-python-boilerplate/discussions
-    about: Ask questions, share ideas, or get help from the community
+    about: Have a question or need help? Ask here instead of opening an issue
 
   - name: 💡 Ideas & Proposals
     url: https://github.com/JoJo275/simple-python-boilerplate/discussions/categories/ideas
-    about: Propose new ideas or enhancements before opening an issue.
+    about: Want a new feature? Propose and discuss ideas before submitting an issue
+
+  - name: 🔒 Security Policy
+    url: https://github.com/JoJo275/simple-python-boilerplate/security/policy
+    about: Found a security vulnerability? Report it privately — do not open a public issue
+
+  - name: 🛠️ Development Guide
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/docs/development.md
+    about: Setting up a local development environment for contributing
+
+  - name: 🤝 Contributing Guidelines
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md
+    about: How to submit issues, pull requests, and follow project conventions
+
+  - name: 📜 Code of Conduct
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CODE_OF_CONDUCT.md
+    about: Community standards and expectations for respectful participation
 
