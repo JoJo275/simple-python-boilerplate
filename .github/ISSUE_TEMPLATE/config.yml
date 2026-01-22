@@ -40,3 +40,8 @@ contact_links:
   - name: 💬 Discussions
     url: https://github.com/JoJo275/simple-python-boilerplate/discussions
     about: Ask questions, share ideas, or get help from the community
+
+  - name: 💡 Ideas & Proposals
+    url: https://github.com/JoJo275/simple-python-boilerplate/discussions/categories/ideas
+    about: Propose new ideas or enhancements before opening an issue.
+
