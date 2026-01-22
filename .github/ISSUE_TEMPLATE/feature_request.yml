@@ -82,7 +82,7 @@ body:
   - type: textarea
     id: request_type_other_unsure
     attributes:
-      label: Request Type – Other / Unsure (if applicable)
+      label: Request Type – Other or Unsure (if applicable)
       description: >
         If you selected "Other" or "Unsure" above, please describe the type of request.
       placeholder: Describe the request type if "Other" or "Unsure" was selected.
@@ -110,7 +110,7 @@ body:
   - type: textarea
     id: affected_area_other_unsure
     attributes:
-      label: Affected Area – Other / Unsure (if applicable)
+      label: Affected Area – Other or Unsure (if applicable)
       description: >
         If you selected "Other" or "Unsure" above, please describe the affected area.
       placeholder: Describe the affected area if "Other" or "Unsure" was selected.
@@ -208,14 +208,17 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: dropdown
     id: breaking_change
     attributes:
       label: Breaking Change?
       description: Would this feature require breaking changes to existing functionality?
       options:
-        - label: This may introduce breaking changes
-          required: false
+        - No, this should be backward compatible
+        - Yes, this may introduce breaking changes
+        - Unsure
+    validations:
+      required: true
 
   # ---------------------------------------------------------------------------
   # Additional Context

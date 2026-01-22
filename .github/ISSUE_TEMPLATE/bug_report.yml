@@ -100,6 +100,34 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the project does this bug affect?
+      options:
+        - Core library / API
+        - CLI
+        - Configuration
+        - Documentation
+        - Testing / CI
+        - Build / Packaging
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_area_other_unsure
+    attributes:
+      label: Affected Area – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other or Unsure" above, please describe the affected area.
+      placeholder: Describe the affected area if "Other or Unsure" was selected.
+    validations:
+      required: false
+
   # ---------------------------------------------------------------------------
   # Severity & Regression
   # ---------------------------------------------------------------------------
@@ -124,7 +152,7 @@ body:
   - type: textarea
     id: severity_other_unsure
     attributes:
-      label: Severity – Other / Unsure (if applicable)
+      label: Severity – Other or Unsure (if applicable)
       description: >
         If you selected "Other" or "Unsure" above, please explain what kind of severity this issue represents.
       placeholder: Explain the severity if "Other" or "Unsure" was selected.
@@ -202,7 +230,7 @@ body:
   - type: textarea
     id: install_method_other_unsure
     attributes:
-      label: Install Method – Other / Unsure (if applicable)
+      label: Install Method – Other or Unsure (if applicable)
       description: >
         If you selected "Other" or "Unsure" above, please describe how you installed the package.
       placeholder: Describe your install method if "Other" or "Unsure" was selected.
@@ -226,7 +254,7 @@ body:
   - type: textarea
     id: context_other_unsure
     attributes:
-      label: Execution Context – Other / Unsure (if applicable)
+      label: Execution Context – Other or Unsure (if applicable)
       description: >
         If you selected "Other" or "Unsure" above, please describe the execution context
         (e.g., REPL, notebook, embedded usage, custom runner, etc.).
