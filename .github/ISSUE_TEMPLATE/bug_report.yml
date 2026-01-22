@@ -38,7 +38,7 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - If you have a question or need advice, use Discussions instead.
+        - If you have a question or need advice, use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions/categories/ideas) instead.
         - If this is not a confirmed bug, please do not file an issue.
 
   # ---------------------------------------------------------------------------
