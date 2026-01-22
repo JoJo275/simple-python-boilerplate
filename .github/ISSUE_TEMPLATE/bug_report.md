@@ -1,5 +1,5 @@
 ---
-name: Bug Report
+name: 🐛 Bug report (for confirmed defects only)
 about: Report a bug to help us improve
 title: "[BUG] Short description of the issue"
 labels: bug

@@ -6,7 +6,7 @@
 #           Logs & Screenshots, Additional Information, Checklist
 # =============================================================================
 
-name: Bug Report
+name: 🐛 Bug report (for confirmed defects only)
 description: Report a bug to help us improve
 title: "[BUG] Short description of the issue"
 labels: ["bug"]
@@ -24,6 +24,20 @@ body:
         Thanks for taking the time to report a bug! 🐛
 
         Please provide the **smallest possible example** that **reliably** reproduces the issue.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Encourages users to use Discussions for questions or advice instead of
+  # filing bug reports for unconfirmed issues.
+  # ---------------------------------------------------------------------------
+
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Before submitting**
+        - If you have a question or need advice, use Discussions instead.
+        - If this is not a confirmed bug, please do not file an issue.
 
   # ---------------------------------------------------------------------------
   # Bug Details
