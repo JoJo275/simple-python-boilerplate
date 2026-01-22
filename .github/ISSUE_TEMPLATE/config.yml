@@ -1,25 +1,18 @@
 # =============================================================================
-# Issue Template Chooser Configuration
-# =============================================================================
-# Controls the GitHub issue template selection screen.
-# - blank_issues_enabled: Allow users to create issues without a template
-# - contact_links: Additional links shown on the issue creation screen
-# =============================================================================
-#
 # config.yml can be used to generate buttons on the issue template selection on GitHub.
 # This can reduce developer workload by directing users to relevant resources
 # before they create an issue.
 #
 # Basically giving users the correct tools instead of creating an unwarranted issue
 # if the information is already available elsewhere.
-#
+# ==============================================================================
 
 blank_issues_enabled: false
 
 contact_links:
-  - name: 📖 Documentation
+  - name: 📖 Documentation (Usage)
     url: https://github.com/JoJo275/simple-python-boilerplate#readme
-    about: Start here — setup, installation, and usage instructions that may answer your question
+    about: Start here — setup, installation, and usage instructions.
 
   - name: 💬 Discussions (Q&A)
     url: https://github.com/JoJo275/simple-python-boilerplate/discussions
@@ -33,9 +26,9 @@ contact_links:
     url: https://github.com/JoJo275/simple-python-boilerplate/security/policy
     about: Found a security vulnerability? Report it privately — do not open a public issue
 
-  - name: 🛠️ Development Guide
+  - name: 🛠️ Development Guide (Contributing)
     url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/docs/development.md
-    about: Setting up a local development environment for contributing
+    about: Local development setup for contributors
 
   - name: 🤝 Contributing Guidelines
     url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md
