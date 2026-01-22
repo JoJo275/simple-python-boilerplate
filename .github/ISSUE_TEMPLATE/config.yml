@@ -13,6 +13,10 @@ contact_links:
     url: https://github.com/JoJo275/simple-python-boilerplate#readme
     about: Check the README for setup and usage instructions
 
+  - name: 🛠️ Development Guide
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/docs/development.md
+    about: Setup instructions for contributors and developers
+
   - name: 🤝 Contributing Guidelines
     url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md
     about: Read before submitting issues or pull requests
@@ -20,3 +24,11 @@ contact_links:
   - name: 📜 Code of Conduct
     url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/CODE_OF_CONDUCT.md
     about: Our community standards and expectations
+
+  - name: 🔒 Security Policy
+    url: https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md
+    about: Report security vulnerabilities responsibly
+
+  - name: 💬 Discussions
+    url: https://github.com/JoJo275/simple-python-boilerplate/discussions
+    about: Ask questions, share ideas, or get help from the community
