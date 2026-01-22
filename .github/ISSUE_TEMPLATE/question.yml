@@ -61,7 +61,7 @@ body:
   - type: textarea
     id: goal
     attributes:
-      label: What are you trying to accomplish?
+      label: What are you trying to accomplish? (Optional)
       description: >
         Describe the broader goal or use case. This helps us provide
         better answers and suggest alternative approaches if applicable.
@@ -69,7 +69,7 @@ body:
         Example: "I'm trying to integrate this with my existing project that uses..."
         Example: "I want to customize the behavior so that..."
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: topic
@@ -85,19 +85,32 @@ body:
         - Performance
         - Troubleshooting
         - Contributing / Development
-        - Other / Unsure
+        - Unsure
+        - Other
     validations:
       required: true
 
   - type: textarea
     id: topic_other_unsure
     attributes:
-      label: Topic Area – Other / Unsure (if applicable)
+      label: Topic Area – Other or Unsure (if applicable)
       description: >
-        If you selected "Other / Unsure" above, please describe the topic area.
-      placeholder: Describe the topic area if "Other / Unsure" was selected.
+        If you selected "Other" or "Unsure" above, please describe the topic area.
+      placeholder: Describe the topic area if "Other" or "Unsure" was selected.
     validations:
       required: false
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is this question for you?
+      options:
+        - Blocking my work
+        - Important but not urgent
+        - Just curious / Learning
+    validations:
+      required: true
 
   # ---------------------------------------------------------------------------
   # Context
@@ -179,4 +192,6 @@ body:
         - label: I have checked the documentation
           required: true
         - label: This question is specific and not a general help request
+          required: false
+        - label: The answer to this question should be added to the documentation
           required: false
