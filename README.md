@@ -10,6 +10,8 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 - A reusable starting point for small Python projects
 - A correct baseline for Python packaging and testing
 
+even though this has python in the title of the repo, you can use this repo for non-python projects as well by simply removing the python specific parts.
+
 Edit, delete, and adapt as needed for your own projects!
 
 ---
