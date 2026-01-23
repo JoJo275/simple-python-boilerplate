@@ -291,4 +291,24 @@ Remember to create the corrosponding labels for each issue in your repo for what
 
 Asside from the issue templates, there is also a set of labels to help categorize issues. Feel free to copy these labels as you see fit.
 
-I've 
+## Optional GitHub Setup
+
+### Install recommended labels
+GitHub labels are repository metadata and do not copy when creating a repo from a template.
+
+- Baseline set: good for most repos
+- Extended set: for larger projects
+
+See: `docs/labels.md`
+
+Prereqs:
+- Install GitHub CLI (`gh`) and authenticate: `gh auth login`
+
+Run:
+- `./scripts/apply-labels.sh baseline`
+- `./scripts/apply-labels.sh extended`
+
+Windows note:
+- Run via WSL, or run the Python script directly:
+  - `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+
