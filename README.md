@@ -151,6 +151,9 @@ python -m venv .venv
 
 # 3. Install project in editable mode
 python -m pip install -e .
+
+python -m pip install -e ".[dev]"
+python -m pytest
 ```
 
 ### Verify Your Environment
