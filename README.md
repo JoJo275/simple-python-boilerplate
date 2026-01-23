@@ -290,3 +290,5 @@ Remember to create the corrosponding labels for each issue in your repo for what
 ## Issues Tab on GitHub
 
 Asside from the issue templates, there is also a set of labels to help categorize issues. Feel free to copy these labels as you see fit.
+
+I've 
