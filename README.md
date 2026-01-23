@@ -14,6 +14,8 @@ even though this has python in the title of the repo, you can use this repo for 
 
 Edit, delete, and adapt as needed for your own projects!
 
+There are some notes to myself and throughout the repo to remind me of certain things and why they are done a particular way (still learning a lot). Feel free to remove those notes as you see fit.
+
 ---
 
 ## Table of Contents
