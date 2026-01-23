@@ -134,6 +134,20 @@ body:
       required: true
 
   - type: dropdown
+    id: blocking
+    attributes:
+      label: Is this blocking your work?
+      description: How urgently do you need this resolved?
+      options:
+        - Yes – Blocking production / critical path
+        - Yes – Blocking development work
+        - Partially – Using workaround but it's painful
+        - No – Important but not blocking
+        - No – Just reporting for awareness
+    validations:
+      required: true
+
+  - type: dropdown
     id: reproducibility
     attributes:
       label: Reproducibility
@@ -241,6 +255,37 @@ body:
       required: true
 
   - type: dropdown
+    id: can_share_data
+    attributes:
+      label: Can you share the data that caused this issue?
+      description: >
+        Real data often helps reproduce and diagnose performance issues.
+        If you can share it, we may be able to debug more effectively.
+      options:
+        - Yes – I can share the exact data
+        - Yes – I can share a sanitized/anonymized version
+        - Yes – I can provide synthetic data that reproduces it
+        - Partially – I can describe the data characteristics
+        - No – Data is confidential / cannot be shared
+        - Not applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: dataset_details
+    attributes:
+      label: Dataset Details / Link (Optional)
+      description: >
+        If you can share data, provide a link (Gist, Google Drive, Dropbox, etc.)
+        or describe how to generate equivalent test data.
+      placeholder: |
+        Link: https://gist.github.com/...
+        Or: "Run `generate_test_data(n=100000)` to create equivalent data"
+        Or: "Attached file: test_data.csv"
+    validations:
+      required: false
+
+  - type: dropdown
     id: concurrency
     attributes:
       label: Concurrency / Threading (Optional)
@@ -315,31 +360,62 @@ body:
         the severity and verify fixes.
 
   - type: textarea
-    id: current_performance
+    id: timing_current
     attributes:
-      label: Current Performance
+      label: Timing Measurements – Current
       description: >
-        What is the current performance? Include timing, memory usage, or
-        other relevant metrics.
+        What is the current timing performance? Include execution time,
+        latency, throughput, or other time-based metrics.
       placeholder: |
         - Operation takes ~15 seconds
-        - Memory usage peaks at 2GB
-        - CPU usage stays at 100% for duration
+        - Startup time: 8 seconds
+        - Throughput: 100 records/second
+        - P95 latency: 500ms
     validations:
-      required: true
+      required: false
 
   - type: textarea
-    id: expected_performance
+    id: timing_expected
     attributes:
-      label: Expected Performance
+      label: Timing Measurements – Expected
       description: >
-        What performance do you expect? If this is a regression, what was
-        the previous performance?
+        What timing performance do you expect? If this is a regression,
+        what was the previous timing?
       placeholder: |
         - Expected: <1 second (based on previous version)
-        - Expected: Memory usage under 500MB
+        - Previous: 200ms in v0.9.0
+        - Target throughput: 10,000 records/second
     validations:
-      required: true
+      required: false
+
+  - type: textarea
+    id: memory_current
+    attributes:
+      label: Memory Measurements – Current
+      description: >
+        What is the current memory usage? Include peak memory, memory growth,
+        or other memory-related metrics.
+      placeholder: |
+        - Memory usage peaks at 2GB
+        - Memory grows by 100MB per iteration
+        - RSS after processing: 1.5GB
+        - Objects not garbage collected: 50,000
+    validations:
+      required: false
+
+  - type: textarea
+    id: memory_expected
+    attributes:
+      label: Memory Measurements – Expected
+      description: >
+        What memory usage do you expect? If this is a regression,
+        what was the previous memory usage?
+      placeholder: |
+        - Expected: <500MB peak
+        - Previous: stable at 200MB in v0.9.0
+        - Should return to baseline after processing
+    validations:
+      required: false
 
   - type: textarea
     id: profiling_data
