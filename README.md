@@ -278,9 +278,11 @@ Choose one:
 1. Keep the template you prefer
 2. Delete or rename the other
 
+Remember to create the corrosponding labels for each issue in your repo for whatever issue templates you choose to use.  
+[issues -> labels -> new label]
+
 ## Getting Help
 
 - Questions → Discussions
 - Bugs → Issues (confirmed defects only)
 - Security → Security Policy
-
