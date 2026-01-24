@@ -317,3 +317,10 @@ Windows note:
 - Run via WSL, or run the Python script directly:
   - `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
 
+## Common commands
+
+This project defines convenience scripts in `pyproject.toml`.
+See the scripts section there for the current list and descriptions.
+
+## development
+
