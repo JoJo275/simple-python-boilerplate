@@ -59,3 +59,7 @@ select = ["E", "F", "I", "UP"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade
 [tool.mypy]
 python_version = "3.11"
 strict = true  # Enable all strict type checking options
+
+[project.scripts]
+spb = "simple_python_boilerplate.main:main"
+
