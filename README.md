@@ -324,3 +324,4 @@ See the scripts section there for the current list and descriptions.
 
 ## development
 
+pointer to pyproject script
