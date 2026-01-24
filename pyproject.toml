@@ -1,7 +1,14 @@
+# ============================================================================
+# BUILD SYSTEM
+# ============================================================================
+# PEP 517/518 configuration - tells pip HOW to build your package
 [build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["setuptools>=68", "wheel"]  # Tools needed to build the package
+build-backend = "setuptools.build_meta"  # The backend that actually builds it
 
+# ============================================================================
+# PROJECT METADATA
+# ============================================================================
 [project]
 name = "simple-python-boilerplate"
 version = "0.1.0"
@@ -10,32 +17,45 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [{name = "Joseph"}]
+
+# Extra dependencies installed with: pip install -e ".[dev]"
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "pytest-cov",
-    "ruff",
-    "mypy",
-    "pre-commit",
+    "pytest",       # Testing framework
+    "pytest-cov",   # Code coverage for pytest
+    "ruff",         # Fast linter and formatter
+    "mypy",         # Static type checker
+    "pre-commit",   # Git hooks for automated checks
 ]
 
+# ============================================================================
+# SETUPTOOLS CONFIG
+# ============================================================================
+# Tells setuptools that package code lives in src/ directory
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# ============================================================================
+# TOOL CONFIGURATIONS
+# ============================================================================
+
+# -- Pytest --
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q"  # Quiet output
 
+# -- Ruff (linter/formatter) --
 [tool.ruff]
 line-length = 88
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP"]
+select = ["E", "F", "I", "UP"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade
 
+# -- Mypy (type checker) --
 [tool.mypy]
 python_version = "3.11"
-strict = true
+strict = true  # Enable all strict type checking options
