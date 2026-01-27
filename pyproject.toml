@@ -18,6 +18,13 @@ requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [{name = "Joseph"}]
 
+# Runtime dependencies - installed automatically with: pip install -e .
+dependencies = [
+    # Add your project's runtime dependencies here, e.g.:
+    # "requests>=2.28",
+    # "click>=8.0",
+]
+
 # CLI entry point - run with: spb
 [project.scripts]
 spb = "simple_python_boilerplate.main:main"
