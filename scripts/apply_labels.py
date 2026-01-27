@@ -9,6 +9,9 @@ Usage:
   scripts/apply_labels.py --set baseline --repo OWNER/REPO
   scripts/apply_labels.py --set extended --repo OWNER/REPO
   scripts/apply_labels.py --set baseline --dry-run
+
+See https://github.com/JoJo275/simple-python-boilerplate/labels?page=1 for 
+extended label set example.
 """
 
 from __future__ import annotations
