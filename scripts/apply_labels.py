@@ -23,8 +23,10 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
+
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, text=True, capture_output=True)
+
 
 def default_repo() -> str | None:
     p = run(["gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"])
@@ -37,6 +39,7 @@ def gh_api(method: str, endpoint: str, fields: dict[str, str]) -> subprocess.Com
     for k, v in fields.items():
         cmd += ["-f", f"{k}={v}"]
     return run(cmd)
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
