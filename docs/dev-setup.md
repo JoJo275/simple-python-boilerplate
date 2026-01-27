@@ -12,7 +12,7 @@ This guide walks you through setting up the development environment for this pro
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/username/simple-python-boilerplate.git
+git clone https://github.com/JoJo275/simple-python-boilerplate.git
 cd simple-python-boilerplate
 
 # 2. Create and activate virtual environment
@@ -37,7 +37,44 @@ python -m pytest  # Run tests
 
 ## Detailed Setup
 
-### 1. Virtual Environment
+### 1. Confirm Python Installation
+
+```bash
+# Ensure Python 3.11+ is installed
+python --version
+```
+
+### 2. Ensure .venv/ is Ignored
+
+Before creating a virtual environment, make sure `.venv/` is in your `.gitignore`:
+
+```bash
+# Check if .venv is ignored
+git check-ignore .venv/
+
+# If not ignored, add it
+echo ".venv/" >> .gitignore
+```
+
+Your `.gitignore` should include:
+```
+.venv/
+__pycache__/
+*.egg-info/
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+```
+
+### 3. Update pip
+
+```bash
+python -m pip install --upgrade pip
+```
+
+### 4. Virtual Environment
 
 Always use a virtual environment to isolate project dependencies:
 
@@ -47,7 +84,7 @@ python -m venv .venv
 
 # Activate it (choose your platform)
 # Windows PowerShell:
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # Windows CMD:
 .venv\Scripts\activate.bat
@@ -58,7 +95,14 @@ source .venv/bin/activate
 
 > **Tip:** Your terminal prompt should show `(.venv)` when activated.
 
-### 2. Install Dependencies
+### 5. Confirm You're in the venv
+
+```bash
+python -c "import sys; print(sys.executable); print(sys.prefix)"
+python -m pip -V
+```
+
+### 6. Install Dependencies
 
 ```bash
 # Install package + dev dependencies (pytest, ruff, mypy, etc.)
@@ -70,7 +114,7 @@ python -m pip install -e .
 
 The `-e` flag installs in "editable" mode - changes to source code take effect immediately without reinstalling.
 
-### 3. Verify Installation
+### 7. Verify Installation
 
 ```bash
 # Check the package is installed
@@ -89,7 +133,7 @@ python -m ruff check src/
 python -m mypy src/
 ```
 
-### 4. Helpful Commands
+### 8. Helpful Commands
 
 ```bash
 # Editable installs confirmation
