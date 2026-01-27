@@ -140,24 +140,37 @@ Prereqs:
 - Install and authenticate GitHub CLI: `gh auth login`
 - Run from the root of your repository
 
+### Using the Python script (recommended)
+
 Apply **baseline** (recommended for most repos):
 ```bash
-./scripts/apply-labels.sh baseline
+python scripts/apply_labels.py --set baseline
 ```
 
 Apply **extended** (large projects / heavier triage):
 ```bash
-./scripts/apply-labels.sh extended
+python scripts/apply_labels.py --set extended
 ```
 
 Target a specific repo:
 ```bash
-./scripts/apply-labels.sh baseline OWNER/REPO
+python scripts/apply_labels.py --set baseline --repo OWNER/REPO
 ```
 
-Dry run:
+Dry run (preview without making changes):
 ```bash
-./scripts/apply-labels.sh baseline --dry-run
+python scripts/apply_labels.py --set extended --dry-run
+```
+
+### Using the shell script (alternative)
+
+For macOS/Linux/WSL users who prefer shell scripts:
+
+```bash
+./scripts/apply-labels.sh baseline              # Apply baseline
+./scripts/apply-labels.sh extended              # Apply extended
+./scripts/apply-labels.sh baseline OWNER/REPO   # Target specific repo
+./scripts/apply-labels.sh baseline --dry-run    # Dry run
 ```
 
 ## Baseline set
