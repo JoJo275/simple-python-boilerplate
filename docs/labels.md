@@ -12,7 +12,7 @@ Why this exists:
 
 ## Rules of Thumb
 
-To avoid "label soup," follow these guidelines:
+To avoid "label soup," please follow these guidelines:
 
 - **1× `status:`** — one at a time, update as issue progresses
 - **1× `priority:`** — optional until triaged, then pick one
