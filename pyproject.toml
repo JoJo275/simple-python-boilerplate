@@ -60,6 +60,14 @@ dependencies = [
 [project.scripts]
 spb = "simple_python_boilerplate.main:main"
 
+# GUI entry points (no console window on Windows)
+# [project.gui-scripts]
+# spb-gui = "simple_python_boilerplate.gui:main"
+
+# Plugin/extension entry points - let other packages discover yours
+# [project.entry-points."some_framework.plugins"]
+# my_plugin = "simple_python_boilerplate.plugins:MyPlugin"
+
 # Extra dependencies installed with: pip install -e ".[dev]"
 [project.optional-dependencies]
 dev = [
@@ -91,6 +99,14 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# Include non-Python files in your package (e.g., data files, configs)
+# [tool.setuptools.package-data]
+# simple_python_boilerplate = ["*.json", "*.yaml", "data/*"]
+
+# Alternative: use MANIFEST.in-style patterns
+# [tool.setuptools.dynamic]
+# version = {attr = "simple_python_boilerplate.__version__"}  # Read version from code
 
 # ============================================================================
 # TOOL CONFIGURATIONS
@@ -193,3 +209,27 @@ strict = true  # Enable all strict type checking options
 # [tool.isort]
 # profile = "black"
 # known_first_party = ["simple_python_boilerplate"]
+
+# -- Pyright (alternative type checker, used by Pylance in VS Code) --
+# [tool.pyright]
+# pythonVersion = "3.11"
+# typeCheckingMode = "strict"
+# reportMissingImports = true
+# reportMissingTypeStubs = false
+
+# -- Semantic Release (automated versioning) --
+# [tool.semantic_release]
+# version_variable = "src/simple_python_boilerplate/__init__.py:__version__"
+# branch = "main"
+# upload_to_pypi = false
+# upload_to_release = true
+# build_command = "pip install build && python -m build"
+
+# ============================================================================
+# NOTES FOR BOILERPLATE USERS
+# ============================================================================
+# 1. Create py.typed file in src/simple_python_boilerplate/ for PEP 561 typed package
+# 2. Consider using pre-commit hooks - see .pre-commit-config.yaml
+# 3. For dynamic versioning, consider: setuptools-scm, hatch-vcs, or semantic-release
+# 4. Test your package build with: python -m build
+# 5. Check package metadata with: python -m pip show simple-python-boilerplate
