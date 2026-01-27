@@ -65,18 +65,8 @@
     "color": "fef2c0"
   },
   {
-    "name": "status: needs-repro",
-    "description": "Needs a minimal reproduction case",
-    "color": "f9d0c4"
-  },
-  {
     "name": "status: blocked",
     "description": "Blocked by dependency/decision/external factor",
-    "color": "b60205"
-  },
-  {
-    "name": "priority: p0-critical",
-    "description": "Crash/data loss/security/major outage",
     "color": "b60205"
   },
   {
@@ -93,35 +83,5 @@
     "name": "priority: p3-low",
     "description": "Nice-to-have",
     "color": "c2e0c6"
-  },
-  {
-    "name": "priority: backlog",
-    "description": "Accepted but not scheduled",
-    "color": "bfdadc"
-  },
-  {
-    "name": "area: cli",
-    "description": "Command-line interface",
-    "color": "006b75"
-  },
-  {
-    "name": "area: packaging",
-    "description": "pyproject/build/publishing/installers",
-    "color": "d4c5f9"
-  },
-  {
-    "name": "area: docs",
-    "description": "Docs content and examples",
-    "color": "0075ca"
-  },
-  {
-    "name": "area: tests",
-    "description": "Test suite, fixtures, harness",
-    "color": "c5def5"
-  },
-  {
-    "name": "area: ci",
-    "description": "CI pipelines and automation",
-    "color": "bfd4f2"
   }
 ]

@@ -6,11 +6,27 @@ Why this exists:
 - Labels are **repo metadata** (they do **not** copy when you create a new repo from a template).
 - A consistent label set makes triage and contribution easier.
 
+**After creating your repo from a template, run the apply script to add labels.**
+
+---
+
+## Rules of Thumb
+
+To avoid "label soup," please follow these guidelines:
+
+- **1× `status:`** — one at a time, update as issue progresses
+- **1× `priority:`** — optional until triaged, then pick one
+- **1× `type:`** — categorize the nature of work
+- **1+ `area:`** — can apply multiple if issue spans areas
+- **Optional:** `triage:`, `release:`, `contrib:`, `meta:` as needed
+
 ---
 
 ## Label Categories and Usage Guide
 
-Labels are organized by **prefix** to make them easy to scan and filter. Here's how to use them:
+Labels are organized by **prefix** to make them easy to scan and filter. Here's how to use them.
+
+> **Note:** `status:`, `priority:`, and `type:` labels are in both sets. The extended set adds more granular options plus `area:`, `triage:`, `release:`, `contrib:`, and `meta:` labels.
 
 ### Status Labels (`status:`)
 
@@ -175,6 +191,8 @@ For macOS/Linux/WSL users who prefer shell scripts:
 
 ## Baseline set
 
+GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(17 labels = 9 defaults + 8 extras)**
+
 | Label | Description | Color |
 |---|---|---|
 | `bug` | Something isn't working | `#d73a4a` |
@@ -190,23 +208,18 @@ For macOS/Linux/WSL users who prefer shell scripts:
 | `wontfix` | This will not be worked on | `#ffffff` |
 | `status: needs-triage` | New issue; not yet reviewed/confirmed | `#fbca04` |
 | `status: needs-info` | Reporter needs to provide missing details | `#fef2c0` |
-| `status: needs-repro` | Needs a minimal reproduction case | `#f9d0c4` |
 | `status: blocked` | Blocked by dependency/decision/external factor | `#b60205` |
-| `priority: p0-critical` | Crash/data loss/security/major outage | `#b60205` |
 | `priority: p1-high` | Important; should be addressed soon | `#d93f0b` |
 | `priority: p2-medium` | Normal priority | `#fbca04` |
 | `priority: p3-low` | Nice-to-have | `#c2e0c6` |
-| `priority: backlog` | Accepted but not scheduled | `#bfdadc` |
-| `area: cli` | Command-line interface | `#006b75` |
-| `area: packaging` | pyproject/build/publishing/installers | `#d4c5f9` |
-| `area: docs` | Docs content and examples | `#0075ca` |
-| `area: tests` | Test suite, fixtures, harness | `#c5def5` |
-| `area: ci` | CI pipelines and automation | `#bfd4f2` |
 
 ## Extended set
 
-Notes:
-- The extended set **does not** add duplicates of GitHub’s `help wanted` and `good first issue` labels.
+Includes everything in baseline plus more granular `status:`, `priority:`, `area:`, `type:`, `triage:`, `release:`, `contrib:`, and `meta:` labels for larger projects with heavier triage needs. **(62 labels = 17 baseline + 45 extras)**
+
+**Notes:**
+- Includes GitHub's default labels (`help wanted`, `good first issue`, etc.) with same names/colors
+- The script uses upsert logic—existing labels are updated, not duplicated
 
 | Label | Description | Color |
 |---|---|---|
