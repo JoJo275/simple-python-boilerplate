@@ -144,7 +144,8 @@ Colors are intentionally shared to create visual groupings:
 |-------|--------|
 | 🔴 Red (`#b60205`, `#d73a4a`) | Critical, blocking, bugs |
 | 🟠 Orange (`#d93f0b`) | High priority, needs attention |
-| 🟡 Yellow (`#fbca04`, `#ffcc00`) | Needs triage/decision, medium priority, performance |
+| 🟡 Yellow (`#fbca04`) | Needs triage/decision, medium priority |
+| 🟠 Amber (`#e68a00`) | Performance-related |
 | 🟢 Green (`#0e8a16`) | Confirmed, accepted, done |
 | 🔵 Blue (`#0075ca`, `#0052cc`) | Documentation, in-progress |
 | 🟣 Purple (`#d4c5f9`, `#5319e7`) | Waiting, design, refactor |
@@ -256,7 +257,7 @@ Includes everything in baseline plus more granular `status:`, `priority:`, `area
 | `status: waiting-on-maintainer` | Waiting on maintainer action/decision | `#d4c5f9` |
 | `status: waiting-on-reporter` | Waiting on reporter response | `#c5def5` |
 | `status: wont-merge` | Decision made not to accept a PR/approach | `#000000` |
-| `type: performance` | Performance issue (slowdown/regression) | `#ffcc00` |
+| `type: performance` | Performance issue (slowdown/regression) | `#e68a00` |
 | `type: refactor` | Internal cleanup; no user-facing change | `#5319e7` |
 | `type: chore` | Maintenance task (non-feature, non-bug) | `#ededed` |
 | `type: build` | Build tooling / packaging changes | `#cfd3d7` |
@@ -267,7 +268,7 @@ Includes everything in baseline plus more granular `status:`, `priority:`, `area
 | `area: logging` | Logging/telemetry | `#0e8a16` |
 | `area: config` | Configuration files/env behavior | `#0052cc` |
 | `area: ux` | User experience and ergonomics | `#a2eeef` |
-| `area: performance` | Subsystem performance (hot paths) | `#ffcc00` |
+| `area: performance` | Subsystem performance (hot paths) | `#e68a00` |
 | `area: compatibility` | OS/Python-version compatibility | `#f9d0c4` |
 | `area: windows` | Windows-specific | `#1d76db` |
 | `area: linux` | Linux-specific | `#0e8a16` |
@@ -277,7 +278,7 @@ Includes everything in baseline plus more granular `status:`, `priority:`, `area
 | `triage: needs-decision` | Blocked pending a maintainer decision | `#fbca04` |
 | `triage: needs-docs` | Requires docs update to ship | `#0075ca` |
 | `triage: needs-tests` | Requires tests before merge/close | `#c5def5` |
-| `triage: needs-benchmark` | Needs benchmark numbers to evaluate | `#ffcc00` |
+| `triage: needs-benchmark` | Needs benchmark numbers to evaluate | `#e68a00` |
 | `release: blocker` | Must be fixed before next release | `#b60205` |
 | `release: candidate` | Candidate item for next release notes | `#0052cc` |
 | `release: backport-needed` | Should be backported to a stable branch | `#d93f0b` |

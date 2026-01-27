@@ -157,7 +157,7 @@
   {
     "name": "type: performance",
     "description": "Performance issue (slowdown/regression)",
-    "color": "ffcc00"
+    "color": "e68a00"
   },
   {
     "name": "type: refactor",
@@ -212,7 +212,7 @@
   {
     "name": "area: performance",
     "description": "Subsystem performance (hot paths)",
-    "color": "ffcc00"
+    "color": "e68a00"
   },
   {
     "name": "area: compatibility",
@@ -262,7 +262,7 @@
   {
     "name": "triage: needs-benchmark",
     "description": "Needs benchmark numbers to evaluate",
-    "color": "ffcc00"
+    "color": "e68a00"
   },
   {
     "name": "release: blocker",
