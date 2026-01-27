@@ -28,11 +28,11 @@ python -m venv .venv
 source .venv/bin/activate
 
 # 3. Install the package in editable mode with dev dependencies
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 
 # 4. Verify installation
 spb  # Run the CLI entry point
-pytest  # Run tests
+python -m pytest  # Run tests
 ```
 
 ## Detailed Setup
@@ -62,10 +62,10 @@ source .venv/bin/activate
 
 ```bash
 # Install package + dev dependencies (pytest, ruff, mypy, etc.)
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 
 # Or install just the package (no dev tools)
-pip install -e .
+python -m pip install -e .
 ```
 
 The `-e` flag installs in "editable" mode - changes to source code take effect immediately without reinstalling.
@@ -74,24 +74,49 @@ The `-e` flag installs in "editable" mode - changes to source code take effect i
 
 ```bash
 # Check the package is installed
-pip show simple-python-boilerplate
+python -m pip show simple-python-boilerplate
 
 # Run the CLI
 spb
 
 # Run tests
-pytest
+python -m pytest
 
 # Run linter
-ruff check src/
+python -m ruff check src/
 
 # Run type checker
-mypy src/
+python -m mypy src/
 ```
+
 ### 4. Helpful Commands
 
+```bash
+# Editable installs confirmation
+python -m pip list --editable
 
+# See all packages installed in the venv
+python -m pip list
 
+# Freeze list (good for reproducing exact versions)
+python -m pip freeze
+
+# See exactly what pip thinks your project requires
+python -m pip show simple-python-boilerplate
+```
+
+**Dependency tree** (very useful for understanding what depends on what):
+
+```bash
+# Install pipdeptree
+python -m pip install pipdeptree
+
+# Show full dependency tree
+python -m pipdeptree
+
+# Show just your project's dependencies
+python -m pipdeptree -p simple-python-boilerplate
+```
 
 ## Project Structure
 
@@ -114,12 +139,12 @@ simple-python-boilerplate/
 | Command | Description |
 |---------|-------------|
 | `spb` | Run the CLI entry point |
-| `pytest` | Run all tests |
-| `pytest -v` | Run tests with verbose output |
-| `pytest --cov` | Run tests with coverage report |
-| `ruff check src/` | Lint source code |
-| `ruff format src/` | Format source code |
-| `mypy src/` | Type check source code |
+| `python -m pytest` | Run all tests |
+| `python -m pytest -v` | Run tests with verbose output |
+| `python -m pytest --cov` | Run tests with coverage report |
+| `python -m ruff check src/` | Lint source code |
+| `python -m ruff format src/` | Format source code |
+| `python -m mypy src/` | Type check source code |
 
 ## IDE Setup
 
@@ -147,7 +172,7 @@ simple-python-boilerplate/
 
 Make sure:
 1. Virtual environment is activated (you see `(.venv)` in prompt)
-2. Package is installed: `pip install -e ".[dev]"`
+2. Package is installed: `python -m pip install -e ".[dev]"`
 
 ### Import errors in IDE
 

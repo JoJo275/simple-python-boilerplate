@@ -1,0 +1,29 @@
+# Development dependencies for simple-python-boilerplate
+# Install with: python -m pip install -r requirements-dev.txt
+#
+# NOTE: This file mirrors [project.optional-dependencies].dev in pyproject.toml
+# For editable install with dev deps, prefer: python -m pip install -e ".[dev]"
+
+# Include runtime dependencies
+-r requirements.txt
+
+# Testing
+pytest
+pytest-cov
+
+# Linting & Formatting
+ruff
+
+# Type Checking
+mypy
+
+# Git Hooks
+pre-commit
+
+# Optional helpful tools (uncomment as needed)
+# pipdeptree      # Dependency tree visualization
+# pip-tools       # Pin dependencies with pip-compile
+# pip-audit       # Security vulnerability checker
+# rich            # Pretty console output
+# icecream        # Better debug printing
+# ipython         # Enhanced interactive shell
