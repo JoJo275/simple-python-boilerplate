@@ -12,13 +12,13 @@ Why this exists:
 
 ## Rules of Thumb
 
-To avoid "label soup," please follow these guidelines:
+To avoid "label soup," follow these guidelines:
 
 - **1× `status:`** — one at a time, update as issue progresses
 - **1× `priority:`** — optional until triaged, then pick one
-- **1× `type:`** — categorize the nature of work
-- **1+ `area:`** — can apply multiple if issue spans areas
-- **Optional:** `triage:`, `release:`, `contrib:`, `meta:` as needed
+- **1× `type:`** — categorize the nature of work *(extended only)*
+- **1+ `area:`** — can apply multiple if issue spans areas *(extended only)*
+- **Optional:** `triage:`, `release:`, `contrib:`, `meta:` as needed *(extended only)*
 
 ---
 
@@ -26,7 +26,7 @@ To avoid "label soup," please follow these guidelines:
 
 Labels are organized by **prefix** to make them easy to scan and filter. Here's how to use them.
 
-> **Note:** `status:`, `priority:`, and `type:` labels are in both sets. The extended set adds more granular options plus `area:`, `triage:`, `release:`, `contrib:`, and `meta:` labels.
+> **Note:** `status:` and `priority:` labels are in both sets (baseline has a minimal subset). Extended adds `type:`, `area:`, `triage:`, `release:`, `contrib:`, `meta:`, and more granular status/priority options.
 
 ### Status Labels (`status:`)
 
@@ -44,7 +44,9 @@ Track where an issue/PR is in the workflow. **Apply one at a time** as the issue
 | `status: waiting-on-maintainer` | Ball is in maintainer's court |
 | `status: waiting-on-reporter` | Ball is in reporter's court |
 
-**Typical flow:** `needs-triage` → `confirmed` → `in-progress` → `ready-for-review` → closed
+**Baseline flow:** `needs-triage` → *(work)* → closed (use `blocked` / `needs-info` as needed)
+
+**Extended flow:** `needs-triage` → `confirmed` → `in-progress` → `ready-for-review` → closed
 
 ### Priority Labels (`priority:`)
 
@@ -139,10 +141,10 @@ Administrative/process labels.
 Colors are intentionally shared to create visual groupings:
 
 | Color | Meaning |
-|-------|---------|
+|-------|--------|
 | 🔴 Red (`#b60205`, `#d73a4a`) | Critical, blocking, bugs |
 | 🟠 Orange (`#d93f0b`) | High priority, needs attention |
-| 🟡 Yellow (`#fbca04`) | Needs triage/decision, medium priority |
+| 🟡 Yellow (`#fbca04`, `#ffcc00`) | Needs triage/decision, medium priority, performance |
 | 🟢 Green (`#0e8a16`) | Confirmed, accepted, done |
 | 🔵 Blue (`#0075ca`, `#0052cc`) | Documentation, in-progress |
 | 🟣 Purple (`#d4c5f9`, `#5319e7`) | Waiting, design, refactor |
