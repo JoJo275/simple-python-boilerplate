@@ -10,8 +10,8 @@ Usage:
   scripts/apply_labels.py --set extended --repo OWNER/REPO
   scripts/apply_labels.py --set baseline --dry-run
 
-See https://github.com/JoJo275/simple-python-boilerplate/labels?page=1 for 
-extended label set example.
+For visual example of extended set, see
+https://github.com/JoJo275/simple-python-boilerplate/labels?page=1.
 """
 
 from __future__ import annotations
