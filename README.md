@@ -207,6 +207,8 @@ For developer tooling details, see [docs/development.md](docs/development.md).
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
+For information on issue labels and triage process, see [docs/labels.md](docs/labels.md).
+
 ---
 
 ## Code of Conduct

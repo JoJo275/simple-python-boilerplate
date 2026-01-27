@@ -133,6 +133,25 @@ cz commit
 
 ---
 
+## Labels and Triage
+
+**Triage** is the process of reviewing new issues to categorize, prioritize, and determine next steps. It ensures issues don't get lost and helps maintainers focus on the most important work first.
+
+This project uses a standardized set of labels to:
+- Indicate issue status (needs-triage, confirmed, in-progress)
+- Set priority levels (p0-critical through p3-low)
+- Categorize by area (docs, cli, tests, etc.)
+- Track workflow state (needs-info, blocked, ready-for-review)
+
+When creating issues, maintainers will apply appropriate labels during triage. Contributors can help by:
+- Using clear, descriptive titles
+- Providing all requested information upfront
+- Responding promptly to `status: needs-info` requests
+
+See [docs/labels.md](docs/labels.md) for the full label catalog and how to apply them to your own repo.
+
+---
+
 ## Reporting Issues
 
 When reporting issues, please include:

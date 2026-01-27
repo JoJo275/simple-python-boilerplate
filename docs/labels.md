@@ -6,6 +6,134 @@ Why this exists:
 - Labels are **repo metadata** (they do **not** copy when you create a new repo from a template).
 - A consistent label set makes triage and contribution easier.
 
+---
+
+## Label Categories and Usage Guide
+
+Labels are organized by **prefix** to make them easy to scan and filter. Here's how to use them:
+
+### Status Labels (`status:`)
+
+Track where an issue/PR is in the workflow. **Apply one at a time** as the issue progresses.
+
+| Label | When to Apply |
+|-------|---------------|
+| `status: needs-triage` | Default for new issues; not yet reviewed |
+| `status: needs-info` | Waiting for reporter to provide details |
+| `status: needs-repro` | Need a minimal reproduction case |
+| `status: confirmed` | Issue validated and ready to work on |
+| `status: in-progress` | Someone is actively working on it |
+| `status: blocked` | Can't proceed due to external dependency |
+| `status: ready-for-review` | PR ready for maintainer review |
+| `status: waiting-on-maintainer` | Ball is in maintainer's court |
+| `status: waiting-on-reporter` | Ball is in reporter's court |
+
+**Typical flow:** `needs-triage` → `confirmed` → `in-progress` → `ready-for-review` → closed
+
+### Priority Labels (`priority:`)
+
+Indicate urgency. **Apply exactly one** to triaged issues.
+
+| Label | Meaning | Response Time |
+|-------|---------|---------------|
+| `priority: p0-critical` | Crash, data loss, security, outage | Drop everything |
+| `priority: p1-high` | Important bug or blocking feature | This sprint/week |
+| `priority: p2-medium` | Normal priority work | Next few sprints |
+| `priority: p3-low` | Nice-to-have, minor improvement | When time permits |
+| `priority: backlog` | Accepted but not scheduled | Someday/maybe |
+
+### Area Labels (`area:`)
+
+Identify which part of the codebase is affected. **Can apply multiple.**
+
+| Label | Scope |
+|-------|-------|
+| `area: cli` | Command-line interface |
+| `area: api` | Public API surface |
+| `area: docs` | Documentation |
+| `area: tests` | Test suite |
+| `area: ci` | CI/CD pipelines |
+| `area: config` | Configuration/environment |
+| `area: packaging` | pyproject.toml, build, publishing |
+| `area: windows/linux/macos` | Platform-specific issues |
+
+### Type Labels (`type:`)
+
+Categorize the nature of the work. **Apply one.**
+
+| Label | Use For |
+|-------|---------|
+| `type: performance` | Slowdowns, regressions |
+| `type: refactor` | Internal cleanup, no user-facing change |
+| `type: security` | Security-related (non-sensitive) |
+| `type: breaking-change` | Backward-incompatible changes |
+| `type: chore` | Maintenance, housekeeping |
+| `type: build` | Build tooling changes |
+| `type: test` | Test-only changes |
+
+### Triage Labels (`triage:`)
+
+Used during triage to track what's needed before work can begin.
+
+| Label | Meaning |
+|-------|---------|
+| `triage: accepted` | Maintainers agree this should be done |
+| `triage: needs-decision` | Blocked on maintainer decision |
+| `triage: needs-design` | Needs design discussion first |
+| `triage: needs-docs` | Must update docs before shipping |
+| `triage: needs-tests` | Must add tests before merge |
+| `triage: needs-benchmark` | Need performance numbers |
+
+### Release Labels (`release:`)
+
+Track release-related concerns.
+
+| Label | Meaning |
+|-------|---------|
+| `release: blocker` | Must fix before release |
+| `release: candidate` | Include in release notes |
+| `release: backport-needed` | Should backport to stable |
+| `release: backport-done` | Backport completed |
+
+### Contributor Labels (`contrib:`)
+
+Help match contributors with issues.
+
+| Label | Meaning |
+|-------|---------|
+| `contrib: mentor-available` | Maintainer willing to guide |
+| `contrib: needs-volunteer` | Seeking help; maintainers busy |
+| `good first issue` | Good for newcomers |
+| `help wanted` | Extra attention needed |
+
+### Meta Labels (`meta:`)
+
+Administrative/process labels.
+
+| Label | Meaning |
+|-------|---------|
+| `meta: duplicate-candidate` | Might be a duplicate |
+| `meta: needs-scope` | Requirements unclear |
+| `meta: stale` | Inactive; may auto-close |
+
+---
+
+## Color Coding
+
+Colors are intentionally shared to create visual groupings:
+
+| Color | Meaning |
+|-------|---------|
+| 🔴 Red (`#b60205`, `#d73a4a`) | Critical, blocking, bugs |
+| 🟠 Orange (`#d93f0b`) | High priority, needs attention |
+| 🟡 Yellow (`#fbca04`) | Needs triage/decision, medium priority |
+| 🟢 Green (`#0e8a16`) | Confirmed, accepted, done |
+| 🔵 Blue (`#0075ca`, `#0052cc`) | Documentation, in-progress |
+| 🟣 Purple (`#d4c5f9`, `#5319e7`) | Waiting, design, refactor |
+| ⚪ Gray (`#cfd3d7`, `#eeeeee`) | Duplicate, stale, chore |
+
+---
+
 ## Apply labels to your repo
 
 Prereqs:
