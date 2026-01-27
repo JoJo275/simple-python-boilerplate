@@ -41,6 +41,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 
+# Runtime dependencies - installed automatically with: pip install -e .
+dependencies = [
+    # Add your project's runtime dependencies here, e.g.:
+    # "requests>=2.28",
+    # "click>=8.0",
+]
+
 # Project URLs - shown on PyPI sidebar
 [project.urls]
 # Homepage = "https://github.com/username/simple-python-boilerplate"
@@ -48,13 +55,6 @@ classifiers = [
 # Documentation = "https://simple-python-boilerplate.readthedocs.io"
 # Changelog = "https://github.com/username/simple-python-boilerplate/blob/main/CHANGELOG.md"
 # "Bug Tracker" = "https://github.com/username/simple-python-boilerplate/issues"
-
-# Runtime dependencies - installed automatically with: pip install -e .
-dependencies = [
-    # Add your project's runtime dependencies here, e.g.:
-    # "requests>=2.28",
-    # "click>=8.0",
-]
 
 # CLI entry point - run with: spb
 [project.scripts]
