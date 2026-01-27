@@ -333,3 +333,11 @@ quick reference for setting up .venv which you already have in this file
 links to dev-setup.md, development.md, contributing.md, and other docs as needed.
 - dev-setup.md = “setup steps”
 - development.md = “ongoing dev workflow”
+
+## What you should do in your boilerplate
+- Keep your main docs and workflow centered on: `python -m pip install -e ".[dev]"`.
+- Add Option A wrapper files if you want to satisfy the “requirements.txt expected” crowd **without creating drift**.
+- Avoid shipping a pinned `requirements.txt` in a template repo unless the repo’s purpose is specifically “this exact pinned environment.”
+> what should people delete or change in this file when they use this boilerplate for their own projects
+- Update project name and description in `pyproject.toml`.
+- ...
