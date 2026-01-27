@@ -325,3 +325,11 @@ See the scripts section there for the current list and descriptions.
 ## development
 
 pointer to pyproject script
+
+## setup
+
+quick reference for setting up .venv which you already have in this file
+
+links to dev-setup.md, development.md, contributing.md, and other docs as needed.
+- dev-setup.md = “setup steps”
+- development.md = “ongoing dev workflow”
