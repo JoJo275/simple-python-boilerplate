@@ -73,7 +73,9 @@ Identify which part of the codebase is affected. **Can apply multiple.**
 | `area: ci`                  | CI/CD pipelines                   |
 | `area: config`              | Configuration/environment         |
 | `area: packaging`           | pyproject.toml, build, publishing |
-| `area: windows/linux/macos` | Platform-specific issues          |
+| `area: windows`             | Windows-specific issues           |
+| `area: linux`               | Linux-specific issues             |
+| `area: macos`               | macOS-specific issues             |
 
 ### Type Labels (`type:`)
 
@@ -194,7 +196,9 @@ For macOS/Linux/WSL users who prefer shell scripts:
 
 ## Baseline set
 
-GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(17 labels = 9 defaults + 8 extras)**
+GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(18 labels = 11 GitHub defaults + 7 extras)**
+
+> GitHub's 11 defaults: 9 core labels (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`) + 2 automation labels (`dependencies`, `github_actions`).
 
 | Label                  | Description                                    | Color     |
 |------------------------|------------------------------------------------|-----------|
@@ -215,14 +219,15 @@ GitHub's default labels plus useful extras for basic triage and prioritization. 
 | `priority: p1-high`    | Important; should be addressed soon            | `#d93f0b` |
 | `priority: p2-medium`  | Normal priority                                | `#fbca04` |
 | `priority: p3-low`     | Nice-to-have                                   | `#c2e0c6` |
+| `priority: backlog`    | Accepted but not scheduled                     | `#bfdadc` |
 
 ## Extended set
 
-Includes everything in baseline plus more granular `status:`, `priority:`, `area:`, `type:`, `triage:`, `release:`, `contrib:`, and `meta:` labels for larger projects with heavier triage needs. **(62 labels = 17 baseline + 45 extras)**
+Includes everything in baseline plus more granular `status:`, `priority:`, `area:`, `type:`, `triage:`, `release:`, `contrib:`, and `meta:` labels for larger projects with heavier triage needs. **(62 labels = 18 baseline + 44 extras)**
 
 **Notes:**
 - Includes GitHub's default labels (`help wanted`, `good first issue`, etc.) with same names/colors
-- The script uses upsert logic—existing labels are updated, not duplicated
+- The script uses **upsert** logic—if a label already exists, it updates the name/color/description to match the spec; otherwise it creates a new label. Running the script again is safe and idempotent.
 
 | Label                           | Description                                      | Color     |
 |---------------------------------|--------------------------------------------------|-----------|

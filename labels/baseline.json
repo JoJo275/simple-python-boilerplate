@@ -83,5 +83,10 @@
     "name": "priority: p3-low",
     "description": "Nice-to-have",
     "color": "c2e0c6"
+  },
+  {
+    "name": "priority: backlog",
+    "description": "Accepted but not scheduled",
+    "color": "bfdadc"
   }
 ]
