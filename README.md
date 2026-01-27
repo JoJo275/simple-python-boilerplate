@@ -12,7 +12,7 @@ A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, an
 
 even though this has python in the title of the repo, you can use this repo for non-python projects as well by simply removing the python specific parts.
 
-Edit, delete, and adapt as needed for your own projects!
+Edit, delete, and adapt anything and everything as needed for your own projects!
 
 There are some notes to myself and throughout the repo to remind me of certain things and why they are done a particular way (still learning a lot). Feel free to remove those notes as you see fit.
 

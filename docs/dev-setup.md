@@ -15,11 +15,17 @@ This guide walks you through setting up the development environment for this pro
 git clone https://github.com/JoJo275/simple-python-boilerplate.git
 cd simple-python-boilerplate
 
-# 2. Create and activate virtual environment
+# 2. Confirm Python 3.11+ is installed
+python --version
+
+# 3. Ensure .venv/ is in .gitignore (should already be there)
+git check-ignore .venv/
+
+# 4. Create and activate virtual environment
 python -m venv .venv
 
 # Windows (PowerShell)
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 
 # Windows (CMD)
 .venv\Scripts\activate.bat
@@ -27,10 +33,13 @@ python -m venv .venv
 # macOS/Linux
 source .venv/bin/activate
 
-# 3. Install the package in editable mode with dev dependencies
+# 5. Update pip
+python -m pip install --upgrade pip
+
+# 6. Install the package in editable mode with dev dependencies
 python -m pip install -e ".[dev]"
 
-# 4. Verify installation
+# 7. Verify installation
 spb  # Run the CLI entry point
 python -m pytest  # Run tests
 ```
@@ -52,8 +61,9 @@ Before creating a virtual environment, make sure `.venv/` is in your `.gitignore
 # Check if .venv is ignored
 git check-ignore .venv/
 
-# If not ignored, add it
-echo ".venv/" >> .gitignore
+# If not ignored, add it in .gitignore file
+Type the following into .gitignore:
+.venv/
 ```
 
 Your `.gitignore` should include:
@@ -149,18 +159,7 @@ python -m pip freeze
 python -m pip show simple-python-boilerplate
 ```
 
-**Dependency tree** (very useful for understanding what depends on what):
-
-```bash
-# Install pipdeptree
-python -m pip install pipdeptree
-
-# Show full dependency tree
-python -m pipdeptree
-
-# Show just your project's dependencies
-python -m pipdeptree -p simple-python-boilerplate
-```
+> Lots of other useful commands from installs are in [pyproject.toml](../pyproject.toml).
 
 ## Project Structure
 
