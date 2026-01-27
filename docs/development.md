@@ -113,6 +113,51 @@ cz commit
 
 ---
 
+## Helpful Tools (Optional)
+
+These tools aren't required but can make development easier. Install them individually or all at once:
+
+```bash
+# Install all extras
+pip install -e ".[extras]"
+
+# Or install individually
+pip install pipdeptree
+```
+
+### pipdeptree
+
+Visualize your project's dependency tree - helpful for understanding what packages depend on what:
+
+```bash
+# Show full dependency tree
+python -m pipdeptree
+
+# Show dependencies for a specific package
+python -m pipdeptree -p simple-python-boilerplate
+
+# Reverse: show what depends on a package
+python -m pipdeptree -r -p requests
+
+# Output as JSON (for tooling)
+python -m pipdeptree --json
+```
+
+### Other Helpful Tools
+
+Tools I found helpful during development:
+
+| Tool | Install | Description |
+|------|---------|-------------|
+| `pip-tools` | `pip install pip-tools` | Pin dependencies with `pip-compile` |
+| `pip-audit` | `pip install pip-audit` | Check for security vulnerabilities |
+| `rich` | `pip install rich` | Pretty console output and tables |
+| `icecream` | `pip install icecream` | Better debug printing: `ic(variable)` |
+| `ipython` | `pip install ipython` | Enhanced interactive Python shell |
+| `devtools` | `pip install devtools` | Debug utilities: `debug(variable)` |
+
+---
+
 ## Pre-commit Hooks (Optional)
 
 Set up pre-commit hooks to automatically run checks before each commit:

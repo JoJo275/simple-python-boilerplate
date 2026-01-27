@@ -77,6 +77,16 @@ dev = [
     "mypy",         # Static type checker
     "pre-commit",   # Git hooks for automated checks
 ]
+# Helpful but not required tools: pip install -e ".[extras]"
+extras = [
+    "pipdeptree",   # Visualize dependency tree: python -m pipdeptree
+    # "pip-tools",  # Pin dependencies: pip-compile pyproject.toml
+    # "pip-audit",  # Check for security vulnerabilities in dependencies
+    # "rich",       # Pretty console output for debugging
+    # "icecream",   # Better print debugging: ic(variable)
+    # "ipython",    # Enhanced interactive Python shell
+    # "devtools",   # Debug utilities: debug(variable)
+]
 # docs = [
 #     "mkdocs",              # Documentation generator
 #     "mkdocs-material",     # Material theme for MkDocs
