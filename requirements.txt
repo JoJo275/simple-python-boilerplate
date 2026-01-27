@@ -3,6 +3,7 @@
 #
 # NOTE: This file mirrors the [project].dependencies in pyproject.toml
 # For editable install with all deps, prefer: python -m pip install -e .
+# This file is primarily for users who prefer using pip and requirements files.
 #
 # Add your runtime dependencies below:
 # requests>=2.28
