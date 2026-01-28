@@ -17,9 +17,10 @@ your proposed solution would help. The more context you provide, the
 easier it is to evaluate and prioritize.
 
 ⚠️ **Before submitting**
-- For early-stage ideas or brainstorming, please use Discussions first.
+- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
+- **Brainstorming / unsure about scope?** Start in Discussions (Ideas/Proposals) first.
+- **Contributing:** if you're willing to implement, read CONTRIBUTING.md.
 - Search existing issues and discussions to avoid duplicates.
-- Feature requests should describe a clear, actionable enhancement.
 -->
 
 ## Problem Statement

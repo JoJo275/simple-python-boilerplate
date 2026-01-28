@@ -14,11 +14,12 @@ Thanks for reporting a performance issue! ⚡
 Performance issues help us keep the project fast and efficient.
 Please provide as much detail as possible, including measurements and reproduction steps.
 
-⚠️ Before submitting:
-- For general bugs (not performance-related), use the Bug Report template.
-- For feature requests to improve performance, use the Feature Request template.
+⚠️ **Before submitting**
+- For general bugs (not performance-related), use the **Bug Report** template.
+- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
+- **Performance feature request?** Use the Feature Request template (not this one).
+- **Include evidence:** benchmarks, profiling output, and "before vs after" numbers help most.
 - Search existing issues to avoid duplicates.
-- If possible, include benchmark data or profiling results.
 -->
 
 ## Performance Details

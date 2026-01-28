@@ -16,9 +16,10 @@ Please provide as much context as possible to help us understand
 and answer your question effectively.
 
 ⚠️ **Before submitting**
-- For general help or Q&A, please use Discussions instead.
+- **Most questions belong in Discussions (Q&A)** rather than Issues.
+- If you're reporting a reproducible problem, use **Bug Report** instead.
+- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
 - Search existing issues, discussions, and documentation first.
-- This template is for **specific technical questions** that may benefit from issue tracking.
 -->
 
 ## Question

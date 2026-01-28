@@ -16,9 +16,10 @@ Good documentation helps everyone. Please provide as much detail
 as possible so we can understand and address the issue.
 
 ⚠️ **Before submitting**
-- If you have a question about how to use the project, please use Discussions instead.
-- Search existing issues to avoid duplicates.
-- This template is for documentation problems or improvements, not general questions.
+- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
+- **Simple "how do I…?"** Use Discussions (Q&A).
+- **Small doc fixes welcome:** see CONTRIBUTING.md.
+- Search existing issues and discussions to avoid duplicates.
 -->
 
 ## Issue Type
