@@ -343,3 +343,7 @@ links to dev-setup.md, development.md, contributing.md, and other docs as needed
 > what should people delete or change in this file when they use this boilerplate for their own projects
 - Update project name and description in `pyproject.toml`.
 - ...
+
+## Security
+
+“Security” section linking to SECURITY.md
