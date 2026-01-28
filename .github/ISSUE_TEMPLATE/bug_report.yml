@@ -40,11 +40,11 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](SECURITY.md) and (if enabled) report privately via [Security Advisory](/security/advisories/new).
-        - **“how do I…? / advice”** Use [Discussions](/discussions) (Q&A).
-        - **Docs first:** check [Documentation](/#) and [Troubleshooting](/#) (replace these links with your actual docs pages).
-        - **Triage:** please search existing issues before filing a new one.
-        - If this is not a confirmed bug, please do not file an issue.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md) and (if enabled) report privately via [Security Advisory](../../../security/advisories/new).
+        - **"How do I…?" / advice** → Use [Discussions](../../../discussions) (Q&A category).
+        - **Docs first:** check [README](../../../#readme) and project documentation.
+        - **Search first:** please search [existing issues](../../../issues) before filing a new one.
+        - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
 
   # ---------------------------------------------------------------------------
   # Bug Details
