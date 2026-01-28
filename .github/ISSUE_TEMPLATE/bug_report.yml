@@ -14,7 +14,7 @@ title: "[BUG] Short description of the issue"
 labels: ["bug", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review requests built from this template
 projects: [] # Optionally add issues created with this template to specific projects
-type: # (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
 
 body:
   # ---------------------------------------------------------------------------
