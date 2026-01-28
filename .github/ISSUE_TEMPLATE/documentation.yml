@@ -39,8 +39,11 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - If you have a question about how to use the project, please use [Discussions](../../../discussions) instead.
-        - Search existing issues to avoid duplicates.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](SECURITY.md).
+        - **Simple “how do I…?”** Use [Discussions](/discussions) (Q&A).
+        - **Docs entry points:** [Documentation](/#) • [Getting Started](/#) (replace with real links).
+        - **Small doc fixes welcome:** see [CONTRIBUTING.md](CONTRIBUTING.md).
+        - Search existing issues and discussions to avoid duplicates.
         - This template is for documentation problems or improvements, not general questions.
 
   # ---------------------------------------------------------------------------

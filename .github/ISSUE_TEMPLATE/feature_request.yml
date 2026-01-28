@@ -42,7 +42,10 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - For early-stage ideas or brainstorming, please use [Discussions](../../../discussions/categories/ideas) first.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](SECURITY.md).
+        - **Brainstorming / unsure about scope?** Start in [Discussions](/discussions) (Ideas/Proposals) first.
+        - **Check existing plans:** see [Roadmap](/#) and [Documentation](/#) (replace with real links).
+        - **Contributing:** if you’re willing to implement, read [CONTRIBUTING.md](CONTRIBUTING.md).
         - Search existing issues and discussions to avoid duplicates.
         - Feature requests should describe a clear, actionable enhancement.
 

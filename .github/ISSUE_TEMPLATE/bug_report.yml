@@ -44,6 +44,7 @@ body:
         - **"How do I…?" / advice** → Use [Discussions](../../../discussions) (Q&A category).
         - **Docs first:** check [README](../../../#readme) and project documentation.
         - **Search first:** please search [existing issues](../../../issues) before filing a new one.
+        - Search existing issues and discussions to avoid duplicates.
         - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
 
   # ---------------------------------------------------------------------------
