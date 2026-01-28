@@ -1,8 +1,8 @@
 # Bug Bounty Program
 
 <!-- 
-This is a standalone bug bounty policy document.
-Include this in your SECURITY.md or link to it separately.
+Example only. Not active for this repository.
+For a real program, publish this in your own repo and link it from SECURITY.md.
 -->
 
 ## Overview
