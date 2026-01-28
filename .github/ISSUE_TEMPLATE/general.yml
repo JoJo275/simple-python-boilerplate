@@ -1,0 +1,121 @@
+# =============================================================================
+# General Issue Template
+# =============================================================================
+# This template is a catch-all for issues that don't fit other categories.
+# Use this sparingly — prefer specific templates when possible.
+# Sections: Introduction, Issue Details, Additional Context, Checklist
+# =============================================================================
+
+name: 📋 General Issue
+description: >
+  Open a general issue that doesn't fit other templates.
+  For bugs, features, docs, or questions, please use the appropriate template instead.
+title: "[ISSUE] Short description"
+labels: ["status: needs-triage"]
+assignees: [] # Optionally assign specific team members
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for opening an issue! 📋
+
+        **Before submitting**, please check if another template fits better:
+        - 🐛 **Bug Report** — For confirmed, reproducible defects
+        - ✨ **Feature Request** — For new features or enhancements
+        - 📚 **Documentation** — For docs issues or improvements
+        - ⚡ **Performance** — For performance-related problems
+        - ❓ **Question** — For specific technical questions
+
+        If none of those fit, continue with this general template.
+
+  # ---------------------------------------------------------------------------
+  # Issue Type
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of issue is this?
+      options:
+        - Discussion / Feedback
+        - Meta / Project management
+        - Infrastructure / Tooling
+        - Multiple categories
+        - Other
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Issue Details
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe your issue clearly and concisely. What are you trying to
+        accomplish or communicate?
+      placeholder: |
+        Provide a clear description of your issue, question, or feedback.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & Background (Optional)
+      description: >
+        Any additional context that helps understand this issue.
+      placeholder: |
+        - Why is this important?
+        - What led you to open this issue?
+        - Any relevant links or references?
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Proposed Action
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: proposed_action
+    attributes:
+      label: Proposed Action or Outcome (Optional)
+      description: >
+        If you have a suggestion for how to address this, describe it here.
+      placeholder: |
+        What would a successful resolution look like?
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Additional Information
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Information (Optional)
+      description: >
+        Any other information, screenshots, or files that might be helpful.
+      placeholder: |
+        Drag and drop files or paste additional details here.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have verified this doesn't fit a more specific template
+          required: true
+        - label: I have provided enough context to understand this issue
+          required: false
