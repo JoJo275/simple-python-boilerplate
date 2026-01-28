@@ -360,3 +360,11 @@ State what versions/branches receive security fixes (or “latest only”).
 
 
 “Security” section linking to SECURITY.md
+
+## Adoption checklist
+
+* short and simple checklist of adopting specific files over other and how to set them up. This also includes editing files to add your own project name, description, etc. Pointer to docs/using-this-repo.md for more details.
+
+pick security.md with the bounty program or the one without it.
+
+
