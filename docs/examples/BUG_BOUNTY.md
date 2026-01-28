@@ -1,13 +1,18 @@
 # Bug Bounty Program
 
-
-Example only. Not active for this repository.  
-For a real program, publish this in your own repo and link it from SECURITY.md.
+> **⚠️ THIS IS A TEMPLATE — NOT AN ACTIVE BUG BOUNTY PROGRAM**
+> 
+> **This document is an example only. It is NOT active for this repository.**  
+> **Do not submit vulnerability reports expecting rewards for this template repo.**
+> 
+> To use this template: copy it to your own repository, replace all placeholders, and link it from your SECURITY.md.
 
 
 ## Overview
 
 We offer rewards for responsibly disclosed security vulnerabilities in [PROJECT NAME]. This program encourages security researchers to help us identify and fix vulnerabilities before they can be exploited.
+
+> **Legal disclaimer:** Nothing in this document creates a legal obligation to pay. All rewards, if any, are offered at our sole discretion based on the severity, impact, and quality of the report.
 
 ## Scope
 
@@ -21,15 +26,16 @@ The following are eligible for rewards:
 - **Official releases:** Packages published to PyPI under `[package-name]` (latest stable release and currently supported versions)
 - **Documentation site:** `https://[your-docs-domain].com` (if applicable)
 - **Only assets owned/operated by us** — We can only authorize testing on infrastructure we control
+- **Only vulnerabilities that affect confidentiality, integrity, or availability in a meaningful way** — Theoretical issues or best-practice deviations without real-world impact are out of scope
 
 ### Version Coverage
 
-<!-- TODO: Specify which versions are in scope -->
+<!-- TODO: Specify which versions are in scope. See docs/RELEASE_POLICY.md (if available) for version support details. -->
 
 | Version | In Scope |
 |---------|----------|
 | Latest stable release | ✅ Yes |
-| Supported LTS versions | ✅ Yes |
+| Supported versions (per release policy) | ✅ Yes |
 | Unsupported / EOL versions | ❌ No |
 | Pre-release / beta | ❌ No (unless explicitly invited) |
 
@@ -103,6 +109,8 @@ We will not pursue legal action against researchers who:
 
 <!-- ⚠️ TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values before publishing! -->
 
+**If you are using this as a template:** Replace the link, email, and all placeholders below before publishing. Do not ship this file with example values.
+
 1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)  
    **⚠️ TODO:** Replace `[OWNER]/[REPO]` with your actual repository path
 2. **Email:** `[security-email]@[your-domain].com`
@@ -129,12 +137,14 @@ For general security information, see our [Security Policy](../../SECURITY.md).
 ## Response Timeline
 
 | Action | Timeframe |
-|--------|-----------|
-| Acknowledgment | Within 72 hours |
-| Initial triage | Within 7 days |
-| Status update | Every 7 days during investigation |
+|--------|----------|
+| Acknowledgment | Target: within 72 hours |
+| Initial triage | Target: within 7 days |
+| Status update | Target: every 7 days during investigation |
 | Fix deployed | Varies by severity (target: 30–90 days) |
-| Reward issued | Within 30 days of fix deployment |
+| Reward issued (if applicable) | Target: within 30 days of fix deployment |
+
+> **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
 
 ---
 
@@ -154,11 +164,13 @@ If monetary rewards are offered, payment methods may include:
 
 ### Requirements
 
-- You must have a PayPal account or alternative payment method
-- You must not be on any US sanctions list
-- You must be at least 18 years old (or have guardian consent)
-- Rewards are subject to applicable tax laws
-- **Tax responsibility:** Researchers are responsible for reporting bounty income in their jurisdiction. We may request tax forms (e.g., W-9 for US persons) for rewards above $600 USD.
+- You must have a valid payment method available in your region
+- You must not be on any applicable sanctions list (varies by jurisdiction)
+- You must be at least 18 years old (or have guardian consent, where permitted)
+- Rewards may be subject to applicable tax laws in your jurisdiction
+- **Tax responsibility:** Researchers are responsible for reporting any bounty income as required by their local laws. We may request tax documentation where legally required.
+
+<!-- TODO: Adjust or remove these requirements based on your jurisdiction and legal advice -->
 
 ---
 
