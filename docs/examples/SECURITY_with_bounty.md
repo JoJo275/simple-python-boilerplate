@@ -19,14 +19,18 @@ For a real program, publish this in your own repo and link it from SECURITY.md.
 
 **We offer rewards for responsibly disclosed security vulnerabilities.**
 
-| Severity | Reward Range |
-|----------|--------------|
-| Critical | $500 – $2,000 |
-| High | $200 – $500 |
-| Medium | $50 – $200 |
-| Low | Recognition + swag |
+| Severity | Examples | Reward Range |
+|----------|----------|--------------|
+| Critical | Remote code execution, auth bypass, data breach | $100 – $500+ |
+| High | Privilege escalation, significant data exposure | $50 – $200 |
+| Medium | XSS, CSRF, information disclosure | $25 – $100 |
+| Low | Minor information leaks, theoretical attacks | Recognition only |
 
-For full details, see our [Bug Bounty Policy](docs/examples/BUG_BOUNTY.md).
+> **Note:** Reward amounts are guidelines and may vary based on project funding. Some projects may offer recognition only.
+
+> **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards.
+
+For full details, including payment methods and tax requirements, see our [Bug Bounty Policy](BUG_BOUNTY.md).
 
 ---
 
@@ -51,8 +55,10 @@ Instead, please report security vulnerabilities via one of the following methods
 3. **PGP Encrypted Email** (Optional)  
    For sensitive communications, you may encrypt your report using our PGP key.
    
-   Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`  
-   Public key: [keys.openpgp.org](https://keys.openpgp.org/search?q=security@example.com)
+   <!-- TODO: Add your PGP key fingerprint (full 40-character format):
+   Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
+   Public key: https://keys.openpgp.org/search?q=security@example.com
+   -->
 
 ### What to Include
 
@@ -87,6 +93,24 @@ Please provide as much information as possible:
 - We will credit reporters in the security advisory (unless you prefer to remain anonymous).
 - Coordinated disclosure will not affect your bounty eligibility.
 
+### Rules of Engagement
+
+To qualify for a reward, you must:
+
+1. **Report privately** — Do not disclose publicly until we've released a fix
+2. **Provide details** — Include steps to reproduce, impact assessment, and PoC
+3. **Act in good faith** — Do not access, modify, or delete user data
+4. **Test responsibly** — Only test against your own instances or with explicit permission
+5. **One report per issue** — Do not submit duplicates or variants of the same issue
+
+### Duplicate Reports
+
+If multiple researchers report the same vulnerability:
+
+- The **first valid report** receives the full reward
+- Subsequent reports may receive partial recognition (but no monetary reward)
+- If reports arrive within 24 hours with substantially different details, we may split the reward
+
 ---
 
 ## Safe Harbor
@@ -116,9 +140,12 @@ The following are generally not considered security vulnerabilities:
 
 - Issues in dependencies (please report to the upstream project)
 - Issues requiring physical access to a user's device
-- Social engineering attacks
+- Social engineering attacks (phishing, etc.)
 - Denial of service attacks that require significant resources
 - Issues in staging/development environments
+- Previously reported vulnerabilities
+- Vulnerabilities disclosed publicly before we can address them
+- Automated scanner output without proof of exploitability
 - Theoretical vulnerabilities without proof of exploitability
 
 ---
