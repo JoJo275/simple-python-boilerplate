@@ -15,8 +15,11 @@ Thanks for taking the time to report a bug! 🐛
 Please provide the **smallest possible example** that **reliably** reproduces the issue.
 
 ⚠️ **Before submitting**
-- If you have a question or need advice, use Discussions instead.
-- If this is not a confirmed bug, please do not file an issue.
+- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md and (if enabled) report privately via Security Advisory.
+- **"How do I…?" / advice** → Use Discussions (Q&A category).
+- **Docs first:** check README and project documentation.
+- **Search first:** please search existing issues before filing a new one.
+- If this is **not** a confirmed, reproducible bug, please use Discussions instead.
 -->
 
 ## Description
