@@ -13,24 +13,42 @@ We offer rewards for responsibly disclosed security vulnerabilities in [PROJECT 
 
 ### In Scope
 
+<!-- TODO: Replace all placeholders below with your actual values -->
+
 The following are eligible for rewards:
 
-- **Primary repository:** `https://github.com/OWNER/REPO`
-- **Official releases:** Packages published to PyPI under `[package-name]`
-- **Documentation site:** `https://docs.example.com` (if applicable)
+- **Primary repository:** `https://github.com/[OWNER]/[REPO]`
+- **Official releases:** Packages published to PyPI under `[package-name]` (latest stable release and currently supported versions)
+- **Documentation site:** `https://[your-docs-domain].com` (if applicable)
+- **Only assets owned/operated by us** — We can only authorize testing on infrastructure we control
+
+### Version Coverage
+
+<!-- TODO: Specify which versions are in scope -->
+
+| Version | In Scope |
+|---------|----------|
+| Latest stable release | ✅ Yes |
+| Supported LTS versions | ✅ Yes |
+| Unsupported / EOL versions | ❌ No |
+| Pre-release / beta | ❌ No (unless explicitly invited) |
 
 ### Vulnerability Types
 
+<!-- TODO: Replace $X values with your actual reward amounts, or remove monetary rewards entirely -->
+
 | Severity | Examples | Reward Range |
 |----------|----------|--------------|
-| **Critical** | Remote code execution, authentication bypass, data breach | $100 – $500+ |
-| **High** | Privilege escalation, significant data exposure, injection attacks | $50 – $200 |
-| **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $25 – $100 |
+| **Critical** | Remote code execution, authentication bypass, data breach | $[X] – $[Y] | 
+| **High** | Privilege escalation, significant data exposure, injection attacks | $[X] – $[Y] |
+| **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $[X] – $[Y] |
 | **Low** | Minor information leaks, theoretical attacks | Recognition only |
 
-> **Note:** Reward amounts are guidelines and may vary based on project funding. Final amounts are determined based on impact, exploitability, and report quality. Some projects using this template may offer recognition only.
+> **⚠️ Template Note:** Rewards are discretionary. Projects using this template may offer recognition only, swag, or no rewards at all. Adjust or remove this table based on your actual budget and commitment.
 
-> **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards. Low severity issues receive recognition in our Hall of Fame.
+> **Severity calibration:** We use [CVSS 3.1](https://www.first.org/cvss/calculator/3.1) or similar frameworks to help calibrate severity. Final severity is determined by the maintainers based on actual impact to this project.
+
+> **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards (if offered). Low severity issues receive recognition in our Hall of Fame.
 
 ### Out of Scope
 
@@ -44,6 +62,9 @@ The following are **not eligible** for rewards:
 - Previously reported vulnerabilities
 - Vulnerabilities disclosed publicly before we can address them
 - Automated scanner output without proof of exploitability
+- Best-practice findings with no demonstrable security impact (e.g., missing headers without exploit path)
+- Rate-limit bypass claims without demonstrated security impact
+- **User-hosted deployments / forks / self-hosted instances** — Unless explicitly included above, we cannot authorize testing on infrastructure we don't control
 
 ---
 
@@ -74,13 +95,18 @@ We will not pursue legal action against researchers who:
 - Act in good faith to avoid privacy violations and service disruption
 - Report vulnerabilities promptly and work with us on remediation
 
+> **⚠️ Important:** Safe harbor applies only to authorized testing within the scope of this policy and does not permit unlawful access to systems, data exfiltration, or any activity that violates applicable laws. When in doubt, ask before testing.
+
 ---
 
 ## How to Report
 
-1. **Preferred:** [GitHub Security Advisory](https://github.com/OWNER/REPO/security/advisories/new)
-2. **Email:** `security@example.com`
-3. **PGP Encrypted:** See key details below
+<!-- ⚠️ TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values before publishing! -->
+
+1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)  
+   **⚠️ TODO:** Replace `[OWNER]/[REPO]` with your actual repository path
+2. **Email:** `[security-email]@[your-domain].com`
+3. **PGP Encrypted:** See key details below (if available)
 
 <!-- TODO: Add your PGP key fingerprint (full 40-character format):
 Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
@@ -114,12 +140,17 @@ For general security information, see our [Security Policy](../../SECURITY.md).
 
 ## Reward Payment
 
-Rewards are paid via:
+<!-- TODO: Remove this section entirely if you're offering recognition only -->
 
-- **PayPal** (preferred)
+If monetary rewards are offered, payment methods may include:
+
+- **PayPal** (most common)
 - **GitHub Sponsors** (one-time sponsorship)
-- **Cryptocurrency** (BTC, ETH — upon request)
+- **Bank transfer** (for larger amounts, where feasible)
+- **Cryptocurrency** (BTC, ETH — optional, if available; may have compliance limitations)
 - **Donation to charity** (in your name)
+
+> **Note:** Not all payment methods may be available. We will work with you to find a suitable option.
 
 ### Requirements
 
@@ -165,4 +196,6 @@ We may modify this bug bounty policy at any time. Changes will be posted to this
 
 ## Questions?
 
-Contact us at `security@example.com` for any questions about this program.
+Contact us at `[security-email]@[your-domain].com` for any questions about this program.
+
+<!-- TODO: Replace with your actual security contact email -->
