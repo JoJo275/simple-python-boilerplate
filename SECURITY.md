@@ -66,6 +66,8 @@ Please provide as much information as possible:
 
 We do not currently offer a bug bounty program. However, we deeply appreciate responsible disclosure and will acknowledge contributors in our [Acknowledgments](#acknowledgments) section.
 
+> To set up a bug bounty program, see [docs/examples/SECURITY_with_bounty.md](../docs/examples/SECURITY_with_bounty.md) and [docs/examples/BUG_BOUNTY.md](../docs/examples/BUG_BOUNTY.md).
+
 ### Scope
 
 This security policy applies to:
