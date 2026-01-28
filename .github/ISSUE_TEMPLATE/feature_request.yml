@@ -42,7 +42,7 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - For early-stage ideas or brainstorming, please use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions/categories/ideas) first.
+        - For early-stage ideas or brainstorming, please use [Discussions](../../../discussions/categories/ideas) first.
         - Search existing issues and discussions to avoid duplicates.
         - Feature requests should describe a clear, actionable enhancement.
 

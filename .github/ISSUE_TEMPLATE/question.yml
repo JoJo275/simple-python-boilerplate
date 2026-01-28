@@ -40,7 +40,7 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - For general help or Q&A, please use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) instead.
+        - For general help or Q&A, please use [Discussions](../../../discussions) instead.
         - Search existing issues, discussions, and documentation first.
         - This template is for **specific technical questions** that may benefit from issue tracking.
 
