@@ -68,16 +68,6 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: issue_type_other_unsure
-    attributes:
-      label: Issue Type – Other or Unsure (if applicable)
-      description: >
-        If you selected "Other" or "Unsure" above, please describe the type of issue.
-      placeholder: Describe the performance issue type if "Other" or "Unsure" was selected.
-    validations:
-      required: false
-
   - type: dropdown
     id: affected_area
     attributes:
@@ -89,22 +79,13 @@ body:
         - Startup / Initialization
         - Data processing
         - I/O operations
+        - Network / HTTP operations
         - Memory management
         - Multiple areas
         - Unsure
         - Other
     validations:
       required: true
-
-  - type: textarea
-    id: affected_area_other_unsure
-    attributes:
-      label: Affected Area – Other or Unsure (if applicable)
-      description: >
-        If you selected "Other" or "Unsure" above, please describe the affected area.
-      placeholder: Describe the affected area if "Other" or "Unsure" was selected.
-    validations:
-      required: false
 
   - type: textarea
     id: description
@@ -134,20 +115,6 @@ body:
       required: true
 
   - type: dropdown
-    id: blocking
-    attributes:
-      label: Is this blocking your work?
-      description: How urgently do you need this resolved?
-      options:
-        - Yes – Blocking production / critical path
-        - Yes – Blocking development work
-        - Partially – Using workaround but it's painful
-        - No – Important but not blocking
-        - No – Just reporting for awareness
-    validations:
-      required: true
-
-  - type: dropdown
     id: reproducibility
     attributes:
       label: Reproducibility
@@ -160,6 +127,22 @@ body:
         - Unsure
     validations:
       required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Frequency of Occurrence (Optional)
+      description: How often does this performance issue occur in normal usage?
+      options:
+        - Every request / operation
+        - Multiple times per session
+        - Once per session
+        - Occasionally (few times per day)
+        - Rarely (once a day or less)
+        - Only under load / stress
+        - Not applicable
+    validations:
+      required: false
 
   - type: input
     id: slowdown_factor
@@ -189,7 +172,8 @@ body:
       label: Last Known Good Version (if regression)
       description: >
         If this is a regression, what was the last version where performance was acceptable?
-      placeholder: "e.g., 0.9.0, or commit hash"
+        Leave blank if not a regression or unsure.
+      placeholder: "e.g., 0.9.0, or commit hash (leave blank if not a regression)"
     validations:
       required: false
 
@@ -242,7 +226,7 @@ body:
   - type: textarea
     id: input_size
     attributes:
-      label: Input Size / Data Characteristics
+      label: Input Size / Data Characteristics (Optional)
       description: >
         Describe the size or characteristics of the input that triggers the issue.
         Performance problems are often size-dependent.
@@ -252,61 +236,20 @@ body:
         - Iterations: 10,000
         - Data shape: 1000x1000 matrix
     validations:
-      required: true
-
-  - type: dropdown
-    id: can_share_data
-    attributes:
-      label: Can you share the data that caused this issue?
-      description: >
-        Real data often helps reproduce and diagnose performance issues.
-        If you can share it, we may be able to debug more effectively.
-      options:
-        - Yes – I can share the exact data
-        - Yes – I can share a sanitized/anonymized version
-        - Yes – I can provide synthetic data that reproduces it
-        - Partially – I can describe the data characteristics
-        - No – Data is confidential / cannot be shared
-        - Not applicable
-    validations:
-      required: true
+      required: false
 
   - type: textarea
     id: dataset_details
     attributes:
-      label: Dataset Details / Link (Optional)
+      label: Sample Data (Optional)
       description: >
-        If you can share data, provide a link (Gist, Google Drive, Dropbox, etc.)
-        or describe how to generate equivalent test data.
+        If you can share data that reproduces the issue, provide a link or describe
+        how to generate equivalent test data. Real data helps us debug effectively.
       placeholder: |
         Link: https://gist.github.com/...
         Or: "Run `generate_test_data(n=100000)` to create equivalent data"
         Or: "Attached file: test_data.csv"
-    validations:
-      required: false
-
-  - type: dropdown
-    id: concurrency
-    attributes:
-      label: Concurrency / Threading (Optional)
-      description: Is threading or parallel processing involved?
-      options:
-        - Single-threaded
-        - Multi-threaded
-        - Async / Asyncio
-        - Multiprocessing
-        - Not applicable
-        - Unsure
-    validations:
-      required: false
-
-  - type: input
-    id: comparison_baseline
-    attributes:
-      label: Comparison Baseline (Optional)
-      description: >
-        What are you comparing the performance against?
-      placeholder: "e.g., v0.9.0, similar library X, theoretical expectation, previous run"
+        Or: "Data is confidential, but it's a 500MB CSV with 100k rows"
     validations:
       required: false
 
@@ -360,60 +303,38 @@ body:
         the severity and verify fixes.
 
   - type: textarea
-    id: timing_current
+    id: timing_measurements
     attributes:
-      label: Timing Measurements – Current
+      label: Timing Measurements (Optional)
       description: >
-        What is the current timing performance? Include execution time,
-        latency, throughput, or other time-based metrics.
+        Compare current vs. expected timing. Include execution time, latency,
+        throughput, or other time-based metrics.
       placeholder: |
+        Current:
         - Operation takes ~15 seconds
-        - Startup time: 8 seconds
         - Throughput: 100 records/second
-        - P95 latency: 500ms
+
+        Expected:
+        - Should be <1 second
+        - Previous version (v0.9.0): 200ms
     validations:
       required: false
 
   - type: textarea
-    id: timing_expected
+    id: memory_measurements
     attributes:
-      label: Timing Measurements – Expected
+      label: Memory Measurements (Optional)
       description: >
-        What timing performance do you expect? If this is a regression,
-        what was the previous timing?
+        Compare current vs. expected memory usage. Include peak memory,
+        memory growth, or other memory-related metrics.
       placeholder: |
-        - Expected: <1 second (based on previous version)
-        - Previous: 200ms in v0.9.0
-        - Target throughput: 10,000 records/second
-    validations:
-      required: false
-
-  - type: textarea
-    id: memory_current
-    attributes:
-      label: Memory Measurements – Current
-      description: >
-        What is the current memory usage? Include peak memory, memory growth,
-        or other memory-related metrics.
-      placeholder: |
+        Current:
         - Memory usage peaks at 2GB
         - Memory grows by 100MB per iteration
-        - RSS after processing: 1.5GB
-        - Objects not garbage collected: 50,000
-    validations:
-      required: false
 
-  - type: textarea
-    id: memory_expected
-    attributes:
-      label: Memory Measurements – Expected
-      description: >
-        What memory usage do you expect? If this is a regression,
-        what was the previous memory usage?
-      placeholder: |
-        - Expected: <500MB peak
-        - Previous: stable at 200MB in v0.9.0
-        - Should return to baseline after processing
+        Expected:
+        - Should be <500MB peak
+        - Previous version: stable at 200MB
     validations:
       required: false
 
@@ -423,32 +344,16 @@ body:
       label: Profiling Data (Optional)
       description: >
         If you have profiling results (cProfile, memory_profiler, py-spy, etc.),
-        please include them or attach files.
+        paste text output here. For flamegraphs or screenshots, drag and drop
+        images into this field or the Additional Context section below.
       placeholder: |
         Top functions by cumulative time:
         1. process_data() - 12.5s
         2. inner_loop() - 10.2s
         3. expensive_calculation() - 8.1s
-      render: shell
-    validations:
-      required: false
 
-  - type: dropdown
-    id: benchmark_tool
-    attributes:
-      label: Benchmark Tool Used (Optional)
-      description: How did you measure the performance?
-      options:
-        - Manual timing (time.perf_counter, time.time)
-        - timeit
-        - pytest-benchmark
-        - cProfile / profile
-        - memory_profiler
-        - py-spy
-        - line_profiler
-        - scalene
-        - Other
-        - None / Informal observation
+        (Drag and drop flamegraph images here)
+      render: shell
     validations:
       required: false
 
@@ -513,8 +418,8 @@ body:
           required: true
         - label: I have included reproduction steps
           required: true
-        - label: I have provided performance measurements
-          required: false
+        - label: I have provided performance measurements (or explained why I couldn't)
+          required: true
         - label: I have tested with the latest version
           required: false
         - label: I can provide sample data that reproduces this issue
