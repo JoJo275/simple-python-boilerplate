@@ -1,9 +1,9 @@
 # Security Policy
 
-<!-- 
-Example only. Not active for this repository.
+
+Example only. Not active for this repository.  
 For a real program, publish this in your own repo and link it from SECURITY.md.
--->
+
 
 ## Supported Versions
 
