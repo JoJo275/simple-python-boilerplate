@@ -1,0 +1,252 @@
+# =============================================================================
+# Design Proposal Issue Template
+# =============================================================================
+# This template is for proposing significant design or architectural changes.
+# Sections: Introduction, Redirect Notice, Proposal Details, Impact Analysis,
+#           Alternatives, Implementation, Checklist
+# =============================================================================
+
+name: 🎨 Design Proposal
+description: >
+  Propose a significant design or architectural change.
+  For smaller enhancements, please use the Feature Request template.
+title: "[DESIGN] Short description of the proposal"
+labels: ["design", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review design proposals
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it's org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful design proposal.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to propose a design change! 🎨
+
+        Design proposals help us make thoughtful architectural decisions.
+        Please provide as much context as possible to facilitate discussion.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate channels for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Before submitting**
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Small enhancement?** Use the **Feature Request** template instead.
+        - **Early-stage idea?** Start in [Discussions](../../../discussions) (Ideas/Proposals) first.
+        - Search existing issues and discussions to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Proposal Details
+  # ---------------------------------------------------------------------------
+  # Core information about the design proposal.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: >
+        Provide a brief summary of the proposed design change.
+      placeholder: |
+        Example: "Introduce a plugin architecture to allow extensibility..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: >
+        Why is this design change needed? What problem does it solve?
+      placeholder: |
+        Example: "Currently, adding new functionality requires modifying core code..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: What is the scope of this design change?
+      options:
+        - Architecture / System design
+        - API design
+        - Data model / Schema
+        - Module / Component structure
+        - Interface / Protocol
+        - Configuration / Settings
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope_other_unsure
+    attributes:
+      label: Scope – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the scope.
+      placeholder: Describe the scope if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Detailed Design
+  # ---------------------------------------------------------------------------
+  # The proposed solution in detail.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Detailed Design
+
+        Describe your proposed design in detail.
+
+  - type: textarea
+    id: detailed_design
+    attributes:
+      label: Proposed Design
+      description: >
+        Describe the design in detail. Include diagrams, code samples, or
+        pseudocode if helpful.
+      placeholder: |
+        Example: "The plugin system would work as follows:
+        1. Plugins implement a standard interface...
+        2. A registry discovers and loads plugins...
+        3. Hooks allow plugins to extend behavior..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_changes
+    attributes:
+      label: API Changes (if applicable)
+      description: >
+        Describe any public API changes this design would introduce.
+      placeholder: |
+        Example: "New methods: register_plugin(), unregister_plugin()..."
+      render: python
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Impact Analysis
+  # ---------------------------------------------------------------------------
+  # Understanding the impact helps evaluate the proposal.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Impact Analysis
+
+        Help us understand the impact of this change.
+
+  - type: dropdown
+    id: breaking_change
+    attributes:
+      label: Breaking Change?
+      description: Would this design introduce breaking changes?
+      options:
+        - "No – Backward compatible"
+        - "Yes – Breaking changes required"
+        - "Partially – Some breaking changes"
+        - Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration Path (if breaking)
+      description: >
+        If this introduces breaking changes, how would users migrate?
+      placeholder: |
+        Example: "Users would need to update their configuration to..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Estimated Complexity
+      description: How complex is this design change to implement?
+      options:
+        - Low – Straightforward implementation
+        - Medium – Moderate complexity
+        - High – Significant effort required
+        - Unsure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Alternatives
+  # ---------------------------------------------------------------------------
+  # Other approaches considered.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: >
+        What other designs or approaches did you consider? Why were they rejected?
+      placeholder: |
+        Example: "Alternative A: ... (rejected because...)"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Implementation
+  # ---------------------------------------------------------------------------
+  # Information about implementation plans.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to implement this?
+      description: >
+        Design proposals with implementation help are more likely to be accepted.
+      options:
+        - Yes, I'd like to implement this
+        - Yes, but I'd need guidance
+        - Maybe, depending on complexity
+        - No, I'm just proposing the idea
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Additional Context
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context (Optional)
+      description: >
+        Add any other context, references, or prior art that supports this proposal.
+      placeholder: |
+        Links to similar designs in other projects, research papers, etc.
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues and discussions for similar proposals
+          required: true
+        - label: I have considered the impact on existing users
+          required: false
+        - label: I am willing to help refine this design based on feedback
+          required: false

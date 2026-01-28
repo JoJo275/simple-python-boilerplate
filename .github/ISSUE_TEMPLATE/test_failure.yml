@@ -1,0 +1,256 @@
+# =============================================================================
+# Test Failure Issue Template
+# =============================================================================
+# This template is for reporting test failures, flaky tests, or test
+# infrastructure issues. Sections: Introduction, Redirect Notice, Failure
+# Details, Environment, Reproduction, Additional Context, Checklist
+# =============================================================================
+
+name: 🧪 Test Failure
+description: >
+  Report a test failure, flaky test, or test infrastructure issue.
+  For application bugs, use the Bug Report template.
+title: "[TEST] Short description of the test failure"
+labels: ["test-failure", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review test failures
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it's org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful test failure report.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a test failure! 🧪
+
+        Reliable tests are essential for project quality.
+        Please provide as much detail as possible to help us investigate.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate templates for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Before submitting**
+        - **Application bug?** If the test is failing due to an actual bug in the code, use the **Bug Report** template.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - Search existing issues to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Failure Details
+  # ---------------------------------------------------------------------------
+  # Core information about the test failure.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: failure_type
+    attributes:
+      label: Failure Type
+      description: What kind of test issue is this?
+      options:
+        - Test failure (consistent)
+        - Flaky test (intermittent failure)
+        - Test timeout
+        - Test infrastructure issue
+        - Missing test coverage
+        - Test performance issue
+        - CI/CD pipeline failure
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: failure_type_other_unsure
+    attributes:
+      label: Failure Type – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the failure type.
+      placeholder: Describe the failure type if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: input
+    id: test_name
+    attributes:
+      label: Test Name / Location
+      description: >
+        Which test(s) are failing? Include file path and test name if known.
+      placeholder: "e.g., tests/test_utils.py::test_parse_input or tests/unit_test.py"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe the test failure. What is happening?
+      placeholder: |
+        Example: "test_parse_input fails with AssertionError when..."
+        Example: "This test passes locally but fails in CI ~30% of the time..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_output
+    attributes:
+      label: Error Output
+      description: >
+        Paste the test failure output, including the assertion error or traceback.
+      placeholder: |
+        FAILED tests/test_utils.py::test_parse_input - AssertionError: ...
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      description: How consistently does this test fail?
+      options:
+        - Always fails
+        - Flaky (fails sometimes)
+        - Only in CI
+        - Only locally
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: Did this test pass previously?
+      options:
+        - "Yes – This test used to pass"
+        - "No – This is a new test"
+        - "No – This test has always been flaky"
+        - Unsure
+    validations:
+      required: true
+
+  - type: input
+    id: regression_info
+    attributes:
+      label: Last Known Passing (if regression)
+      description: >
+        If this is a regression, when did the test last pass? (commit, PR, version)
+      placeholder: "e.g., commit abc123, PR #42, or version 0.9.0"
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Environment
+  # ---------------------------------------------------------------------------
+  # System details to help reproduce the failure.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+
+        Provide details about where the test is failing.
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does this fail?
+      description: In which environment(s) does the test fail?
+      options:
+        - Local development
+        - CI/CD (GitHub Actions, etc.)
+        - Both local and CI
+        - Unsure
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS (if local)
+      placeholder: "Windows 11 / macOS 14 / Ubuntu 22.04"
+    validations:
+      required: false
+
+  - type: input
+    id: python
+    attributes:
+      label: Python Version
+      placeholder: "3.11.5"
+    validations:
+      required: true
+
+  - type: input
+    id: package
+    attributes:
+      label: Package Version / Branch
+      placeholder: "0.1.0 or main branch"
+    validations:
+      required: false
+
+  - type: input
+    id: ci_link
+    attributes:
+      label: CI Run Link (if applicable)
+      description: >
+        Link to the failing CI run, if available.
+      placeholder: "https://github.com/owner/repo/actions/runs/..."
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Reproduction
+  # ---------------------------------------------------------------------------
+  # How to reproduce the failure.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Steps to Reproduce
+      description: >
+        How can we reproduce this test failure?
+      placeholder: |
+        1. Clone the repository
+        2. Install dependencies: pip install -e ".[dev]"
+        3. Run: pytest tests/test_utils.py::test_parse_input
+        4. Observe failure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Analysis (Optional)
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Analysis / Suspected Cause (Optional)
+      description: >
+        If you have any insights into what might be causing the failure, share them here.
+      placeholder: |
+        Example: "I suspect this is a race condition because..."
+        Example: "This might be related to the recent changes in PR #42..."
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have included the full error output
+          required: true
+        - label: I have verified this is a test issue, not an application bug
+          required: false

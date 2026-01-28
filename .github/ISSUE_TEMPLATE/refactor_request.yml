@@ -1,0 +1,242 @@
+# =============================================================================
+# Refactor Request Issue Template
+# =============================================================================
+# This template is for requesting code refactoring or technical debt reduction.
+# Sections: Introduction, Redirect Notice, Refactor Details, Justification,
+#           Proposed Approach, Contribution Interest, Checklist
+# =============================================================================
+
+name: 🔧 Refactor Request
+description: >
+  Request code refactoring or technical debt reduction.
+  For bugs, use Bug Report. For new features, use Feature Request.
+title: "[REFACTOR] Short description of the refactoring"
+labels: ["refactor", "status: needs-triage"]
+assignees: [] # Optionally assign specific team members to review refactor requests
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it's org-level))
+
+
+body:
+  # ---------------------------------------------------------------------------
+  # Introduction
+  # ---------------------------------------------------------------------------
+  # Brief guidance for submitting a helpful refactor request.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve code quality! 🔧
+
+        Refactoring keeps the codebase maintainable and healthy.
+        Please provide enough context to understand the value of this change.
+
+  # ---------------------------------------------------------------------------
+  # Redirect Notice
+  # ---------------------------------------------------------------------------
+  # Directs users to appropriate templates for related but different issues.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Before submitting**
+        - **Bug?** Use the **Bug Report** template instead.
+        - **New feature?** Use the **Feature Request** template instead.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - Search existing issues to avoid duplicates.
+
+  # ---------------------------------------------------------------------------
+  # Refactor Details
+  # ---------------------------------------------------------------------------
+  # Core information about the refactoring request.
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: refactor_type
+    attributes:
+      label: Refactor Type
+      description: What kind of refactoring is this?
+      options:
+        - Code cleanup / Simplification
+        - Extract / Split (function, class, module)
+        - Consolidate / Merge duplicates
+        - Rename / Reorganize
+        - Improve typing / Type hints
+        - Reduce complexity
+        - Improve testability
+        - Performance optimization
+        - Dependency update / Removal
+        - Technical debt reduction
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: refactor_type_other_unsure
+    attributes:
+      label: Refactor Type – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the refactor type.
+      placeholder: Describe the refactor type if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected Area
+      description: Which part of the codebase needs refactoring?
+      options:
+        - Core library / API
+        - CLI
+        - Configuration
+        - Tests
+        - Build / Packaging
+        - Documentation
+        - Multiple areas
+        - Unsure
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: affected_area_other_unsure
+    attributes:
+      label: Affected Area – Other or Unsure (if applicable)
+      description: >
+        If you selected "Other" or "Unsure" above, please describe the affected area.
+      placeholder: Describe the affected area if "Other" or "Unsure" was selected.
+    validations:
+      required: false
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: >
+        Specific file(s), function(s), or module(s) to refactor.
+      placeholder: "e.g., src/utils.py, MyClass.process_data(), or the config module"
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Describe the current state of the code and what needs improvement.
+      placeholder: |
+        Example: "The process_data() function is 200+ lines and handles multiple concerns..."
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Justification
+  # ---------------------------------------------------------------------------
+  # Why this refactoring is valuable.
+  # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Justification
+
+        Help us understand why this refactoring is valuable.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current Problems
+      description: >
+        What problems does the current code cause? Why is refactoring needed?
+      placeholder: |
+        Example: "The current structure makes it difficult to add new features because..."
+        Example: "Code duplication leads to inconsistent behavior when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: Expected Benefits
+      description: >
+        What improvements will this refactoring bring?
+      placeholder: |
+        Example: "After refactoring, we'll have better separation of concerns..."
+        Example: "This will reduce code duplication by ~30%..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this refactoring?
+      options:
+        - High – Blocking other work or causing issues
+        - Medium – Would significantly improve maintainability
+        - Low – Nice to have cleanup
+        - Unsure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Proposed Approach
+  # ---------------------------------------------------------------------------
+  # How the refactoring should be done.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: proposed_approach
+    attributes:
+      label: Proposed Approach (Optional)
+      description: >
+        If you have ideas about how to refactor this, describe your approach.
+      placeholder: |
+        Example: "I suggest splitting process_data() into three functions:
+        1. validate_input() - handles validation
+        2. transform_data() - handles transformation
+        3. format_output() - handles formatting"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: breaking_change
+    attributes:
+      label: Breaking Change?
+      description: Would this refactoring change public APIs?
+      options:
+        - "No – Internal only, no public API changes"
+        - "Yes – Public API changes required"
+        - Unsure
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Contribution Interest
+  # ---------------------------------------------------------------------------
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: Would you be willing to submit a PR for this?
+      description: >
+        Refactoring contributions are welcome!
+      options:
+        - Yes, I'd like to do this myself
+        - Yes, but I'd need guidance
+        - Maybe, depending on complexity
+        - No, I'm just reporting the issue
+    validations:
+      required: true
+
+  # ---------------------------------------------------------------------------
+  # Checklist
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: This is a refactoring request, not a bug or feature
+          required: true
+        - label: I have considered the impact on existing functionality
+          required: false
