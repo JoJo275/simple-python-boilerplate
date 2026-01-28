@@ -344,6 +344,19 @@ links to dev-setup.md, development.md, contributing.md, and other docs as needed
 - Update project name and description in `pyproject.toml`.
 - ...
 
-## Security
+## Security policy
+
+### Reporting a vulnerability
+Please report security issues privately. Do **not** open a public GitHub issue.
+
+- Preferred: GitHub Security Advisories (Security → “Report a vulnerability”)
+- Or email: <security-contact@example.com>
+
+### Bug bounty
+We do **not** operate a bug bounty program and do not offer monetary rewards at this time.
+
+### Supported versions
+State what versions/branches receive security fixes (or “latest only”).
+
 
 “Security” section linking to SECURITY.md
