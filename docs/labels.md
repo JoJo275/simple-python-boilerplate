@@ -198,7 +198,7 @@ For macOS/Linux/WSL users who prefer shell scripts:
 
 GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(18 labels = 11 GitHub defaults + 7 extras)**
 
-> GitHub's 11 defaults: 9 core labels (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`) + 2 automation labels (`dependencies`, `github_actions`).
+> GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate also includes a few extra labels (including automation-friendly `dependencies` / `github_actions`) plus a minimal `status:` and `priority:` subset.
 
 | Label                  | Description                                    | Color     |
 |------------------------|------------------------------------------------|-----------|
