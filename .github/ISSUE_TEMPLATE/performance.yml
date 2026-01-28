@@ -129,32 +129,6 @@ body:
       required: true
 
   - type: dropdown
-    id: frequency
-    attributes:
-      label: Frequency of Occurrence (Optional)
-      description: How often does this performance issue occur in normal usage?
-      options:
-        - Every request / operation
-        - Multiple times per session
-        - Once per session
-        - Occasionally (few times per day)
-        - Rarely (once a day or less)
-        - Only under load / stress
-        - Not applicable
-    validations:
-      required: false
-
-  - type: input
-    id: slowdown_factor
-    attributes:
-      label: Slowdown Factor (Optional)
-      description: >
-        How much slower is it compared to expected or previous performance?
-      placeholder: "e.g., 10x slower than expected, 3x slower than v0.9.0"
-    validations:
-      required: false
-
-  - type: dropdown
     id: regression
     attributes:
       label: Is this a regression?
@@ -415,8 +389,6 @@ body:
       label: Checklist
       options:
         - label: I have searched existing issues for duplicates
-          required: true
-        - label: I have included reproduction steps
           required: true
         - label: I have provided performance measurements (or explained why I couldn't)
           required: true
