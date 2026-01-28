@@ -5,6 +5,8 @@ about: Suggest a new feature or enhancement for the project.
 title: "[FEATURE] Short description of the feature"
 labels: enhancement, status: needs-triage
 assignees: ''
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 ---
 
 <!--

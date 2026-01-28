@@ -14,6 +14,8 @@ description: >
 title: "[PERF] Short description of the performance issue"
 labels: ["bug", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review performance issues
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 
 body:
   # ---------------------------------------------------------------------------

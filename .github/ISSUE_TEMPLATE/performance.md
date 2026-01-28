@@ -4,6 +4,8 @@ about: Report a performance regression or performance-related problem
 title: "[PERF] "
 labels: bug, status: needs-triage
 assignees: ""
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 ---
 
 <!--

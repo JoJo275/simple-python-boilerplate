@@ -5,6 +5,8 @@ about: Use this only for confirmed, reproducible defects.
 title: "[BUG] Short description of the issue"
 labels: bug, status: needs-triage
 assignees: '' # Optionally assign specific team members to review requests built from this template
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 ---
 
 <!--

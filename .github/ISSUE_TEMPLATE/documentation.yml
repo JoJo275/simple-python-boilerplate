@@ -13,6 +13,8 @@ description: >
 title: "[DOCS] Short description of the documentation issue"
 labels: ["documentation", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review documentation issues
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 
 body:
   # ---------------------------------------------------------------------------

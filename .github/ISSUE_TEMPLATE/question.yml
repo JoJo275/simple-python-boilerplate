@@ -14,6 +14,8 @@ description: >
 title: "[QUESTION] Short description of your question"
 labels: ["question", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review questions
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 
 body:
   # ---------------------------------------------------------------------------

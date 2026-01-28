@@ -14,6 +14,8 @@ description: >
 title: "[FEATURE] Short description of the feature"
 labels: ["enhancement", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review requests built from this template
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 
 body:
   # ---------------------------------------------------------------------------

@@ -5,6 +5,8 @@ about: Report a documentation issue or request an improvement.
 title: "[DOCS] Short description of the documentation issue"
 labels: documentation, status: needs-triage
 assignees: ''
+# type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
+
 ---
 
 <!--
