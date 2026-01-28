@@ -3,7 +3,7 @@ name: 🐛 Bug report (for confirmed defects only)
 about: Use this only for confirmed, reproducible defects. 
     If you are unsure, need help, or want to propose an idea, use Discussions instead.
 title: "[BUG] Short description of the issue"
-labels: bug
+labels: bug, status: needs-triage
 assignees: '' # Optionally assign specific team members to review requests built from this template
 ---
 

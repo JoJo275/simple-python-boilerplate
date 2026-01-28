@@ -11,7 +11,7 @@ description: >
   Use this only for confirmed, reproducible defects. 
   If you are unsure, need help, or want to propose an idea, use Discussions instead.
 title: "[BUG] Short description of the issue"
-labels: ["bug"] # Default labels for issues created with this template (feel free to customize)
+labels: ["bug", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review requests built from this template
 projects: [] # Optionally add issues created with this template to specific projects
 types: [] # Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level)

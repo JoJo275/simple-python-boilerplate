@@ -3,7 +3,7 @@ name: 📚 Documentation
 about: Report a documentation issue or request an improvement. 
     For questions about using the project, please use Discussions instead.
 title: "[DOCS] Short description of the documentation issue"
-labels: documentation
+labels: documentation, status: needs-triage
 assignees: ''
 ---
 

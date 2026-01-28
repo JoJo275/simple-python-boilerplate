@@ -12,7 +12,7 @@ description: >
   Report a performance regression or performance-related problem.
   For feature requests to improve performance, please use the Feature Request template.
 title: "[PERF] Short description of the performance issue"
-labels: ["performance"]
+labels: ["bug", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review performance issues
 
 body:

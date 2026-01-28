@@ -2,7 +2,7 @@
 name: ⚡ Performance Issue
 about: Report a performance regression or performance-related problem
 title: "[PERF] "
-labels: performance
+labels: bug, status: needs-triage
 assignees: ""
 ---
 
