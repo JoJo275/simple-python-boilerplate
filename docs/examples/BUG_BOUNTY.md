@@ -23,12 +23,14 @@ The following are eligible for rewards:
 
 | Severity | Examples | Reward Range |
 |----------|----------|--------------|
-| **Critical** | Remote code execution, authentication bypass, data breach | $500 – $2,000 |
-| **High** | Privilege escalation, significant data exposure, injection attacks | $200 – $500 |
-| **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $50 – $200 |
-| **Low** | Minor information leaks, theoretical attacks | $0 – $50 (swag/recognition) |
+| **Critical** | Remote code execution, authentication bypass, data breach | $100 – $500+ |
+| **High** | Privilege escalation, significant data exposure, injection attacks | $50 – $200 |
+| **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $25 – $100 |
+| **Low** | Minor information leaks, theoretical attacks | Recognition only |
 
-> **Note:** Reward amounts are guidelines. Final amounts are determined based on impact, exploitability, and report quality.
+> **Note:** Reward amounts are guidelines and may vary based on project funding. Final amounts are determined based on impact, exploitability, and report quality. Some projects using this template may offer recognition only.
+
+> **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards. Low severity issues receive recognition in our Hall of Fame.
 
 ### Out of Scope
 
@@ -52,8 +54,17 @@ To qualify for a reward, you must:
 1. **Report privately** — Do not disclose publicly until we've released a fix
 2. **Provide details** — Include steps to reproduce, impact assessment, and PoC
 3. **Act in good faith** — Do not access, modify, or delete user data
-4. **Wait for authorization** — Do not test against production without approval
+4. **Test responsibly** — Only test against your own instances or with explicit permission
 5. **One report per issue** — Do not submit duplicates or variants of the same issue
+
+### Duplicate Reports
+
+If multiple researchers report the same vulnerability:
+
+- The **first valid report** receives the full reward
+- Subsequent reports may receive partial recognition (but no monetary reward)
+- We determine duplicates based on the timestamp of the report submission
+- If reports arrive within the same 24-hour period with substantially different details, we may split the reward at our discretion
 
 ### Safe Harbor
 
@@ -69,7 +80,14 @@ We will not pursue legal action against researchers who:
 
 1. **Preferred:** [GitHub Security Advisory](https://github.com/OWNER/REPO/security/advisories/new)
 2. **Email:** `security@example.com`
-3. **PGP Encrypted:** Key fingerprint `XXXX XXXX XXXX XXXX XXXX`
+3. **PGP Encrypted:** See key details below
+
+<!-- TODO: Add your PGP key fingerprint (full 40-character format):
+Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
+Public key: https://keys.openpgp.org/search?q=security@example.com
+-->
+
+For general security information, see our [Security Policy](../../SECURITY.md).
 
 ### What to Include
 
@@ -109,6 +127,7 @@ Rewards are paid via:
 - You must not be on any US sanctions list
 - You must be at least 18 years old (or have guardian consent)
 - Rewards are subject to applicable tax laws
+- **Tax responsibility:** Researchers are responsible for reporting bounty income in their jurisdiction. We may request tax forms (e.g., W-9 for US persons) for rewards above $600 USD.
 
 ---
 
