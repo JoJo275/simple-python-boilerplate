@@ -9,21 +9,15 @@ set -euo pipefail
 #   ./scripts/apply-labels.sh baseline OWNER/REPO
 #   ./scripts/apply-labels.sh baseline --dry-run
 
-SET="${1:-}"
-ARG="${2:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ -z "${SET}" ]]; then
-  echo "Usage: $0 {baseline|extended} [OWNER/REPO|--dry-run]" >&2
+SET="${1:-}"
+shift || true
+EXTRA_ARGS=("$@")
+
+if [[ -z "${SET}" || ! "${SET}" =~ ^(baseline|extended)$ ]]; then
+  echo "Usage: $0 {baseline|extended} [OWNER/REPO] [--dry-run]" >&2
   exit 2
 fi
 
-if [[ "${ARG}" == "--dry-run" ]]; then
-  python3 scripts/apply_labels.py --set "${SET}" --dry-run
-  exit 0
-fi
-
-if [[ -n "${ARG}" ]]; then
-  python3 scripts/apply_labels.py --set "${SET}" --repo "${ARG}"
-else
-  python3 scripts/apply_labels.py --set "${SET}"
-fi
+python3 "${SCRIPT_DIR}/apply_labels.py" --set "${SET}" "${EXTRA_ARGS[@]}"
