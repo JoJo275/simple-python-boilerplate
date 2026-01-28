@@ -31,11 +31,21 @@ def run(cmd: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, text=True, capture_output=True)
 
 
+def gh_exists() -> bool:
+    """Check if GitHub CLI is installed."""
+    try:
+        subprocess.run(["gh", "--version"], capture_output=True, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
 def default_repo() -> str | None:
     p = run(["gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"])
     if p.returncode != 0:
         return None
     return (p.stdout or "").strip() or None
+
 
 def gh_api(method: str, endpoint: str, fields: dict[str, str]) -> subprocess.CompletedProcess:
     cmd = ["gh", "api", "-X", method, endpoint]
@@ -50,6 +60,11 @@ def main() -> int:
     ap.add_argument("--repo", help="OWNER/REPO; default is current repo")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
+
+    # Ensure gh is installed
+    if not gh_exists():
+        print("Error: GitHub CLI (gh) is not installed. Install from https://cli.github.com/", file=sys.stderr)
+        return 2
 
     repo = args.repo or default_repo()
     if not repo:
@@ -67,17 +82,28 @@ def main() -> int:
         print("Error: gh is not authenticated. Run: gh auth login", file=sys.stderr)
         return 2
 
-    labels = json.loads(spec.read_text(encoding="utf-8"))
+    try:
+        labels: list[dict[str, str]] = json.loads(spec.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        print(f"Error: invalid JSON in {spec}: {e}", file=sys.stderr)
+        return 2
+
+    if args.dry_run:
+        print(f"[DRY RUN] Would process {len(labels)} labels for {repo}")
+        for lab in labels:
+            name = lab["name"]
+            color = lab["color"].lstrip("#")
+            desc = lab.get("description", "")
+            print(f"  upsert: {name} (#{color}) - {desc}")
+        return 0
 
     created = updated = 0
+    failures: list[str] = []
+
     for lab in labels:
         name = lab["name"]
         color = lab["color"].lstrip("#")
         desc = lab.get("description", "")
-
-        if args.dry_run:
-            print(f"[DRY] upsert: {name} (#{color}) - {desc}")
-            continue
 
         # Try create
         p = gh_api("POST", f"repos/{repo}/labels", {"name": name, "color": color, "description": desc})
@@ -92,14 +118,22 @@ def main() -> int:
             updated += 1
             continue
 
-        print(f"Failed to upsert label: {name}", file=sys.stderr)
+        # Record failure but continue processing
+        error_msg = f"Failed to upsert label: {name}"
         if p.stderr:
-            print(p.stderr.strip(), file=sys.stderr)
+            error_msg += f"\n  POST error: {p.stderr.strip()}"
         if p2.stderr:
-            print(p2.stderr.strip(), file=sys.stderr)
-        return 1
+            error_msg += f"\n  PATCH error: {p2.stderr.strip()}"
+        failures.append(error_msg)
 
     print(f"Done. Created: {created}, Updated: {updated}. Repo: {repo}")
+
+    if failures:
+        print(f"\n{len(failures)} label(s) failed:", file=sys.stderr)
+        for msg in failures:
+            print(msg, file=sys.stderr)
+        return 1
+
     return 0
 
 if __name__ == "__main__":
