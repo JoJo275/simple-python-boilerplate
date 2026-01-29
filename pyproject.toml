@@ -59,6 +59,8 @@ dependencies = [
 # CLI entry point - run with: spb
 [project.scripts]
 spb = "simple_python_boilerplate.main:main"
+spb-version = "simple_python_boilerplate.main:print_version"
+spb-doctor = "simple_python_boilerplate.main:doctor"
 
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]
