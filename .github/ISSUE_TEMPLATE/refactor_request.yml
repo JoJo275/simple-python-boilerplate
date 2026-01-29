@@ -109,12 +109,32 @@ body:
       required: false
 
   - type: input
-    id: location
+    id: location_path
     attributes:
-      label: Location
+      label: Package / Module / File Path(s)
       description: >
-        Specific file(s), function(s), or module(s) to refactor.
-      placeholder: "e.g., src/utils.py, MyClass.process_data(), or the config module"
+        Which files or modules need refactoring?
+      placeholder: "e.g., src/utils.py, src/auth/, or the config module"
+    validations:
+      required: false
+
+  - type: input
+    id: location_symbols
+    attributes:
+      label: Function / Class Names
+      description: >
+        Specific functions, classes, or methods to refactor.
+      placeholder: "e.g., MyClass, process_data(), AuthHandler.validate()"
+    validations:
+      required: false
+
+  - type: input
+    id: location_links
+    attributes:
+      label: Links to Lines (Optional)
+      description: >
+        Permalinks to specific lines on GitHub (use "Copy permalink" from the file view).
+      placeholder: "e.g., https://github.com/org/repo/blob/abc123/src/utils.py#L42-L58"
     validations:
       required: false
 
@@ -210,21 +230,83 @@ body:
       required: true
 
   # ---------------------------------------------------------------------------
-  # Contribution Interest
+  # Implementation Ownership
+  # ---------------------------------------------------------------------------
+  # Clarifies whether this is a request for maintainer action or a proposal
+  # for a contributor-led change.
   # ---------------------------------------------------------------------------
   - type: dropdown
-    id: contribution
+    id: implementer
     attributes:
-      label: Would you be willing to submit a PR for this?
+      label: Who will implement?
       description: >
-        Refactoring contributions are welcome!
+        Are you requesting maintainer action, or proposing a change you can lead?
       options:
-        - Yes, I'd like to do this myself
-        - Yes, but I'd need guidance
-        - Maybe, depending on complexity
-        - No, I'm just reporting the issue
+        - Maintainers – I'm requesting the team handle this
+        - I can implement – I'm proposing to do this myself (with approval)
+        - Not sure – Open to discussion
     validations:
       required: true
+
+  # ---------------------------------------------------------------------------
+  # User-Visible Impact
+  # ---------------------------------------------------------------------------
+  # Refactors can silently change behavior. This helps assess risk.
+  # ---------------------------------------------------------------------------
+  - type: checkboxes
+    id: user_visible_impact
+    attributes:
+      label: User-Visible Impact
+      description: >
+        Check all that apply. Refactors often have unintended side effects.
+      options:
+        - label: No user-visible changes intended
+        - label: Behavior change possible
+        - label: Public API change
+        - label: Performance impact expected
+        - label: Docs update needed
+        - label: Tests update needed
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Risk / Regression Surface
+  # ---------------------------------------------------------------------------
+  # Understanding what could break helps plan testing and rollout.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: risk_regression
+    attributes:
+      label: Risk / Regression Surface (Optional)
+      description: >
+        What could break? How will we test and roll out safely?
+      placeholder: |
+        Example: "This touches the authentication flow, so login/logout paths need testing."
+        Example: "Could affect performance under high load—benchmark before/after."
+        Example: "Suggest a feature flag for gradual rollout."
+    validations:
+      required: false
+
+  # ---------------------------------------------------------------------------
+  # Acceptance Criteria / Definition of Done
+  # ---------------------------------------------------------------------------
+  # Helps close the issue with clear success criteria.
+  # ---------------------------------------------------------------------------
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria / Definition of Done
+      description: >
+        When is this refactor complete? What must be true to close this issue?
+      placeholder: |
+        Example: "Done when...
+        - [ ] process_data() is split into validate/transform/format functions
+        - [ ] All existing tests pass
+        - [ ] No behavior changes (same inputs → same outputs)
+        - [ ] Code coverage remains ≥ 90%
+        - [ ] Legacy helper function X is removed"
+    validations:
+      required: false
 
   # ---------------------------------------------------------------------------
   # Checklist
