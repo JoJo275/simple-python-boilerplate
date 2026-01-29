@@ -40,9 +40,9 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Most questions belong in [Discussions](../../../discussions) (Q&A)** rather than Issues.
+        - **Most questions belong in [Discussions](../../discussions) (Q&A)** rather than Issues.
         - If you're reporting a reproducible problem, use **Bug Report** instead.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
         - Search existing issues, discussions, and documentation first.
 
   # ---------------------------------------------------------------------------

@@ -42,7 +42,7 @@ body:
       value: |
         ⚠️ **Before submitting**
         - For general bugs (not performance-related), use the **Bug Report** template.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
         - **Performance feature request?** Use the Feature Request template (not this one).
         - **Include evidence:** benchmarks, profiling output, and "before vs after" numbers help most.
         - Search existing issues to avoid duplicates.

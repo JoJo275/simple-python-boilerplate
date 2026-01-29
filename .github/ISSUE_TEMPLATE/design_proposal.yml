@@ -39,9 +39,9 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
         - **Small enhancement?** Use the **Feature Request** template instead.
-        - **Early-stage idea?** Start in [Discussions](../../../discussions) (Ideas/Proposals) first.
+        - **Early-stage idea?** Start in [Discussions](../../discussions) (Ideas/Proposals) first.
         - Search existing issues and discussions to avoid duplicates.
 
   # ---------------------------------------------------------------------------

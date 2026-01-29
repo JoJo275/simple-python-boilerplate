@@ -41,7 +41,7 @@ body:
         ⚠️ **Before submitting**
         - **Bug?** Use the **Bug Report** template instead.
         - **New feature?** Use the **Feature Request** template instead.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
         - Search existing issues to avoid duplicates.
 
   # ---------------------------------------------------------------------------

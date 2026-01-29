@@ -40,7 +40,7 @@ body:
       value: |
         ⚠️ **Before submitting**
         - **Application bug?** If the test is failing due to an actual bug in the code, use the **Bug Report** template.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
         - Search existing issues to avoid duplicates.
 
   # ---------------------------------------------------------------------------

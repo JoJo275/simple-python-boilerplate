@@ -40,10 +40,10 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../SECURITY.md) and (if enabled) report privately via [Security Advisory](../../../security/advisories/new).
-        - **"How do I…?" / advice** → Use [Discussions](../../../discussions) (Q&A category).
-        - **Docs first:** check [README](../../../#readme) and project documentation.
-        - **Search first:** please search [existing issues](../../../issues) before filing a new one.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md) and (if enabled) report privately via [Security Advisory](../../security/advisories/new).
+        - **"How do I…?" / advice** → Use [Discussions](../../discussions) (Q&A category).
+        - **Docs first:** check [README](../../#readme) and project documentation.
+        - **Search first:** please search [existing issues](../../issues) before filing a new one.
         - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
 
   # ---------------------------------------------------------------------------
