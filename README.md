@@ -367,4 +367,8 @@ State what versions/branches receive security fixes (or “latest only”).
 
 pick security.md with the bounty program or the one without it.
 
+“Copy desired templates into .github/ISSUE_TEMPLATE/ to enable.”
+
+“Prefer Issue Forms; legacy Markdown templates are optional/for reference.”
+
 

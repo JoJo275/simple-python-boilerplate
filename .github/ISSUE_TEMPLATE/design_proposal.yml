@@ -71,6 +71,33 @@ body:
     validations:
       required: true
 
+  - type: textarea
+    id: goals
+    attributes:
+      label: Goals
+      description: >
+        What are the specific goals this design aims to achieve?
+        Be explicit about what success looks like.
+      placeholder: |
+        - Goal 1: Enable third-party plugins without modifying core code
+        - Goal 2: Maintain backward compatibility with existing integrations
+        - Goal 3: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-Goals (Optional)
+      description: >
+        What is explicitly out of scope for this design?
+        This helps keep the proposal focused and prevents scope creep.
+      placeholder: |
+        - Non-goal: Supporting plugins written in languages other than Python
+        - Non-goal: Providing a plugin marketplace or discovery mechanism
+    validations:
+      required: false
+
   - type: dropdown
     id: scope
     attributes:
@@ -154,7 +181,9 @@ body:
     id: breaking_change
     attributes:
       label: Breaking Change?
-      description: Would this design introduce breaking changes?
+      description: >
+        Would this design introduce breaking changes?
+        If Yes or Partially, please fill in the Migration Path section below.
       options:
         - "No – Backward compatible"
         - "Yes – Breaking changes required"
@@ -200,6 +229,33 @@ body:
         What other designs or approaches did you consider? Why were they rejected?
       placeholder: |
         Example: "Alternative A: ... (rejected because...)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks & Mitigations (Optional)
+      description: >
+        What could go wrong with this design? How would you mitigate those risks?
+      placeholder: |
+        - Risk: Plugin isolation may be insufficient, allowing plugins to corrupt state
+          Mitigation: Use process-level sandboxing or strict interface contracts
+        - Risk: Performance overhead from plugin hooks
+          Mitigation: Lazy loading and optional hook registration
+    validations:
+      required: false
+
+  - type: textarea
+    id: open_questions
+    attributes:
+      label: Open Questions (Optional)
+      description: >
+        What questions remain unresolved? What areas need input from reviewers?
+      placeholder: |
+        - Should plugins be loaded eagerly or lazily?
+        - How should plugin versioning and compatibility be handled?
+        - What's the right granularity for hook points?
     validations:
       required: false
 
