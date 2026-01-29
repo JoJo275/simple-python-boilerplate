@@ -12,16 +12,14 @@ Thanks for taking the time to propose a design change! 🎨
 Design proposals help us make thoughtful architectural decisions.
 Please provide as much context as possible to facilitate discussion.
 
+<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 ⚠️ **Before submitting**
-- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
+- **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
 - **Small enhancement?** Use the **Feature Request** template instead.
-- **Early-stage idea?** Start in Discussions (Ideas/Proposals) first.
-- Search existing issues and discussions to avoid duplicates.
+- **Early-stage idea?** Start in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Ideas/Proposals) first.
+- Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
 
 💡 **Discussions vs. Design Proposals:** If you want brainstorming or feedback on a rough idea, use Discussions. Use this template when you have a **concrete proposal** ready for review.
-
-TODO: Update links for your repo:
-- Discussions: https://github.com/YOUR_ORG/YOUR_REPO/discussions
 -->
 
 ## Summary

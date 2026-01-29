@@ -14,12 +14,13 @@ Thanks for reporting a performance issue! ⚡
 Performance issues help us keep the project fast and efficient.
 Please provide as much detail as possible, including measurements and reproduction steps.
 
+<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 ⚠️ **Before submitting**
 - For general bugs (not performance-related), use the **Bug Report** template.
-- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
+- **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
 - **Performance feature request?** Use the Feature Request template (not this one).
 - **Include evidence:** benchmarks, profiling output, and "before vs after" numbers help most.
-- Search existing issues to avoid duplicates.
+- Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
 -->
 
 ## Performance Details

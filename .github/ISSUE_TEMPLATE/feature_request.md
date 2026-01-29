@@ -16,11 +16,12 @@ A good feature request explains the **problem** you're facing and how
 your proposed solution would help. The more context you provide, the
 easier it is to evaluate and prioritize.
 
+<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 ⚠️ **Before submitting**
-- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md.
-- **Brainstorming / unsure about scope?** Start in Discussions (Ideas/Proposals) first.
-- **Contributing:** if you're willing to implement, read CONTRIBUTING.md.
-- Search existing issues and discussions to avoid duplicates.
+- **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+- **Brainstorming / unsure about scope?** Start in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Ideas/Proposals) first.
+- **Contributing:** if you're willing to implement, read [CONTRIBUTING.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md).
+- Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
 -->
 
 ## Problem Statement
