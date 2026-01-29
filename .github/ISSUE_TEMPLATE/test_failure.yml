@@ -9,7 +9,7 @@
 name: 🧪 Test Failure
 description: >
   Report a test failure, flaky test, or test infrastructure issue.
-  For application bugs, use the Bug Report template.
+  For application bugs, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
 title: "[TEST] Short description of the test failure"
 labels: ["test-failure", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review test failures
@@ -39,9 +39,9 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Application bug?** If the test is failing due to an actual bug in the code, use the **Bug Report** template.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
-        - Search existing issues to avoid duplicates.
+        - **Application bug?** If the test is failing due to an actual bug in the code, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
 
   # ---------------------------------------------------------------------------
   # Failure Details

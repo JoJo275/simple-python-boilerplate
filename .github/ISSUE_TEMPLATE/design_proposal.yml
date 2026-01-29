@@ -9,7 +9,7 @@
 name: 🎨 Design Proposal
 description: >
   Propose a significant design or architectural change.
-  For smaller enhancements, please use the Feature Request template.
+  For smaller enhancements, please use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template.
 title: "[DESIGN] Short description of the proposal"
 labels: ["design", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review design proposals
@@ -40,7 +40,7 @@ body:
       value: |
         ⚠️ **Before submitting**
         - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/HEAD/SECURITY.md).
-        - **Small enhancement?** Use the **Feature Request** template instead.
+        - **Small enhancement?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template instead.
         - **Early-stage idea?** Start in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Ideas/Proposals) first.
         - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
         

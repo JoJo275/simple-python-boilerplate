@@ -39,10 +39,10 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Bug?** Use the **Bug Report** template instead.
-        - **New feature?** Use the **Feature Request** template instead.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
-        - Search existing issues to avoid duplicates.
+        - **Bug?** Use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template instead.
+        - **New feature?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template instead.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
 
   # ---------------------------------------------------------------------------
   # Refactor Details

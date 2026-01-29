@@ -10,7 +10,7 @@
 name: ⚡ Performance Issue
 description: >
   Report a performance regression or performance-related problem.
-  For feature requests to improve performance, please use the Feature Request template.
+  For feature requests to improve performance, please use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template.
 title: "[PERF] Short description of the performance issue"
 labels: ["bug", "status: needs-triage"]
 assignees: [] # Optionally assign specific team members to review performance issues
@@ -41,11 +41,11 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - For general bugs (not performance-related), use the **Bug Report** template.
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md).
-        - **Performance feature request?** Use the Feature Request template (not this one).
+        - For general bugs (not performance-related), use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template.
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
+        - **Performance feature request?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template (not this one).
         - **Include evidence:** benchmarks, profiling output, and "before vs after" numbers help most.
-        - Search existing issues to avoid duplicates.
+        - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) to avoid duplicates.
 
   # ---------------------------------------------------------------------------
   # Performance Details

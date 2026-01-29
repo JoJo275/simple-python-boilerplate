@@ -16,8 +16,8 @@ Please provide enough context to understand the value of this change.
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 ## ⚠️ Before submitting
 
-- [ ] **Not a bug** – Use the **Bug Report** template for bugs
-- [ ] **Not a feature** – Use the **Feature Request** template for new features
+- [ ] **Not a bug** – Use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template for bugs
+- [ ] **Not a feature** – Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template for new features
 - [ ] **Not a security issue** – Do **not** open a public issue for vulnerabilities. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md)
 - [ ] **Searched for duplicates** – No [existing issue](https://github.com/JoJo275/simple-python-boilerplate/issues) covers this
 

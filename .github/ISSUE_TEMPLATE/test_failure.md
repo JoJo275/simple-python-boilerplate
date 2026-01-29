@@ -16,7 +16,7 @@ Please provide as much detail as possible to help us investigate.
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 ## ⚠️ Before submitting
 
-- [ ] **Not an application bug** – Use the **Bug Report** template if the test is exposing a real bug
+- [ ] **Not an application bug** – Use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template if the test is exposing a real bug
 - [ ] **Not a security issue** – Do **not** open a public issue for vulnerabilities. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md)
 - [ ] **Searched for duplicates** – No [existing issue](https://github.com/JoJo275/simple-python-boilerplate/issues) covers this
 
