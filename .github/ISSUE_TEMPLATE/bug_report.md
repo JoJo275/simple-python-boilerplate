@@ -15,11 +15,18 @@ Thanks for taking the time to report a bug! 🐛
 Please provide the **smallest possible example** that **reliably** reproduces the issue.
 
 ⚠️ **Before submitting**
-- **Security vulnerability?** Do **not** open a public issue. See SECURITY.md and (if enabled) report privately via Security Advisory.
-- **"How do I…?" / advice** → Use Discussions (Q&A category).
-- **Docs first:** check README and project documentation.
-- **Search first:** please search existing issues before filing a new one.
+- **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../SECURITY.md) and (if enabled) report privately via Security Advisory.
+- **"How do I…?" / advice** → Use [Discussions](../../../discussions) (Q&A category).
+- **Docs first:** check [README](../../../#readme) and project documentation.
+- **Search first:** please search [existing issues](../../../issues) before filing a new one.
 - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
+
+<!-- TODO: Replace relative paths with absolute URLs for your repo:
+     https://github.com/YOUR_ORG/YOUR_REPO/security/advisories/new
+     https://github.com/YOUR_ORG/YOUR_REPO/discussions
+     https://github.com/YOUR_ORG/YOUR_REPO#readme
+     https://github.com/YOUR_ORG/YOUR_REPO/issues
+-->
 -->
 
 ## Description

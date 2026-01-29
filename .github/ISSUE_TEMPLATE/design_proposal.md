@@ -19,6 +19,9 @@ Please provide as much context as possible to facilitate discussion.
 - Search existing issues and discussions to avoid duplicates.
 
 💡 **Discussions vs. Design Proposals:** If you want brainstorming or feedback on a rough idea, use Discussions. Use this template when you have a **concrete proposal** ready for review.
+
+TODO: Update links for your repo:
+- Discussions: https://github.com/YOUR_ORG/YOUR_REPO/discussions
 -->
 
 ## Summary

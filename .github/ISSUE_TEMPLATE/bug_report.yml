@@ -45,6 +45,9 @@ body:
         - **Docs first:** check [README](https://github.com/JoJo275/simple-python-boilerplate#readme) and project documentation.
         - **Search first:** please search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) before filing a new one.
         - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
+        
+        <!-- TODO: Update links listed above for your repo:
+        -->
 
   # ---------------------------------------------------------------------------
   # Bug Details

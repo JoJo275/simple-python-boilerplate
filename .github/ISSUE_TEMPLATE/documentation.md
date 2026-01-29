@@ -20,6 +20,9 @@ as possible so we can understand and address the issue.
 - **Simple "how do I…?"** Use Discussions (Q&A).
 - **Small doc fixes welcome:** see CONTRIBUTING.md.
 - Search existing issues and discussions to avoid duplicates.
+
+TODO: Update links for your repo:
+- Discussions: https://github.com/YOUR_ORG/YOUR_REPO/discussions
 -->
 
 ## Issue Type
