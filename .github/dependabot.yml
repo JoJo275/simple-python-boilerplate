@@ -25,8 +25,8 @@ updates:
       interval: "weekly"
       day: "monday"
     commit-message:
-      prefix: "deps"
-      include: "scope"
+      prefix: "chore"
+      include: "deps"
     labels:
       - "dependencies"
       - "python"
