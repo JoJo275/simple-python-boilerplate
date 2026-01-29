@@ -39,6 +39,7 @@ body:
   - type: markdown
     attributes:
       value: |
+        <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
         ⚠️ **Before submitting**
         - **Most questions belong in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A)** rather than Issues.
         - If you're reporting a reproducible problem, use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template instead.
