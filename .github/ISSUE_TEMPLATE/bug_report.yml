@@ -40,7 +40,7 @@ body:
     attributes:
       value: |
         ⚠️ **Before submitting**
-        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../../security/policy) and (if enabled) report privately via [Security Advisory](../../security/advisories/new).
+        - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](../../blob/HEAD/SECURITY.md) and (if enabled) report privately via [Security Advisory](../../security/advisories/new).
         - **"How do I…?" / advice** → Use [Discussions](../../discussions) (Q&A category).
         - **Docs first:** check [README](../../#readme) and project documentation.
         - **Search first:** please search [existing issues](../../issues) before filing a new one.
