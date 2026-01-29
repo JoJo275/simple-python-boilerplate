@@ -117,26 +117,14 @@ body:
   - type: textarea
     id: non_goals
     attributes:
-      label: Non-Goals (Optional)
+      label: Non-Goals / Out of Scope (Optional)
       description: >
         What is explicitly out of scope for this design?
-        This helps keep the proposal focused and prevents scope creep.
+        Define boundaries to keep the proposal focused and prevent scope creep.
       placeholder: |
-        - Non-goal: Supporting plugins written in languages other than Python
-        - Non-goal: Providing a plugin marketplace or discovery mechanism
-    validations:
-      required: false
-
-  - type: textarea
-    id: out_of_scope
-    attributes:
-      label: Out of Scope (Optional)
-      description: >
-        Explicitly define boundaries—what this proposal will NOT address.
-        This complements Non-Goals by clarifying limits.
-      placeholder: |
-        - Out of scope: Performance optimizations (will be addressed separately)
-        - Out of scope: UI/UX changes
+        - Not addressing: Performance optimizations (will be handled separately)
+        - Not addressing: Supporting plugins in languages other than Python
+        - Not addressing: Plugin marketplace or discovery mechanism
     validations:
       required: false
 
@@ -283,19 +271,6 @@ body:
         Example: "Users would need to update their configuration to..."
     validations:
       required: false
-
-  - type: dropdown
-    id: complexity
-    attributes:
-      label: Estimated Complexity
-      description: How complex is this design change to implement?
-      options:
-        - Low – Straightforward implementation
-        - Medium – Moderate complexity
-        - High – Significant effort required
-        - Unsure
-    validations:
-      required: true
 
   # ---------------------------------------------------------------------------
   # Alternatives
