@@ -48,6 +48,13 @@ body:
   # ---------------------------------------------------------------------------
   # Core information about the test failure.
   # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Failure Details
+
+        Core information about the test failure.
+
   - type: dropdown
     id: failure_type
     attributes:
@@ -58,7 +65,6 @@ body:
         - Flaky test (intermittent failure)
         - Test timeout
         - Test infrastructure issue
-        - Missing test coverage
         - Test performance issue
         - CI/CD pipeline failure
         - Unsure
@@ -87,9 +93,9 @@ body:
       required: true
 
   - type: textarea
-    id: description
+    id: summary
     attributes:
-      label: Description
+      label: Summary
       description: >
         Describe the test failure. What is happening?
       placeholder: |
@@ -183,16 +189,18 @@ body:
   - type: input
     id: python
     attributes:
-      label: Python Version
+      label: Python Version (if local)
       placeholder: "3.11.5"
     validations:
-      required: true
+      required: false
 
   - type: input
-    id: package
+    id: commit_branch
     attributes:
-      label: Package Version / Branch
-      placeholder: "0.1.0 or main branch"
+      label: Commit / Branch / Release
+      description: >
+        Which commit SHA, branch, or release version exhibits the failure?
+      placeholder: "e.g., abc1234, main, or v1.2.0"
     validations:
       required: false
 
@@ -206,28 +214,73 @@ body:
     validations:
       required: false
 
+  - type: input
+    id: ci_job_runner
+    attributes:
+      label: CI Job Name + Runner OS (if applicable)
+      description: >
+        For matrix failures, which job and runner OS failed?
+      placeholder: "e.g., test (ubuntu-latest, 3.11) or build-windows"
+    validations:
+      required: false
+
+  - type: input
+    id: flake_rate
+    attributes:
+      label: Flake Rate / Frequency (if intermittent)
+      description: >
+        If you selected "Flaky" above, how often does it fail? Helps prioritize fixes.
+      placeholder: "e.g., ~1 in 20 runs, or 3 times this week"
+    validations:
+      required: false
+
+  - type: input
+    id: test_command
+    attributes:
+      label: Test Command Used
+      description: >
+        The exact command you ran (if not just `pytest`).
+      placeholder: "e.g., pytest -x -v tests/ --timeout=60"
+    validations:
+      required: false
+
   # ---------------------------------------------------------------------------
   # Reproduction
   # ---------------------------------------------------------------------------
   # How to reproduce the failure.
   # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Reproduction
+
+        Help us reproduce the failure.
+
   - type: textarea
     id: reproduction_steps
     attributes:
-      label: Steps to Reproduce
+      label: Steps to Reproduce (Optional)
       description: >
-        How can we reproduce this test failure?
+        How can we reproduce this test failure? Skip if it's just "run the test."
       placeholder: |
-        1. Clone the repository
-        2. Install dependencies: pip install -e ".[dev]"
-        3. Run: pytest tests/test_utils.py::test_parse_input
-        4. Observe failure
+        Usually just:
+        1. pip install -e ".[dev]"
+        2. Run the test command above
+
+        Add extra steps only if needed (e.g., specific env vars, seed data, timing).
     validations:
-      required: true
+      required: false
 
   # ---------------------------------------------------------------------------
-  # Analysis (Optional)
+  # Additional Context
   # ---------------------------------------------------------------------------
+  - type: markdown
+    attributes:
+      value: |
+        ## Additional Context
+
+        Any extra information that might help.
+
   - type: textarea
     id: analysis
     attributes:
@@ -237,6 +290,16 @@ body:
       placeholder: |
         Example: "I suspect this is a race condition because..."
         Example: "This might be related to the recent changes in PR #42..."
+    validations:
+      required: false
+
+  - type: input
+    id: related_tests
+    attributes:
+      label: Other Tests Affected? (Optional)
+      description: >
+        Are other tests also failing or flaky? This can surface broader patterns.
+      placeholder: "e.g., test_auth.py also times out, or all async tests are flaky"
     validations:
       required: false
 
@@ -253,4 +316,4 @@ body:
         - label: I have included the full error output
           required: true
         - label: I have verified this is a test issue, not an application bug
-          required: false
+          required: true
