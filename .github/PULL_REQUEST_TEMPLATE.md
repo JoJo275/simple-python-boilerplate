@@ -38,6 +38,10 @@ Brief description of the changes in this PR.
 # e.g., pytest tests/test_feature.py -v
 ```
 
+**Screenshots / Demo (if applicable):**
+<!-- Add screenshots, GIFs, or video links to help explain your changes -->
+
+
 ## Risk / Impact
 
 <!-- What's the blast radius? What could go wrong? -->
@@ -47,8 +51,18 @@ Brief description of the changes in this PR.
 **What could break:**
 
 
-**Rollback plan:**
-<!-- e.g., "Revert this PR" or "Toggle feature flag X" or "Run migration Y" -->
+**Rollback plan:** Revert this PR
+<!-- Or: "Toggle feature flag X" / "Run migration Y" / etc. -->
+
+
+## Dependencies (if applicable)
+
+<!-- Delete this section if not applicable -->
+<!-- List any PRs that must be merged before/after this one -->
+
+**Depends on:** <!-- e.g., #456, or org/other-repo#123 -->
+
+**Blocked by:** <!-- e.g., waiting for deployment of #456 -->
 
 
 ## Breaking Changes / Migrations (if applicable)
@@ -79,10 +93,6 @@ Brief description of the changes in this PR.
 
 <!-- Save reviewer time: "Please pay close attention to X" -->
 
-
-## Screenshots (if applicable)
-
-<!-- Add screenshots to help explain your changes -->
 
 ## Additional Notes
 
