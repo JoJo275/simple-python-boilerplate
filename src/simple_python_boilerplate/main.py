@@ -17,7 +17,7 @@ def print_version() -> None:
         # Fallback for editable installs or development
         from simple_python_boilerplate import __version__
         v = __version__
-    
+
     print(f"simple-python-boilerplate {v}")
     print(f"Python {sys.version}")
 
@@ -27,9 +27,9 @@ def doctor() -> None:
     import platform
     import shutil
     from pathlib import Path
-    
+
     print("🩺 simple-python-boilerplate doctor\n")
-    
+
     # Version info
     print("== Version ==")
     try:
@@ -41,7 +41,7 @@ def doctor() -> None:
     print(f"  Python version:  {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     print(f"  Platform:        {platform.system()} {platform.release()}")
     print()
-    
+
     # Python environment
     print("== Environment ==")
     print(f"  Executable: {sys.executable}")
@@ -49,7 +49,7 @@ def doctor() -> None:
     in_venv = sys.prefix != sys.base_prefix
     print(f"  Virtual env: {'✅ Yes' if in_venv else '⚠️  No (consider using a venv)'}")
     print()
-    
+
     # Check for common dev tools
     print("== Dev Tools ==")
     tools = ["pytest", "ruff", "mypy", "pre-commit"]
@@ -60,7 +60,7 @@ def doctor() -> None:
         else:
             print(f"  {tool}: ❌ not found")
     print()
-    
+
     # Check for config files
     print("== Config Files ==")
     config_files = [
@@ -75,6 +75,5 @@ def doctor() -> None:
         exists = (cwd / cfg).exists()
         print(f"  {cfg}: {'✅ found' if exists else '⚠️  missing'}")
     print()
-    
-    print("✨ Doctor complete!")
 
+    print("✨ Doctor complete!")
