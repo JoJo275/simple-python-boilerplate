@@ -16,6 +16,8 @@ Edit, delete, and adapt anything and everything as needed for your own projects!
 
 There are some notes to myself and throughout the repo to remind me of certain things and why they are done a particular way (still learning a lot). Feel free to remove those notes as you see fit.
 
+A lot of the populating data in this repo (files, docs, etc) is set up with real content that relates to this repo which serve as examples and references for future use.
+
 ---
 
 ## Table of Contents
