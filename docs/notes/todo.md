@@ -4,10 +4,6 @@ Things to explore, implement, or learn more about.
 
 ## To Implement
 
-- [ ] Add pre-commit hooks configuration file
-- [ ] Set up Dependabot for automated dependency updates
-- [ ] Add GitHub issue templates
-- [ ] Create PR template
 - [ ] Add code coverage reporting to CI
 - [ ] Set up documentation with MkDocs
 

@@ -11,6 +11,7 @@ This directory contains personal notes, learnings, and references captured while
 | [learning.md](learning.md) | Key concepts, gotchas, and things I keep forgetting |
 | [tool-comparison.md](tool-comparison.md) | Quick reference for choosing between similar tools |
 | [todo.md](todo.md) | Ideas, things to explore, and bookmarks |
+| [archive.md](archive.md) | Completed items from todo.md |
 
 ## Purpose
 
