@@ -201,6 +201,23 @@ For most developers on Windows, the most predictable options are:
 
 For developer tooling details, see [docs/development.md](docs/development.md).
 
+### Architecture Decision Records
+
+Key decisions about this project's structure are documented in [docs/adr/](docs/adr/):
+
+- [ADR 001: src/ layout](docs/adr/001-src-layout.md) — Why packages live in `src/`
+- [ADR 002: pyproject.toml](docs/adr/002-pyproject-toml.md) — Single config file approach
+- [ADR 003: Separate workflows](docs/adr/003-separate-workflow-files.md) — CI organization
+- [ADR 004: Pin action SHAs](docs/adr/004-pin-action-shas.md) — Security hardening
+
+### Learning Notes
+
+Personal notes and learnings captured in [docs/notes/](docs/notes/):
+
+- [learning.md](docs/notes/learning.md) — Key concepts and gotchas
+- [tool-comparison.md](docs/notes/tool-comparison.md) — Choosing between similar tools
+- [todo.md](docs/notes/todo.md) — Ideas and things to explore
+
 ---
 
 ## Contributing
