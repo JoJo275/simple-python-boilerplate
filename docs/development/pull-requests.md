@@ -121,4 +121,6 @@ chore/maintenance-task       # Maintenance
 ## See Also
 
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — General contribution guidelines
-- [docs/labels.md](../labels.md) — Issue and PR labels
+- [labels.md](../labels.md) — Issue and PR labels
+- [dev-setup.md](dev-setup.md) — Environment setup
+- [development.md](development.md) — Daily workflows

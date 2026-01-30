@@ -201,7 +201,11 @@ For most developers on Windows, the most predictable options are:
 
 ## Documentation
 
-For developer tooling details, see [docs/development.md](docs/development.md).
+For developer tooling details, see [docs/development/](docs/development/):
+
+- [dev-setup.md](docs/development/dev-setup.md) — Environment setup
+- [development.md](docs/development/development.md) — Daily workflows
+- [pull-requests.md](docs/development/pull-requests.md) — PR guidelines
 
 ### Architecture Decision Records
 
