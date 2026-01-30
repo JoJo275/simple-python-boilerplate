@@ -159,6 +159,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade
+ignore = ["E501"]  # Ignore line length limit
 # Extended rule sets to consider:
 # select = [
 #     "E",      # pycodestyle errors
