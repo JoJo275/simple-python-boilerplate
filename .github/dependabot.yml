@@ -20,6 +20,8 @@ updates:
     #   - "your-github-username"
     # assignees:
     #   - "your-github-username"
+    # TODO: Uncomment to pause updates temporarily (set limit to 0) or slow down (change interval to "monthly")
+    # open-pull-requests-limit: 0  # Cooldown: disables new PRs, security updates still created
     groups:
       # Group minor/patch updates together, keep majors separate (breaking changes)
       actions-minor-patch:
@@ -47,6 +49,8 @@ updates:
     #   - "your-github-username"
     # assignees:
     #   - "your-github-username"
+    # TODO: Uncomment to pause updates temporarily (set limit to 0) or slow down (change interval to "monthly")
+    # open-pull-requests-limit: 0  # Cooldown: disables new PRs, security updates still created
     groups:
       # Group all minor/patch updates together
       minor-and-patch:
