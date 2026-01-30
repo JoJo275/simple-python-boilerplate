@@ -246,3 +246,31 @@ strict = true  # Enable all strict type checking options
 # 3. For dynamic versioning, consider: setuptools-scm, hatch-vcs, or semantic-release
 # 4. Test your package build with: python -m build
 # 5. Check package metadata with: python -m pip show simple-python-boilerplate
+
+# ============================================================================
+# PRE-COMMIT HOOKS (for local linting/formatting before commits)
+# ============================================================================
+# Pre-commit runs checks automatically before each git commit.
+# This catches issues early, before they reach CI.
+#
+# SETUP STEPS:
+#   1. Install pre-commit: pip install pre-commit
+#   2. Create .pre-commit-config.yaml in project root (see below)
+#   3. Install hooks: pre-commit install
+#   4. (Optional) Run on all files: pre-commit run --all-files
+#
+# Example .pre-commit-config.yaml content:
+# ----------------------------------------
+# repos:
+#   - repo: https://github.com/astral-sh/ruff-pre-commit
+#     rev: v0.6.9
+#     hooks:
+#       - id: ruff          # Linting with auto-fix
+#         args: [--fix]
+#       - id: ruff-format   # Code formatting
+#
+#   - repo: https://github.com/codespell-project/codespell
+#     rev: v2.3.0
+#     hooks:
+#       - id: codespell     # Spell checking
+# ----------------------------------------
