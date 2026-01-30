@@ -1,0 +1,124 @@
+# Pull Request Guidelines
+
+How to create, review, and merge pull requests in this project.
+
+## Before Opening a PR
+
+1. **Create a feature branch** from `main`
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes** with clear, atomic commits
+
+3. **Run quality checks locally**
+   ```bash
+   pytest                    # Tests pass
+   ruff check .              # Linting passes
+   ruff format --check .     # Formatting correct
+   ```
+
+4. **Push your branch**
+   ```bash
+   git push -u origin feature/your-feature-name
+   ```
+
+## Creating a Pull Request
+
+### Title Format
+
+Use conventional commit style for PR titles:
+
+| Prefix | Use For |
+|--------|---------|
+| `feat:` | New features |
+| `fix:` | Bug fixes |
+| `docs:` | Documentation only |
+| `chore:` | Maintenance, deps |
+| `refactor:` | Code restructuring |
+| `test:` | Adding/fixing tests |
+| `ci:` | CI/CD changes |
+
+**Examples:**
+- `feat: add user authentication`
+- `fix: resolve login timeout issue`
+- `docs: update installation guide`
+
+### Description Template
+
+```markdown
+## Summary
+Brief description of what this PR does.
+
+## Changes
+- Change 1
+- Change 2
+
+## Testing
+How was this tested?
+
+## Checklist
+- [ ] Tests pass locally
+- [ ] Code follows style guidelines
+- [ ] Documentation updated (if needed)
+```
+
+## Code Review Guidelines
+
+### For Authors
+
+- Keep PRs focused and small (< 400 lines ideal)
+- Respond to feedback promptly
+- Don't take feedback personally — it's about the code
+- Explain *why*, not just *what*
+
+### For Reviewers
+
+- Be constructive and kind
+- Explain reasoning behind suggestions
+- Approve when "good enough" — perfect is the enemy of done
+- Use conventional comments:
+
+| Prefix | Meaning |
+|--------|---------|
+| `nit:` | Minor style preference, optional |
+| `suggestion:` | Consider this approach |
+| `question:` | Need clarification |
+| `issue:` | Must be addressed |
+
+## Merging
+
+### Merge Strategy
+
+This project uses **Squash and Merge**:
+- Combines all commits into one clean commit
+- PR title becomes commit message
+- Keeps `main` history clean
+
+### Before Merging
+
+1. All CI checks pass (green checkmarks)
+2. At least one approval (if required)
+3. No unresolved conversations
+4. Branch is up-to-date with `main`
+
+### After Merging
+
+- Delete the feature branch (GitHub can do this automatically)
+- Close related issues (use `Closes #123` in PR description)
+
+## Branch Naming
+
+```
+feature/short-description    # New features
+fix/issue-description        # Bug fixes
+docs/what-changed            # Documentation
+chore/maintenance-task       # Maintenance
+```
+
+## See Also
+
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — General contribution guidelines
+- [docs/labels.md](../labels.md) — Issue and PR labels
