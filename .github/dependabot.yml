@@ -15,6 +15,7 @@ updates:
       - "dependencies"
       - "github-actions"
     open-pull-requests-limit: 5
+    rebase-strategy: "disabled"
     # TODO: Customize reviewers and assignees for your team
     # reviewers:
     #   - "your-github-username"
@@ -44,6 +45,7 @@ updates:
       - "dependencies"
       - "python"
     open-pull-requests-limit: 10
+    rebase-strategy: "disabled"
     # TODO: Customize reviewers and assignees for your team
     # reviewers:
     #   - "your-github-username"
