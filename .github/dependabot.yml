@@ -21,9 +21,11 @@ updates:
     # assignees:
     #   - "your-github-username"
     groups:
-      actions:
-        patterns:
-          - "*"
+      # Group minor/patch updates together, keep majors separate (breaking changes)
+      actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   # Keep Python dependencies up to date
   - package-ecosystem: "pip"
