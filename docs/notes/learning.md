@@ -53,6 +53,43 @@ Separate files > one giant file:
 
 ---
 
+## Quality Gates
+
+A **quality gate** is a checkpoint that code must pass before moving forward (e.g., merging to main, deploying to production).
+
+### Common Quality Gates in CI
+
+| Gate | What It Checks | Tool |
+|------|----------------|------|
+| **Tests pass** | Code works as expected | pytest |
+| **Linting passes** | Code style, bugs | Ruff |
+| **Type checking passes** | Type correctness | Mypy/Pyright |
+| **Coverage threshold** | Enough tests exist | pytest-cov |
+| **Security scan** | No vulnerabilities | Bandit, pip-audit |
+| **Spell check** | No typos | codespell |
+
+### Enforcing Quality Gates
+
+1. **GitHub Branch Protection** — Require status checks to pass before merge
+2. **CI Workflow** — Each job is a gate; if one fails, PR can't merge
+3. **Pre-commit Hooks** — Catch issues before they even reach CI
+
+### Soft vs Hard Gates
+
+- **Hard gate** — Must pass (blocks merge/deploy)
+- **Soft gate** — Informational only (warns but doesn't block)
+
+Example: When adopting type checking, start with a soft gate (`continue-on-error: true`) while adding type hints gradually.
+
+### Why Quality Gates Matter
+
+- Catch bugs early (cheaper to fix)
+- Maintain code consistency
+- Build confidence in deployments
+- Document quality expectations
+
+---
+
 ## Virtual Environments
 
 ### Quick Setup
