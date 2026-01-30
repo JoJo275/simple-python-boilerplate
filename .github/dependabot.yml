@@ -15,6 +15,11 @@ updates:
       - "dependencies"
       - "github-actions"
     open-pull-requests-limit: 5
+    # TODO: Customize reviewers and assignees for your team
+    # reviewers:
+    #   - "your-github-username"
+    # assignees:
+    #   - "your-github-username"
     groups:
       actions:
         patterns:
@@ -35,6 +40,11 @@ updates:
       - "dependencies"
       - "python"
     open-pull-requests-limit: 10
+    # TODO: Customize reviewers and assignees for your team
+    # reviewers:
+    #   - "your-github-username"
+    # assignees:
+    #   - "your-github-username"
     groups:
       # Group all minor/patch updates together
       minor-and-patch:
