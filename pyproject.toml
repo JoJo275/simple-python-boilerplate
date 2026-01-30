@@ -62,6 +62,10 @@ spb = "simple_python_boilerplate.main:main"
 spb-version = "simple_python_boilerplate.main:print_version"
 spb-doctor = "simple_python_boilerplate.main:doctor"
 
+# Repository maintenance utilities (standalone scripts)
+# Run with: python scripts/clean.py --todo
+# See scripts/clean.py for available options
+
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]
 # spb-gui = "simple_python_boilerplate.gui:main"
