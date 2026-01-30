@@ -45,6 +45,30 @@ Use separate workflow files for distinct concerns:
 - Keep workflows focused and simple
 - Document workflow purposes in this ADR
 
+## Alternatives Considered
+
+### Single ci.yml File
+
+All jobs (test, lint, release) in one workflow file.
+
+**Rejected because:**
+- Can't disable individual concerns without editing the file
+- All jobs share the same trigger events
+- Harder to grant minimal permissions per job
+- Larger diffs for small changes
+
+### Monorepo-style with Path Filters
+
+Single workflow with path-based job triggers.
+
+**Rejected because:** Adds complexity, path filters can be error-prone, still can't easily disable jobs.
+
+### Reusable Workflows Only
+
+Define all logic in reusable workflows, call from thin wrapper files.
+
+**Rejected because:** Over-engineering for a simple project; adds indirection without significant benefit.
+
 ## References
 
 - [GitHub Actions: Reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)

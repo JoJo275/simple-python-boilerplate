@@ -55,6 +55,38 @@ Pin all third-party GitHub Actions to full commit SHAs with version comments:
 - Use Dependabot to receive update PRs
 - Periodically review and update action versions
 
+## Alternatives Considered
+
+### Pin to Major Version Tag (e.g., @v4)
+
+```yaml
+uses: actions/checkout@v4
+```
+
+**Rejected because:** Tags are mutable — an attacker who compromises the action repo could move the tag to malicious code. No guarantee of what code actually runs.
+
+### Pin to Exact Version Tag (e.g., @v4.2.2)
+
+```yaml
+uses: actions/checkout@v4.2.2
+```
+
+**Rejected because:** Still mutable. While less likely to be moved than major tags, exact version tags can still be force-pushed.
+
+### Pin to Branch (e.g., @main)
+
+```yaml
+uses: actions/checkout@main
+```
+
+**Rejected because:** Highly mutable, changes with every commit. Maximum risk of unexpected behavior or supply chain attack.
+
+### Use GitHub's Immutable Actions (GHES)
+
+GitHub Enterprise Server can enforce immutable action references.
+
+**Not applicable:** This is a public repo on github.com, not GHES.
+
 ## References
 
 - [GitHub: Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)

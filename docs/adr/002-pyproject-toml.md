@@ -45,6 +45,26 @@ Avoid legacy files like `setup.py`, `setup.cfg`, and tool-specific config files.
 
 - `requirements.txt` still useful for pinned deployments or CI caching
 
+## Alternatives Considered
+
+### setup.py + setup.cfg
+
+Traditional approach with executable `setup.py` and declarative `setup.cfg`.
+
+**Rejected because:** `setup.py` is executable code (security concern), requires two files, and is being phased out by the Python community.
+
+### Poetry (pyproject.toml with [tool.poetry])
+
+Poetry uses pyproject.toml but with its own `[tool.poetry]` format instead of PEP 621's `[project]`.
+
+**Rejected because:** Non-standard metadata format, vendor lock-in, adds complexity for simple projects.
+
+### Multiple Config Files
+
+Separate files for each tool: `.flake8`, `mypy.ini`, `pytest.ini`, etc.
+
+**Rejected because:** Scattered configuration, harder to onboard new contributors, most tools now support pyproject.toml.
+
 ## References
 
 - [PEP 517 – Build system interface](https://peps.python.org/pep-0517/)
