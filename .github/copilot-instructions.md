@@ -14,7 +14,7 @@ A Python boilerplate project using:
 ## Review Priorities
 
 ### High Priority
-1. **Type hints** — Public functions should have type annotations
+1. **Type hints** — Public functions should have type annotations (public = exported API and anything not prefixed with `_` in `src/`)
 2. **Tests** — Changes should include or update relevant tests
 3. **Security** — Flag hardcoded credentials, secrets, SQL injection risks
 4. **Import errors** — Ensure imports work with src/ layout (must be installed)
@@ -28,11 +28,16 @@ A Python boilerplate project using:
 8. **Comments** — Helpful but not excessive
 9. **Code style** — Ruff handles most of this automatically
 
+### General Guidance
+- **Prefer minimal diffs** — Avoid stylistic rewrites; Ruff already enforces formatting
+- **Don't churn** — Only suggest changes that add clear value
+
 ## Conventions
 
 ### Python
 - Use absolute imports: `from simple_python_boilerplate.module import func`
 - Type hints for all public functions and methods
+- Type checking uses **mypy** (strict mode) — prefer fixes compatible with mypy
 - Docstrings in Google style format
 - Constants in UPPER_SNAKE_CASE
 
@@ -44,6 +49,7 @@ A Python boilerplate project using:
 
 ### Git & PRs
 - Conventional commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `ci:`
+- Use `ci:` for workflow-only changes, `docs:` for docs-only changes, `chore:` for maintenance
 - One logical change per commit
 - PR titles follow conventional commit format
 
@@ -55,7 +61,7 @@ A Python boilerplate project using:
 
 - **Line length (E501)** — Disabled in this project
 - **Generated files** — `*.egg-info/`, `__pycache__/`, `.venv/`
-- **Type errors in tests** — Tests may use dynamic typing for mocking
+- **Types in tests** — Be less strict; don't require full annotations for mocks, fixtures, or test helpers
 
 ## Architecture Decisions
 

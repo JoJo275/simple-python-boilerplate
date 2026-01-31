@@ -3,6 +3,8 @@
 This guide covers developer tools and workflows for contributing to this project.
 
 > **First time?** See [dev-setup.md](dev-setup.md) for environment setup instructions.
+>
+> **Ready to contribute?** See [pull-requests.md](pull-requests.md) for PR guidelines.
 
 ---
 
