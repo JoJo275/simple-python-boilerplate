@@ -24,6 +24,10 @@ Things to explore, implement, or learn more about.
 - [ ] Set up GitHub Codespaces configuration
 - [ ] Implement Sphinx/MkDocs documentation generation (learn what this even is).  
 *From what I've read so far this is like a static website generator for documentation, similar to Jekyll but for docs specifically.*
+- [ ] Add more ADRs for architectural decisions
+- [ ] Add more detailed development workflow docs
+- [ ] Explore additional static analysis tools (e.g., Bandit for security)
+- [ ] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
 
 ## Questions to Answer
 
