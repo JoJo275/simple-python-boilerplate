@@ -394,4 +394,6 @@ pick security.md with the bounty program or the one without it.
 
 “Prefer Issue Forms; legacy Markdown templates are optional/for reference.”
 
+## CLI entry points
 
+spb - 
