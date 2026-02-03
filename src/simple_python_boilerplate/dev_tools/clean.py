@@ -3,12 +3,10 @@
 Clean utility for repository maintenance tasks.
 
 Usage:
-    python scripts/clean.py --todo     Archive completed TODO items
-    python scripts/clean.py --help     Show help message
+    spb-clean --todo     Archive completed TODO items
 
-Or create an alias:
-    PowerShell: Set-Alias clean "python scripts/clean.py"
-    Bash:       alias clean="python scripts/clean.py"
+Or if running as a script:
+    python -m simple_python_boilerplate.dev_tools.clean --todo
 """
 
 import argparse
@@ -31,7 +29,7 @@ def get_repo_root() -> Path:
 def archive_todos() -> int:
     """
     Move completed TODO items from todo.md to archive.md.
-    
+
     Returns:
         Number of items archived.
     """
@@ -84,19 +82,16 @@ def archive_todos() -> int:
 
     # Find where to insert items (after the month's "### Completed" or after month header)
     month_section_pattern = re.compile(
-        rf"({re.escape(month_header)}.*?)(### Completed\n+)",
-        re.DOTALL
+        rf"({re.escape(month_header)}.*?)(### Completed\n+)", re.DOTALL
     )
-    
+
     match = month_section_pattern.search(archive_content)
     if match:
         # Insert after "### Completed\n"
         insert_pos = match.end()
         items_text = "\n".join(completed_items) + "\n"
         archive_content = (
-            archive_content[:insert_pos] + 
-            items_text + 
-            archive_content[insert_pos:]
+            archive_content[:insert_pos] + items_text + archive_content[insert_pos:]
         )
     else:
         # Fallback: just append to end with the items
@@ -117,9 +112,9 @@ def archive_todos() -> int:
 def main() -> None:
     """Main entry point for the clean CLI."""
     parser = argparse.ArgumentParser(
-        prog="clean",
+        prog="spb-clean",
         description="Repository maintenance and cleanup utilities.",
-        epilog="Example: clean --todo",
+        epilog="Example: spb-clean --todo",
     )
 
     # Add arguments for different clean actions
