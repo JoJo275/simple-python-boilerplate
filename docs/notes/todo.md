@@ -31,6 +31,19 @@ Things to explore, implement, or learn more about.
 - [ ] Create example scripts or notebooks demonstrating package usage
 - [ ] Set up continuous deployment to PyPI on new releases
 - [ ] Refactor repo scripts with custom CLI commands
+- [ ] Explore using `hatch` for project management and packaging
+- [ ] Add support for multiple Python versions in CI
+- [ ] Implement a changelog generation tool (e.g., `towncrier`)
+- [ ] Add more comprehensive test coverage and edge cases
+- [ ] Explore using `pip-tools` for managing dependencies with `requirements.txt`
+- [ ] Learn about semantic versioning and automate version bumps
+- [ ] Study trusted publishing practices for PyPI to ensure secure releases
+- [ ] Add Docker support for containerized development and testing
+- [ ] Create a VS Code devcontainer configuration for consistent development environments
+- [ ] Add a Makefile or taskfile for common commands to simplify development workflow
+- [ ] Explore using Nox or Tox for testing across multiple Python environments
+- [ ] Set up GitHub Codespaces configuration for cloud-based development environments
+- [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
 
 ## Questions to Answer
 

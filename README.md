@@ -206,6 +206,7 @@ For developer tooling details, see [docs/development/](docs/development/):
 - [dev-setup.md](docs/development/dev-setup.md) — Environment setup
 - [development.md](docs/development/development.md) — Daily workflows
 - [pull-requests.md](docs/development/pull-requests.md) — PR guidelines
+- [developer-commands.md](docs/development/developer-commands.md) — Quick command reference
 
 ### Architecture Decision Records
 
