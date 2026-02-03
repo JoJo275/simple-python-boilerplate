@@ -44,6 +44,8 @@ Things to explore, implement, or learn more about.
 - [ ] Explore using Nox or Tox for testing across multiple Python environments
 - [ ] Set up GitHub Codespaces configuration for cloud-based development environments
 - [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
+- [ ] Set up PR workflow
+- [ ] Verify different PR workflows
 
 ## Questions to Answer
 
