@@ -92,10 +92,12 @@ How was this tested?
 
 ### Merge Strategy
 
-This project uses **Squash and Merge**:
-- Combines all commits into one clean commit
-- PR title becomes commit message
-- Keeps `main` history clean
+This project uses **Rebase and Merge**:
+- Replays commits on top of `main` without a merge commit
+- Preserves individual commit history for a linear changelog
+- Keeps `main` history clean and easy to follow
+
+> **Tip:** Keep commits atomic and well-described since they will appear individually in the main branch history.
 
 ### Before Merging
 
