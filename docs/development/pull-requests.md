@@ -7,18 +7,29 @@ How to create, review, and merge pull requests in this project.
 1. **Create a feature branch** from `main`
    ```bash
    git checkout main
-   git pull origin main
+   git pull --ff-only
    git checkout -b feature/your-feature-name
    ```
 
 2. **Make your changes** with clear, atomic commits
 
 3. **Run quality checks locally**
+
+   **Apply fixes:**
+   ```bash
+   ruff format .             # Auto-format code
+   ruff check --fix .        # Auto-fix lint issues
+   ```
+
+   **Verify (CI-like):**
    ```bash
    pytest                    # Tests pass
    ruff check .              # Linting passes
    ruff format --check .     # Formatting correct
+   pyright                   # Type checking (optional, recommended)
    ```
+
+   > See [developer-commands.md](developer-commands.md) for the full command reference.
 
 4. **Push your branch**
    ```bash
@@ -106,10 +117,21 @@ This project uses **Rebase and Merge**:
 3. No unresolved conversations
 4. Branch is up-to-date with `main`
 
+> **Solo practice note:** If branch protection requires approval, you'll need a second reviewer (collaborator or second account) or an admin bypass rule. Configure this in repository settings to avoid locking yourself out.
+
 ### After Merging
 
 - Delete the feature branch (GitHub can do this automatically)
 - Close related issues (use `Closes #123` in PR description)
+
+## Draft PRs
+
+Use a **Draft PR** when:
+- You want CI feedback early but the work isn't ready to merge
+- You're seeking early design feedback before finishing implementation
+- You want to share progress without triggering review notifications
+
+Convert to "Ready for review" when you're done.
 
 ## Branch Naming
 
@@ -118,6 +140,7 @@ feature/short-description    # New features
 fix/issue-description        # Bug fixes
 docs/what-changed            # Documentation
 chore/maintenance-task       # Maintenance
+ci/workflow-change           # CI/CD changes
 ```
 
 ## See Also
