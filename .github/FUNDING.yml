@@ -6,7 +6,12 @@
 # patreon: username         # Patreon
 # open_collective: project  # Open Collective
 # ko_fi: username           # Ko-fi
+# tidelift: platform/package  # Tidelift (e.g., npm/package-name)
+# community_bridge: project # Community Bridge
 # liberapay: username       # Liberapay
+# issuehunt: username       # IssueHunt
+# polar: username           # Polar
 # buy_me_a_coffee: username # Buy Me a Coffee
+# thanks_dev: username      # thanks.dev
 # custom: ['https://example.com/donate']  # Custom URL(s)
 
