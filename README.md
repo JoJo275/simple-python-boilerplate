@@ -201,6 +201,16 @@ For most developers on Windows, the most predictable options are:
 
 ## Documentation
 
+### Documentation Index
+
+| Directory | README | Description |
+|-----------|--------|-------------|
+| [docs/development/](docs/development/) | [README](docs/development/README.md) | Developer guides and workflows |
+| [docs/adr/](docs/adr/) | [README](docs/adr/README.md) | Architecture Decision Records |
+| [docs/notes/](docs/notes/) | [README](docs/notes/README.md) | Personal learning notes |
+
+### Developer Guides
+
 For developer tooling details, see [docs/development/](docs/development/):
 
 - [dev-setup.md](docs/development/dev-setup.md) — Environment setup
