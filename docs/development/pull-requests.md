@@ -13,7 +13,17 @@ How to create, review, and merge pull requests in this project.
 
 2. **Make your changes** with clear, atomic commits
 
+   Use [Commitizen](https://commitizen-tools.github.io/commitizen/) for standardized commit messages:
+   ```bash
+   cz commit
+   ```
+
 3. **Run quality checks locally**
+
+   **Quick (fix & test):**
+   ```bash
+   ruff format . && ruff check --fix . && pytest
+   ```
 
    **Apply fixes:**
    ```bash
@@ -80,7 +90,7 @@ How was this tested?
 
 ### For Authors
 
-- Keep PRs focused and small (< 400 lines ideal)
+- Prefer small, focused PRs — if larger than ~400 lines, explain why in the description
 - Respond to feedback promptly
 - Don't take feedback personally — it's about the code
 - Explain *why*, not just *what*
@@ -99,6 +109,15 @@ How was this tested?
 | `question:` | Need clarification |
 | `issue:` | Must be addressed |
 
+### What Reviewers Look For
+
+- [ ] Tests added or updated for new/changed behavior
+- [ ] Documentation updated (if user-facing changes)
+- [ ] Type hints on public functions
+- [ ] Backwards compatibility considered (or breaking change noted)
+- [ ] No unrelated changes bundled in
+- [ ] Commit messages follow conventional format
+
 ## Merging
 
 ### Merge Strategy
@@ -116,6 +135,15 @@ This project uses **Rebase and Merge**:
 2. At least one approval (if required)
 3. No unresolved conversations
 4. Branch is up-to-date with `main`
+
+**Updating your branch (rebase workflow):**
+```bash
+git fetch origin
+git rebase origin/main
+# Resolve any conflicts, then:
+git rebase --continue
+git push --force-with-lease
+```
 
 > **Solo practice note:** If branch protection requires approval, you'll need a second reviewer (collaborator or second account) or an admin bypass rule. Configure this in repository settings to avoid locking yourself out.
 
