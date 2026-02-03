@@ -1,0 +1,11 @@
+# Sponsor buttons for this repository.
+# Uncomment and fill in the platforms you use. Delete unused lines.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# github: username          # GitHub Sponsors (or [user1, user2] for multiple)
+# patreon: username         # Patreon
+# open_collective: project  # Open Collective
+# ko_fi: username           # Ko-fi
+# liberapay: username       # Liberapay
+# buy_me_a_coffee: username # Buy Me a Coffee
+# custom: ['https://example.com/donate']  # Custom URL(s)
