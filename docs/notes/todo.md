@@ -46,6 +46,8 @@ Things to explore, implement, or learn more about.
 - [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
 - [ ] Set up PR workflow
 - [ ] Verify different PR workflows
+- [ ] Explore using `hatch` for project management and packaging as an alternative to setuptools
+- [ ] Where do database files go? (e.g., SQLite files) Should they be in a `data/` directory or something else?
 
 ## Questions to Answer
 
