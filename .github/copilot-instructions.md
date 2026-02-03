@@ -16,7 +16,12 @@ A Python boilerplate project using:
 ### High Priority
 1. **Type hints** — Public functions should have type annotations (public = exported API and anything not prefixed with `_` in `src/`)
 2. **Tests** — Changes should include or update relevant tests
-3. **Security** — Flag hardcoded credentials, secrets, SQL injection risks
+3. **Security** — Flag:
+   - Hardcoded credentials, secrets, API keys
+   - SQL injection risks
+   - `subprocess` with `shell=True` (prefer `shell=False` with argument list)
+   - Unsafe `yaml.load()` (use `yaml.safe_load()`)
+   - Logging secrets or tokens
 4. **Import errors** — Ensure imports work with src/ layout (must be installed)
 
 ### Medium Priority
@@ -55,13 +60,13 @@ A Python boilerplate project using:
 
 ### CI/CD
 - GitHub Actions pinned to full commit SHAs (not tags)
-- Workflows separated by concern (test.yml, lint.yml, release.yml)
+- Workflows separated by concern (e.g., test, lint, release)
 
 ## Ignore / Don't Flag
 
-- **Line length (E501)** — Disabled in this project
+- **Line length (E501)** — Disabled in this project; don't request rewrapping docstrings or comments unless readability is impacted
 - **Generated files** — `*.egg-info/`, `__pycache__/`, `.venv/`
-- **Types in tests** — Be less strict; don't require full annotations for mocks, fixtures, or test helpers
+- **Types in tests** — Be less strict; don't require full annotations for mocks, fixtures, or test helpers. Don't require annotations for pytest fixtures unless they clarify intent.
 
 ## Architecture Decisions
 
@@ -73,7 +78,7 @@ Key decisions are documented in `docs/adr/`:
 
 ## Common Issues to Catch
 
-1. **Missing `pip install -e .`** — Code won't work without editable install
+1. **Missing `pip install -e .`** — If running from source, use editable install so imports resolve with src/ layout
 2. **Import from wrong location** — Should import from `simple_python_boilerplate`, not `src`
 3. **Mutable default arguments** — `def func(items=[])` is a bug
 4. **Bare except clauses** — Should catch specific exceptions
