@@ -270,6 +270,7 @@ How to use this repository
 1. Click "Use this template" on GitHub
 2. Rename the package directory
 3. Update pyproject.toml name and description
+4. To enable the Sponsor button, edit `.github/FUNDING.yml` and uncomment your platform(s)
 
 Scope: Many parts if not all can be adapted and changed as needed for a myriad of very valid reasons. This is simply one way to do it that I have found useful and educational.
 
