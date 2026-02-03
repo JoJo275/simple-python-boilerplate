@@ -1,11 +1,17 @@
 # Security Policy
 
+> **⚠️ THIS IS A TEMPLATE — NOT AN ACTIVE SECURITY POLICY**
+>
+> **This document is an example only. It is NOT active for this repository.**
+> **Do not submit vulnerability reports expecting rewards for this template repo.**
+>
+> To use this template: copy it to your own repository, replace all placeholders (marked with `TODO`), and remove this notice.
 
-Example only. Not active for this repository.  
-For a real program, publish this in your own repo and link it from SECURITY.md.
-
+---
 
 ## Supported Versions
+
+<!-- TODO: Update this table as you release new versions -->
 
 | Version | Supported          |
 |---------|--------------------|
@@ -13,7 +19,7 @@ For a real program, publish this in your own repo and link it from SECURITY.md.
 | 1.x.x   | :white_check_mark: (security fixes only) |
 | < 1.0   | :x:                |
 
-<!-- Update this table as you release new versions -->
+---
 
 ## Bug Bounty Program
 
@@ -30,7 +36,7 @@ For a real program, publish this in your own repo and link it from SECURITY.md.
 
 > **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards.
 
-For full details, including payment methods and tax requirements, see our [Bug Bounty Policy](BUG_BOUNTY.md).
+**For full details, including scope, payment methods, eligibility rules, and tax requirements, see our [Bug Bounty Policy](BUG_BOUNTY.md).**
 
 ---
 
@@ -44,10 +50,10 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report security vulnerabilities via one of the following methods:
 
-1. **GitHub Security Advisories (Preferred)**  
-   Use [GitHub's private vulnerability reporting](https://github.com/OWNER/REPO/security/advisories/new) to submit a report directly.
+<!-- TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values -->
 
-   > ℹ️ *If you forked this repo, update the link above to point to your own repository.*
+1. **GitHub Security Advisories (Preferred)**  
+   Use [GitHub's private vulnerability reporting](https://github.com/[OWNER]/[REPO]/security/advisories/new) to submit a report directly.
 
 2. **Email**  
    Contact the maintainers directly at: `security@example.com`
@@ -64,12 +70,13 @@ Instead, please report security vulnerabilities via one of the following methods
 
 Please provide as much information as possible:
 
-- **Description** of the vulnerability
-- **Steps to reproduce** or proof-of-concept
-- **Affected versions**
-- **Potential impact** (what could an attacker do?)
-- **Suggested fix** (if you have one)
-- **Your reward eligibility** (for bug bounty consideration)
+- **Summary** — Brief description of the vulnerability
+- **Severity** — Your assessment (Critical/High/Medium/Low)
+- **Steps to reproduce** — Detailed instructions or proof-of-concept
+- **Affected versions** — Which versions are vulnerable?
+- **Potential impact** — What could an attacker achieve?
+- **Suggested fix** — Optional but appreciated
+- **Bounty eligibility** — Confirm you've read the [Bug Bounty Policy](BUG_BOUNTY.md)
 
 ---
 
@@ -77,12 +84,14 @@ Please provide as much information as possible:
 
 | Action | Timeframe |
 |--------|-----------|
-| Acknowledgment of report | Within 72 hours |
-| Initial assessment | Within 7 days |
-| Status updates | Every 7 days |
-| Resolution or mitigation | Varies by severity |
-| Reward payment | Within 30 days of fix |
+| Acknowledgment of report | Target: within 72 hours |
+| Initial assessment | Target: within 7 days |
+| Status updates | Target: every 7 days during investigation |
+| Resolution or mitigation | Varies by severity (target: 30–90 days) |
+| Reward payment (if applicable) | Target: within 30 days of fix deployment |
 | Public disclosure | After fix is released |
+
+> **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
 
 ---
 
@@ -93,7 +102,9 @@ Please provide as much information as possible:
 - We will credit reporters in the security advisory (unless you prefer to remain anonymous).
 - Coordinated disclosure will not affect your bounty eligibility.
 
-### Rules of Engagement
+---
+
+## Rules of Engagement
 
 To qualify for a reward, you must:
 
@@ -103,13 +114,16 @@ To qualify for a reward, you must:
 4. **Test responsibly** — Only test against your own instances or with explicit permission
 5. **One report per issue** — Do not submit duplicates or variants of the same issue
 
+For full eligibility rules, duplicate handling, and safe harbor provisions, see our [Bug Bounty Policy](BUG_BOUNTY.md).
+
 ### Duplicate Reports
 
 If multiple researchers report the same vulnerability:
 
 - The **first valid report** receives the full reward
 - Subsequent reports may receive partial recognition (but no monetary reward)
-- If reports arrive within 24 hours with substantially different details, we may split the reward
+- We determine duplicates based on the timestamp of the report submission
+- If reports arrive within 24 hours with substantially different details, we may split the reward at our discretion
 
 ---
 
@@ -122,31 +136,38 @@ We support responsible security research. We will not pursue legal action agains
 - Do not access, modify, or delete data belonging to others
 - Report vulnerabilities promptly
 
+> **⚠️ Important:** Safe harbor applies only to authorized testing within the scope of this policy and does not permit unlawful access to systems, data exfiltration, or any activity that violates applicable laws. When in doubt, ask before testing.
+
 ---
 
 ## Scope
 
 ### In Scope
 
+<!-- TODO: Replace placeholders with your actual values -->
+
 This security policy applies to:
 
-- The `[project-name]` repository
-- Official releases published to PyPI
-- Documentation site at `https://docs.example.com`
+- **Primary repository:** `https://github.com/[OWNER]/[REPO]`
+- **Official releases:** Packages published to PyPI under `[package-name]`
+- **Documentation site:** `https://docs.[your-domain].com` (if applicable)
 
 ### Out of Scope
 
-The following are generally not considered security vulnerabilities:
+The following are generally **not eligible** for rewards:
 
-- Issues in dependencies (please report to the upstream project)
+- Vulnerabilities in third-party dependencies (report to upstream project)
 - Issues requiring physical access to a user's device
 - Social engineering attacks (phishing, etc.)
-- Denial of service attacks that require significant resources
+- Denial of service (DoS/DDoS) attacks
 - Issues in staging/development environments
 - Previously reported vulnerabilities
 - Vulnerabilities disclosed publicly before we can address them
 - Automated scanner output without proof of exploitability
-- Theoretical vulnerabilities without proof of exploitability
+- Theoretical vulnerabilities without demonstrable security impact
+- User-hosted deployments, forks, or self-hosted instances
+
+For complete scope details, see our [Bug Bounty Policy](BUG_BOUNTY.md).
 
 ---
 
@@ -154,11 +175,14 @@ The following are generally not considered security vulnerabilities:
 
 When using this project:
 
-1. **Keep dependencies updated** – Run `pip list --outdated` regularly
-2. **Use virtual environments** – Isolate project dependencies
-3. **Review code before running** – Especially from untrusted sources
-4. **Enable Dependabot** – For automated security updates on your fork
-5. **Pin dependencies** – Use `pip freeze` or `pip-tools` for reproducible builds
+1. **Keep dependencies updated** — Run `pip list --outdated` regularly
+2. **Use virtual environments** — Isolate project dependencies
+3. **Review code before running** — Especially from untrusted sources
+4. **Enable Dependabot** — For automated security updates on your fork
+5. **Pin dependencies** — Use `pip freeze` or `pip-tools` for reproducible builds
+6. **Avoid `shell=True`** — Use `subprocess` with argument lists instead
+7. **Use safe YAML loading** — Always use `yaml.safe_load()`, never `yaml.load()`
+8. **Never log secrets** — Ensure tokens and credentials are not logged
 
 ---
 
@@ -176,10 +200,19 @@ We thank the following individuals for responsibly disclosing security issues:
 
 ## Contact
 
+<!-- TODO: Replace placeholders with your actual values -->
+
 - **Security issues:** `security@example.com`
-- **General questions:** Open a [Discussion](https://github.com/OWNER/REPO/discussions)
+- **General questions:** Open a [Discussion](https://github.com/[OWNER]/[REPO]/discussions)
 - **Bug bounty questions:** `security@example.com` with subject "Bug Bounty Question"
 
 ---
 
-**Last updated:** January 2026
+## Related Documents
+
+- [Bug Bounty Policy](BUG_BOUNTY.md) — Full bounty program details, payment methods, and eligibility
+- [SECURITY.md](../../SECURITY.md) — Main security policy for this repository
+
+---
+
+**Last updated:** February 2026
