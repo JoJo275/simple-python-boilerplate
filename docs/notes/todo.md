@@ -28,6 +28,9 @@ Things to explore, implement, or learn more about.
 - [ ] Add more detailed development workflow docs
 - [ ] Explore additional static analysis tools (e.g., Bandit for security)
 - [ ] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
+- [ ] Create example scripts or notebooks demonstrating package usage
+- [ ] Set up continuous deployment to PyPI on new releases
+- [ ] Refactor repo scripts with custom CLI commands
 
 ## Questions to Answer
 
