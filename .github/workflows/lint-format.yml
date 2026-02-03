@@ -1,3 +1,6 @@
+# Runs Ruff linter and formatter checks.
+# Fails CI if code doesn't pass lint rules or isn't formatted.
+
 name: Lint + format
 
 on:

@@ -1,5 +1,5 @@
-# Disabled: Remove the leading underscore from filename to enable
-# Rename to: spellcheck.yml
+# Checks for spelling mistakes using codespell (no auto-fix).
+# Fails CI if typos are found. See _spellcheck-autofix.yml for auto-fix variant.
 
 name: Spellcheck
 

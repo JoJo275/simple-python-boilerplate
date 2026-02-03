@@ -1,3 +1,6 @@
+# Runs pytest across Python 3.11, 3.12, and 3.13.
+# Triggered on push/PR to main or manual dispatch.
+
 name: Test
 
 on:

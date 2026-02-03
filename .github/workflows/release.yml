@@ -1,3 +1,6 @@
+# Builds distribution artifacts when a version tag (v*.*.*) is pushed.
+# PyPI publishing is commented out; uncomment and configure to enable.
+
 name: Release
 
 on:
