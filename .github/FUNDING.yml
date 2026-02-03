@@ -1,5 +1,5 @@
 # Sponsor buttons for this repository.
-# Uncomment and fill in the platforms you use. Delete unused lines.
+# TODO: Configure your funding platforms below, then delete this comment
 # Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
 # github: username          # GitHub Sponsors (or [user1, user2] for multiple)
@@ -9,3 +9,4 @@
 # liberapay: username       # Liberapay
 # buy_me_a_coffee: username # Buy Me a Coffee
 # custom: ['https://example.com/donate']  # Custom URL(s)
+
