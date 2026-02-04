@@ -7,11 +7,15 @@
 >
 > To use this template: copy it to your own repository, replace all placeholders (marked with `TODO`), and remove this notice.
 
+**Status:** Not active for this repository. For demonstration purposes only.
+
 ---
 
 ## Supported Versions
 
 <!-- TODO: Update this table as you release new versions -->
+
+> **Note:** Update this table per release; otherwise assume only the latest version is supported.
 
 | Version | Supported          |
 |---------|--------------------|
@@ -23,7 +27,9 @@
 
 ## Bug Bounty Program
 
-**We offer rewards for responsibly disclosed security vulnerabilities.**
+**This template includes an example bug bounty program. If you adopt this policy, you may offer rewards for responsibly disclosed security vulnerabilities.**
+
+> **Severity Classification:** Severity is determined by maintainers using [CVSS](https://www.first.org/cvss/) or [OWASP guidance](https://owasp.org/www-community/OWASP_Risk_Rating_Methodology).
 
 | Severity | Examples | Reward Range |
 |----------|----------|--------------|
@@ -33,6 +39,8 @@
 | Low | Minor information leaks, theoretical attacks | Recognition only |
 
 > **Note:** Reward amounts are guidelines and may vary based on project funding. Some projects may offer recognition only.
+
+> **Payout Caveat:** Rewards are discretionary and depend on exploitability, impact, report quality, and available funding.
 
 > **Minimum for monetary rewards:** Only Medium severity and above are eligible for monetary rewards.
 
@@ -51,6 +59,7 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 Instead, please report security vulnerabilities via one of the following methods:
 
 <!-- TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values -->
+<!-- TODO: Ensure Security Advisories are enabled in repo settings (Settings → Security → Private vulnerability reporting); otherwise the link below may 404. -->
 
 1. **GitHub Security Advisories (Preferred)**  
    Use [GitHub's private vulnerability reporting](https://github.com/[OWNER]/[REPO]/security/advisories/new) to submit a report directly.
@@ -82,6 +91,8 @@ Please provide as much information as possible:
 
 ## Response Timeline
 
+> **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
+
 | Action | Timeframe |
 |--------|-----------|
 | Acknowledgment of report | Target: within 72 hours |
@@ -90,8 +101,6 @@ Please provide as much information as possible:
 | Resolution or mitigation | Varies by severity (target: 30–90 days) |
 | Reward payment (if applicable) | Target: within 30 days of fix deployment |
 | Public disclosure | After fix is released |
-
-> **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
 
 ---
 
@@ -113,6 +122,7 @@ To qualify for a reward, you must:
 3. **Act in good faith** — Do not access, modify, or delete user data
 4. **Test responsibly** — Only test against your own instances or with explicit permission
 5. **One report per issue** — Do not submit duplicates or variants of the same issue
+6. **No disruptive testing** — Do not perform DoS attacks, brute force attacks, or aggressive automated scanning
 
 For full eligibility rules, duplicate handling, and safe harbor provisions, see our [Bug Bounty Policy](BUG_BOUNTY.md).
 
@@ -121,22 +131,28 @@ For full eligibility rules, duplicate handling, and safe harbor provisions, see 
 If multiple researchers report the same vulnerability:
 
 - The **first valid report** receives the full reward
-- Subsequent reports may receive partial recognition (but no monetary reward)
+- Subsequent reports may receive partial recognition at our sole discretion (but no monetary reward)
 - We determine duplicates based on the timestamp of the report submission
-- If reports arrive within 24 hours with substantially different details, we may split the reward at our discretion
+- If reports arrive within 24 hours with substantially different details, we may split the reward at our sole discretion
 
 ---
 
 ## Safe Harbor
 
-We support responsible security research. We will not pursue legal action against researchers who:
+We support responsible security research. To the extent permitted by law, we will not initiate legal action against researchers who:
 
 - Follow this security policy
 - Act in good faith to avoid privacy violations and service disruption
 - Do not access, modify, or delete data belonging to others
 - Report vulnerabilities promptly
 
-> **⚠️ Important:** Safe harbor applies only to authorized testing within the scope of this policy and does not permit unlawful access to systems, data exfiltration, or any activity that violates applicable laws. When in doubt, ask before testing.
+> **⚠️ Important:** Safe harbor applies only to authorized testing within the scope of this policy. The following activities are explicitly excluded from safe harbor:
+> - Unauthorized access to systems or data exfiltration
+> - Service disruption, including DoS/DDoS attacks
+> - Aggressive or repeated automated scanning
+> - Any activity that violates applicable laws
+>
+> When in doubt, ask before testing.
 
 ---
 
@@ -152,11 +168,13 @@ This security policy applies to:
 - **Official releases:** Packages published to PyPI under `[package-name]`
 - **Documentation site:** `https://docs.[your-domain].com` (if applicable)
 
+> **Note:** Only the default branch and the latest supported release line are eligible for bounty rewards.
+
 ### Out of Scope
 
 The following are generally **not eligible** for rewards:
 
-- Vulnerabilities in third-party dependencies (report to upstream project)
+- Vulnerabilities in third-party dependencies (report to upstream project), unless the exploitability is caused by this project's code or configuration
 - Issues requiring physical access to a user's device
 - Social engineering attacks (phishing, etc.)
 - Denial of service (DoS/DDoS) attacks
