@@ -36,7 +36,7 @@ GitHub-specific configuration files and templates.
 
 ## For Template Users
 
-1. Update `CODEOWNERS` with your team
-2. Update `FUNDING.yml` or remove it
+1. Update [CODEOWNERS](CODEOWNERS) with your team
+2. Update [FUNDING.yml](FUNDING.yml) or remove it
 3. Review and customize workflow triggers
 4. Update issue/PR templates for your project
