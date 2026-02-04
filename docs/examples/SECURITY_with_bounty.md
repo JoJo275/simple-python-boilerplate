@@ -27,7 +27,7 @@
 
 ## Bug Bounty Program
 
-**This template includes an example bug bounty program. If you adopt this policy, you may offer rewards for responsibly disclosed security vulnerabilities.**
+**This template includes an example bug bounty program. If you adopt it, you may offer rewards for responsibly disclosed vulnerabilities; amounts are guidelines and depend on impact, exploitability, and available funding.**
 
 > **Severity Classification:** Severity is determined by maintainers using [CVSS](https://www.first.org/cvss/) or [OWASP guidance](https://owasp.org/www-community/OWASP_Risk_Rating_Methodology).
 
