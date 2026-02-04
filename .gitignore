@@ -141,3 +141,20 @@ $RECYCLE.BIN/
 # Local experiments folder
 /experiments/
 
+# Local data and state directories
+/var/
+/.data/
+/.local/
+
+# =========================================
+# Database files
+# =========================================
+# SQLite databases and journals
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-journal
+*-wal
+*-shm
+
