@@ -25,7 +25,6 @@ eggs/
 lib/
 lib64/
 parts/
-var/
 share/python-wheels/
 
 # Metadata generated when packaging/installing
@@ -159,6 +158,9 @@ $RECYCLE.BIN/
 *.sqlite-journal
 *-wal
 *-shm
+
+# Keep example database for template visibility
+!/var/*.example.sqlite3
 
 # Local scratch SQL (use scratch.example.sql as template)
 scripts/sql/scratch.sql
