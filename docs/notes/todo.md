@@ -48,6 +48,9 @@ Things to explore, implement, or learn more about.
 - [ ] Where do database files go? (e.g., SQLite files) Should they be in a `data/` directory or something else?
 - [ ] What is sponsorships and should I allow them for this project? *From what I've read, GitHub Sponsors is a way for open source maintainers to receive financial support from the community. It can be a good way to fund ongoing maintenance and development of the project, but it also requires some effort to set up and manage. I should research how to set it up and decide if it's appropriate for this project based on my goals and expected user base. Also could enable it for example purposes and to learn about the process, even if I don't expect to receive sponsorships right away.*
 - [ ] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. *From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences.*
+- [ ] Understand all programs within repo
+- [ ] Learn and build any more scripts and programs within this tempalte repo that may help.
+- [ ]
 
 ## Questions to Answer
 
