@@ -32,6 +32,10 @@ Each ADR follows this structure:
 | [008](008-pre-commit-hooks.md) | Use pre-commit hooks for automated checks | Accepted |
 | [009](009-conventional-commits.md) | Use Conventional Commits for commit messages | Accepted |
 
+## Archive
+
+Deprecated, superseded, or suspended ADRs are moved to the [archive/](archive/) directory.
+
 ## References
 
 - [ADR GitHub Organization](https://adr.github.io/)
