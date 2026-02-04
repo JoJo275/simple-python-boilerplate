@@ -40,11 +40,16 @@ pytest tests/unit/test_example.py::test_placeholder
 
 ## Writing Tests
 
-- Place unit tests in `tests/unit/`
-- Place integration tests in `tests/integration/`
+- Place unit tests in [tests/unit/](unit/)
+- Place integration tests in [tests/integration/](integration/)
 - Name test files `test_*.py`
 - Name test functions `test_*`
 
 See [pytest documentation](https://docs.pytest.org/) for more details.
+
+## Related
+
+- [pyproject.toml](../pyproject.toml) — pytest configuration (`[tool.pytest.ini_options]`)
+- [ADR 006: pytest](../docs/adr/006-pytest-for-testing.md) — Why we use pytest
 
 <!-- TODO: Update this README with your project's testing conventions -->
