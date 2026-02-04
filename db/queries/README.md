@@ -1,5 +1,7 @@
 # Database Queries
 
+<!-- TODO: Update organization to match your domain -->
+
 Reusable SQL query files for application use.
 
 ## Organization

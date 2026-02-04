@@ -1,5 +1,7 @@
 # Ad-hoc SQL Scripts
 
+<!-- TODO: Update database path if not using var/app.sqlite3 -->
+
 Scratch space for SQL experimentation and one-off scripts.
 
 ## Usage

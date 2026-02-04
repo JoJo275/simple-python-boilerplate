@@ -1,4 +1,5 @@
 -- Scratch file template for ad-hoc SQL experimentation
+-- TODO: Update database path if not using var/app.sqlite3
 -- Copy to scratch.sql (gitignored) for local use:
 --   cp scratch.example.sql scratch.sql
 --

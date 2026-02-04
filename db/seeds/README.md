@@ -1,5 +1,7 @@
 # Database Seeds
 
+<!-- TODO: Update this README with your project's seed file conventions -->
+
 Seed files for populating the database with initial or test data.
 
 ## Naming Convention

@@ -1,5 +1,7 @@
 # Database Migrations
 
+<!-- TODO: Update this README with your project's migration conventions -->
+
 Schema migration files for version-controlled database changes.
 
 ## Naming Convention

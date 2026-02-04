@@ -1,4 +1,5 @@
 -- Example migration: Create initial schema
+-- TODO: Replace with your actual schema or delete this file
 -- Run: sqlite3 var/app.sqlite3 < db/migrations/001_example_migration.sql
 
 -- CREATE TABLE IF NOT EXISTS users (

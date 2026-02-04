@@ -1,4 +1,5 @@
 -- Setup test database schema
+-- TODO: Replace with your actual test schema
 -- Run before integration tests
 
 -- CREATE TABLE IF NOT EXISTS users (
