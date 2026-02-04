@@ -68,6 +68,12 @@ Skip static type checking entirely.
 
 **Rejected because:** Type hints catch real bugs, improve maintainability, and are expected in modern Python projects.
 
+## Implementation
+
+- [pyproject.toml](../../pyproject.toml) — `[tool.mypy]` section with `strict = true`
+- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — mypy hook for pre-commit checks
+- [src/simple_python_boilerplate/](../../src/simple_python_boilerplate/) — Type-annotated source code
+
 ## References
 
 - [mypy documentation](https://mypy.readthedocs.io/)

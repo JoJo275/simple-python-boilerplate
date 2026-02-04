@@ -77,6 +77,12 @@ Use Ruff for linting but keep black for formatting.
 
 **Rejected because:** Ruff's formatter is fast and good enough; reduces dependencies.
 
+## Implementation
+
+- [pyproject.toml](../../pyproject.toml) — `[tool.ruff]` and `[tool.ruff.lint]` sections
+- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — Ruff hooks (`ruff` and `ruff-format`)
+- [.github/workflows/lint-format.yml](../../.github/workflows/lint-format.yml) — CI linting and formatting checks
+
 ## References
 
 - [Ruff documentation](https://docs.astral.sh/ruff/)

@@ -65,6 +65,16 @@ Separate files for each tool: `.flake8`, `mypy.ini`, `pytest.ini`, etc.
 
 **Rejected because:** Scattered configuration, harder to onboard new contributors, most tools now support pyproject.toml.
 
+## Implementation
+
+- [pyproject.toml](../../pyproject.toml) — Single configuration file containing:
+  - `[build-system]` — Build backend configuration
+  - `[project]` — Package metadata (PEP 621)
+  - `[tool.pytest.ini_options]` — pytest configuration
+  - `[tool.coverage]` — Coverage configuration
+  - `[tool.ruff]` — Ruff linter/formatter configuration
+  - `[tool.mypy]` — mypy type checker configuration
+
 ## References
 
 - [PEP 517 – Build system interface](https://peps.python.org/pep-0517/)

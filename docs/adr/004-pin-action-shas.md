@@ -87,6 +87,13 @@ GitHub Enterprise Server can enforce immutable action references.
 
 **Not applicable:** This is a public repo on github.com, not GHES.
 
+## Implementation
+
+- [.github/workflows/test.yml](../../.github/workflows/test.yml) — Example: `actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1`
+- [.github/workflows/lint-format.yml](../../.github/workflows/lint-format.yml) — All actions pinned to SHAs
+- [.github/workflows/release.yml](../../.github/workflows/release.yml) — All actions pinned to SHAs
+- [.github/dependabot.yml](../../.github/dependabot.yml) — Dependabot configured to update GitHub Actions
+
 ## References
 
 - [GitHub: Security hardening for GitHub Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)

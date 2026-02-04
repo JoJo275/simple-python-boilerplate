@@ -69,6 +69,14 @@ Define all logic in reusable workflows, call from thin wrapper files.
 
 **Rejected because:** Over-engineering for a simple project; adds indirection without significant benefit.
 
+## Implementation
+
+- [.github/workflows/test.yml](../../.github/workflows/test.yml) — Run tests on push/PR
+- [.github/workflows/lint-format.yml](../../.github/workflows/lint-format.yml) — Code quality checks
+- [.github/workflows/release.yml](../../.github/workflows/release.yml) — Build and publish
+- [.github/workflows/spellcheck.yml](../../.github/workflows/spellcheck.yml) — Spell checking
+- [.github/workflows/_spellcheck-autofix.yml](../../.github/workflows/_spellcheck-autofix.yml) — Disabled (underscore prefix)
+
 ## References
 
 - [GitHub Actions: Reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows)

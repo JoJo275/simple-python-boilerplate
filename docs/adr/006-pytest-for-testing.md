@@ -72,6 +72,13 @@ Embed tests in docstrings.
 
 **Rejected because:** Good for documentation examples but awkward for comprehensive testing; pytest can run doctests anyway.
 
+## Implementation
+
+- [pyproject.toml](../../pyproject.toml) — `[tool.pytest.ini_options]` section
+- [tests/](../../tests/) — Test directory
+- [tests/unit_test.py](../../tests/unit_test.py) — Example test file
+- [.github/workflows/test.yml](../../.github/workflows/test.yml) — CI test execution
+
 ## References
 
 - [pytest documentation](https://docs.pytest.org/)

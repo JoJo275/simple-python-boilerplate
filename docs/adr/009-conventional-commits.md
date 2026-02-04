@@ -91,6 +91,12 @@ Use emojis to categorize commits (🐛 for bugs, ✨ for features).
 
 **Rejected because:** Harder to type, less grep-friendly, less tooling support than Conventional Commits.
 
+## Implementation
+
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — Documents commit message format for contributors
+- [.github/copilot-instructions.md](../../.github/copilot-instructions.md) — Conventional commit guidance for AI-assisted development
+- [.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md) — PR template encouraging conventional format
+
 ## References
 
 - [Conventional Commits specification](https://www.conventionalcommits.org/)

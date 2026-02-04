@@ -68,6 +68,12 @@ Just a `main.py` at the root.
 
 **Rejected because:** Doesn't scale, can't be installed as a package, no clear separation of concerns.
 
+## Implementation
+
+- [src/simple_python_boilerplate/](../../src/simple_python_boilerplate/) — Package source code
+- [pyproject.toml](../../pyproject.toml) — `[tool.setuptools]` section configures `package-dir = {"" = "src"}`
+- [tests/](../../tests/) — Tests directory (separate from src/)
+
 ## References
 
 - [PyPA Packaging Guide](https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/)

@@ -78,6 +78,16 @@ Document commands and trust developers to run them.
 
 **Rejected because:** Easy to forget; inconsistent across team; bad commits reach CI.
 
+## Implementation
+
+- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — Pre-commit configuration with:
+  - `pre-commit-hooks` — General file checks (trailing whitespace, YAML/TOML validation, etc.)
+  - `ruff-pre-commit` — Linting and formatting
+  - `mirrors-mypy` — Type checking
+  - `bandit` — Security checks
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — Setup instructions for contributors
+- [pyproject.toml](../../pyproject.toml) — `pre-commit` listed in `[project.optional-dependencies.dev]`
+
 ## References
 
 - [pre-commit documentation](https://pre-commit.com/)
