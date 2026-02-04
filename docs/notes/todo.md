@@ -44,8 +44,8 @@ Things to explore, implement, or learn more about.
 - [ ] Explore using Nox or Tox for testing across multiple Python environments
 - [ ] Set up GitHub Codespaces configuration for cloud-based development environments
 - [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
-- [ ] Set up PR workflow
-- [ ] Verify different PR workflows
+- [X] Set up PR workflow
+- [X] Verify different PR workflows
 - [ ] Explore using `hatch` for project management and packaging as an alternative to setuptools
 - [ ] Where do database files go? (e.g., SQLite files) Should they be in a `data/` directory or something else?
 - [ ] What is sponsorships and should I allow them for this project? *From what I've read, GitHub Sponsors is a way for open source maintainers to receive financial support from the community. It can be a good way to fund ongoing maintenance and development of the project, but it also requires some effort to set up and manage. I should research how to set it up and decide if it's appropriate for this project based on my goals and expected user base. Also could enable it for example purposes and to learn about the process, even if I don't expect to receive sponsorships right away.*
