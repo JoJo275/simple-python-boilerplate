@@ -26,7 +26,10 @@ db/
 ## Getting Started
 
 ```bash
-# Create database with schema
+# Copy example database for local development
+cp var/app.example.sqlite3 var/app.sqlite3
+
+# Or create fresh database with schema
 sqlite3 var/app.sqlite3 < db/schema.sql
 
 # Apply seeds (development)
