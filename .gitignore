@@ -159,3 +159,6 @@ $RECYCLE.BIN/
 *-wal
 *-shm
 
+# Local scratch SQL (use scratch.example.sql as template)
+scripts/sql/scratch.sql
+
