@@ -26,6 +26,11 @@ Each ADR follows this structure:
 | [002](002-pyproject-toml.md) | Use pyproject.toml for all configuration | Accepted |
 | [003](003-separate-workflow-files.md) | Separate GitHub Actions workflow files | Accepted |
 | [004](004-pin-action-shas.md) | Pin GitHub Actions to commit SHAs | Accepted |
+| [005](005-ruff-for-linting-formatting.md) | Use Ruff for linting and formatting | Accepted |
+| [006](006-pytest-for-testing.md) | Use pytest for testing | Accepted |
+| [007](007-mypy-for-type-checking.md) | Use mypy for static type checking | Accepted |
+| [008](008-pre-commit-hooks.md) | Use pre-commit hooks for automated checks | Accepted |
+| [009](009-conventional-commits.md) | Use Conventional Commits for commit messages | Accepted |
 
 ## References
 
