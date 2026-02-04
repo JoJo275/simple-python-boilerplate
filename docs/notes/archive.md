@@ -19,3 +19,11 @@ Completed items from [todo.md](todo.md), preserved for reference.
 - [x] Write initial development documentation *(setup, workflow, etc)*
 - [x] Set up Dependabot *(learned about rebase-strategy)*
 - [x] Add ADRs *(good for documenting "why")*
+
+## February 2026
+
+### Completed
+
+- [X] Set up PR workflow
+- [X] Verify different PR workflows
+- [X] Refactor BUG_BOUNTY.md, SECURITY_no_bounty.md, and SECURITY_with_bounty.md to remove duplication and improve clarity.
