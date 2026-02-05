@@ -740,6 +740,22 @@ You are not just writing code—you are teaching architecture.
 
 ---
 
+Common Python cache & artifact directories
+| Path | Created by | Purpose | Safe to delete? | Commit to git? |
+|---|---|---|---|---|
+| `__pycache__/` | Python interpreter | Stores compiled `.pyc` bytecode for faster imports | ✅ Yes | ❌ Never |
+| `.pytest_cache/` | pytest | Remembers test state (last failed, node IDs) | ✅ Yes | ❌ Never |
+| `.mypy_cache/` | mypy | Type-checking cache | ✅ Yes | ❌ Never |
+| `.ruff_cache/` | ruff | Linting cache | ✅ Yes | ❌ Never |
+| `.coverage` | coverage.py | Coverage data file | ✅ Yes | ❌ Never |
+| `htmlcov/` | coverage.py | HTML coverage report | ✅ Yes | ❌ Never |
+| `.tox/` | tox | Virtualenvs + test environments | ✅ Yes | ❌ Never |
+| `.nox/` | nox | Virtualenvs + sessions | ✅ Yes | ❌ Never |
+| `.venv/` | venv / uv / poetry | Local virtual environment | ✅ Yes | ❌ Never |
+| `dist/` | build tools | Built distributions (wheel/sdist) | ✅ Yes | ❌ Never |
+| `build/` | build tools | Temporary build artifacts | ✅ Yes | ❌ Never |
+
+
 ## Resources
 
 ### Python Packaging
