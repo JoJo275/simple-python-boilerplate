@@ -676,6 +676,26 @@ Canonical decision table
 | Is this repo-specific glue (order of steps, flags, paths)? | **Just task or script** | Continue |
 | Is this a one-off or disposable automation? | **Script** | Re-evaluate |
 
+What each bucket is responsible for
+| Tool / Layer | Purpose | Source of truth? | Versioned? | Audience |
+|---|---|---|---|---|
+| Core logic | Implements behavior | ✅ Yes | With code | Everyone |
+| Installable CLI | Defines public commands | ✅ Yes | Yes | Users / devs |
+| Just (task runner) | Orchestrates commands | ❌ No | With repo | Contributors |
+| Scripts | One-off helpers | ❌ No | Optional | Maintainers |
+| CI workflows | Automation | ❌ No | With repo | CI only |
+
+Concrete examples (grounding the rules)
+| Action | Correct place | Why |
+|---|---|---|
+| Lint Python files | Installable CLI (`mytool lint`) | Reusable, meaningful behavior |
+| Run lint + format + tests | Just (`just check`) | Repo workflow |
+| Build and publish release | CLI (`mytool release`) | Stable, versioned behavior |
+| Clean `.pytest_cache` | Just or script | Repo-specific cleanup |
+| Bootstrap venv | Just | Developer convenience |
+| Parse config file | Core logic | Behavior, not orchestration |
+| Call multiple tools in order | Just | Pure glue |
+
 
 
 
