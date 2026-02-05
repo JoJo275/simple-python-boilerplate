@@ -2,6 +2,8 @@
 
 This document guides you through customizing the boilerplate files for your own project.
 
+Implement any of these changes at your discretion — this is just a guide to help you get started. You can skip or modify steps as needed for your specific project.
+
 ## Quick Start
 
 1. **Clone or use as template** on GitHub
@@ -116,8 +118,6 @@ If you don't need certain features, remove these files:
 ---
 
 ## Checklist
-
-Implement any of these changes at your discretion — this is just a guide to help you get started. You can skip or modify steps as needed for your specific project.
 
 ### Initial Setup
 
