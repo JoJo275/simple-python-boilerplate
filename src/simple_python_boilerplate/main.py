@@ -1,14 +1,15 @@
 """
-Application entry points and top-level commands.
+Application entry points (thin wrappers).
 
 This module contains the entry points configured in pyproject.toml. These are
 the functions that get called when users run CLI commands. They should be thin
 wrappers that delegate to cli.py for argument parsing and engine.py for logic.
 
-Typical contents:
-    - Console script entry points
-    - Version printing
-    - Environment diagnostics (doctor command)
+File Workflow:
+    main.py  → starts the program (entry points, thin wrappers)
+    cli.py   → defines CLI contract (argument parsing, commands)
+    engine.py → defines behavior (core logic, interface-agnostic)
+    api.py   → defines callable interface (HTTP/REST, optional)
 
 Entry points (configured in pyproject.toml):
     - main: Primary CLI command
@@ -22,60 +23,63 @@ See also:
 """
 
 import sys
-from importlib.metadata import version, PackageNotFoundError
 
 
 def main() -> None:
-    """Main CLI entry point."""
-    print("Hello from CLI")
+    """Main CLI entry point.
+
+    Delegates to cli.run() for argument parsing and dispatch.
+    """
+    from simple_python_boilerplate import cli
+
+    sys.exit(cli.run(cli.parse_args()))
 
 
 def print_version() -> None:
     """Print version information and exit."""
-    try:
-        v = version("simple-python-boilerplate")
-    except PackageNotFoundError:
-        # Fallback for editable installs or development
-        from simple_python_boilerplate import __version__
-        v = __version__
+    from simple_python_boilerplate.engine import get_version_info
 
-    print(f"simple-python-boilerplate {v}")
-    print(f"Python {sys.version}")
+    info = get_version_info()
+    print(f"simple-python-boilerplate {info['package_version']}")
+    print(f"Python {info['python_full']}")
 
 
 def doctor() -> None:
-    """Diagnose environment and configuration issues."""
-    import platform
-    import shutil
-    from pathlib import Path
+    """Diagnose environment and configuration issues.
+
+    Delegates to engine.diagnose_environment() for the actual checks,
+    then formats the output for the terminal.
+    """
+    from simple_python_boilerplate.engine import (
+        DiagnosticInfo,
+        diagnose_environment,
+    )
+
+    diag: DiagnosticInfo = diagnose_environment()
 
     print("🩺 simple-python-boilerplate doctor\n")
 
     # Version info
     print("== Version ==")
-    try:
-        v = version("simple-python-boilerplate")
-    except PackageNotFoundError:
-        from simple_python_boilerplate import __version__
-        v = f"{__version__} (editable/dev install)"
-    print(f"  Package version: {v}")
-    print(f"  Python version:  {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
-    print(f"  Platform:        {platform.system()} {platform.release()}")
+    print(f"  Package version: {diag['version']['package_version']}")
+    print(f"  Python version:  {diag['version']['python_version']}")
+    print(f"  Platform:        {diag['version']['platform']}")
     print()
 
     # Python environment
     print("== Environment ==")
-    print(f"  Executable: {sys.executable}")
-    print(f"  Prefix:     {sys.prefix}")
-    in_venv = sys.prefix != sys.base_prefix
-    print(f"  Virtual env: {'✅ Yes' if in_venv else '⚠️  No (consider using a venv)'}")
+    print(f"  Executable: {diag['executable']}")
+    print(f"  Prefix:     {diag['prefix']}")
+    venv_status = (
+        '✅ Yes' if diag['in_virtual_env']
+        else '⚠️  No (consider using a venv)'
+    )
+    print(f"  Virtual env: {venv_status}")
     print()
 
     # Check for common dev tools
     print("== Dev Tools ==")
-    tools = ["pytest", "ruff", "mypy", "pre-commit"]
-    for tool in tools:
-        path = shutil.which(tool)
+    for tool, path in diag['tools'].items():
         if path:
             print(f"  {tool}: ✅ {path}")
         else:
@@ -84,16 +88,7 @@ def doctor() -> None:
 
     # Check for config files
     print("== Config Files ==")
-    config_files = [
-        "pyproject.toml",
-        ".pre-commit-config.yaml",
-        ".gitignore",
-        "requirements.txt",
-        "requirements-dev.txt",
-    ]
-    cwd = Path.cwd()
-    for cfg in config_files:
-        exists = (cwd / cfg).exists()
+    for cfg, exists in diag['config_files'].items():
         print(f"  {cfg}: {'✅ found' if exists else '⚠️  missing'}")
     print()
 

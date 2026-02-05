@@ -26,7 +26,7 @@ Note:
 """
 
 import argparse
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -54,10 +54,14 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(
+        dest="command", help="Available commands"
+    )
 
     # Process command
-    process_parser = subparsers.add_parser("process", help="Process input data")
+    process_parser = subparsers.add_parser(
+        "process", help="Process input data"
+    )
     process_parser.add_argument("input", help="Input data to process")
     process_parser.add_argument(
         "-o", "--output",
@@ -93,17 +97,22 @@ def run(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for errors).
     """
     if args.version:
-        from simple_python_boilerplate.main import print_version
-        print_version()
+        from simple_python_boilerplate.engine import get_version_info
+        info = get_version_info()
+        print(f"simple-python-boilerplate {info['package_version']}")
+        print(f"Python {info['python_full']}")
         return 0
 
     if args.command == "doctor":
         from simple_python_boilerplate.main import doctor
-        doctor()
+        doctor()  # doctor() in main.py handles formatting
         return 0
 
     if args.command == "process":
-        from simple_python_boilerplate.engine import process_data, validate_input
+        from simple_python_boilerplate.engine import (
+            process_data,
+            validate_input,
+        )
 
         if not validate_input(args.input):
             print("Error: Invalid input")

@@ -576,6 +576,82 @@ From researching these templates, potential additions:
 
 ---
 
+## Source Code File Workflow
+
+A clean separation of concerns for the `src/` package structure.
+
+### The Pattern
+
+```
+main.py   → starts the program (entry points, thin wrappers)
+cli.py    → defines CLI contract (argument parsing, commands)
+engine.py → defines behavior (core logic, interface-agnostic)
+api.py    → defines callable interface (HTTP/REST, optional)
+```
+
+### File Responsibilities
+
+| File | Purpose | Contains |
+|------|---------|----------|
+| `main.py` | Entry points | Thin wrappers that call cli/engine |
+| `cli.py` | CLI contract | Argument parser, command definitions |
+| `engine.py` | Behavior | Pure logic, no I/O, easily testable |
+| `api.py` | API interface | HTTP routes, request/response handling |
+
+### Data Flow
+
+```
+User runs command
+       ↓
+main.py (entry point)
+       ↓
+cli.py (parse args, dispatch)
+       ↓
+engine.py (do the work)
+       ↓
+Return result to cli.py
+       ↓
+Format output (cli.py or main.py)
+       ↓
+User sees result
+```
+
+### Why This Pattern?
+
+1. **Testability** — `engine.py` has no CLI/HTTP dependencies, easy to unit test
+2. **Flexibility** — Same engine can power CLI, API, GUI, etc.
+3. **Clarity** — Each file has one job
+4. **Maintainability** — Changes to CLI don't affect core logic
+
+### Example
+
+```python
+# engine.py — pure logic
+def process_data(data: str) -> str:
+    return f"Processed: {data}"
+
+# cli.py — CLI contract  
+def run(args):
+    from engine import process_data
+    result = process_data(args.input)
+    print(result)
+    return 0
+
+# main.py — entry point
+def main():
+    from cli import parse_args, run
+    sys.exit(run(parse_args()))
+```
+
+### Anti-patterns to Avoid
+
+- ❌ Business logic in `main.py`
+- ❌ Argument parsing in `engine.py`
+- ❌ HTTP-specific code in `engine.py`
+- ❌ `print()` statements in `engine.py` (return data instead)
+
+---
+
 ## Resources
 
 - [Python Packaging User Guide](https://packaging.python.org/)
