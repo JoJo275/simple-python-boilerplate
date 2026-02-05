@@ -1,5 +1,7 @@
 # simple-python-boilerplate
 
+> Status: In development, not yet ready for production use. This repository is a work in progress as I learn about Python packaging, testing, and best practices. It is intended as a learning reference and reusable starting point for small Python projects.
+
 A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, and `pytest`.
 
 > A living repository containing structure based on my learning path. Cut down, this is one template based on one mindset. May update as I learn more.
