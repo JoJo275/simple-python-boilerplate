@@ -755,6 +755,99 @@ Common Python cache & artifact directories
 | `dist/` | build tools | Built distributions (wheel/sdist) | ✅ Yes | ❌ Never |
 | `build/` | build tools | Temporary build artifacts | ✅ Yes | ❌ Never |
 
+Why Python creates so many caches
+
+Python tooling is modular:
+
+Each tool optimizes independently
+
+Each tool owns its own cache
+
+No central “build system” cleans everything automatically
+
+This is normal and healthy.
+
+Do other programming languages have the same thing?
+
+Yes — absolutely. Every serious ecosystem does.
+
+Comparison across ecosystems
+| Language | Examples of cache / artifact dirs |
+|---|---|
+| Python | `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.venv/` |
+| JavaScript | `node_modules/`, `.next/`, `.turbo/`, `.parcel-cache/` |
+| Rust | `target/` |
+| Java | `target/`, `.gradle/` |
+| Go | `pkg/`, `bin/`, module cache |
+| C/C++ | `build/`, `*.o`, `*.a`, `*.out` |
+| .NET | `bin/`, `obj/` |
+
+The names differ; the idea is identical.
+
+Why these should never be committed
+
+Cache directories are:
+
+Machine-specific
+
+Non-deterministic
+
+Frequently invalidated
+
+Huge source of merge conflicts
+
+A repo that commits caches is a broken repo.
+
+Where cleanup belongs (architecture tie-in)
+
+Cleaning caches:
+
+Is not real behavior
+
+Is not business logic
+
+Is repo hygiene
+
+Correct places:
+
+just clean
+
+scripts/clean.py
+
+CI steps
+
+Incorrect places:
+
+Core logic
+
+Installable CLI
+
+Application code
+
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+env/
+
+# Test / lint / type-check caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+One rule to remember
+
+If deleting it breaks nothing permanently, it’s not source code.
 
 ## Resources
 
