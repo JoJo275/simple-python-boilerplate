@@ -20,8 +20,15 @@ A lot of the populating data in this repo (files, docs, etc) is set up with real
 
 ---
 
+## Using This Template
+
+See the [Adoption Checklist](docs/adoption-checklist.md) for a step-by-step guide to setting up your own project from this template.
+
+---
+
 ## Table of Contents
 
+- [Using This Template](#using-this-template)
 - [Project Structure](#project-structure)
 - [Requirements](#requirements)
 - [Setup (Development)](#setup-development)
