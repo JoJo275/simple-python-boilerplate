@@ -740,91 +740,84 @@ You are not just writing code—you are teaching architecture.
 
 ---
 
-Common Python cache & artifact directories
-| Path | Created by | Purpose | Safe to delete? | Commit to git? |
-|---|---|---|---|---|
-| `__pycache__/` | Python interpreter | Stores compiled `.pyc` bytecode for faster imports | ✅ Yes | ❌ Never |
-| `.pytest_cache/` | pytest | Remembers test state (last failed, node IDs) | ✅ Yes | ❌ Never |
-| `.mypy_cache/` | mypy | Type-checking cache | ✅ Yes | ❌ Never |
-| `.ruff_cache/` | ruff | Linting cache | ✅ Yes | ❌ Never |
-| `.coverage` | coverage.py | Coverage data file | ✅ Yes | ❌ Never |
-| `htmlcov/` | coverage.py | HTML coverage report | ✅ Yes | ❌ Never |
-| `.tox/` | tox | Virtualenvs + test environments | ✅ Yes | ❌ Never |
-| `.nox/` | nox | Virtualenvs + sessions | ✅ Yes | ❌ Never |
-| `.venv/` | venv / uv / poetry | Local virtual environment | ✅ Yes | ❌ Never |
-| `dist/` | build tools | Built distributions (wheel/sdist) | ✅ Yes | ❌ Never |
-| `build/` | build tools | Temporary build artifacts | ✅ Yes | ❌ Never |
+## Common Python Cache & Artifact Directories
 
-Why Python creates so many caches
+| Path               | Created by          | Purpose                                            | Safe to delete? | Commit to git? |
+|--------------------|---------------------|----------------------------------------------------|-----------------|----------------|
+| `__pycache__/`     | Python interpreter  | Stores compiled `.pyc` bytecode for faster imports | ✅ Yes           | ❌ Never        |
+| `.pytest_cache/`   | pytest              | Remembers test state (last failed, node IDs)       | ✅ Yes           | ❌ Never        |
+| `.mypy_cache/`     | mypy                | Type-checking cache                                | ✅ Yes           | ❌ Never        |
+| `.ruff_cache/`     | ruff                | Linting cache                                      | ✅ Yes           | ❌ Never        |
+| `.coverage`        | coverage.py         | Coverage data file                                 | ✅ Yes           | ❌ Never        |
+| `htmlcov/`         | coverage.py         | HTML coverage report                               | ✅ Yes           | ❌ Never        |
+| `.tox/`            | tox                 | Virtualenvs + test environments                    | ✅ Yes           | ❌ Never        |
+| `.nox/`            | nox                 | Virtualenvs + sessions                             | ✅ Yes           | ❌ Never        |
+| `.venv/`           | venv / uv / poetry  | Local virtual environment                          | ✅ Yes           | ❌ Never        |
+| `dist/`            | build tools         | Built distributions (wheel/sdist)                  | ✅ Yes           | ❌ Never        |
+| `build/`           | build tools         | Temporary build artifacts                          | ✅ Yes           | ❌ Never        |
+
+### Why Python Creates So Many Caches
 
 Python tooling is modular:
 
-Each tool optimizes independently
-
-Each tool owns its own cache
-
-No central “build system” cleans everything automatically
+- Each tool optimizes independently
+- Each tool owns its own cache
+- No central "build system" cleans everything automatically
 
 This is normal and healthy.
 
-Do other programming languages have the same thing?
+### Do Other Programming Languages Have the Same Thing?
 
 Yes — absolutely. Every serious ecosystem does.
 
-Comparison across ecosystems
-| Language | Examples of cache / artifact dirs |
-|---|---|
-| Python | `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.venv/` |
-| JavaScript | `node_modules/`, `.next/`, `.turbo/`, `.parcel-cache/` |
-| Rust | `target/` |
-| Java | `target/`, `.gradle/` |
-| Go | `pkg/`, `bin/`, module cache |
-| C/C++ | `build/`, `*.o`, `*.a`, `*.out` |
-| .NET | `bin/`, `obj/` |
+**Comparison across ecosystems:**
+
+| Language    | Examples of cache / artifact dirs                              |
+|-------------|----------------------------------------------------------------|
+| Python      | `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.venv/`     |
+| JavaScript  | `node_modules/`, `.next/`, `.turbo/`, `.parcel-cache/`         |
+| Rust        | `target/`                                                      |
+| Java        | `target/`, `.gradle/`                                          |
+| Go          | `pkg/`, `bin/`, module cache                                   |
+| C/C++       | `build/`, `*.o`, `*.a`, `*.out`                                |
+| .NET        | `bin/`, `obj/`                                                 |
 
 The names differ; the idea is identical.
 
-Why these should never be committed
+### Why These Should Never Be Committed
 
 Cache directories are:
 
-Machine-specific
-
-Non-deterministic
-
-Frequently invalidated
-
-Huge source of merge conflicts
+- Machine-specific
+- Non-deterministic
+- Frequently invalidated
+- Huge source of merge conflicts
 
 A repo that commits caches is a broken repo.
 
-Where cleanup belongs (architecture tie-in)
+### Where Cleanup Belongs (Architecture Tie-In)
 
 Cleaning caches:
 
-Is not real behavior
+- Is not real behavior
+- Is not business logic
+- Is repo hygiene
 
-Is not business logic
+**Correct places:**
 
-Is repo hygiene
+- `just clean`
+- `scripts/clean.py`
+- CI steps
 
-Correct places:
+**Incorrect places:**
 
-just clean
+- Core logic
+- Installable CLI
+- Application code
 
-scripts/clean.py
+### Example `.gitignore` Entries
 
-CI steps
-
-Incorrect places:
-
-Core logic
-
-Installable CLI
-
-Application code
-
-
+```gitignore
 # Python
 __pycache__/
 *.py[cod]
@@ -844,10 +837,13 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+```
 
-One rule to remember
+### One Rule to Remember
 
-If deleting it breaks nothing permanently, it’s not source code.
+> If deleting it breaks nothing permanently, it's not source code.
+
+---
 
 ## Resources
 
