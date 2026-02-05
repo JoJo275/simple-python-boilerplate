@@ -659,6 +659,12 @@ def main():
 | **`cli.py`** | Command-line interface | Argument parsing, subcommands, help text | Business logic, complex workflows | End users, developers, Just, CI | When providing an installable CLI | Putting real logic directly in CLI handlers |
 | **`main.py`** | Entry point / bootstrap | Calls into `api.py` or `engine.py` to start execution | Logic, configuration rules | Python runtime (`python main.py`) | Optional; useful for quick execution or demos | Letting it grow into the main implementation file |
 
+Decision rules (read top → bottom)
+
+If someone outside this repo needs to run it → installable CLI
+If only contributors need it → task runner (Just)
+If it expresses real behavior → core logic
+If it just wires things together → orchestration
 
 ## Resources
 
