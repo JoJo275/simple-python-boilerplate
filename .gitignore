@@ -137,9 +137,6 @@ $RECYCLE.BIN/
 # =========================================
 # Project-specific directories
 # =========================================
-# Local experiments folder
-/experiments/
-
 # Local data and state directories (keep READMEs and examples)
 /var/*
 !/var/README.md
