@@ -652,6 +652,14 @@ def main():
 
 ---
 
+| File | Primary role | What it contains | What it must **not** contain | Who calls it | When to use it | Common mistakes |
+|---|---|---|---|---|---|---|
+| **`engine.py`** | Source of truth (core logic) | Pure functions/classes that implement real behavior | CLI parsing, printing, shell commands, repo-specific assumptions | `api.py`, tests, other Python code | Always when behavior is non-trivial or reusable | Mixing I/O or argument parsing into core logic |
+| **`api.py`** | Stable internal interface | Thin wrappers that expose intentional operations (e.g. `run_lint`, `build`) | Implementation details, argument parsing | `cli.py`, `main.py`, other tools | When you want a clean boundary and refactor safety | Making it a duplicate of `engine.py` with no added value |
+| **`cli.py`** | Command-line interface | Argument parsing, subcommands, help text | Business logic, complex workflows | End users, developers, Just, CI | When providing an installable CLI | Putting real logic directly in CLI handlers |
+| **`main.py`** | Entry point / bootstrap | Calls into `api.py` or `engine.py` to start execution | Logic, configuration rules | Python runtime (`python main.py`) | Optional; useful for quick execution or demos | Letting it grow into the main implementation file |
+
+
 ## Resources
 
 - [Python Packaging User Guide](https://packaging.python.org/)
