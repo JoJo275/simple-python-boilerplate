@@ -363,6 +363,219 @@ updates:
 
 ---
 
+## Research: Other Template Repos
+
+Notes and conventions gathered from popular Python boilerplate/template repositories on GitHub.
+
+---
+
+### Hypermodern Python (cjolowicz)
+
+**Repo:** [cjolowicz/hypermodern-python](https://github.com/cjolowicz/hypermodern-python)
+
+A reference for cutting-edge Python tooling. Accompanied by a detailed blog series.
+
+| Convention | Details |
+|------------|---------|
+| **Build tool** | Poetry (now Hatch is also popular) |
+| **Task runner** | Nox (multi-Python testing) |
+| **Type checker** | Mypy with strict mode |
+| **Docs** | Sphinx + Read the Docs |
+| **Pre-commit** | Extensive hooks |
+| **CLI** | Click |
+
+**Key Takeaways:**
+- Uses Nox for consistent test environments across Python versions
+- Separates "sessions" (lint, tests, docs, safety) in `noxfile.py`
+- Coverage enforced with pytest-cov
+- Sphinx autodoc for API docs from docstrings
+- GitHub Actions with matrix for Python 3.9–3.12
+
+---
+
+### Cookiecutter PyPackage (audreyfeldroy)
+
+**Repo:** [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage)
+
+One of the most popular Python package templates. Uses Cookiecutter for project generation.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | `src/` layout (optional, flat by default) |
+| **Testing** | pytest + tox |
+| **Docs** | Sphinx |
+| **CI** | Travis CI (older), GitHub Actions (forks) |
+| **Versioning** | bumpversion |
+
+**Key Takeaways:**
+- Generates CONTRIBUTING.rst, HISTORY.rst, AUTHORS.rst
+- Includes Makefile with common targets (`make test`, `make docs`)
+- Supports multiple open source licenses via prompts
+- tox.ini for multi-version testing
+- Bump2version for version management
+
+---
+
+### Python Project Template (rochacbruno)
+
+**Repo:** [rochacbruno/python-project-template](https://github.com/rochacbruno/python-project-template)
+
+Modern template with Copier (alternative to Cookiecutter).
+
+| Convention | Details |
+|------------|---------|
+| **Build tool** | Poetry or setuptools |
+| **Linting** | Ruff (replaced flake8, isort, black) |
+| **Type checker** | Mypy |
+| **Task runner** | Make |
+| **Docs** | MkDocs (Material theme) |
+
+**Key Takeaways:**
+- Uses Copier for template updates (can pull in template changes later)
+- Containerfile for OCI/Docker builds
+- GitHub Actions with reusable workflows
+- Conventional commits enforced
+- MkDocs Material for modern-looking docs
+
+---
+
+### FastAPI Project Structure (tiangolo)
+
+**Repo:** [tiangolo/full-stack-fastapi-template](https://github.com/tiangolo/full-stack-fastapi-template)
+
+While not a general template, FastAPI projects set conventions for modern Python.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | `app/` package (not `src/`) |
+| **Async** | Native async/await |
+| **Config** | Pydantic Settings |
+| **Database** | SQLAlchemy + Alembic |
+| **Testing** | pytest + httpx |
+
+**Key Takeaways:**
+- Pydantic for settings/config management with `.env` files
+- Alembic for database migrations (instead of raw SQL)
+- Docker Compose for local development
+- Separation: `app/core/`, `app/api/`, `app/models/`, `app/crud/`
+- Pre-commit with Ruff
+
+---
+
+### Scikit-learn Contrib Template
+
+**Repo:** [scikit-learn-contrib/project-template](https://github.com/scikit-learn-contrib/project-template)
+
+Template for scikit-learn compatible packages.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | Flat (package at root) |
+| **Testing** | pytest-cov |
+| **Docs** | Sphinx + sphinx-gallery |
+| **CI** | GitHub Actions + CircleCI |
+
+**Key Takeaways:**
+- Strict scikit-learn API compatibility (estimator checks)
+- Example gallery generated from scripts
+- Extensive docstring format (NumPy style)
+- Conda + pip dual support
+
+---
+
+### PyScaffold
+
+**Repo:** [pyscaffold/pyscaffold](https://github.com/pyscaffold/pyscaffold)
+
+CLI tool that generates Python projects. Very opinionated.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | `src/` layout (enforced) |
+| **Config** | `pyproject.toml` + `setup.cfg` hybrid |
+| **Versioning** | setuptools-scm (git tags) |
+| **Docs** | Sphinx |
+| **Extensions** | Plugin system |
+
+**Key Takeaways:**
+- Version derived from git tags (no manual version bumping)
+- setuptools-scm for automatic versioning
+- Extensions for Django, pre-commit, CI templates
+- Creates `CHANGELOG.rst` (reStructuredText)
+- Authors file auto-generated from git log
+
+---
+
+### Packaging Conventions Comparison
+
+| Aspect | This Template | Hypermodern | Cookiecutter | PyScaffold |
+|--------|---------------|-------------|--------------|------------|
+| **Layout** | `src/` | `src/` | flat (default) | `src/` |
+| **Config** | pyproject.toml only | pyproject.toml | setup.py/cfg | hybrid |
+| **Linting** | Ruff | flake8 + plugins | flake8 | flake8 |
+| **Formatting** | Ruff | Black | Black | Black |
+| **Types** | Mypy | Mypy strict | optional | optional |
+| **Task runner** | Make/scripts | Nox | Make + tox | tox |
+| **Docs** | Markdown | Sphinx | Sphinx | Sphinx |
+| **Versioning** | manual | bump2version | bumpversion | setuptools-scm |
+
+---
+
+### Common Patterns Observed
+
+**Project Structure:**
+- `src/` layout gaining popularity (isolation benefits)
+- `tests/` at root level (not inside `src/`)
+- `docs/` for documentation source files
+- Flat configs in root (pyproject.toml, tox.ini, etc.)
+
+**Configuration:**
+- pyproject.toml as single source (PEP 518/621)
+- Tool configs in `[tool.X]` sections
+- `.env` + `.env.example` for secrets
+
+**CI/CD:**
+- GitHub Actions dominant (Travis CI declining)
+- Matrix testing (Python 3.10, 3.11, 3.12, etc.)
+- Separate workflows per concern
+- Dependabot or Renovate for dependency updates
+
+**Documentation:**
+- Sphinx still dominant for libraries
+- MkDocs + Material gaining traction
+- README.md as landing page
+- CHANGELOG.md with Keep a Changelog format
+
+**Testing:**
+- pytest universal
+- pytest-cov for coverage
+- tox or nox for multi-version
+- conftest.py for shared fixtures
+
+**Developer Experience:**
+- Pre-commit hooks standard
+- Makefile or justfile for common tasks
+- Editorconfig for cross-editor consistency
+- .vscode/ or .idea/ for IDE settings
+
+---
+
+### Ideas Worth Considering
+
+From researching these templates, potential additions:
+
+| Idea | Benefit | Complexity |
+|------|---------|------------|
+| **setuptools-scm** | No manual version bumping | Low |
+| **Nox** | Better than tox, Python-based | Medium |
+| **MkDocs** | Simpler than Sphinx, Markdown-native | Low |
+| **Copier** | Template updates after adoption | Medium |
+| **justfile** | Modern Makefile alternative | Low |
+| **CITATION.cff** | Academic citation support | Low |
+| **.editorconfig** | Cross-editor consistency | Low |
+
+---
+
 ## Resources
 
 - [Python Packaging User Guide](https://packaging.python.org/)
