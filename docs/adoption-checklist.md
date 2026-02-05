@@ -2,6 +2,8 @@
 
 A step-by-step checklist for setting up a new project from this template.
 
+Implement any of these changes at your discretion — this is just a guide to help you get started. You can skip or modify steps as needed for your specific project.
+
 For detailed guidance, see [USING_THIS_TEMPLATE.md](USING_THIS_TEMPLATE.md).
 
 ---
