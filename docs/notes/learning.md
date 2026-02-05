@@ -666,6 +666,21 @@ If only contributors need it → task runner (Just)
 If it expresses real behavior → core logic
 If it just wires things together → orchestration
 
+Canonical decision table
+| Question | Yes → Do this | No → Do this |
+|---|---|---|
+| Does this define real behavior (rules, algorithms, decisions)? | Put it in **core logic** (`engine.py` / `core/`) | Continue |
+| Should this behavior be callable by other code or tools? | Expose via **installable CLI** (and/or API) | Continue |
+| Is this meant to be run outside this repo? | **Installable CLI command** | Continue |
+| Is this only for contributors working on this repo? | **Just task** | Continue |
+| Is this repo-specific glue (order of steps, flags, paths)? | **Just task or script** | Continue |
+| Is this a one-off or disposable automation? | **Script** | Re-evaluate |
+
+
+
+
+
+
 ## Resources
 
 - [Python Packaging User Guide](https://packaging.python.org/)
