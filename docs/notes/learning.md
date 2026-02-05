@@ -652,93 +652,93 @@ def main():
 
 ---
 
-| File | Primary role | What it contains | What it must **not** contain | Who calls it | When to use it | Common mistakes |
-|---|---|---|---|---|---|---|
-| **`engine.py`** | Source of truth (core logic) | Pure functions/classes that implement real behavior | CLI parsing, printing, shell commands, repo-specific assumptions | `api.py`, tests, other Python code | Always when behavior is non-trivial or reusable | Mixing I/O or argument parsing into core logic |
-| **`api.py`** | Stable internal interface | Thin wrappers that expose intentional operations (e.g. `run_lint`, `build`) | Implementation details, argument parsing | `cli.py`, `main.py`, other tools | When you want a clean boundary and refactor safety | Making it a duplicate of `engine.py` with no added value |
-| **`cli.py`** | Command-line interface | Argument parsing, subcommands, help text | Business logic, complex workflows | End users, developers, Just, CI | When providing an installable CLI | Putting real logic directly in CLI handlers |
-| **`main.py`** | Entry point / bootstrap | Calls into `api.py` or `engine.py` to start execution | Logic, configuration rules | Python runtime (`python main.py`) | Optional; useful for quick execution or demos | Letting it grow into the main implementation file |
+| File             | Primary role                  | What it contains                                                            | What it must **not** contain                                     | Who calls it                        | When to use it                                     | Common mistakes                                          |
+|------------------|-------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------|-------------------------------------|----------------------------------------------------|----------------------------------------------------------|
+| **`engine.py`**  | Source of truth (core logic)  | Pure functions/classes that implement real behavior                         | CLI parsing, printing, shell commands, repo-specific assumptions | `api.py`, tests, other Python code  | Always when behavior is non-trivial or reusable    | Mixing I/O or argument parsing into core logic           |
+| **`api.py`**     | Stable internal interface     | Thin wrappers that expose intentional operations (e.g. `run_lint`, `build`) | Implementation details, argument parsing                         | `cli.py`, `main.py`, other tools    | When you want a clean boundary and refactor safety | Making it a duplicate of `engine.py` with no added value |
+| **`cli.py`**     | Command-line interface        | Argument parsing, subcommands, help text                                    | Business logic, complex workflows                                | End users, developers, Just, CI     | When providing an installable CLI                  | Putting real logic directly in CLI handlers              |
+| **`main.py`**    | Entry point / bootstrap       | Calls into `api.py` or `engine.py` to start execution                       | Logic, configuration rules                                       | Python runtime (`python main.py`)   | Optional; useful for quick execution or demos      | Letting it grow into the main implementation file        |
 
-Key rule
+### Key Rule
 
-Logic flows downward; control flows upward.
+> Logic flows downward; control flows upward.
 
-Logic lives in engine.py
+- Logic lives in `engine.py`
+- Interfaces adapt it (`api.py`, `cli.py`)
+- Entrypoints trigger it (`main.py`)
 
-Interfaces adapt it (api.py, cli.py)
+### Decision Rules (read top → bottom)
 
-Entrypoints trigger it (main.py)
+- If someone outside this repo needs to run it → installable CLI
+- If only contributors need it → task runner (Just)
+- If it expresses real behavior → core logic
+- If it just wires things together → orchestration
 
-Decision rules (read top → bottom)
+### Canonical Decision Table
 
-If someone outside this repo needs to run it → installable CLI
-If only contributors need it → task runner (Just)
-If it expresses real behavior → core logic
-If it just wires things together → orchestration
+| Question                                                        | Yes → Do this                                       | No → Do this |
+|-----------------------------------------------------------------|-----------------------------------------------------|--------------|
+| Does this define real behavior (rules, algorithms, decisions)?  | Put it in **core logic** (`engine.py` / `core/`)    | Continue     |
+| Should this behavior be callable by other code or tools?        | Expose via **installable CLI** (and/or API)         | Continue     |
+| Is this meant to be run outside this repo?                      | **Installable CLI command**                         | Continue     |
+| Is this only for contributors working on this repo?             | **Just task**                                       | Continue     |
+| Is this repo-specific glue (order of steps, flags, paths)?      | **Just task or script**                             | Continue     |
+| Is this a one-off or disposable automation?                     | **Script**                                          | Re-evaluate  |
 
-Canonical decision table
-| Question | Yes → Do this | No → Do this |
-|---|---|---|
-| Does this define real behavior (rules, algorithms, decisions)? | Put it in **core logic** (`engine.py` / `core/`) | Continue |
-| Should this behavior be callable by other code or tools? | Expose via **installable CLI** (and/or API) | Continue |
-| Is this meant to be run outside this repo? | **Installable CLI command** | Continue |
-| Is this only for contributors working on this repo? | **Just task** | Continue |
-| Is this repo-specific glue (order of steps, flags, paths)? | **Just task or script** | Continue |
-| Is this a one-off or disposable automation? | **Script** | Re-evaluate |
+### What Each Bucket Is Responsible For
 
-What each bucket is responsible for
-| Tool / Layer | Purpose | Source of truth? | Versioned? | Audience |
-|---|---|---|---|---|
-| Core logic | Implements behavior | ✅ Yes | With code | Everyone |
-| Installable CLI | Defines public commands | ✅ Yes | Yes | Users / devs |
-| Just (task runner) | Orchestrates commands | ❌ No | With repo | Contributors |
-| Scripts | One-off helpers | ❌ No | Optional | Maintainers |
-| CI workflows | Automation | ❌ No | With repo | CI only |
+| Tool / Layer       | Purpose                  | Source of truth? | Versioned? | Audience     |
+|--------------------|--------------------------|------------------|------------|-------------|
+| Core logic         | Implements behavior      | ✅ Yes            | With code  | Everyone     |
+| Installable CLI    | Defines public commands  | ✅ Yes            | Yes        | Users / devs |
+| Just (task runner) | Orchestrates commands    | ❌ No             | With repo  | Contributors |
+| Scripts            | One-off helpers          | ❌ No             | Optional   | Maintainers  |
+| CI workflows       | Automation               | ❌ No             | With repo  | CI only      |
 
-Concrete examples (grounding the rules)
-| Action | Correct place | Why |
-|---|---|---|
-| Lint Python files | Installable CLI (`mytool lint`) | Reusable, meaningful behavior |
-| Run lint + format + tests | Just (`just check`) | Repo workflow |
-| Build and publish release | CLI (`mytool release`) | Stable, versioned behavior |
-| Clean `.pytest_cache` | Just or script | Repo-specific cleanup |
-| Bootstrap venv | Just | Developer convenience |
-| Parse config file | Core logic | Behavior, not orchestration |
-| Call multiple tools in order | Just | Pure glue |
+### Concrete Examples (grounding the rules)
 
-Anti-patterns (what not to do)
+| Action                       | Correct place                    | Why                          |
+|------------------------------|----------------------------------|------------------------------|
+| Lint Python files            | Installable CLI (`mytool lint`)  | Reusable, meaningful behavior |
+| Run lint + format + tests    | Just (`just check`)              | Repo workflow                |
+| Build and publish release    | CLI (`mytool release`)           | Stable, versioned behavior   |
+| Clean `.pytest_cache`        | Just or script                   | Repo-specific cleanup        |
+| Bootstrap venv               | Just                             | Developer convenience        |
+| Parse config file            | Core logic                       | Behavior, not orchestration  |
+| Call multiple tools in order | Just                             | Pure glue                    |
 
-| Smell | Why it’s wrong |
-|---|---|
-| Logic lives in `justfile` | Not testable or reusable |
-| CI runs `just something` | CI now depends on dev tooling |
-| CLI calls shell pipelines | Logic trapped in strings |
-| Scripts are the only interface | No stable API |
-| Just command documented as “the way” | Just became the API |
+### Anti-patterns (what not to do)
 
-One-sentence rule (worth memorizing)
+| Smell                                  | Why it's wrong                   |
+|----------------------------------------|----------------------------------|
+| Logic lives in `justfile`              | Not testable or reusable         |
+| CI runs `just something`               | CI now depends on dev tooling    |
+| CLI calls shell pipelines              | Logic trapped in strings         |
+| Scripts are the only interface         | No stable API                    |
+| Just command documented as "the way"   | Just became the API              |
 
-Installable CLIs define behavior.
-Just coordinates behavior.
-Scripts are temporary.
+### One-sentence Rule (worth memorizing)
 
-Why this matters for your template
+> Installable CLIs define behavior.  
+> Just coordinates behavior.  
+> Scripts are temporary.
+
+### Why This Matters for Your Template
 
 You are not just writing code—you are teaching architecture.
 
-If you teach:
+**If you teach:**
 
-“put logic in core”
+- "put logic in core"
+- "keep runners dumb"
 
-“keep runners dumb”
+**Then users:**
 
-Then users:
+- Can refactor safely
+- Can add new interfaces later
+- Avoid brittle repos
 
-Can refactor safely
-
-Can add new interfaces later
-
-Avoid brittle repos
+---
 
 ## Resources
 
