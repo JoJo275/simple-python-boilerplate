@@ -1,4 +1,25 @@
-"""CLI entry points for simple-python-boilerplate."""
+"""
+Application entry points and top-level commands.
+
+This module contains the entry points configured in pyproject.toml. These are
+the functions that get called when users run CLI commands. They should be thin
+wrappers that delegate to cli.py for argument parsing and engine.py for logic.
+
+Typical contents:
+    - Console script entry points
+    - Version printing
+    - Environment diagnostics (doctor command)
+
+Entry points (configured in pyproject.toml):
+    - main: Primary CLI command
+    - print_version: Show version info
+    - doctor: Diagnose environment issues
+
+See also:
+    - cli.py: Argument parsing and command structure
+    - engine.py: Core business logic
+    - api.py: HTTP/REST interface
+"""
 
 import sys
 from importlib.metadata import version, PackageNotFoundError
