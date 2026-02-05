@@ -659,6 +659,16 @@ def main():
 | **`cli.py`** | Command-line interface | Argument parsing, subcommands, help text | Business logic, complex workflows | End users, developers, Just, CI | When providing an installable CLI | Putting real logic directly in CLI handlers |
 | **`main.py`** | Entry point / bootstrap | Calls into `api.py` or `engine.py` to start execution | Logic, configuration rules | Python runtime (`python main.py`) | Optional; useful for quick execution or demos | Letting it grow into the main implementation file |
 
+Key rule
+
+Logic flows downward; control flows upward.
+
+Logic lives in engine.py
+
+Interfaces adapt it (api.py, cli.py)
+
+Entrypoints trigger it (main.py)
+
 Decision rules (read top → bottom)
 
 If someone outside this repo needs to run it → installable CLI
@@ -696,10 +706,39 @@ Concrete examples (grounding the rules)
 | Parse config file | Core logic | Behavior, not orchestration |
 | Call multiple tools in order | Just | Pure glue |
 
+Anti-patterns (what not to do)
 
+| Smell | Why it’s wrong |
+|---|---|
+| Logic lives in `justfile` | Not testable or reusable |
+| CI runs `just something` | CI now depends on dev tooling |
+| CLI calls shell pipelines | Logic trapped in strings |
+| Scripts are the only interface | No stable API |
+| Just command documented as “the way” | Just became the API |
 
+One-sentence rule (worth memorizing)
 
+Installable CLIs define behavior.
+Just coordinates behavior.
+Scripts are temporary.
 
+Why this matters for your template
+
+You are not just writing code—you are teaching architecture.
+
+If you teach:
+
+“put logic in core”
+
+“keep runners dumb”
+
+Then users:
+
+Can refactor safely
+
+Can add new interfaces later
+
+Avoid brittle repos
 
 ## Resources
 
