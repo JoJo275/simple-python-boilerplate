@@ -742,6 +742,40 @@ You are not just writing code—you are teaching architecture.
 
 ## Resources
 
+### Python Packaging
+
 - [Python Packaging User Guide](https://packaging.python.org/)
 - [Hynek's Testing & Packaging](https://hynek.me/articles/testing-packaging/)
 - [Real Python: Python Packaging](https://realpython.com/pypi-publish-python-package/)
+- [PyPA Sample Project](https://github.com/pypa/sampleproject)
+- [PEP 621 – Project metadata in pyproject.toml](https://peps.python.org/pep-0621/)
+
+### Testing & Quality
+
+- [pytest Documentation](https://docs.pytest.org/)
+- [Coverage.py](https://coverage.readthedocs.io/)
+- [Hypothesis (property-based testing)](https://hypothesis.readthedocs.io/)
+
+### Linting & Formatting
+
+- [Ruff Documentation](https://docs.astral.sh/ruff/)
+- [Mypy Documentation](https://mypy.readthedocs.io/)
+- [pre-commit](https://pre-commit.com/)
+
+### CI/CD & GitHub Actions
+
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [GitHub Actions Security Hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
+- [Dependabot Documentation](https://docs.github.com/en/code-security/dependabot)
+
+### Project Templates & Best Practices
+
+- [Hypermodern Python](https://cjolowicz.github.io/posts/hypermodern-python-01-setup/)
+- [Scientific Python Library Development Guide](https://learn.scientific-python.org/development/)
+- [The Hitchhiker's Guide to Python](https://docs.python-guide.org/)
+
+### Security
+
+- [pip-audit](https://github.com/pypa/pip-audit)
+- [Bandit](https://bandit.readthedocs.io/)
+- [OpenSSF Scorecard](https://securityscorecards.dev/)
