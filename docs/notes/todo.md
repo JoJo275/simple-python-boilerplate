@@ -51,6 +51,7 @@ Things to explore, implement, or learn more about.
 - [ ] Understand all programs within repo
 - [ ] Learn and build any more scripts and programs within this tempalte repo that may help.
 - [ ] Add a script that changes the project name, package name, author name, and other relevant info in all necessary files to make it easier to set up a new project from this template. *This could be a Python script that uses regex or string replacement to update the relevant fields in `README.md`, `pyproject.toml`, `LICENSE`, and `SECURITY.md` based on user input. It would save time and reduce the chance of missing any necessary changes when setting up a new project from this template.*
+- [ ] Read through other popular Python boilerplate repositories to see if there are any common features or best practices I may have missed. *This could include looking at repositories like `cookiecutter`, `python-project-template`, and others to see how they structure their projects, what files they include, and how they handle things like testing, documentation, and CI/CD. It could provide valuable insights and ideas for improving this template.*   
 - [ ]
 
 ## Questions to Answer
