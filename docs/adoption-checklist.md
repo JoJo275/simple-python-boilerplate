@@ -57,6 +57,23 @@ For detailed guidance, see [USING_THIS_TEMPLATE.md](USING_THIS_TEMPLATE.md).
 - [ ] Clear `CHANGELOG.md` for your project's history
 - [ ] Remove template-specific notes from documentation
 
+## Gitignore Configuration
+
+After adopting the template, add these directories to your `.gitignore` to keep local experiments and data out of version control:
+
+- [ ] Add `experiments/` to `.gitignore`
+- [ ] Add `var/` to `.gitignore`
+
+Add the following to your `.gitignore`:
+
+```gitignore
+# Local experiments (scratch code, prototypes)
+/experiments/
+
+# Local data and state
+/var/
+```
+
 ## Verification
 
 - [ ] Run `python -m pip install -e .` successfully
