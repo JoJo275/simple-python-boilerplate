@@ -32,5 +32,5 @@ Project documentation organized by topic.
 When using this template:
 1. Update documentation to match your project
 2. Copy files from [templates/](templates/) as needed
-3. Remove [notes/](notes/) after reading
+3. Keep or remove [notes/](notes/) (useful reference material)
 4. Add project-specific guides

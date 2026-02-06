@@ -221,7 +221,7 @@ If you're using this template, consider removing:
 
 | Path | When to Remove |
 |------|----------------|
-| `docs/notes/` | After reading, personal learning |
+| `docs/notes/` | Optional — keep as reference or remove |
 | `experiments/` | After exploration |
 | `var/app.example.sqlite3` | Replace with your data |
 | `docs/templates/` | After copying what you need |
