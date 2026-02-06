@@ -80,9 +80,9 @@ Choose your security policy approach:
 
 | Scenario | Use |
 |----------|-----|
-| No bug bounty (most projects) | `SECURITY.md` (default) or see `docs/examples/SECURITY_no_bounty.md` |
-| With bug bounty | See `docs/examples/SECURITY_with_bounty.md` |
-| Standalone bounty policy | See `docs/examples/BUG_BOUNTY.md` |
+| No bug bounty (most projects) | `SECURITY.md` (default) or see `docs/templates/SECURITY_no_bounty.md` |
+| With bug bounty | See `docs/templates/SECURITY_with_bounty.md` |
+| Standalone bounty policy | See `docs/templates/BUG_BOUNTY.md` |
 
 ### Enabling Private Vulnerability Reporting
 
@@ -110,7 +110,7 @@ If you don't need certain features, remove these files:
 
 | Delete | If You Don't Need |
 |--------|-------------------|
-| `docs/examples/` | Example files (reference only) |
+| `docs/templates/` | Template files (copy what you need first) |
 | `.github/ISSUE_TEMPLATE/question.*` | Question template (use Discussions) |
 | `.github/ISSUE_TEMPLATE/performance.*` | Performance issue tracking |
 | `labels/extended.json` | Extended label set (baseline is enough) |
@@ -163,7 +163,7 @@ If you don't need certain features, remove these files:
 
 ### Cleanup
 
-- [ ] Delete `docs/examples/` (reference only)
+- [ ] Delete `docs/templates/` (after copying what you need)
 - [ ] Delete unused issue templates
 - [ ] Remove or update example code in `src/`
 - [ ] Remove or update example tests in `tests/`

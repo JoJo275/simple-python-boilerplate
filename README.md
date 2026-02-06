@@ -37,7 +37,7 @@ See [Using This Template](docs/USING_THIS_TEMPLATE.md) for a step-by-step guide 
 ## Table of Contents
 
 - [Using This Template](#using-this-template)
-- [Project Structure](#project-structure)
+- [Repository Layout](#repository-layout)
 - [Requirements](#requirements)
 - [Setup (Development)](#setup-development)
 - [Running Tests](#running-tests)
@@ -52,26 +52,26 @@ See [Using This Template](docs/USING_THIS_TEMPLATE.md) for a step-by-step guide 
 
 ---
 
-## Project Structure
+## Repository Layout
 
-```
-simple-python-boilerplate/
-├── docs/
-│   └── development.md
-├── src/
-│   └── simple_python_boilerplate/
-│       ├── __init__.py
-│       └── main.py
-├── tests/
-│   └── unit_test.py
-├── .gitattributes
-├── .gitignore
-├── CODE_OF_CONDUCT.md
-├── CONTRIBUTING.md
-├── LICENSE
-├── pyproject.toml
-└── README.md
-```
+| Directory | Purpose |
+|-----------|---------|
+| `src/` | Package source code |
+| `tests/` | Test suite (unit + integration) |
+| `docs/` | Documentation |
+| `.github/` | GitHub Actions, templates, Dependabot |
+| `scripts/` | Developer utility scripts |
+| `db/` | Database schema, migrations, seeds |
+| `labels/` | GitHub label definitions |
+
+| File | Purpose |
+|------|---------|
+| `pyproject.toml` | Project metadata, dependencies, tool config |
+| `CONTRIBUTING.md` | How to contribute |
+| `CHANGELOG.md` | Version history |
+| `LICENSE` | Apache-2.0 license |
+
+For the full annotated tree with "what breaks if removed" details, see [docs/repo-layout.md](docs/repo-layout.md).
 
 ### Why `src/` layout?
 

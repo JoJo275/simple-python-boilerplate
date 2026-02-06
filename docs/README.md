@@ -9,19 +9,21 @@ Project documentation organized by topic.
 | [adr/](adr/) | Architecture Decision Records |
 | [design/](design/) | Architecture and database design |
 | [development/](development/) | Developer guides and setup |
-| [examples/](examples/) | Example files and templates |
 | [notes/](notes/) | Personal notes and scratchpad |
-| [releasing.md](releasing.md) | Release process and versioning |
+| [templates/](templates/) | Reusable file templates |
+| [release-policy.md](release-policy.md) | Versioning and support policy |
+| [releasing.md](releasing.md) | Release process and checklist |
+| [repo-layout.md](repo-layout.md) | Full annotated repository structure |
 | [workflows.md](workflows.md) | GitHub Actions workflows reference |
 
 ## Quick Links
 
 - [Development Setup](development/dev-setup.md)
+- [Repository Layout](repo-layout.md)
 - [Releasing](releasing.md)
 - [Workflows](workflows.md)
 - [Contributing](../CONTRIBUTING.md)
 - [Architecture](design/architecture.md)
-- [Database Design](design/database.md)
 
 ## For Template Users
 
@@ -29,5 +31,6 @@ Project documentation organized by topic.
 
 When using this template:
 1. Update documentation to match your project
-2. Remove or update example files
-3. Add project-specific guides
+2. Copy files from [templates/](templates/) as needed
+3. Remove [notes/](notes/) after reading
+4. Add project-specific guides

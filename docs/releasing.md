@@ -180,6 +180,7 @@ git push origin :refs/tags/v1.0.0
 
 ## See Also
 
+- [Release Policy](release-policy.md) — Versioning, deprecation, and support policy
 - [CHANGELOG.md](../CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — Contribution guidelines
 - [Keep a Changelog](https://keepachangelog.com/) — Changelog format
