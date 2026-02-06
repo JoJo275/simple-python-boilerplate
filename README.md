@@ -24,6 +24,8 @@ Most of the workflows and automation are disabled by default to avoid confusion 
 
 The core python development workflow that was left enabled by default:
 
+Workflows included in this template:
+
 ---
 
 ## Using This Template
