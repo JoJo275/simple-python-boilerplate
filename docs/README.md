@@ -11,10 +11,12 @@ Project documentation organized by topic.
 | [development/](development/) | Developer guides and setup |
 | [examples/](examples/) | Example files and templates |
 | [notes/](notes/) | Personal notes and scratchpad |
+| [releasing.md](releasing.md) | Release process and versioning |
 
 ## Quick Links
 
 - [Development Setup](development/dev-setup.md)
+- [Releasing](releasing.md)
 - [Contributing](../CONTRIBUTING.md)
 - [Architecture](design/architecture.md)
 - [Database Design](design/database.md)
