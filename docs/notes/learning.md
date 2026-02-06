@@ -953,6 +953,26 @@ If deleting it only requires reinstalling or rebuilding → it does not belong i
 
 ---
 
+### Where This Fits in Your Architecture Rules
+
+`*.egg-info` is not:
+
+- Logic
+- CLI
+- Just
+- Scripts
+
+It is a tool byproduct, managed by the packaging system.
+
+### Bottom-Line Rules
+
+- Source code → commit
+- Configuration → commit
+- Lockfiles → usually commit
+- Caches → never commit
+- Build artifacts → never commit
+- Install metadata (`*.egg-info`, `*.dist-info`) → never commit
+
 ## Resources
 
 ### Python Packaging
