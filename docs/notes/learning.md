@@ -971,6 +971,17 @@ It is a tool byproduct, managed by the packaging system.
 - Build artifacts → never commit
 - Install metadata (`*.egg-info`, `*.dist-info`) → never commit
 
+### Quick Reference: When to Use What
+
+| Scenario              | Installable CLI | Just | Script |
+|-----------------------|-----------------|------|--------|
+| Reusable logic        | ✅               | ❌    | ❌      |
+| Distributed tool      | ✅               | ❌    | ❌      |
+| Repo glue             | ❌               | ✅    | ⚠️     |
+| One-off automation    | ❌               | ⚠️   | ✅      |
+| User-facing command   | ✅               | ❌    | ❌      |
+| Developer convenience | ⚠️              | ✅    | ⚠️     |
+
 ---
 
 ## Resources
