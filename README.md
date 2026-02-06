@@ -20,6 +20,10 @@ There are some notes to myself and throughout the repo to remind me of certain t
 
 A lot of the populating data in this repo (files, docs, etc) is set up with real content that relates to this repo which serve as examples and references for future use.
 
+Most of the workflows and automation are disabled by default to avoid confusion and allow you to enable and adapt them as needed for your own projects. 
+
+The core python development workflow that was left enabled by default:
+
 ---
 
 ## Using This Template
