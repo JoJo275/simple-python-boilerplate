@@ -12,11 +12,13 @@ Project documentation organized by topic.
 | [examples/](examples/) | Example files and templates |
 | [notes/](notes/) | Personal notes and scratchpad |
 | [releasing.md](releasing.md) | Release process and versioning |
+| [workflows.md](workflows.md) | GitHub Actions workflows reference |
 
 ## Quick Links
 
 - [Development Setup](development/dev-setup.md)
 - [Releasing](releasing.md)
+- [Workflows](workflows.md)
 - [Contributing](../CONTRIBUTING.md)
 - [Architecture](design/architecture.md)
 - [Database Design](design/database.md)
