@@ -951,8 +951,6 @@ These exist in many ecosystems and are not caches, but tooling state.
 
 If deleting it only requires reinstalling or rebuilding → it does not belong in git.
 
----
-
 ### Where This Fits in Your Architecture Rules
 
 `*.egg-info` is not:
@@ -972,6 +970,8 @@ It is a tool byproduct, managed by the packaging system.
 - Caches → never commit
 - Build artifacts → never commit
 - Install metadata (`*.egg-info`, `*.dist-info`) → never commit
+
+---
 
 ## Resources
 
