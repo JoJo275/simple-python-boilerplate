@@ -120,7 +120,9 @@ jobs:
         if: ${{ env.PUBLISH_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
 
-      # Fail with a helpful message when the secret is missing
+      # Fail with a helpful message when the secret is missing.
+      # If you want this step to skip without failing the workflow,
+      # replace "exit 1" with "exit 0".
       - name: Missing token instructions
         if: ${{ env.PUBLISH_TOKEN == '' }}
         run: |
