@@ -1,0 +1,93 @@
+# ──────────────────────────────────────────────────────────────
+# Changelog Workflow
+# ──────────────────────────────────────────────────────────────
+# Auto-generates a changelog from conventional commit messages
+# and opens a PR with the updated CHANGELOG.md.
+#
+# Uses git-cliff, which reads commit history and groups entries
+# by type (feat, fix, docs, etc.) based on conventional commits.
+#
+# Triggers:
+#   - Push to main (regenerate changelog after merges)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO    = 'myorg/myproject'
+#                     vars.ENABLE_CHANGELOG  = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Add a cliff.toml config file to customize
+#      changelog format. Without one, git-cliff uses defaults.
+#      See: https://git-cliff.org/docs/configuration
+# ──────────────────────────────────────────────────────────────
+
+name: Changelog
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    name: Generate changelog
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.CANONICAL_REPO + vars.ENABLE_CHANGELOG.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || (
+          github.repository == vars.CANONICAL_REPO
+          && vars.ENABLE_CHANGELOG == 'true'
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Full history needed to generate changelog
+
+      # Generate (or update) CHANGELOG.md from conventional commits.
+      # git-cliff groups commits by type: feat, fix, docs, refactor, etc.
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml  # Optional config; remove if using defaults
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Open a PR with the updated CHANGELOG.md so it can be
+      # reviewed before merging. If a PR already exists, it will
+      # be updated instead of creating a duplicate.
+      - name: Create changelog PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: "docs: update CHANGELOG.md"
+          commit-message: "docs: update CHANGELOG.md"
+          branch: changelog/update
+          body: |
+            Auto-generated changelog update from conventional commits.
+            Created by the Changelog workflow.
+          labels: documentation

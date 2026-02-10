@@ -1,0 +1,89 @@
+# ──────────────────────────────────────────────────────────────
+# Stale Workflow
+# ──────────────────────────────────────────────────────────────
+# Automatically marks issues and PRs as stale after a period of
+# inactivity, then closes them if no further activity occurs.
+#
+# Triggers:
+#   - Runs daily at 00:00 UTC on a schedule
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#                     vars.ENABLE_STALE   = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Adjust the day counts and labels below.
+# ──────────────────────────────────────────────────────────────
+
+name: Stale
+
+on:
+  # Run daily at midnight UTC
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Close stale issues & PRs
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.CANONICAL_REPO + vars.ENABLE_STALE.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || (
+          github.repository == vars.CANONICAL_REPO
+          && vars.ENABLE_STALE == 'true'
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Mark and close stale items
+        uses: actions/stale@v9
+        with:
+          # ── Issues ────────────────────────────────────────
+          days-before-issue-stale: 60     # Mark stale after 60 days
+          days-before-issue-close: 14     # Close 14 days after stale label
+          stale-issue-label: "stale"
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has
+            not had recent activity. It will be closed in 14 days if no
+            further activity occurs. Remove the stale label or comment to
+            keep it open.
+          close-issue-message: >
+            This issue was closed because it has been stale for 14 days
+            with no activity.
+
+          # ── Pull requests ─────────────────────────────────
+          days-before-pr-stale: 30        # Mark stale after 30 days
+          days-before-pr-close: 14        # Close 14 days after stale label
+          stale-pr-label: "stale"
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because
+            it has not had recent activity. It will be closed in 14 days if
+            no further activity occurs. Remove the stale label or comment
+            to keep it open.
+          close-pr-message: >
+            This pull request was closed because it has been stale for
+            14 days with no activity.
+
+          # ── Exemptions ────────────────────────────────────
+          # Issues/PRs with these labels are never marked stale
+          exempt-issue-labels: "pinned,security,bug"
+          exempt-pr-labels: "pinned,security"

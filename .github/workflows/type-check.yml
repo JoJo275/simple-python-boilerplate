@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────
+# Type Check Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs mypy in strict mode against the src/ package to enforce
+# type annotations and catch type errors at CI time.
+#
+# Triggers:
+#   - Push to main
+#   - Pull requests targeting main
+#   - Manual dispatch via the GitHub Actions UI
+#
+# Configuration lives in pyproject.toml under [tool.mypy].
+# ──────────────────────────────────────────────────────────────
+
+name: Type check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  type-check:
+    name: mypy (strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # Install the package in editable mode so mypy can resolve
+      # imports from the src/ layout, then install mypy itself.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install mypy
+
+      # Runs mypy against the src/ package. Configuration
+      # (strict mode, overrides, etc.) is read from pyproject.toml.
+      - name: Run mypy
+        run: mypy src/
