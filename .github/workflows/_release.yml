@@ -10,7 +10,7 @@
 #
 # TODO (template users):
 #   1. Rename this file from _release.yml → release.yml to put
-#      it into a "proc state" (ready for use). The underscore
+#      it into an active state (ready for use). The underscore
 #      prefix keeps it inactive until you are ready to enable it.
 #   2. Enable the repository guard (pick ONE):
 #        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
