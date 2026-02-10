@@ -1,19 +1,50 @@
-# Builds distribution artifacts when a version tag (v*.*.*) is pushed.
-# Publishes to PyPI if PUBLISH_TOKEN secret is configured.
+# ──────────────────────────────────────────────────────────────
+# Release Workflow
+# ──────────────────────────────────────────────────────────────
+# Builds Python distribution artifacts (sdist + wheel) and
+# optionally publishes them to PyPI.
+#
+# Triggers:
+#   - Pushing a semver tag like v1.2.3
+#   - Manual dispatch via the GitHub Actions UI
+#
+# Setup required:
+#   1. Replace 'YOURNAME/YOURTEMPLATE' with your repo slug, OR
+#      set repository variables CANONICAL_REPO and ENABLE_RELEASE.
+#   2. Add a PUBLISH_TOKEN secret for PyPI publishing
+#      (Settings → Secrets and variables → Actions → Secrets).
+# ──────────────────────────────────────────────────────────────
 
 name: Release
 
 on:
+  # Trigger on version tags (e.g. v1.0.0, v2.3.1)
   push:
     tags:
       - "v*.*.*"
+
+  # Allow running this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
+  # ── Job 1: Build ───────────────────────────────────────────
+  # Produces sdist (.tar.gz) and wheel (.whl) in dist/,
+  # then uploads them as a workflow artifact for the publish job.
   build:
     name: Build distribution
-    # Option A: user edits this hardcoded slug
-    # Option B: user sets vars.CANONICAL_REPO + vars.ENABLE_RELEASE (no YAML edits)
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in. Two ways to satisfy this condition:
+    #
+    #   Option A  – Edit the hardcoded slug below to match your
+    #               own repo (e.g. 'myorg/myproject').
+    #
+    #   Option B  – Set two repository-level variables (no YAML
+    #               edits needed):
+    #                 vars.CANONICAL_REPO  = 'myorg/myproject'
+    #                 vars.ENABLE_RELEASE  = 'true'
+    #               (Settings → Secrets and variables → Actions → Variables)
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
@@ -33,41 +64,54 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Install pip + build front-end (PEP 517)
       - name: Install build tools
         run: python -m pip install --upgrade pip build
 
+      # Produces dist/*.tar.gz (sdist) and dist/*.whl (wheel)
       - name: Build package
         run: python -m build
 
+      # Persist the built artifacts so the publish job can use them
       - name: Upload distribution artifacts
         uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist/
 
+  # ── Job 2: Publish ─────────────────────────────────────────
+  # Downloads the artifacts produced by the build job and
+  # publishes them to PyPI — but only if PUBLISH_TOKEN is set.
   publish:
     name: Publish to PyPI
-    needs: build
+    needs: build               # Wait for the build job to succeed
     runs-on: ubuntu-latest
-    environment: release
+    environment: release       # Uses the "release" deployment environment (optional approvals, etc.)
     permissions:
-      id-token: write  # Required for trusted publishing
+      id-token: write          # Needed for PyPI trusted publishing (OIDC)
 
-    # Map secret -> env (because secrets cannot be used directly in if conditionals)
+    # ── Secret → env mapping ─────────────────────────────────
+    # GitHub Actions does not allow secrets in `if:` expressions
+    # directly, so we copy the secret into an env var first.
+    # Steps below can then test `env.PUBLISH_TOKEN` in their
+    # own `if:` conditions.
     env:
       PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
 
     steps:
+      # Retrieve the dist/ artifacts uploaded by the build job
       - name: Download distribution artifacts
         uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
 
+      # Publish to PyPI only when the secret exists
       - name: Publish to PyPI
         if: ${{ env.PUBLISH_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
 
+      # Fail with a helpful message when the secret is missing
       - name: Missing token instructions
         if: ${{ env.PUBLISH_TOKEN == '' }}
         run: |
