@@ -59,7 +59,8 @@ Things to explore, implement, or learn more about.
 - [ ] Make other template repos tailored to "minimal", "library", "cli", etc..
 - [ ] Add workflows to enable/disable in USING_THIS_TEMPLATE.md with instructions on how to enable them and what they do. *This would involve updating the `USING_THIS_TEMPLATE.md` file to include a section that lists the optional workflows included in the template, along with instructions on how to enable them (e.g., by renaming workflow files or uncommenting sections in workflow YAML files) and a brief description of what each workflow does. This would help users understand the additional capabilities of the template and how to customize it for their needs.*
 - [ ] create a scripts enable all workflows and another to disable all optional workflows (otherwise explain how to enable each one-by-one). *This could be done with a simple shell script that renames workflow files to enable or disable them. For example, a script to enable all workflows could remove the underscore prefix from all workflow files in the `.github/workflows/` directory, while a script to disable all optional workflows could add an underscore prefix to those files. This would provide a convenient way for users to quickly enable or disable all optional workflows without having to manually rename each file.*
-- [ ]
+- [ ] Integrate hatch
+- [ ]  
 
 ## Questions to Answer
 
