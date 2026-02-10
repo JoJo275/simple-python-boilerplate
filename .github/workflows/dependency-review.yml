@@ -18,7 +18,7 @@
 #        Option B – Set two repository-level variables (no YAML
 #                   edits needed):
 #                     vars.CANONICAL_REPO = 'myorg/myproject'
-#                     vars.ENABLE_RELEASE = 'true'
+#                     vars.ENABLE_DEPENDENCY_REVIEW = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
 #   2. (Optional) Configure license allow/deny lists and
 #      severity thresholds in the step below.
@@ -53,14 +53,14 @@ jobs:
     #   Option B  – Set two repository-level variables (no YAML
     #               edits needed):
     #                 vars.CANONICAL_REPO  = 'myorg/myproject'
-    #                 vars.ENABLE_RELEASE  = 'true'
+    #                 vars.ENABLE_DEPENDENCY_REVIEW  = 'true'
     #               (Settings → Secrets and variables → Actions → Variables)
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
         || (
           github.repository == vars.CANONICAL_REPO
-          && vars.ENABLE_RELEASE == 'true'
+          && vars.ENABLE_DEPENDENCY_REVIEW == 'true'
         )
       }}
     runs-on: ubuntu-latest

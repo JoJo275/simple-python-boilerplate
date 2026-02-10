@@ -16,7 +16,7 @@
 #        Option B – Set two repository-level variables (no YAML
 #                   edits needed):
 #                     vars.CANONICAL_REPO = 'myorg/myproject'
-#                     vars.ENABLE_RELEASE = 'true'
+#                     vars.ENABLE_DOCS = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
 #   2. Choose your docs tool (MkDocs, Sphinx, etc.) and update
 #      the build steps below accordingly.
@@ -62,14 +62,14 @@ jobs:
     #   Option B  – Set two repository-level variables (no YAML
     #               edits needed):
     #                 vars.CANONICAL_REPO  = 'myorg/myproject'
-    #                 vars.ENABLE_RELEASE  = 'true'
+    #                 vars.ENABLE_DOCS  = 'true'
     #               (Settings → Secrets and variables → Actions → Variables)
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
         || (
           github.repository == vars.CANONICAL_REPO
-          && vars.ENABLE_RELEASE == 'true'
+          && vars.ENABLE_DOCS == 'true'
         )
       }}
     runs-on: ubuntu-latest
