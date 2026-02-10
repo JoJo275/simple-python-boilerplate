@@ -1,0 +1,92 @@
+# ──────────────────────────────────────────────────────────────
+# Labeler Workflow
+# ──────────────────────────────────────────────────────────────
+# Automatically labels pull requests based on which files were
+# changed. Uses the actions/labeler action with a configuration
+# file (.github/labeler.yml) that maps glob patterns to labels.
+#
+# Triggers:
+#   - Pull requests targeting main (opened, synchronized, reopened)
+#
+# TODO (template users):
+#   1. Rename this file from _labeler.yml → labeler.yml to put
+#      it into an active state (ready for use). The underscore
+#      prefix keeps it inactive until you are ready to enable it.
+#   2. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#                     vars.ENABLE_RELEASE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   3. Create a .github/labeler.yml config file that maps file
+#      patterns to labels. Example:
+#
+#        documentation:
+#          - changed-files:
+#              - any-glob-to-any-file: 'docs/**'
+#        tests:
+#          - changed-files:
+#              - any-glob-to-any-file: 'tests/**'
+#        ci:
+#          - changed-files:
+#              - any-glob-to-any-file: '.github/**'
+#
+#      See: https://github.com/actions/labeler
+# ──────────────────────────────────────────────────────────────
+
+name: Labeler
+
+on:
+  # Trigger when a PR is opened or updated
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Needs write access to add labels to the PR
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Auto-label PR
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in. Two ways to satisfy this condition:
+    #
+    #   Option A  – Edit the hardcoded slug below to match your
+    #               own repo (e.g. 'myorg/myproject').
+    #
+    #   Option B  – Set two repository-level variables (no YAML
+    #               edits needed):
+    #                 vars.CANONICAL_REPO  = 'myorg/myproject'
+    #                 vars.ENABLE_RELEASE  = 'true'
+    #               (Settings → Secrets and variables → Actions → Variables)
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || (
+          github.repository == vars.CANONICAL_REPO
+          && vars.ENABLE_RELEASE == 'true'
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Reads .github/labeler.yml and applies matching labels
+      # to the PR based on which files were changed.
+      - name: Apply labels
+        uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

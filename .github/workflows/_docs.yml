@@ -1,0 +1,121 @@
+# ──────────────────────────────────────────────────────────────
+# Docs Workflow
+# ──────────────────────────────────────────────────────────────
+# Builds project documentation and optionally deploys it to
+# GitHub Pages.
+#
+# Triggers:
+#   - Push to main (rebuild docs on every merge)
+#   - Pull requests targeting main (validate docs build)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Rename this file from _docs.yml → docs.yml to put it
+#      into an active state (ready for use). The underscore
+#      prefix keeps it inactive until you are ready to enable it.
+#   2. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#                     vars.ENABLE_RELEASE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   3. Choose your docs tool (MkDocs, Sphinx, etc.) and update
+#      the build steps below accordingly.
+#   4. To enable GitHub Pages deployment, enable Pages in your
+#      repo settings and uncomment the deploy job below.
+# ──────────────────────────────────────────────────────────────
+
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"          # Only trigger when docs change
+      - "mkdocs.yml"       # Or the docs config changes
+      - "pyproject.toml"   # Or project metadata changes
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    name: Build documentation
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in. Two ways to satisfy this condition:
+    #
+    #   Option A  – Edit the hardcoded slug below to match your
+    #               own repo (e.g. 'myorg/myproject').
+    #
+    #   Option B  – Set two repository-level variables (no YAML
+    #               edits needed):
+    #                 vars.CANONICAL_REPO  = 'myorg/myproject'
+    #                 vars.ENABLE_RELEASE  = 'true'
+    #               (Settings → Secrets and variables → Actions → Variables)
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || (
+          github.repository == vars.CANONICAL_REPO
+          && vars.ENABLE_RELEASE == 'true'
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # Install your docs framework here. Replace with your tool of choice.
+      # Examples:
+      #   pip install mkdocs mkdocs-material   (MkDocs)
+      #   pip install sphinx sphinx-rtd-theme   (Sphinx)
+      - name: Install docs dependencies
+        run: python -m pip install --upgrade pip mkdocs
+
+      # Build the docs. Replace with your tool's build command.
+      # Examples:
+      #   mkdocs build --strict    (MkDocs)
+      #   sphinx-build docs/ _build/   (Sphinx)
+      - name: Build docs
+        run: mkdocs build --strict
+
+  # ── Uncomment to deploy to GitHub Pages ────────────────────
+  # Requires: Settings → Pages → Source = "GitHub Actions"
+  #
+  # deploy-docs:
+  #   name: Deploy to GitHub Pages
+  #   needs: build-docs
+  #   if: github.ref == 'refs/heads/main'  # Only deploy from main
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     pages: write
+  #     id-token: write
+  #   environment:
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
+  #   steps:
+  #     - name: Deploy to GitHub Pages
+  #       id: deployment
+  #       uses: actions/deploy-pages@v4
