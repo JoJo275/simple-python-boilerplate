@@ -1,5 +1,5 @@
 # Checks for spelling mistakes using codespell (no auto-fix).
-# Fails CI if typos are found. See _spellcheck-autofix.yml for auto-fix variant.
+# Fails CI if typos are found. See spellcheck-autofix.yml for auto-fix variant.
 
 name: Spellcheck
 

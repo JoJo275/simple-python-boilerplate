@@ -1,22 +1,15 @@
 # ──────────────────────────────────────────────────────────────
-# Dependency Review Workflow
+# Labeler Workflow
 # ──────────────────────────────────────────────────────────────
-# Scans pull requests for newly introduced dependencies and
-# flags any that are vulnerable, have restrictive licenses,
-# or are otherwise risky.
-#
-# Uses GitHub's dependency-review-action which compares the
-# dependency graph before and after the PR's changes.
+# Automatically labels pull requests based on which files were
+# changed. Uses the actions/labeler action with a configuration
+# file (.github/labeler.yml) that maps glob patterns to labels.
 #
 # Triggers:
-#   - Pull requests targeting main
+#   - Pull requests targeting main (opened, synchronized, reopened)
 #
 # TODO (template users):
-#   1. Rename this file from _dependency-review.yml →
-#      dependency-review.yml to put it into an active state
-#      (ready for use). The underscore prefix keeps it inactive
-#      until you are ready to enable it.
-#   2. Enable the repository guard (pick ONE):
+#   1. Enable the repository guard (pick ONE):
 #        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set two repository-level variables (no YAML
@@ -24,28 +17,42 @@
 #                     vars.CANONICAL_REPO = 'myorg/myproject'
 #                     vars.ENABLE_RELEASE = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
-#   3. (Optional) Configure license allow/deny lists and
-#      severity thresholds in the step below.
+#   2. Create a .github/labeler.yml config file that maps file
+#      patterns to labels. Example:
+#
+#        documentation:
+#          - changed-files:
+#              - any-glob-to-any-file: 'docs/**'
+#        tests:
+#          - changed-files:
+#              - any-glob-to-any-file: 'tests/**'
+#        ci:
+#          - changed-files:
+#              - any-glob-to-any-file: '.github/**'
+#
+#      See: https://github.com/actions/labeler
 # ──────────────────────────────────────────────────────────────
 
-name: Dependency Review
+name: Labeler
 
 on:
-  # Only runs on PRs — compares dependency changes between
-  # the PR branch and the base branch.
+  # Trigger when a PR is opened or updated
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
 
+# Needs write access to add labels to the PR
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  dependency-review:
-    name: Scan dependencies
+  label:
+    name: Auto-label PR
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones
@@ -74,20 +81,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Compares the dependency manifests (pyproject.toml,
-      # requirements*.txt, etc.) between the base and head of
-      # the PR. Flags vulnerabilities and optionally license
-      # violations.
-      #
-      # Configuration options:
-      #   fail-on-severity: low | moderate | high | critical
-      #   deny-licenses:    comma-separated SPDX IDs to reject
-      #   allow-licenses:   comma-separated SPDX IDs to permit
-      #
-      # See: https://github.com/actions/dependency-review-action
-      - name: Review dependencies
-        uses: actions/dependency-review-action@v4
+      # Reads .github/labeler.yml and applies matching labels
+      # to the PR based on which files were changed.
+      - name: Apply labels
+        uses: actions/labeler@v5
         with:
-          fail-on-severity: moderate
-          # deny-licenses: GPL-3.0, AGPL-3.0
-          # allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

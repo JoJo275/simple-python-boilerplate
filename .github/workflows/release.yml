@@ -9,10 +9,7 @@
 #   - Manual dispatch via the GitHub Actions UI
 #
 # TODO (template users):
-#   1. Rename this file from _release.yml → release.yml to put
-#      it into an active state (ready for use). The underscore
-#      prefix keeps it inactive until you are ready to enable it.
-#   2. Enable the repository guard (pick ONE):
+#   1. Enable the repository guard (pick ONE):
 #        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set two repository-level variables (no YAML
@@ -20,7 +17,7 @@
 #                     vars.CANONICAL_REPO = 'myorg/myproject'
 #                     vars.ENABLE_RELEASE = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
-#   3. Add a PUBLISH_TOKEN secret for PyPI publishing
+#   2. Add a PUBLISH_TOKEN secret for PyPI publishing
 #      (Settings → Secrets and variables → Actions → Secrets).
 # ──────────────────────────────────────────────────────────────
 

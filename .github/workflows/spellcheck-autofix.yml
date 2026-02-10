@@ -1,6 +1,6 @@
 # Creates a PR to auto-fix spelling mistakes using codespell.
 # Runs weekly on Mondays or via manual trigger.
-# Disabled by default (underscore prefix). Rename to spellcheck-autofix.yml to enable.
+# Can be disabled by deleting this file or adding a repository guard.
 
 name: Spellcheck Autofix PR
 
