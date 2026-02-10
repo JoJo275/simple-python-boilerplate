@@ -8,10 +8,19 @@
 #   - Pushing a semver tag like v1.2.3
 #   - Manual dispatch via the GitHub Actions UI
 #
-# Setup required:
-#   1. Replace 'YOURNAME/YOURTEMPLATE' with your repo slug, OR
-#      set repository variables CANONICAL_REPO and ENABLE_RELEASE.
-#   2. Add a PUBLISH_TOKEN secret for PyPI publishing
+# TODO (template users):
+#   1. Rename this file from _release.yml → release.yml to put
+#      it into a "proc state" (ready for use). The underscore
+#      prefix keeps it inactive until you are ready to enable it.
+#   2. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#                     vars.ENABLE_RELEASE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   3. Add a PUBLISH_TOKEN secret for PyPI publishing
 #      (Settings → Secrets and variables → Actions → Secrets).
 # ──────────────────────────────────────────────────────────────
 
