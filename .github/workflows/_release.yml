@@ -129,3 +129,37 @@ jobs:
           echo "Missing secret: PUBLISH_TOKEN"
           echo "Add it in Settings → Secrets and variables → Actions → Secrets"
           exit 1
+
+  # ── Job 3: GitHub Release ──────────────────────────────────
+  # Creates a GitHub Release on the Releases page and attaches
+  # the built distribution artifacts (sdist + wheel).
+  # Runs after build succeeds but independently of publish —
+  # so a GitHub Release is created even if PyPI publishing is
+  # not configured.
+  github-release:
+    name: Create GitHub Release
+    needs: build               # Only needs the build artifacts, not PyPI publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # Required to create releases and upload assets
+
+    steps:
+      # Retrieve the dist/ artifacts uploaded by the build job
+      - name: Download distribution artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: dist
+          path: dist/
+
+      # Create a GitHub Release using the tag name and attach
+      # all files in dist/ (*.tar.gz, *.whl) as release assets.
+      # --generate-notes auto-generates release notes from commits
+      # and PRs since the last tag.
+      - name: Create release with artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            dist/*
