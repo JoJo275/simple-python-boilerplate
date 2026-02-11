@@ -1,0 +1,85 @@
+# ──────────────────────────────────────────────────────────────
+# PR Title Lint Workflow
+# ──────────────────────────────────────────────────────────────
+# Enforces conventional commit format on pull request titles.
+# Since PRs are squash-merged, the PR title becomes the commit
+# message on main — so this is the enforcement point.
+#
+# Valid prefixes: feat, fix, docs, chore, refactor, test, ci,
+# style, perf, build, revert
+#
+# Examples:
+#   ✅  feat: add user authentication
+#   ✅  fix(parser): handle empty input
+#   ❌  Add user authentication
+#   ❌  FEAT: add user authentication
+#
+# Triggers:
+#   - Pull requests targeting main (opened, edited, synchronized)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_PR_TITLE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Adjust the allowed types or scopes below.
+# ──────────────────────────────────────────────────────────────
+
+name: PR Title
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-title:
+    name: Conventional commit check
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_PR_TITLE = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_PR_TITLE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed conventional commit types
+          types: |
+            feat
+            fix
+            docs
+            chore
+            refactor
+            test
+            ci
+            style
+            perf
+            build
+            revert
+          # Require lowercase subject
+          subjectPattern: ^[a-z].*$
+          subjectPatternError: >
+            The subject "{subject}" must start with a lowercase letter.
+            Example: "feat: add user authentication"
