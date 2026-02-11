@@ -222,6 +222,7 @@ These aren't included in the template but are worth evaluating for your project:
 | **[Docker](https://www.docker.com/)** | Containerization | Reproducible builds and deployments |
 | **[Podman](https://podman.io/)** | Containerization | Daemonless alternative to Docker |
 | **[Sentry](https://sentry.io/)** | Error Tracking | Production error monitoring |
+| **[HTTPX](https://www.python-httpx.org/)** | HTTP Client | Modern async-capable HTTP client (alternative to requests) |
 | **[Nox](https://nox.thea.codes/)** | Task Runner | Multi-environment testing and automation |
 | **[Tox](https://tox.wiki/)** | Task Runner | Test across multiple Python versions |
 
