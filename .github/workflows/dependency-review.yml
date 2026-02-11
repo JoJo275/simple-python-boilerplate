@@ -68,7 +68,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
 
       # Compares the dependency manifests (pyproject.toml,
       # requirements*.txt, etc.) between the base and head of
@@ -82,7 +82,7 @@ jobs:
       #
       # See: https://github.com/actions/dependency-review-action
       - name: Review dependencies
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
         with:
           fail-on-severity: moderate
           # deny-licenses: GPL-3.0, AGPL-3.0

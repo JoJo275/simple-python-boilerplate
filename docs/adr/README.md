@@ -31,6 +31,9 @@ Each ADR follows this structure:
 | [007](007-mypy-for-type-checking.md) | Use mypy for static type checking | Accepted |
 | [008](008-pre-commit-hooks.md) | Use pre-commit hooks for automated checks | Accepted |
 | [009](009-conventional-commits.md) | Use Conventional Commits for commit messages | Accepted |
+| [010](010-dependabot-for-dependency-updates.md) | Use Dependabot for dependency updates | Accepted |
+| [011](011-repository-guard-pattern.md) | Repository guard pattern for optional workflows | Accepted |
+| [012](012-multi-layer-security-scanning.md) | Multi-layer security scanning in CI | Accepted |
 
 ## Archive
 
