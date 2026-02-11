@@ -28,6 +28,11 @@ Workflows included in this template:
 
 ---
 
+features:
+
+- `src/` layout for package source code
+- `pytest` for testing
+
 ## Using This Template
 
 See [Using This Template](docs/USING_THIS_TEMPLATE.md) for a step-by-step guide to setting up your own project from this template.
