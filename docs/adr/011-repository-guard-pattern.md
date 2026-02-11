@@ -28,10 +28,7 @@ Use a repository guard pattern in all optional workflows. Each workflow job incl
 if: >-
   ${{
     github.repository == 'YOURNAME/YOURTEMPLATE'
-    || (
-      github.repository == vars.CANONICAL_REPO
-      && vars.ENABLE_<WORKFLOW_NAME> == 'true'
-    )
+    || vars.ENABLE_<WORKFLOW_NAME> == 'true'
   }}
 ```
 
@@ -40,7 +37,7 @@ if: >-
 | Method | How | Best for |
 |--------|-----|----------|
 | **Option A** | Replace `YOURNAME/YOURTEMPLATE` with your repo slug in the YAML | Simple, permanent |
-| **Option B** | Set `vars.CANONICAL_REPO` and `vars.ENABLE_<WORKFLOW>` repository variables | No YAML edits needed; toggleable |
+| **Option B** | Set `vars.ENABLE_<WORKFLOW>` repository variable to `'true'` | No YAML edits needed; toggleable |
 
 ## Consequences
 

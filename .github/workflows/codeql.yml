@@ -17,9 +17,7 @@
 #   1. Enable the repository guard (pick ONE):
 #        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
-#        Option B – Set two repository-level variables (no YAML
-#                   edits needed):
-#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_CODEQL = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
 #   2. CodeQL requires the repository to have GitHub Advanced
@@ -54,10 +52,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
-        || (
-          github.repository == vars.CANONICAL_REPO
-          && vars.ENABLE_CODEQL == 'true'
-        )
+        || vars.ENABLE_CODEQL == 'true'
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
