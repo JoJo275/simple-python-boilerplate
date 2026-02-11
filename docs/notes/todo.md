@@ -66,6 +66,15 @@ Things to explore, implement, or learn more about.
 - [ ] use containerfile for consistent development environments and to simplify setup for new contributors. *This would involve creating a `Containerfile` (or `Dockerfile`) that defines a consistent development environment with all necessary dependencies and tools installed. This would allow new contributors to quickly get up and running without having to manually set up their environment, and it would also ensure that everyone is using the same versions of tools and libraries, reducing the chances of environment-related issues.*
 - [ ] Choosing a license for template users: use cookiecutter with license/ directory to allow users to choose a license when setting up a new project. *This would involve creating a `cookiecutter` template that includes a `license/` directory with various license options (e.g., MIT, Apache 2.0, GPL). When users run the `cookiecutter` command to set up a new project, they could be prompted to choose a license from the available options, and the chosen license file would be included in their new project. This would make it easier for users to select and include an appropriate license for their projects.*
 - [ ] use pre-commit hooks for code formatting, linting, and other checks to maintain code quality. *This would involve setting up a `.pre-commit-config.yaml` file that defines various pre-commit hooks for tasks like code formatting with `black`, linting with `flake8`, and checking for security issues with `bandit`. Users would then need to install the pre-commit hooks in their local environment, which would ensure that these checks are automatically run before each commit, helping to maintain code quality and consistency across the project.*
+- [ ] add in docstring style enforcement with a tool like `pydocstyle` to ensure consistent and comprehensive documentation with ruff in pyproject.toml. *This would involve adding `pydocstyle` to the list of dependencies in `pyproject.toml` and configuring it to enforce a specific docstring style (e.g., Google, NumPy, or reStructuredText). This would help ensure that all functions, classes, and modules in the project have consistent and comprehensive docstrings, improving code readability and maintainability.*
+'''cmd
+[tool.ruff.lint]
+select = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+'''
 - [ ] 
 
 ## Questions to Answer
