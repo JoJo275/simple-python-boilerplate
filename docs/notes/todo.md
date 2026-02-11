@@ -62,6 +62,7 @@ Things to explore, implement, or learn more about.
 - [ ] Integrate hatch
 - [ ] docs stack: (1) presentation = (Theme: Material for MKDocs), (2) API reference (API reference: mkdocstrings + Python handler), (3) publishing (Markdown power-ups: pymdown-extensions), and optionally (4) versioning (Publishing: GitHub Pages via mkdocs gh-deploy or Read the Docs (RTD)).
 - [ ] Install nox and set up sessions for testing, linting, and other tasks across multiple Python versions. *This would involve adding a `noxfile.py` to the project that defines sessions for running tests, linting, and other common tasks. Each session could be configured to run across multiple Python versions to ensure compatibility. This would provide a convenient way for users to test their code in different environments and maintain code quality with linting.*
+- [ ] integrate cookiecutter + cruft for easier project setup and maintenance. *This would involve creating a `cookiecutter` template based on this repository, which users can use to quickly set up new projects with the same structure and configurations. Additionally, integrating `cruft` would allow users to easily keep their projects up to date with changes made to the template over time. This would streamline the process of starting new projects and maintaining them as the template evolves.*
 - [ ] 
 
 ## Questions to Answer
