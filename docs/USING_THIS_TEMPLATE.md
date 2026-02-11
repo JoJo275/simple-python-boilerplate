@@ -205,6 +205,28 @@ Add the following to your `.gitignore`:
 
 ---
 
+## Optional Tools to Consider
+
+These aren't included in the template but are worth evaluating for your project:
+
+| Tool | Category | When to Use |
+|------|----------|-------------|
+| **[SQLAlchemy](https://www.sqlalchemy.org/)** | ORM / Database | Need a relational DB with Python models |
+| **[Alembic](https://alembic.sqlalchemy.org/)** | DB Migrations | Managing schema changes over time (pairs with SQLAlchemy) |
+| **[Sphinx](https://www.sphinx-doc.org/)** | Documentation | Generated API docs or a documentation site |
+| **[MkDocs](https://www.mkdocs.org/)** | Documentation | Markdown-based docs site (simpler than Sphinx) |
+| **[FastAPI](https://fastapi.tiangolo.com/)** | Web Framework | Building an API (async, OpenAPI docs built-in) |
+| **[Flask](https://flask.palletsprojects.com/)** | Web Framework | Lightweight web apps and APIs |
+| **[CircleCI](https://circleci.com/)** | CI/CD | Alternative to GitHub Actions |
+| **[Celery](https://docs.celeryq.dev/)** | Task Queue | Background / async job processing |
+| **[Docker](https://www.docker.com/)** | Containerization | Reproducible builds and deployments |
+| **[Podman](https://podman.io/)** | Containerization | Daemonless alternative to Docker |
+| **[Sentry](https://sentry.io/)** | Error Tracking | Production error monitoring |
+| **[Nox](https://nox.thea.codes/)** | Task Runner | Multi-environment testing and automation |
+| **[Tox](https://tox.wiki/)** | Task Runner | Test across multiple Python versions |
+
+---
+
 ## Need Help?
 
 - Open an issue on the [template repository](https://github.com/JoJo275/simple-python-boilerplate)
