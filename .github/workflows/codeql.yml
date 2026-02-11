@@ -1,0 +1,80 @@
+# ──────────────────────────────────────────────────────────────
+# CodeQL Analysis Workflow
+# ──────────────────────────────────────────────────────────────
+# Runs GitHub's CodeQL static analysis to find security
+# vulnerabilities in source code (not just dependencies).
+# Results appear in Security → Code scanning alerts.
+#
+# Catches: SQL injection, path traversal, command injection,
+# XXE, SSRF, hardcoded credentials, and more.
+#
+# Triggers:
+#   - Push to main
+#   - Pull requests targeting main
+#   - Weekly schedule (Monday 9am ET)
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set two repository-level variables (no YAML
+#                   edits needed):
+#                     vars.CANONICAL_REPO = 'myorg/myproject'
+#                     vars.ENABLE_CODEQL = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. CodeQL requires the repository to have GitHub Advanced
+#      Security enabled (free for public repos).
+# ──────────────────────────────────────────────────────────────
+
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 13 * * 1" # Monday 9am ET (13:00 UTC)
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || (
+          github.repository == vars.CANONICAL_REPO
+          && vars.ENABLE_CODEQL == 'true'
+        )
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@b5ebac6f4c00c8ccddb7cdcd45fdb248329f808a # v3.32.2
+        with:
+          languages: python
+          # Override the default query suite for more thorough analysis:
+          # queries: security-extended
+          # queries: security-and-quality
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@b5ebac6f4c00c8ccddb7cdcd45fdb248329f808a # v3.32.2
+        with:
+          category: "/language:python"
