@@ -11,7 +11,7 @@
 # Triggers:
 #   - Push to main
 #   - Pull requests targeting main
-#   - Weekly schedule (Monday 9am ET)
+#   - Weekly schedule (Monday 13:00 UTC)
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
@@ -32,7 +32,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 13 * * 1" # Monday 9am ET (13:00 UTC)
+    - cron: "0 13 * * 1" # Monday 13:00 UTC
 
 permissions:
   contents: read
@@ -55,7 +55,7 @@ jobs:
         || vars.ENABLE_CODEQL == 'true'
       }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -65,6 +65,7 @@ jobs:
         uses: github/codeql-action/init@b5ebac6f4c00c8ccddb7cdcd45fdb248329f808a # v3.32.2
         with:
           languages: python
+          build-mode: none
           # Override the default query suite for more thorough analysis:
           # queries: security-extended
           # queries: security-and-quality
