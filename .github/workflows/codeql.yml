@@ -11,7 +11,7 @@
 # Triggers:
 #   - Push to main
 #   - Pull requests targeting main
-#   - Weekly schedule (Monday 13:00 UTC)
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST / 8am ET otherwise)
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
@@ -32,7 +32,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 13 * * 1" # Monday 13:00 UTC
+    - cron: "0 13 * * 1" # Monday 13:00 UTC (9am ET during DST / 8am ET otherwise)
 
 permissions:
   contents: read
