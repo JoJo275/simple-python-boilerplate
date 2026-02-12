@@ -73,10 +73,9 @@ Things to explore, implement, or learn more about.
 
 ## Questions to Answer
 
-- When to use `requirements.txt` vs just `pyproject.toml` dependencies?
-- How to handle private dependencies in pyproject.toml?
-- Best practice for versioning: manual vs automated?
-- When is namespace packaging appropriate?
+- [ ] How to handle private dependencies in pyproject.toml?
+- [ ] Best practice for versioning: manual vs automated?
+- [ ] When is namespace packaging appropriate?
 
 ## Bookmarks
 

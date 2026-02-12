@@ -24,6 +24,7 @@ Completed items from [todo.md](todo.md), preserved for reference.
 
 ### Completed
 
+- [X] When to use `requirements.txt` vs just `pyproject.toml` dependencies?
 - [X] Explore `hatch` as alternative to setuptools
 - [X] Explore using `hatch` for project management and packaging
 - [X] Explore using `hatch` for project management and packaging as an alternative to setuptools
