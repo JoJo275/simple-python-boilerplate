@@ -74,6 +74,7 @@ Things to explore, implement, or learn more about.
   [tool.ruff.lint.pydocstyle]
   convention = "numpy"
   ```
+- [ ] Add in bandit for security linting and checks. *This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template.*
 - [ ] 
 
 ## Questions to Answer
