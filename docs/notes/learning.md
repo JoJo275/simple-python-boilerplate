@@ -41,6 +41,112 @@ These two names kept confusing me. The key distinction:
 
 See: [ADR 016](../adr/016-hatchling-and-hatch.md)
 
+### Python Tool Landscape
+
+There are a lot of overlapping tools in the Python ecosystem. This table groups them by purpose.
+
+#### Build Backends (what `pip install .` uses)
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **Hatchling** | Modern build backend by the Hatch project | Build sdist/wheel, auto-discover packages, include/exclude rules, plugins | Fast, minimal config, auto-discovers src/ layout | Newer, smaller ecosystem than setuptools |
+| **setuptools** | The original build backend | Build sdist/wheel, C extensions, entry points, data files, find_packages | Ubiquitous, massive community, battle-tested | Verbose config, legacy baggage (`setup.py`, `setup.cfg`) |
+| **Flit-core** | Minimalist build backend | Build sdist/wheel for pure-Python packages | Dead simple for pure-Python packages | No compiled extensions, fewer features |
+| **PDM-backend** | Build backend from the PDM project | Build sdist/wheel, PEP 621 metadata, editable installs | PEP 621 native, supports lock files | Tied to PDM ecosystem |
+| **Maturin** | Build backend for Rust+Python (PyO3) | Build wheels with compiled Rust extensions, cross-compile | First-class Rust FFI support | Only for Rust extensions |
+
+#### Project/Environment Managers (create envs, run tasks)
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **Hatch** | Project manager + env manager | Create/manage envs, run scripts, test matrices, version bumping, build, publish | Env management, test matrices, scripts, version bumping — all in `pyproject.toml` | Less established than tox in older codebases |
+| **tox** | Test automation / environment manager | Multi-env test runs, dependency isolation, CI integration, plugin system | Very mature, widely adopted in CI, plugin ecosystem | Separate `tox.ini` config, can be verbose |
+| **nox** | Like tox but config is Python code | Session-based test runs, parametrize, reuse venvs, conda support | Full Python flexibility, easy to debug sessions | Requires writing Python (pro or con), no declarative config |
+| **PDM** | Package + project manager | Dependency resolution, lock files, scripts, env management, publish | PEP 582 support, lock files, scripts | Different philosophy (centralised tool), smaller community |
+| **uv** | Fast package installer + env manager (Rust) | Install packages, create venvs, resolve dependencies, run scripts | Extremely fast, drop-in pip/venv replacement | Newer tool, still evolving rapidly |
+| **Poetry** | Dependency manager + build tool | Dependency resolution, lock files, env management, build, publish | Lock files, dependency resolution, publish built in | Own config format (`[tool.poetry]`), doesn't follow PEP 621 fully |
+| **Pipenv** | pip + virtualenv wrapper | Pipfile/Pipfile.lock, auto-create venvs, `.env` loading | Lock files, `.env` support | Slow dependency resolution, less active development |
+
+#### Task Runners (run commands/scripts)
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **Hatch scripts** | Scripts defined in `pyproject.toml` | Run commands, chain scripts, pass args, env-aware | Zero extra tools, integrated with Hatch envs | Only available through Hatch |
+| **Make** | Classic build automation (Makefile) | Targets, dependencies, variables, shell commands, parallel builds | Universal, available everywhere, well understood | Not Python-native, Windows requires extra setup, tab-sensitive syntax |
+| **just** | Modern command runner (Justfile) | Recipes, arguments, variables, dotenv loading, cross-platform | Simple syntax, cross-platform, no tab issues | Extra binary to install, not Python-specific |
+| **Task (go-task)** | Task runner using `Taskfile.yml` | Tasks, dependencies, variables, watch mode, cross-platform | YAML-based, cross-platform, dependency graphs | Extra binary, Go ecosystem tool |
+| **invoke** | Python-based task runner | Tasks as Python functions, namespaces, auto-parsing args | Pure Python, good for complex logic | Another dependency, less popular now |
+| **nox** | Also works as a task runner | Session-based commands, parametrize, venv per session | Python-based, session isolation | Heavier than a simple task runner |
+| **tox** | Also works as a task runner | Env-isolated command runs, dependency pinning | Mature, env isolation | Verbose for simple tasks |
+
+#### CLI Frameworks (building user-facing CLIs)
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **argparse** | Standard library CLI parser | Positional/optional args, subcommands, type conversion, help generation | No dependencies, always available | Verbose, manual help formatting |
+| **click** | Decorator-based CLI framework | Commands, groups, options, prompts, file handling, colour output, plugins | Clean API, composable commands, excellent docs | Extra dependency |
+| **typer** | Click-based, uses type hints for CLI args | Auto CLI from type hints, auto-completion, rich help | Minimal boilerplate, auto-generates help | Depends on click, newer |
+| **rich-click** | Click + Rich for beautiful help output | Rich-formatted help, panels, syntax highlighting, tables | Pretty terminal output, drop-in for click | Extra dependency on top of click |
+| **fire** | Auto-generates CLI from any Python object | Auto CLI from functions/classes/objects, no decorators needed | Zero boilerplate | Less control over help text and validation |
+
+#### Linting & Formatting
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **Ruff** | Linter + formatter (Rust) | 800+ lint rules, auto-fix, import sorting, formatting, pyupgrade | Blazing fast, replaces flake8+isort+black+pyupgrade+more | Newer, not 100% rule parity with all tools |
+| **flake8** | Linter | Style checks, error detection, plugin system (200+ plugins) | Mature, huge plugin ecosystem | Slower, Python-based, being superseded by Ruff |
+| **Black** | Opinionated formatter | Deterministic formatting, magic trailing comma, string normalisation | Zero config, consistent | No flexibility, being superseded by Ruff |
+| **isort** | Import sorter | Sort imports, configurable sections, profiles (black-compatible) | Focused, configurable | Separate tool, Ruff handles this now |
+| **autopep8** | PEP 8 formatter | Fix PEP 8 violations, conservative by default | Conservative formatting | Less opinionated than Black, less popular |
+
+#### Type Checkers
+
+| Tool | Description | Capabilities | Pros | Cons |
+|------|-------------|-------------|------|------|
+| **mypy** | The original Python type checker | Strict mode, incremental checks, stubs, plugins, daemon mode | Most mature, wide adoption, plugin ecosystem | Slower, can be strict to configure |
+| **Pyright** | Type checker (powers VS Code Pylance) | Full type inference, watch mode, multi-root workspaces, strict mode | Fast, excellent IDE integration | Node.js dependency, different strictness defaults |
+| **pytype** | Google's type checker | Type inference without annotations, cross-function analysis | Infers types even without annotations | Less widely used outside Google |
+
+#### Dependency & Security Tools
+
+| Tool | Install | Capabilities | Pros | Cons |
+|------|---------|-------------|------|------|
+| **pip-tools** | `pip install pip-tools` | `pip-compile` pins deps to a lock file, `pip-sync` installs exactly those pins | Reproducible builds, minimal lock file, works with pip | Extra step in workflow, no auto-update |
+| **pip-audit** | `pip install pip-audit` | Scan installed packages against known vulnerability databases (OSV, PyPI) | Fast, integrates with CI, supports requirements.txt and pyproject.toml | Only checks known CVEs, not code-level issues |
+| **pipdeptree** | `pip install pipdeptree` | Visualise dependency tree, detect conflicts, show reverse deps | Great for debugging dependency issues, simple output | Read-only — doesn't fix problems |
+
+#### Debugging & Developer Experience Tools
+
+| Tool | Install | Capabilities | Pros | Cons |
+|------|---------|-------------|------|------|
+| **rich** | `pip install rich` | Pretty tables, tracebacks, progress bars, syntax highlighting, logging, markdown rendering | Beautiful console output, drop-in traceback handler | Extra dependency, large package |
+| **icecream** | `pip install icecream` | `ic(variable)` — prints variable name + value + file/line, auto-formats | Much better than `print()` debugging, zero-config | Debug-only — must remove before committing |
+| **ipython** | `pip install ipython` | Enhanced REPL with tab completion, syntax highlighting, magic commands, `%timeit`, `%debug` | Far better than default Python shell, auto-reload modules | Heavier dependency, not for production |
+| **devtools** | `pip install devtools` | `debug(variable)` — pretty-prints with type info, file/line, colour output | Clean debug output, type-aware formatting | Less known than icecream, similar purpose |
+
+#### Commit Convention & Versioning Tools
+
+| Tool | Install | Capabilities | Pros | Cons |
+|------|---------|-------------|------|------|
+| **commitizen** | `pip install commitizen` | Interactive commit prompts enforcing Conventional Commits, auto-bump version, auto-generate changelog, pre-commit hook, CI validation | All-in-one: commit format + version bump + changelog, configurable via `pyproject.toml`, supports custom commit schemas | Python dependency, learning curve for custom rules |
+| **commitlint** | `npm install @commitlint/cli` | Lint commit messages against Conventional Commits (or custom) rules, integrates with husky | Huge ecosystem, very configurable rules | Node.js dependency, doesn't bump versions or generate changelogs |
+| **semantic-release** | `pip install python-semantic-release` | Auto-determine next version from commits, generate changelog, create Git tags, publish to PyPI | Fully automated release pipeline, CI-friendly | Opinionated workflow, less control over individual steps |
+| **towncrier** | `pip install towncrier` | Fragment-based changelog generation — each PR adds a news fragment file, assembled at release | Avoids merge conflicts in CHANGELOG, per-PR granularity | Extra workflow step (create fragment file per change), not commit-based |
+| **standard-version** | `npm install standard-version` | Bump version, generate changelog from Conventional Commits, create Git tag | Simple, focused on versioning + changelog | Node.js dependency, archived/maintenance-only |
+| **bump2version** | `pip install bump2version` | Find-and-replace version strings across files, create Git tag | Simple, language-agnostic, config file driven | No commit message parsing, no changelog generation, maintenance mode |
+
+#### What this project uses
+
+| Category | Tool | Why |
+|----------|------|-----|
+| Build backend | Hatchling | Auto-discovers src/ layout, minimal config |
+| Project manager | Hatch | Envs, scripts, test matrices — one `pyproject.toml` |
+| Task runner | Hatch scripts | No extra tools needed |
+| CLI framework | argparse | No dependencies for a simple boilerplate |
+| Linter + formatter | Ruff | Fast, replaces multiple tools |
+| Type checker | mypy | Most mature, strict mode |
+| Testing | pytest | De facto standard |
+
 ---
 
 ## GitHub Actions
