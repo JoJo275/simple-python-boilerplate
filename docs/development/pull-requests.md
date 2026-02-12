@@ -13,9 +13,9 @@ How to create, review, and merge pull requests in this project.
 
 2. **Make your changes** with clear, atomic commits
 
-   Use [Commitizen](https://commitizen-tools.github.io/commitizen/) for standardized commit messages:
+   Follow the [Conventional Commits](https://www.conventionalcommits.org/) format (see [development.md](development.md#commit-messages-conventional-commits) for the full rules):
    ```bash
-   cz commit
+   git commit -m "feat: add user authentication"
    ```
 
 3. **Run quality checks locally**

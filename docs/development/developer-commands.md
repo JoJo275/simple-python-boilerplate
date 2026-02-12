@@ -123,10 +123,10 @@ python -m build
 
 ```bash
 # Archive completed TODO items
-python scripts/clean.py --todo
+spb-clean --todo
 
 # Show clean script help
-python scripts/clean.py --help
+spb-clean --help
 ```
 
 ## Git Shortcuts
@@ -172,6 +172,50 @@ hatch run check
 pytest && ruff check . && ruff format --check . && mypy src/
 ```
 </details>
+
+## Hatch Reference
+
+Common hatch commands beyond the project scripts defined above.
+
+```bash
+# Enter the dev shell (activates the default env)
+hatch shell
+
+# Leave the hatch shell
+exit
+
+# Show all configured environments and their scripts
+hatch env show
+
+# Remove a specific environment (e.g. to reset it)
+hatch env remove default
+
+# Remove all environments
+hatch env prune
+
+# Build sdist and wheel into dist/
+hatch build
+
+# Clean build artifacts
+hatch clean
+
+# Show project metadata (name, version, dependencies)
+hatch project metadata
+
+# Show resolved version
+hatch version
+
+# Show dependency tree
+hatch dep show requirements
+
+# Run an arbitrary command inside the default env
+hatch run python -c "import sys; print(sys.executable)"
+
+# Run a command in a specific env (if configured)
+hatch run <env>:<command>
+```
+
+> Full docs: [hatch.pypa.io](https://hatch.pypa.io/latest/)
 
 ## See Also
 

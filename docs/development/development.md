@@ -97,22 +97,67 @@ gh auth login
 
 See the [GitHub CLI installation docs](https://cli.github.com/manual/installation) for other platforms.
 
-### Commitizen
+### Commit Messages (Conventional Commits)
 
-Commitizen is used to standardize commit messages during development.
-It is not required to run the project.
+Commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. You can write them manually — no tooling required.
 
-Commit messages follow the Conventional Commits specification.
+#### Format
 
-Install Commitizen using pipx:
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+- **type** — what kind of change (see table below)
+- **scope** — what area is affected (optional, e.g. `cli`, `docs`, `ci`)
+- **description** — short imperative summary, lowercase, no period
+
+#### Types
+
+| Type | When to Use |
+|------|-------------|
+| `feat` | New feature or capability |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Whitespace, formatting (no logic changes) |
+| `refactor` | Code restructuring (no feature/fix) |
+| `perf` | Performance improvement |
+| `test` | Adding or fixing tests |
+| `build` | Build system, dependencies |
+| `ci` | CI/CD configuration |
+| `chore` | Maintenance, tooling, config |
+| `revert` | Reverting a previous commit |
+
+#### Breaking Changes
+
+Add `!` after the type/scope, and explain in the footer:
+
+```
+feat(api)!: change authentication to OAuth2
+
+BREAKING CHANGE: removed basic auth support
+```
+
+#### Examples
+
+```bash
+git commit -m "feat: add user authentication"
+git commit -m "fix(cli): handle missing config file gracefully"
+git commit -m "docs: update installation guide"
+git commit -m "refactor(engine): extract validation into separate module"
+git commit -m "ci: add Python 3.13 to test matrix"
+git commit -m "chore: bump ruff to 0.9.x"
+```
+
+#### Optional: Commitizen
+
+If you prefer an interactive prompt, install [Commitizen](https://commitizen-tools.github.io/commitizen/):
 
 ```bash
 pipx install commitizen
-```
-
-Create commits with:
-
-```bash
 cz commit
 ```
 
