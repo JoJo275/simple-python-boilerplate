@@ -10,7 +10,7 @@ Things to explore, implement, or learn more about.
 ## To Learn
 
 - [ ] Understand `py.typed` marker for PEP 561
-- [ ] Explore `hatch` as alternative to setuptools
+- [X] Explore `hatch` as alternative to setuptools
 - [ ] Learn about `pip-tools` for dependency pinning
 - [ ] Investigate semantic versioning automation
 - [ ] Study trusted publishing to PyPI
@@ -31,7 +31,7 @@ Things to explore, implement, or learn more about.
 - [ ] Create example scripts or notebooks demonstrating package usage
 - [ ] Set up continuous deployment to PyPI on new releases
 - [ ] Refactor repo scripts with custom CLI commands
-- [ ] Explore using `hatch` for project management and packaging
+- [X] Explore using `hatch` for project management and packaging
 - [ ] Add support for multiple Python versions in CI
 - [ ] Implement a changelog generation tool (e.g., `towncrier`)
 - [ ] Add more comprehensive test coverage and edge cases
@@ -44,7 +44,7 @@ Things to explore, implement, or learn more about.
 - [ ] Explore using Nox or Tox for testing across multiple Python environments
 - [ ] Set up GitHub Codespaces configuration for cloud-based development environments
 - [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
-- [ ] Explore using `hatch` for project management and packaging as an alternative to setuptools
+- [X] Explore using `hatch` for project management and packaging as an alternative to setuptools
 - [X] Where do database files go? (e.g., SQLite files) Should they be in a `data/` directory or something else?
 - [X] What is sponsorships and should I allow them for this project? *From what I've read, GitHub Sponsors is a way for open source maintainers to receive financial support from the community. It can be a good way to fund ongoing maintenance and development of the project, but it also requires some effort to set up and manage. I should research how to set it up and decide if it's appropriate for this project based on my goals and expected user base. Also could enable it for example purposes and to learn about the process, even if I don't expect to receive sponsorships right away.*
 - [ ] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. *From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences.*
@@ -59,7 +59,7 @@ Things to explore, implement, or learn more about.
 - [ ] Make other template repos tailored to "minimal", "library", "cli", etc..
 - [ ] Add workflows to enable/disable in USING_THIS_TEMPLATE.md with instructions on how to enable them and what they do. *This would involve updating the `USING_THIS_TEMPLATE.md` file to include a section that lists the optional workflows included in the template, along with instructions on how to enable them (e.g., by renaming workflow files or uncommenting sections in workflow YAML files) and a brief description of what each workflow does. This would help users understand the additional capabilities of the template and how to customize it for their needs.*
 - [ ] create a scripts enable all workflows and another to disable all optional workflows (otherwise explain how to enable each one-by-one). *This could be done with a simple shell script that renames workflow files to enable or disable them. For example, a script to enable all workflows could remove the underscore prefix from all workflow files in the `.github/workflows/` directory, while a script to disable all optional workflows could add an underscore prefix to those files. This would provide a convenient way for users to quickly enable or disable all optional workflows without having to manually rename each file.*
-- [ ] Integrate hatch
+- [X] Integrate hatch
 - [ ] docs stack: (1) presentation = (Theme: Material for MKDocs), (2) API reference (API reference: mkdocstrings + Python handler), (3) publishing (Markdown power-ups: pymdown-extensions), and optionally (4) versioning (Publishing: GitHub Pages via mkdocs gh-deploy or Read the Docs (RTD)).
 - [ ] Task runner: install nox and set up sessions for testing, linting, and other tasks across multiple Python versions. *This would involve adding a `noxfile.py` to the project that defines sessions for running tests, linting, and other common tasks. Each session could be configured to run across multiple Python versions to ensure compatibility. This would provide a convenient way for users to test their code in different environments and maintain code quality with linting.*
 - [ ] template auto-fill information for users: integrate cookiecutter + cruft for easier project setup and maintenance. *This would involve creating a `cookiecutter` template based on this repository, which users can use to quickly set up new projects with the same structure and configurations. Additionally, integrating `cruft` would allow users to easily keep their projects up to date with changes made to the template over time. This would streamline the process of starting new projects and maintaining them as the template evolves.*
@@ -77,7 +77,7 @@ Things to explore, implement, or learn more about.
 - [ ] Add in bandit for security linting and checks. *This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template.*
 - [ ] Perhaps create a template or project in the future with tools such as copier, cookiecutter, or cruft where users can select from various options (e.g., license type, CI/CD tools, documentation tools) to generate a customized project setup based on their specific needs and preferences. *This would involve creating a more interactive template that allows users to choose from various options when setting up their project. For example, they could select which CI/CD tools they want to include (e.g., GitHub Actions, Travis CI), which documentation tools they prefer (e.g., Sphinx, MkDocs), and which license they want to use. This would provide a more tailored experience for users and allow them to quickly set up a project that fits their requirements without having to manually customize the template after generation.*
 - [ ] Populate containerfile with finished product at the end of production pipeline to ensure it always reflects the current state of the project and can be used for consistent development and testing environments. *This would involve updating the `Containerfile` to include all necessary dependencies, tools, and configurations that are required for development and testing. By keeping the `Containerfile` up to date with the finished product, it would ensure that anyone who uses it to create a containerized environment will have everything they need to work on the project without additional setup steps.*
-- [ ]
+- [ ] investigate spb clean --todo not working
 
 ## Questions to Answer
 

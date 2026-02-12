@@ -6,9 +6,33 @@ This guide walks you through setting up the development environment for this pro
 
 - **Python 3.11+** - [Download Python](https://www.python.org/downloads/)
 - **Git** - [Download Git](https://git-scm.com/downloads)
+- **Hatch** - [Install Hatch](https://hatch.pypa.io/latest/install/) (install globally: `pip install hatch`)
 - **VS Code** (recommended) - [Download VS Code](https://code.visualstudio.com/)
 
 ## Quick Start
+
+### Option A: Using Hatch (recommended)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/JoJo275/simple-python-boilerplate.git
+cd simple-python-boilerplate
+
+# 2. Confirm Python 3.11+ and Hatch are installed
+python --version
+hatch --version
+
+# 3. Enter the Hatch-managed dev environment
+hatch shell
+
+# 4. Verify installation
+spb              # Run the CLI entry point
+hatch run test    # Run tests
+```
+
+That's it. Hatch automatically creates a virtual environment, installs the package in editable mode, and installs all dev dependencies declared in `pyproject.toml`.
+
+### Option B: Using pip + venv (manual)
 
 ```bash
 # 1. Clone the repository

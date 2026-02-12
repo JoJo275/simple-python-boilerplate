@@ -14,42 +14,45 @@ This guide covers developer tools and workflows for contributing to this project
 
 ```bash
 # Run all tests
-pytest
+hatch run test
 
 # Run with verbose output
-pytest -v
+hatch run test -v
 
 # Run specific test file
-pytest tests/unit_test.py
+hatch run test tests/unit_test.py
 
 # Run with coverage report
-pytest --cov=simple_python_boilerplate --cov-report=term-missing
+hatch run test-cov
 ```
 
 ### Code Quality
 
 ```bash
 # Lint code (check for issues)
-ruff check src/ tests/
+hatch run lint
 
 # Auto-fix linting issues
-ruff check --fix src/ tests/
+hatch run lint-fix
 
 # Format code
-ruff format src/ tests/
+hatch run fmt
 
 # Type checking
-mypy src/
+hatch run typecheck
+
+# Run ALL checks (lint + format + typecheck + test)
+hatch run check
 ```
 
 ### Building the Package
 
 ```bash
-# Install build tool
-pip install build
-
 # Build source and wheel distributions
-python -m build
+hatch build
+
+# Clean build artifacts
+hatch clean
 
 # Output goes to dist/
 ```
@@ -199,48 +202,57 @@ repos:
 
 ### Adding Dependencies
 
-Edit `pyproject.toml`:
+Edit `pyproject.toml` and Hatch picks them up automatically on the next command:
 
 ```toml
 # Runtime dependencies (required to run the package)
+[project]
 dependencies = [
     "requests>=2.28",
 ]
 
-# Dev dependencies (only needed for development)
-[project.optional-dependencies]
-dev = [
+# Dev dependencies (Hatch environment)
+[tool.hatch.envs.default]
+dependencies = [
     "pytest",
     "new-dev-tool",  # Add here
 ]
 ```
 
-Then reinstall:
+Then run any `hatch run` command — Hatch syncs and installs the new dependency automatically.
+
+### Removing Dependencies
+
+Remove the line from `pyproject.toml`. However, some setups/versions of Hatch may leave the old package installed in the environment. The reliable cleanup is to recreate the environment:
 
 ```bash
-pip install -e ".[dev]"
+# Remove a specific environment
+hatch env remove default
+
+# Or remove ALL environments
+hatch env prune
 ```
+
+The next `hatch run` or `hatch shell` command will rebuild a clean environment.
 
 ### Checking Installed Packages
 
 ```bash
-# List all installed packages
-pip list
+# List all installed packages in the Hatch default env
+hatch run pip list
 
 # Show package details
-pip show simple-python-boilerplate
+hatch run pip show simple-python-boilerplate
 
-# Check for outdated packages
-pip list --outdated
-
-# Generate requirements file (for reference)
-pip freeze > requirements-freeze.txt
+# Show Hatch environments
+hatch env show
 ```
 
 ---
 
 ## Useful Resources
 
+- [Hatch Documentation](https://hatch.pypa.io/latest/)
 - [pyproject.toml Reference](https://packaging.python.org/en/latest/specifications/pyproject-toml/)
 - [Ruff Documentation](https://docs.astral.sh/ruff/)
 - [Mypy Documentation](https://mypy.readthedocs.io/)

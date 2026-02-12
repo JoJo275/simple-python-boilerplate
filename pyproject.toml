@@ -3,8 +3,8 @@
 # ============================================================================
 # PEP 517/518 configuration - tells pip HOW to build your package
 [build-system]
-requires = ["setuptools>=68", "wheel"]  # Tools needed to build the package
-build-backend = "setuptools.build_meta"  # The backend that actually builds it
+requires = ["hatchling"]                # Build backend (downloaded automatically)
+build-backend = "hatchling.build"       # Hatchling builds the package
 
 # ============================================================================
 # PROJECT METADATA
@@ -104,22 +104,55 @@ extras = [
 # ]
 
 # ============================================================================
-# SETUPTOOLS CONFIG
+# HATCH CONFIG
 # ============================================================================
-# Tells setuptools that package code lives in src/ directory
-[tool.setuptools]
-package-dir = {"" = "src"}
+# Hatchling auto-discovers packages in src/ layout — no extra config needed.
+# See: https://hatch.pypa.io/latest/config/build/
 
-[tool.setuptools.packages.find]
-where = ["src"]
+# ── Hatch environments ────────────────────────────────────────
+# Hatch manages virtual environments. Run commands with: hatch run <cmd>
+# or enter a shell with: hatch shell
+#
+# IMPORTANT NUANCE — adding vs removing dependencies:
+#   Adding a dependency is straightforward: edit pyproject.toml and run
+#   any hatch command — Hatch syncs and installs automatically.
+#
+#   Removing a dependency is trickier: some setups/versions may leave the
+#   old package installed in the env. The reliable cleanup is to recreate
+#   the environment:
+#     hatch env remove default    # remove a specific env
+#     hatch env prune             # remove ALL envs
+#   Then the next hatch command rebuilds a clean env.
+
+# Default environment — used by `hatch shell` and `hatch run <cmd>`
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+    "pre-commit",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args}"
+test-cov = "pytest --cov=simple_python_boilerplate --cov-report=term-missing {args}"
+lint = "ruff check {args: src/ tests/}"
+lint-fix = "ruff check --fix {args: src/ tests/}"
+fmt = "ruff format {args: src/ tests/}"
+fmt-check = "ruff format --check {args: src/ tests/}"
+typecheck = "mypy {args: src/}"
+check = ["lint", "fmt-check", "typecheck", "test"]
 
 # Include non-Python files in your package (e.g., data files, configs)
-# [tool.setuptools.package-data]
-# simple_python_boilerplate = ["*.json", "*.yaml", "data/*"]
+# [tool.hatch.build.targets.wheel]
+# packages = ["src/simple_python_boilerplate"]
+# [tool.hatch.build.targets.wheel.force-include]
+# "data" = "simple_python_boilerplate/data"
 
-# Alternative: use MANIFEST.in-style patterns
-# [tool.setuptools.dynamic]
-# version = {attr = "simple_python_boilerplate.__version__"}  # Read version from code
+# Dynamic versioning (alternative to manual version in [project])
+# [tool.hatch.version]
+# source = "vcs"  # Derive version from git tags (requires hatch-vcs plugin)
 
 # ============================================================================
 # TOOL CONFIGURATIONS

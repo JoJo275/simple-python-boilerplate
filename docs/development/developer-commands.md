@@ -4,6 +4,18 @@ Quick reference for common development commands in this project.
 
 ## Environment Setup
 
+### Using Hatch (recommended)
+
+```bash
+# Enter the dev environment (creates venv + installs deps automatically)
+hatch shell
+
+# Or run commands directly without entering the shell
+hatch run <command>
+```
+
+### Using pip + venv (manual)
+
 ```bash
 # Create virtual environment
 python -m venv .venv
@@ -22,56 +34,90 @@ pip install -e ".[dev]"
 
 ```bash
 # Run all tests
-pytest
+hatch run test
 
 # Run with verbose output
-pytest -v
+hatch run test -v
 
 # Run specific test file
-pytest tests/unit_test.py
+hatch run test tests/unit_test.py
 
 # Run with coverage
+hatch run test-cov
+```
+
+<details>
+<summary>Without Hatch (direct commands)</summary>
+
+```bash
+pytest
+pytest -v
+pytest tests/unit_test.py
 pytest --cov=simple_python_boilerplate --cov-report=term-missing
 ```
+</details>
 
 ## Linting & Formatting
 
 ```bash
 # Check for linting issues
-ruff check .
+hatch run lint
 
 # Auto-fix linting issues
-ruff check --fix .
+hatch run lint-fix
 
 # Check formatting
-ruff format --check .
+hatch run fmt-check
 
 # Apply formatting
+hatch run fmt
+```
+
+<details>
+<summary>Without Hatch (direct commands)</summary>
+
+```bash
+ruff check .
+ruff check --fix .
+ruff format --check .
 ruff format .
 ```
+</details>
 
 ## Type Checking
 
 ```bash
 # Run mypy
-mypy src/
+hatch run typecheck
+```
 
-# Run with strict mode (default in this project)
+<details>
+<summary>Without Hatch (direct commands)</summary>
+
+```bash
+mypy src/
 mypy --strict src/
 ```
+</details>
 
 ## Building
 
 ```bash
-# Install build tool
-pip install build
-
 # Build source and wheel distributions
-python -m build
+hatch build
 
-# Check built package
-twine check dist/*
+# Clean build artifacts
+hatch clean
 ```
+
+<details>
+<summary>Without Hatch (direct commands)</summary>
+
+```bash
+pip install build
+python -m build
+```
+</details>
 
 ## Utility Scripts
 
@@ -115,15 +161,17 @@ pre-commit autoupdate
 ## Quick Checks Before PR
 
 ```bash
-# Run all quality checks
-pytest && ruff check . && ruff format --check .
-
-# Or individually:
-pytest              # Tests pass?
-ruff check .        # Linting clean?
-ruff format --check # Formatting correct?
-mypy src/           # Types okay?
+# Run all quality checks (lint, format check, typecheck, test)
+hatch run check
 ```
+
+<details>
+<summary>Without Hatch (direct commands)</summary>
+
+```bash
+pytest && ruff check . && ruff format --check . && mypy src/
+```
+</details>
 
 ## See Also
 
