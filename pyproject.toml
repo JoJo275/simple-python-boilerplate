@@ -150,6 +150,35 @@ check = ["lint", "fmt-check", "typecheck", "test"]
 # [tool.hatch.build.targets.wheel.force-include]
 # "data" = "simple_python_boilerplate/data"
 
+# Control exactly which files go into the sdist (source distribution)
+# [tool.hatch.build.targets.sdist]
+# include = [
+#     "src/",
+#     "tests/",
+#     "pyproject.toml",
+#     "README.md",
+#     "LICENSE",
+#     "CHANGELOG.md",
+# ]
+# exclude = [
+#     "*.pyc",
+#     "__pycache__/",
+#     ".git/",
+#     ".venv/",
+#     ".mypy_cache/",
+#     ".ruff_cache/",
+# ]
+
+# Control exactly which files go into the wheel (built distribution)
+# [tool.hatch.build.targets.wheel]
+# include = [
+#     "src/simple_python_boilerplate/",
+# ]
+# exclude = [
+#     "*.pyc",
+#     "__pycache__/",
+# ]
+
 # Dynamic versioning (alternative to manual version in [project])
 # [tool.hatch.version]
 # source = "vcs"  # Derive version from git tags (requires hatch-vcs plugin)
