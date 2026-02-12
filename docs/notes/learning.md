@@ -580,12 +580,166 @@ From researching these templates, potential additions:
 
 Additional template and boilerplate repositories worth studying:
 
-- [pypa/sampleproject](https://github.com/pypa/sampleproject) — PyPA's official sample project for Python packaging best practices
-- [cortinico/kotlin-android-template](https://github.com/cortinico/kotlin-android-template) — Kotlin/Android template; useful for cross-language convention comparison
-- [sindresorhus/electron-boilerplate](https://github.com/sindresorhus/electron-boilerplate) — Electron boilerplate; example of a minimal, opinionated JS/TS starter
-- [Josee9988/project-template](https://github.com/Josee9988/project-template) — Language-agnostic GitHub template with issue templates, labels, and community files
-- [inovintell/py-template](https://github.com/inovintell/py-template) — Python template with modern tooling (Copier-based)
-- [MarketingPipeline/Awesome-Repo-Template](https://github.com/MarketingPipeline/Awesome-Repo-Template/tree/main) — Feature-rich GitHub repo template with automation and community health files
+---
+
+### PyPA Sample Project
+
+**Repo:** [pypa/sampleproject](https://github.com/pypa/sampleproject)
+
+The official sample project from the Python Packaging Authority (PyPA). Exists as a companion to the [PyPUG Tutorial on Packaging and Distributing Projects](https://packaging.python.org/tutorials/packaging-projects/). Intentionally minimal — focuses purely on packaging, not project development practices.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | `src/` layout (`src/sample/`) |
+| **Config** | `pyproject.toml` only |
+| **Testing** | Nox |
+| **CI** | GitHub Actions |
+| **Docs** | None (README only) |
+| **Versioning** | Manual in `pyproject.toml` |
+
+**Key Takeaways:**
+- The most authoritative reference for pyproject.toml packaging metadata
+- Deliberately does not cover linting, formatting, type checking, or CI beyond testing
+- `src/` layout used as the recommended default
+- 5.3k stars — extremely well-known as the canonical packaging example
+- Good reference for pyproject.toml fields (classifiers, URLs, optional-dependencies, entry-points)
+- No template engine — just a plain project to clone and adapt
+
+---
+
+### Kotlin Android Template (cortinico)
+
+**Repo:** [cortinico/kotlin-android-template](https://github.com/cortinico/kotlin-android-template)
+
+A 100% Kotlin template for Android projects with static analysis and CI baked in. Useful as a cross-language comparison for how non-Python ecosystems approach project templates.
+
+| Convention | Details |
+|------------|---------|
+| **Language** | Kotlin (100%) |
+| **Build tool** | Gradle (Kotlin DSL) |
+| **Static analysis** | Detekt + ktlint |
+| **CI** | GitHub Actions (pre-merge, publish-snapshot, publish-release) |
+| **Dependency management** | Gradle Version Catalog (`libs.versions.toml`) + Renovate |
+| **Publishing** | Maven Central via Nexus |
+
+**Key Takeaways:**
+- Multi-module structure: `app/`, `library-android/`, `library-kotlin/`, `library-compose/`
+- Shared build logic lives in `buildSrc/` as precompiled script plugins
+- Renovate (not Dependabot) for automated dependency updates with auto-merge
+- Static analysis runs as part of CI, not just pre-commit
+- Jetpack Compose module included as a ready-to-use example
+- No template engine — uses GitHub "Use this template" with manual find-and-replace
+- `.idea/` directory committed for consistent IDE settings (Android Studio / IntelliJ)
+- 1.9k stars; maintained by a Meta/React Native engineer
+
+---
+
+### Electron Boilerplate (sindresorhus)
+
+**Repo:** [sindresorhus/electron-boilerplate](https://github.com/sindresorhus/electron-boilerplate) (**Archived** May 2024)
+
+A minimal, opinionated Electron starter from sindresorhus. Now archived but still a good reference for how a "less is more" boilerplate can work.
+
+| Convention | Details |
+|------------|---------|
+| **Language** | JavaScript (84%), CSS, HTML |
+| **Build tool** | electron-builder |
+| **CI** | GitHub Actions (cross-platform builds) |
+| **Config** | electron-store |
+| **Error handling** | electron-unhandled |
+| **Editor** | `.editorconfig` |
+
+**Key Takeaways:**
+- Extremely minimal — only the files you actually need (no over-engineering)
+- electron-builder configured for cross-platform builds (macOS, Linux, Windows)
+- Silent auto-updates built in
+- System-native app menu out of the box
+- Context menu via `electron-context-menu`
+- README acts as a template itself — "remove everything above here" pattern
+- Example of a successful boilerplate that is a working app, not a meta-template
+- 1.6k stars; archived because the author moved on from Electron
+
+---
+
+### Josee9988's Project Template
+
+**Repo:** [Josee9988/project-template](https://github.com/Josee9988/project-template)
+
+A language-agnostic GitHub template focused on community health files, issue templates, labels, and repository automation. Not about code structure — about the GitHub repo wrapper around a project.
+
+| Convention | Details |
+|------------|---------|
+| **Language** | Language-agnostic (Shell for setup script) |
+| **Setup** | `SETUP_TEMPLATE.sh` script auto-detects and replaces placeholders |
+| **Issue templates** | 8 templates (bug, failing test, docs, feature, enhancement, security, question, blank) |
+| **Labels** | 20+ labels auto-created via `settings.yml` bot |
+| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, SUPPORT, CODEOWNERS |
+| **Bots** | issue-label-bot, probot-settings, welcome-bot, todo-bot |
+
+**Key Takeaways:**
+- Strongest emphasis on community health files of any template reviewed
+- Shell script for initial personalisation (replaces placeholders in all files)
+- Uses GitHub Probot ecosystem heavily for automation
+- CHANGELOG follows Keep a Changelog format
+- Pull request template auto-closes linked issues via keywords
+- No CI workflows for code — purely a "repo wrapper" template
+- 934 stars; last updated 4 years ago (not actively maintained)
+
+---
+
+### inovintell Python Template
+
+**Repo:** [inovintell/py-template](https://github.com/inovintell/py-template)
+
+A Python template that uses **Cookiecutter** for project generation. Focused on CI/CD automation with semantic release and comprehensive GitHub Actions pipelines.
+
+| Convention | Details |
+|------------|---------|
+| **Layout** | `src/{{cookiecutter.repository}}/` (Cookiecutter-templated) |
+| **Build tool** | Poetry |
+| **Linting** | Ruff |
+| **Pre-commit** | Yes (with commitlint for conventional commits) |
+| **CI** | GitHub Actions (extensive pipeline) |
+| **Docs** | MkDocs |
+| **Dependency updates** | Renovate |
+| **Versioning** | Semantic release (automated) |
+
+**Key Takeaways:**
+- Uses Cookiecutter — source files have `{{cookiecutter.repository}}` placeholders throughout
+- This means the template repo itself is not directly runnable or testable
+- Heavy Renovate usage — bot commits dominate the commit history
+- Conventional commits enforced via commitlint
+- `.editorconfig` and `.yamllint.yml` included for cross-editor and YAML consistency
+- Poetry for dependency management (not pip/setuptools)
+- Example of the trade-off ADR-014 discusses: powerful automation but harder to read/contribute to
+- 92 stars; actively maintained (Renovate keeps dependencies current)
+
+---
+
+### Awesome Repo Template (MarketingPipeline)
+
+**Repo:** [MarketingPipeline/Awesome-Repo-Template](https://github.com/MarketingPipeline/Awesome-Repo-Template)
+
+A feature-rich, language-agnostic GitHub template with heavy automation via GitHub Actions workflows that run at template setup time.
+
+| Convention | Details |
+|------------|---------|
+| **Language** | Language-agnostic (HTML landing page) |
+| **Setup** | GitHub Actions workflow auto-replaces links, emails, and metadata |
+| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, CODEOWNERS, CHANGE_LOG, TO_DO |
+| **Issue templates** | Bug report and feature request (YAML-based forms) |
+| **Automation** | Image compression, TOC generation, stargazer metrics SVG, SEO index.html |
+| **Bots** | issue-label-bot, probot-settings, welcome-bot |
+
+**Key Takeaways:**
+- Unique approach: uses a GitHub Actions workflow to auto-configure the repo after creation
+- Generates a markdown-styled `index.html` with SEO metadata
+- Auto-generates a table of contents in the README
+- Stargazer metrics SVG generated automatically
+- Image optimisation workflow compresses all repo images
+- More "GitHub infrastructure" than "code template" — no language-specific tooling
+- Similar to Josee9988's template but with more workflow-based automation
+- 201 stars; last updated 4 years ago
 
 ---
 
