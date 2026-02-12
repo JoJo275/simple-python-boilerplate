@@ -144,6 +144,25 @@ fmt-check = "ruff format --check {args: src/ tests/}"
 typecheck = "mypy {args: src/}"
 check = ["lint", "fmt-check", "typecheck", "test"]
 
+# ── Test matrix — run tests across multiple Python versions ───
+# Usage:
+#   hatch run test:run           # Run tests on all Python versions
+#   hatch run test:cov           # Run tests with coverage on all versions
+#   hatch run +py=3.12 test:run  # Run on a specific version only
+#   hatch env show               # Show all environments and their matrices
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest",
+    "pytest-cov",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.11", "3.12"]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest {args}"
+cov = "pytest --cov=simple_python_boilerplate --cov-report=term-missing {args}"
+
 # Include non-Python files in your package (e.g., data files, configs)
 # [tool.hatch.build.targets.wheel]
 # packages = ["src/simple_python_boilerplate"]
