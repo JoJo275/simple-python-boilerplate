@@ -19,6 +19,28 @@ Personal notes and learnings captured while building this project.
 
 Most tools now read from `[tool.X]` sections in pyproject.toml. One file to rule them all.
 
+### Hatchling vs Hatch — The Mental Model
+
+These two names kept confusing me. The key distinction:
+
+- **Hatchling** = "how to build the package" (build backend, like setuptools)
+- **Hatch** = "how to work on the project" (project manager, like tox/nox + venv)
+
+| Tool | What it does | Config section |
+|------|-------------|----------------|
+| **Hatchling** | Builds sdist/wheel when you `pip install .` or `python -m build` | `[build-system]`, `[tool.hatch.build.*]` |
+| **Hatch** | Manages envs, runs scripts, bumps versions, triggers builds | `[tool.hatch.envs.*]`, `[tool.hatch.version]` |
+
+**Why use both?** A single `pyproject.toml` defines everything:
+- Build backend (Hatchling)
+- What goes into distributions (include/exclude rules)
+- Version source/bumping rules
+- Dev/test/lint environments and scripts (Hatch)
+
+**Important:** Hatchling works *without* Hatch installed. Anyone can `pip install .` and Hatchling handles the build. Hatch is optional — it's a convenience CLI for developers.
+
+See: [ADR 016](../adr/016-hatchling-and-hatch.md)
+
 ---
 
 ## GitHub Actions

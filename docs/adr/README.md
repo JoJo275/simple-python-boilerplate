@@ -37,6 +37,7 @@ Each ADR follows this structure:
 | [013](013-sbom-bill-of-materials.md) | SBOM generation and distribution strategy | Accepted |
 | [014](014-no-template-engine.md) | No template engine — manual customisation | Accepted |
 | [015](015-no-github-directory-readme.md) | No README.md in .github/ directory | Accepted |
+| [016](016-hatchling-and-hatch.md) | Use Hatchling (build backend) and Hatch (project manager) together | Accepted |
 
 ## Archive
 
