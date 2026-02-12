@@ -36,6 +36,7 @@ Each ADR follows this structure:
 | [012](012-multi-layer-security-scanning.md) | Multi-layer security scanning in CI | Accepted |
 | [013](013-sbom-bill-of-materials.md) | SBOM generation and distribution strategy | Accepted |
 | [014](014-no-template-engine.md) | No template engine — manual customisation | Accepted |
+| [015](015-no-github-directory-readme.md) | No README.md in .github/ directory | Accepted |
 
 ## Archive
 

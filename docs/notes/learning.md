@@ -351,6 +351,24 @@ updates:
 
 ---
 
+## GitHub README Priority Order
+
+GitHub has a hidden priority order for which README displays on the repo landing page:
+
+1. **`.github/README.md`** — Highest priority (surprising!)
+2. **`README.md`** — Root (what you'd expect)
+3. **`docs/README.md`** — Lowest priority
+
+**The gotcha:** If you put a `README.md` in `.github/` to document your workflows and templates, it **silently replaces** your root `README.md` on the repository page. Visitors see your internal `.github/` docs instead of your project README — with no warning.
+
+This is unique to `.github/`. Every other directory's `README.md` only renders when browsing *that* directory. But `.github/README.md` is treated as a profile-level README, similar to how `<username>/<username>/README.md` shows on your GitHub profile.
+
+**Fix:** Don't put a `README.md` in `.github/`. Document that directory's contents elsewhere (e.g., `docs/repo-layout.md`).
+
+See: [ADR 015](../adr/015-no-github-directory-readme.md)
+
+---
+
 ## Things I Keep Forgetting
 
 1. **Import name ≠ package name** — `simple-python-boilerplate` (hyphen) installs, but you `import simple_python_boilerplate` (underscore)
