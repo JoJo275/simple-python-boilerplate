@@ -46,6 +46,26 @@ hatch run test tests/unit_test.py
 hatch run test-cov
 ```
 
+### Multi-Version Testing
+
+Hatch can run tests across multiple Python versions (3.11–3.14) using a test matrix defined in `pyproject.toml`.
+
+```bash
+# Run tests on ALL Python versions in the matrix
+hatch run test:run
+
+# Run tests with coverage on all versions
+hatch run test:cov
+
+# Run on a specific version only
+hatch run +py=3.12 test:run
+
+# Show all environments and their matrices
+hatch env show
+```
+
+> **Note:** Each Python version in the matrix must be installed on your system. Hatch will skip versions that aren't available locally. CI workflows handle this automatically via `actions/setup-python`.
+
 <details>
 <summary>Without Hatch (direct commands)</summary>
 
