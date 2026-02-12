@@ -144,7 +144,7 @@ jobs:
 
       # SPDX 2.3 JSON — primary format
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -152,7 +152,7 @@ jobs:
 
       # CycloneDX 1.x JSON — secondary format
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json

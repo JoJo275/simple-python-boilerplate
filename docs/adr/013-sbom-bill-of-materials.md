@@ -13,7 +13,7 @@ Two dominant SBOM standards exist:
 | Standard | Governing body | Strengths |
 |----------|---------------|-----------|
 | **SPDX** (ISO/IEC 5962:2021) | Linux Foundation | ISO standard; strong license metadata; GitHub-native support |
-| **CycloneDX** | OWASP | Purpose-built for security; rich vulnerability and service metadata |
+| **CycloneDX** | OWASP / Ecma International (ECMA-424) | Purpose-built for security; rich vulnerability and service metadata |
 
 Neither standard is a strict superset of the other. Producing both maximises interoperability with downstream tooling.
 
