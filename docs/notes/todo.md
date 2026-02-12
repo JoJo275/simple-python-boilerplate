@@ -75,7 +75,8 @@ Things to explore, implement, or learn more about.
   convention = "numpy"
   ```
 - [ ] Add in bandit for security linting and checks. *This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template.*
-- [ ] 
+- [ ] Perhaps create a template or project in the future with tools such as copier, cookiecutter, or cruft where users can select from various options (e.g., license type, CI/CD tools, documentation tools) to generate a customized project setup based on their specific needs and preferences. *This would involve creating a more interactive template that allows users to choose from various options when setting up their project. For example, they could select which CI/CD tools they want to include (e.g., GitHub Actions, Travis CI), which documentation tools they prefer (e.g., Sphinx, MkDocs), and which license they want to use. This would provide a more tailored experience for users and allow them to quickly set up a project that fits their requirements without having to manually customize the template after generation.*
+- [ ]
 
 ## Questions to Answer
 
