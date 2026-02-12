@@ -576,6 +576,19 @@ From researching these templates, potential additions:
 
 ---
 
+### Other Template Repos (To Review)
+
+Additional template and boilerplate repositories worth studying:
+
+- [pypa/sampleproject](https://github.com/pypa/sampleproject) — PyPA's official sample project for Python packaging best practices
+- [cortinico/kotlin-android-template](https://github.com/cortinico/kotlin-android-template) — Kotlin/Android template; useful for cross-language convention comparison
+- [sindresorhus/electron-boilerplate](https://github.com/sindresorhus/electron-boilerplate) — Electron boilerplate; example of a minimal, opinionated JS/TS starter
+- [Josee9988/project-template](https://github.com/Josee9988/project-template) — Language-agnostic GitHub template with issue templates, labels, and community files
+- [inovintell/py-template](https://github.com/inovintell/py-template) — Python template with modern tooling (Copier-based)
+- [MarketingPipeline/Awesome-Repo-Template](https://github.com/MarketingPipeline/Awesome-Repo-Template/tree/main) — Feature-rich GitHub repo template with automation and community health files
+
+---
+
 ## Source Code File Workflow
 
 A clean separation of concerns for the `src/` package structure.
