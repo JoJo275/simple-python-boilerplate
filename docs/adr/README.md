@@ -34,6 +34,7 @@ Each ADR follows this structure:
 | [010](010-dependabot-for-dependency-updates.md) | Use Dependabot for dependency updates | Accepted |
 | [011](011-repository-guard-pattern.md) | Repository guard pattern for optional workflows | Accepted |
 | [012](012-multi-layer-security-scanning.md) | Multi-layer security scanning in CI | Accepted |
+| [013](013-sbom-bill-of-materials.md) | SBOM generation and distribution strategy | Accepted |
 
 ## Archive
 

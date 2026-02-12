@@ -1,0 +1,120 @@
+# ──────────────────────────────────────────────────────────────
+# SBOM (Software Bill of Materials) Workflow
+# ──────────────────────────────────────────────────────────────
+# Generates SBOMs in two standard formats and optionally
+# submits dependency data to GitHub's Dependency Graph.
+#
+# Outputs per workflow run:
+#   • sbom-spdx artifact       — SPDX 2.3 JSON (primary format)
+#   • sbom-cyclonedx artifact  — CycloneDX 1.x JSON (secondary)
+#   • Dependency Graph update  — push to main only (channel 4)
+#
+# This is channel 2 ("Actions artifact") of the four SBOM
+# distribution channels documented in docs/sbom.md.
+#
+# For release-asset SBOMs (channel 3), see release.yml.
+# Release-asset SBOMs are authoritative for tagged versions.
+#
+# Triggers:
+#   - Push to main
+#   - Pull requests targeting main
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST)
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_SBOM = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: SBOM
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # ┌─── minute (0–59)
+    # │ ┌─── hour (0–23)
+    # │ │ ┌─── day of month (1–31)
+    # │ │ │ ┌─── month (1–12)
+    # │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    # │ │ │ │ │
+    - cron: "0 13 * * 1" # Monday 13:00 UTC (9am ET during DST / 8am ET otherwise)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Generate SBOMs ─────────────────────────────────────────
+  # Uses Syft (via anchore/sbom-action) to scan the installed
+  # Python environment and produce both SPDX and CycloneDX
+  # SBOMs. Each is uploaded as a separate workflow artifact.
+  #
+  # On push to main, the SPDX scan also submits dependency
+  # data to GitHub's Dependency Submission API so the repo's
+  # dependency graph and Dependabot alerts are more complete.
+  generate:
+    name: Generate SBOMs
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_SBOM == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # contents: write is needed for Dependency Submission API
+    # (only exercised on push to main via the conditional below).
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      # Install the project so Syft can detect the full
+      # dependency tree from the Python environment.
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      # ── SPDX (primary format) ──────────────────────────────
+      # Generates an SPDX 2.3 JSON SBOM. On push to main the
+      # dependency-snapshot flag also submits dependency data
+      # to GitHub's Dependency Submission API (channel 4).
+      - name: Generate SPDX SBOM (primary)
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        with:
+          format: spdx-json
+          output-file: sbom-spdx.json
+          artifact-name: sbom-spdx
+          dependency-snapshot: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+      # ── CycloneDX (secondary format) ───────────────────────
+      # Generates a CycloneDX 1.x JSON SBOM for consumers
+      # that prefer the CycloneDX standard.
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        with:
+          format: cyclonedx-json
+          output-file: sbom-cyclonedx.json
+          artifact-name: sbom-cyclonedx

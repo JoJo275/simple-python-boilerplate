@@ -15,7 +15,8 @@ These workflows run automatically on push/PR to `main`.
 | **Test** | [test.yml](../.github/workflows/test.yml) | push, PR, manual | Run pytest across Python 3.11, 3.12, 3.13 |
 | **Lint + Format** | [lint-format.yml](../.github/workflows/lint-format.yml) | push, PR, manual | Ruff linting and format checks |
 | **Spellcheck** | [spellcheck.yml](../.github/workflows/spellcheck.yml) | push, PR, manual | Check for typos with codespell |
-| **Release** | [release.yml](../.github/workflows/release.yml) | tag push (`v*.*.*`) | Build distribution artifacts |
+| **Release** | [release.yml](../.github/workflows/release.yml) | tag push (`v*.*.*`) | Build distribution artifacts + SBOMs |
+| **SBOM** | [sbom.yml](../.github/workflows/sbom.yml) | push, PR, weekly, manual | Generate SPDX and CycloneDX SBOMs |
 
 ### Optional Workflows (Disabled)
 
@@ -374,4 +375,6 @@ All workflows in this template use:
 - [Releasing](releasing.md) — Release workflow details
 - [ADR-003](adr/003-separate-workflow-files.md) — Why separate workflow files
 - [ADR-004](adr/004-pin-action-shas.md) — Why pin to SHAs
+- [SBOM Strategy](sbom.md) — SBOM formats, channels, and authoritative source
+- [ADR-013](adr/013-sbom-bill-of-materials.md) — Why SPDX + CycloneDX with four distribution channels
 - [GitHub Actions Docs](https://docs.github.com/en/actions)

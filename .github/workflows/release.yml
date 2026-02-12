@@ -116,15 +116,68 @@ jobs:
           echo "Add it in Settings → Secrets and variables → Actions → Secrets"
           exit 1
 
-  # ── Job 3: GitHub Release ──────────────────────────────────
+  # ── Job 3: Generate SBOMs ──────────────────────────────────
+  # Generates SPDX (primary) and CycloneDX SBOMs for the
+  # release. These are attached as release assets (channel 3)
+  # and are authoritative for the tagged version.
+  sbom:
+    name: Generate release SBOMs
+    needs: build               # Runs after build to align with the release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      # SPDX 2.3 JSON — primary format
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        with:
+          format: spdx-json
+          output-file: sbom-spdx.json
+          upload-artifact: false
+
+      # CycloneDX 1.x JSON — secondary format
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532 # v0.20.0
+        with:
+          format: cyclonedx-json
+          output-file: sbom-cyclonedx.json
+          upload-artifact: false
+
+      # Bundle both SBOMs into a single artifact for the
+      # github-release job to download and attach.
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: sbom
+          path: |
+            sbom-spdx.json
+            sbom-cyclonedx.json
+
+  # ── Job 4: GitHub Release ──────────────────────────────────
   # Creates a GitHub Release on the Releases page and attaches
-  # the built distribution artifacts (sdist + wheel).
-  # Runs after build succeeds but independently of publish —
-  # so a GitHub Release is created even if PyPI publishing is
-  # not configured.
+  # the built distribution artifacts (sdist + wheel) along
+  # with SPDX and CycloneDX SBOMs.
+  # Runs after build and sbom succeed but independently of
+  # publish — so a GitHub Release is created even if PyPI
+  # publishing is not configured.
   github-release:
     name: Create GitHub Release
-    needs: build               # Only needs the build artifacts, not PyPI publish
+    needs: [build, sbom]       # Needs both dist and SBOM artifacts
     runs-on: ubuntu-latest
     permissions:
       contents: write          # Required to create releases and upload assets
@@ -137,10 +190,18 @@ jobs:
           name: dist
           path: dist/
 
+      # Retrieve the SBOM artifacts uploaded by the sbom job
+      - name: Download SBOM artifacts
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: sbom
+          path: sbom/
+
       # Create a GitHub Release using the tag name and attach
-      # all files in dist/ (*.tar.gz, *.whl) as release assets.
-      # --generate-notes auto-generates release notes from commits
-      # and PRs since the last tag.
+      # all files in dist/ (*.tar.gz, *.whl) and sbom/
+      # (*.spdx.json, *.cdx.json) as release assets.
+      # --generate-notes auto-generates release notes from
+      # commits and PRs since the last tag.
       - name: Create release with artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -148,4 +209,5 @@ jobs:
           gh release create "${{ github.ref_name }}" \
             --title "${{ github.ref_name }}" \
             --generate-notes \
-            dist/*
+            dist/* \
+            sbom/*
