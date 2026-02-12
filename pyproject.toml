@@ -150,7 +150,12 @@ check = ["lint", "fmt-check", "typecheck", "test"]
 # [tool.hatch.build.targets.wheel.force-include]
 # "data" = "simple_python_boilerplate/data"
 
-# Control exactly which files go into the sdist (source distribution)
+# Control exactly which files go into the sdist and wheel.
+# NOTE: When both include and exclude match a path, exclude wins.
+# When commented out, Hatch uses its defaults (auto-discovers src/ layout,
+# excludes common junk like __pycache__/, .git/, etc.). These only take
+# effect when uncommented.
+#
 # [tool.hatch.build.targets.sdist]
 # include = [
 #     "src/",
