@@ -188,7 +188,7 @@ tasks:
   pip:upgrade:
     desc: Upgrade pip to the latest version
     cmds:
-      - hatch run pip install --upgrade pip
+      - hatch run python -m pip install --upgrade pip
 
   # ── Database ───────────────────────────────────────────────
   db:reset:
