@@ -151,3 +151,45 @@ tasks:
     desc: Show project metadata
     cmds:
       - hatch project metadata
+
+  # ── Run ────────────────────────────────────────────────────
+  run:
+    desc: Run the application
+    cmds:
+      - hatch run spb {{.CLI_ARGS}}
+
+  # ── Targeted Testing ───────────────────────────────────────
+  test:unit:
+    desc: Run unit tests only
+    cmds:
+      - hatch run test tests/unit {{.CLI_ARGS}}
+
+  test:integration:
+    desc: Run integration tests only
+    cmds:
+      - hatch run test tests/integration {{.CLI_ARGS}}
+
+  test:lf:
+    desc: Rerun only last-failed tests
+    cmds:
+      - hatch run test --lf {{.CLI_ARGS}}
+
+  # ── Dependency Info ────────────────────────────────────────
+  deps:tree:
+    desc: Show dependency tree (requires extras)
+    cmds:
+      - hatch run pip install -q pipdeptree && hatch run pipdeptree
+
+  deps:outdated:
+    desc: Check for outdated dependencies
+    cmds:
+      - hatch run pip list --outdated
+
+  # ── Deep Clean ─────────────────────────────────────────────
+  clean:all:
+    desc: Remove all build artifacts and caches
+    cmds:
+      - hatch clean
+      - cmd: python -c "import shutil, pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]"
+      - cmd: python -c "import shutil; [shutil.rmtree(d, True) for d in ['.mypy_cache', '.ruff_cache', '.pytest_cache']]"
+      - cmd: echo "All caches and build artifacts removed."
