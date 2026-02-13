@@ -24,6 +24,16 @@ Completed items from [todo.md](todo.md), preserved for reference.
 
 ### Completed
 
+- [X] Refactor repo scripts with custom CLI commands
+- [X] Add Docker support for containerized development and testing
+- [X] Create a VS Code devcontainer configuration for consistent development environments
+- [X] Add a Makefile or taskfile for common commands to simplify development workflow
+- [X] Explore using Nox or Tox for testing across multiple Python environments
+- [X] Read through other popular Python boilerplate repositories to see if there are any common features or best practices I may have missed. *This could include looking at repositories like `cookiecutter`, `python-project-template`, and others to see how they structure their projects, what files they include, and how they handle things like testing, documentation, and CI/CD. It could provide valuable insights and ideas for improving this template.*   
+- [X] Add in installable CLI command for running tests, linting, or other common tasks. *This could be done using `entry_points` in `pyproject.toml` to create a command-line interface for the project. For example, I could add a command like `myproject test` that runs the test suite, or `myproject lint` that runs the linter. This would make it easier for users to run common tasks without having to remember specific commands or scripts.*
+- [X] Task runner: install nox and set up sessions for testing, linting, and other tasks across multiple Python versions. (installed "task" task runner instead) *This would involve adding a `noxfile.py` to the project that defines sessions for running tests, linting, and other common tasks. Each session could be configured to run across multiple Python versions to ensure compatibility. This would provide a convenient way for users to test their code in different environments and maintain code quality with linting.*
+- [X] use pre-commit hooks for code formatting, linting, and other checks to maintain code quality. *This would involve setting up a `.pre-commit-config.yaml` file that defines various pre-commit hooks for tasks like code formatting with `black`, linting with `flake8`, and checking for security issues with `bandit`. Users would then need to install the pre-commit hooks in their local environment, which would ensure that these checks are automatically run before each commit, helping to maintain code quality and consistency across the project.*
+- [X] add task runner "task"
 - [X] When to use `requirements.txt` vs just `pyproject.toml` dependencies?
 - [X] Explore `hatch` as alternative to setuptools
 - [X] Explore using `hatch` for project management and packaging
