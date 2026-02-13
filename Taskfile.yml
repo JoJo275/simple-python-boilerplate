@@ -190,14 +190,19 @@ tasks:
       - hatch run pip list --outdated
 
   deps:versions:
-    desc: Show installed versions of all project dependencies
+    desc: Show installed and latest versions of all project dependencies
     cmds:
-      - hatch run python scripts/dep_versions.py --no-latest {{.CLI_ARGS}}
+      - hatch run python scripts/dep_versions.py show {{.CLI_ARGS}}
 
   deps:update-comments:
     desc: Update version comments in pyproject.toml to match installed versions
     cmds:
-      - hatch run python scripts/dep_versions.py --update {{.CLI_ARGS}}
+      - hatch run python scripts/dep_versions.py update-comments
+
+  deps:upgrade:
+    desc: "Upgrade dependencies (usage: task deps:upgrade, or: task deps:upgrade -- ruff 0.9.0)"
+    cmds:
+      - hatch run python scripts/dep_versions.py upgrade {{.CLI_ARGS}}
 
   pip:upgrade:
     desc: Upgrade pip to the latest version

@@ -1,32 +1,25 @@
 #!/usr/bin/env python3
-"""Show and optionally update dependency version comments in pyproject.toml.
+"""Dependency version manager for pyproject.toml.
 
-This script reads all dependency groups from pyproject.toml, checks currently
-installed versions, reports available upgrades, and can update inline comments
-to reflect the currently installed version.
+Show installed/latest versions, update inline comments, and upgrade
+individual or all dependencies.
 
-Dependabot updates the actual version *specifiers* (e.g., ``>=1.6`` → ``>=1.7``)
-but does NOT touch comments. This script fills that gap.
+Dependabot updates the actual version *specifiers* (e.g., ``>=1.6`` to
+``>=1.7``) but does NOT touch comments. This script fills that gap and
+adds the ability to upgrade dependencies via pip.
 
 Requirements:
     - Python 3.11+
-    - pip (for ``pip index versions``)
-    - The project installed in the current environment (``pip install -e .[dev]``)
+    - pip
+    - The project installed in the current environment
 
 Usage:
-    python scripts/dep_versions.py              # Print version report
-    python scripts/dep_versions.py --update     # Also update comments in pyproject.toml
-    python scripts/dep_versions.py --no-latest  # Skip PyPI check (faster, offline)
-
-Examples:
-    # Quick overview of all dep versions
-    python scripts/dep_versions.py
-
-    # Update comments after a Dependabot merge
-    python scripts/dep_versions.py --update
-
-    # Offline mode — only show installed, skip latest check
-    python scripts/dep_versions.py --no-latest
+    python scripts/dep_versions.py                       # Show all dep versions
+    python scripts/dep_versions.py show --offline        # Skip PyPI check
+    python scripts/dep_versions.py update-comments       # Sync comments with installed
+    python scripts/dep_versions.py upgrade               # Upgrade ALL deps to latest
+    python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
+    python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
 """
 
 from __future__ import annotations
@@ -35,21 +28,26 @@ import argparse
 import re
 import subprocess
 import sys
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as pkg_version
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Constants
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
 
 def _installed_version(pkg: str) -> str | None:
     """Return the installed version of *pkg*, or ``None``."""
     try:
-        return version(pkg)
+        return pkg_version(pkg)
     except PackageNotFoundError:
         return None
 
@@ -79,14 +77,14 @@ def _normalise_name(raw: str) -> str:
     """Normalise a PEP 503 package name for comparison.
 
     ``mkdocs-material`` and ``mkdocs_material`` both become ``mkdocs-material``.
-    Extras are stripped: ``mkdocstrings[python]`` → ``mkdocstrings``.
+    Extras are stripped: ``mkdocstrings[python]`` -> ``mkdocstrings``.
     """
     name = re.split(r"[><=!~;\[]", raw)[0].strip()
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
 # ---------------------------------------------------------------------------
-# Core logic
+# TOML parser (dependency lines only)
 # ---------------------------------------------------------------------------
 
 _DEP_RE = re.compile(
@@ -105,15 +103,15 @@ _DEP_RE = re.compile(
 
 
 def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
-    """Return ``{group_name: [raw_dep_line, ...]}`` from pyproject.toml text.
+    """Return ``{group_name: [specifier_string, ...]}`` from pyproject.toml.
 
     Reads ``[project].dependencies`` and every key under
     ``[project.optional-dependencies]``.
     """
     groups: dict[str, list[str]] = {}
-    current_section: str | None = None  # tracks the active TOML table header
-    current_list: list[str] | None = None  # tracks the active array we're inside
-    in_opt_deps = False  # whether we're inside [project.optional-dependencies]
+    current_section: str | None = None
+    current_list: list[str] | None = None
+    in_opt_deps = False
 
     for line in text.splitlines():
         stripped = line.strip()
@@ -123,7 +121,7 @@ def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
         if table_match:
             table_name = table_match.group(1).strip()
             current_section = table_name
-            current_list = None  # close any open array
+            current_list = None
             in_opt_deps = table_name == "project.optional-dependencies"
             continue
 
@@ -137,9 +135,8 @@ def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
         if in_opt_deps:
             group_match = re.match(r"^(\w[\w-]*)\s*=\s*\[$", stripped)
             if group_match:
-                group_name = group_match.group(1)
                 current_list = []
-                groups[group_name] = current_list
+                groups[group_match.group(1)] = current_list
                 continue
 
         # Closing bracket ends the current array
@@ -149,7 +146,6 @@ def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
 
         # Collect quoted strings inside an active dependency array
         if current_list is not None and stripped.startswith('"'):
-            # Extract the quoted specifier, stripping trailing comma
             spec_match = re.match(r'^"([^"]+)"', stripped)
             if spec_match:
                 current_list.append(spec_match.group(1))
@@ -157,10 +153,13 @@ def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
     return groups
 
 
-def collect_report(
-    *, check_latest: bool = True,
-) -> list[dict[str, str | None]]:
-    """Build a report of all dependencies with installed/latest versions."""
+# ---------------------------------------------------------------------------
+# Report
+# ---------------------------------------------------------------------------
+
+
+def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
+    """Build a report of all dependencies with installed and latest versions."""
     text = PYPROJECT.read_text(encoding="utf-8")
     groups = _parse_deps_from_toml(text)
 
@@ -174,18 +173,14 @@ def collect_report(
                 continue
             seen.add(name)
 
-            # Skip self-references like ``my-project[test]``
-            if name == _normalise_name(
-                PYPROJECT.parent.name
-            ) or "simple-python-boilerplate" in name:
+            # Skip self-references
+            if "simple-python-boilerplate" in name:
                 continue
 
             installed = _installed_version(name)
             latest = _latest_version(name) if check_latest else None
             upgradable = (
-                installed != latest
-                if installed and latest
-                else None
+                installed != latest if installed and latest else None
             )
 
             rows.append({
@@ -194,7 +189,7 @@ def collect_report(
                 "specifier": raw,
                 "installed": installed,
                 "latest": latest,
-                "upgradable": "yes" if upgradable else ("" if upgradable is None else ""),
+                "upgradable": "yes" if upgradable else "",
             })
 
     return rows
@@ -202,29 +197,28 @@ def collect_report(
 
 def print_report(rows: list[dict[str, str | None]]) -> None:
     """Pretty-print the dependency report."""
-    # Column widths
     w_name = max((len(r["name"] or "") for r in rows), default=10)
     w_group = max((len(r["group"] or "") for r in rows), default=10)
     w_spec = max((len(r["specifier"] or "") for r in rows), default=10)
-    w_inst = max((len(r["installed"] or "") for r in rows), default=9)
+    w_inst = max((len(r["installed"] or "-") for r in rows), default=9)
     w_lat = max((len(r["latest"] or "-") for r in rows), default=6)
 
     hdr = (
         f"  {'Package':<{w_name}}  {'Group':<{w_group}}  "
         f"{'Specifier':<{w_spec}}  {'Installed':<{w_inst}}  "
-        f"{'Latest':<{w_lat}}  Upgradable"
+        f"{'Latest':<{w_lat}}  Upgrade?"
     )
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
 
     for r in rows:
-        flag = ""
-        if r["upgradable"] == "yes":
-            flag = "^"
+        flag = "^" if r["upgradable"] == "yes" else ""
+        inst = r["installed"] or "-"
+        lat = r["latest"] or "-"
         print(
             f"  {r['name']:<{w_name}}  {r['group']:<{w_group}}  "
-            f"{r['specifier']:<{w_spec}}  {r['installed'] or '–':<{w_inst}}  "
-            f"{r['latest'] or '-':<{w_lat}}  {flag}"
+            f"{r['specifier']:<{w_spec}}  {inst:<{w_inst}}  "
+            f"{lat:<{w_lat}}  {flag}"
         )
 
 
@@ -236,16 +230,15 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
 def update_comments(rows: list[dict[str, str | None]]) -> int:
     """Rewrite inline ``# vX.Y.Z`` comments in pyproject.toml.
 
-    For every dependency line that has a trailing comment, replace the
-    version portion with the currently installed version. Lines without
-    a comment are left untouched.
+    For every dependency line that has a trailing comment, replace or
+    append the version portion with the currently installed version.
+    Lines without a comment are left untouched.
 
     Returns the number of lines modified.
     """
     text = PYPROJECT.read_text(encoding="utf-8")
     lines = text.splitlines(keepends=True)
 
-    # Build a lookup: normalised name → installed version
     versions: dict[str, str] = {}
     for r in rows:
         name = r.get("name", "")
@@ -264,30 +257,26 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
         name = _normalise_name(spec)
         trail = m.group("trail")
 
-        if name not in versions:
+        if name not in versions or "#" not in trail:
             continue
 
         installed = versions[name]
 
-        # Only touch lines that already have a comment
-        if "#" not in trail:
-            continue
-
-        # Replace version in comment (e.g., ``# v1.2.3`` or ``# Testing framework``)
-        # We look for an existing version pattern in the comment and replace it.
-        # If no version pattern exists, append after the comment text.
         comment_match = re.search(r"#\s*(.*)", trail)
         if not comment_match:
             continue
 
         comment_text = comment_match.group(1).strip()
 
-        # Check if comment already contains a version string
+        # Replace existing version or append
         ver_in_comment = re.search(r"v?\d+\.\d+[\.\d]*", comment_text)
         if ver_in_comment:
-            new_comment = comment_text[:ver_in_comment.start()] + f"v{installed}" + comment_text[ver_in_comment.end():]
+            new_comment = (
+                comment_text[: ver_in_comment.start()]
+                + f"v{installed}"
+                + comment_text[ver_in_comment.end() :]
+            )
         else:
-            # No version in comment — append it
             new_comment = f"{comment_text} (v{installed})"
 
         new_trail = f"  # {new_comment}"
@@ -304,43 +293,171 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Upgrade
+# ---------------------------------------------------------------------------
+
+
+def upgrade_package(name: str, target_version: str | None = None) -> bool:
+    """Upgrade a single package via pip.
+
+    Args:
+        name: Package name (e.g., ``ruff``).
+        target_version: Specific version to install. If ``None``, installs
+            the latest version.
+
+    Returns:
+        ``True`` if pip returned success.
+    """
+    spec = f"{name}=={target_version}" if target_version else name
+    cmd = [sys.executable, "-m", "pip", "install", "--upgrade", spec]
+    print(f"  pip install --upgrade {spec}")
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"  FAILED: {result.stderr.strip()}")
+        return False
+    # Show what was installed
+    new_ver = _installed_version(name)
+    print(f"  -> {name} {new_ver}")
+    return True
+
+
+def upgrade_all(rows: list[dict[str, str | None]]) -> int:
+    """Upgrade all packages that have a newer version available.
+
+    Returns the number of packages upgraded.
+    """
+    upgraded = 0
+    for r in rows:
+        if r["upgradable"] == "yes" and r["name"] and r["installed"]:
+            if upgrade_package(r["name"]):
+                upgraded += 1
+    return upgraded
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 
+def build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser with subcommands."""
+    parser = argparse.ArgumentParser(
+        prog="dep_versions",
+        description="Dependency version manager for pyproject.toml.",
+    )
+    sub = parser.add_subparsers(dest="command", help="Available commands")
+
+    # -- show (default) --
+    show_p = sub.add_parser(
+        "show",
+        help="Show installed and latest versions of all dependencies (default).",
+    )
+    show_p.add_argument(
+        "--offline",
+        action="store_true",
+        help="Skip querying PyPI for latest versions (faster).",
+    )
+
+    # -- update-comments --
+    sub.add_parser(
+        "update-comments",
+        help="Update inline version comments in pyproject.toml.",
+    )
+
+    # -- upgrade --
+    upgrade_p = sub.add_parser(
+        "upgrade",
+        help="Upgrade dependencies via pip.",
+    )
+    upgrade_p.add_argument(
+        "package",
+        nargs="?",
+        default=None,
+        help="Package to upgrade (omit to upgrade all upgradable).",
+    )
+    upgrade_p.add_argument(
+        "version",
+        nargs="?",
+        default=None,
+        help="Target version (omit to upgrade to latest).",
+    )
+
+    return parser
+
+
 def main() -> None:
     """Entry point."""
-    parser = argparse.ArgumentParser(
-        description="Show dependency versions and optionally update pyproject.toml comments.",
-    )
-    parser.add_argument(
-        "--update",
-        action="store_true",
-        help="Update version comments in pyproject.toml to match installed versions.",
-    )
-    parser.add_argument(
-        "--no-latest",
-        action="store_true",
-        help="Skip querying PyPI for latest versions (faster, works offline).",
-    )
+    parser = build_parser()
     args = parser.parse_args()
+
+    # Default to "show" when no subcommand given
+    command = args.command or "show"
 
     print(f"\nDependency versions for {PYPROJECT.parent.name}\n")
 
-    rows = collect_report(check_latest=not args.no_latest)
+    if command == "show":
+        offline = getattr(args, "offline", False)
+        rows = collect_report(check_latest=not offline)
+        if not rows:
+            print("  No dependencies found in pyproject.toml.")
+            return
+        print_report(rows)
 
-    if not rows:
-        print("  No dependencies found in pyproject.toml.")
-        return
-
-    print_report(rows)
-
-    if args.update:
+    elif command == "update-comments":
+        rows = collect_report(check_latest=False)
+        if not rows:
+            print("  No dependencies found in pyproject.toml.")
+            return
+        print_report(rows)
         count = update_comments(rows)
         if count:
             print(f"\nUpdated {count} comment(s) in pyproject.toml")
         else:
-            print("\n  No comments to update (add inline # comments to dep lines to use this feature).")
+            print(
+                "\n  No comments to update."
+                " Add inline # comments to dep lines to use this feature."
+            )
+
+    elif command == "upgrade":
+        pkg = getattr(args, "package", None)
+        ver = getattr(args, "version", None)
+
+        if pkg:
+            # Upgrade a single package
+            normalised = _normalise_name(pkg)
+            # Verify it's one of our declared deps
+            text = PYPROJECT.read_text(encoding="utf-8")
+            groups = _parse_deps_from_toml(text)
+            all_deps = {
+                _normalise_name(s)
+                for specs in groups.values()
+                for s in specs
+            }
+            if normalised not in all_deps:
+                print(
+                    f"  '{pkg}' is not declared in pyproject.toml."
+                    " Only deps listed in [project.optional-dependencies]"
+                    " or [project].dependencies can be upgraded."
+                )
+                sys.exit(1)
+            success = upgrade_package(normalised, ver)
+            sys.exit(0 if success else 1)
+        else:
+            # Upgrade all
+            rows = collect_report(check_latest=True)
+            if not rows:
+                print("  No dependencies found.")
+                return
+            print_report(rows)
+
+            upgradable = [r for r in rows if r["upgradable"] == "yes"]
+            if not upgradable:
+                print("\n  All dependencies are up to date.")
+                return
+
+            print(f"\nUpgrading {len(upgradable)} package(s)...\n")
+            count = upgrade_all(rows)
+            print(f"\nUpgraded {count} package(s).")
 
     print()
 

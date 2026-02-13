@@ -29,12 +29,14 @@ on:
     branches: [main]
     paths:
       - "docs/**"          # Only trigger when docs change
+      - "src/**"           # Or source code changes (mkdocstrings renders docstrings)
       - "mkdocs.yml"       # Or the docs config changes
       - "pyproject.toml"   # Or project metadata changes
   pull_request:
     branches: [main]
     paths:
       - "docs/**"
+      - "src/**"
       - "mkdocs.yml"
       - "pyproject.toml"
   workflow_dispatch:
@@ -73,17 +75,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      # Install your docs framework here. Replace with your tool of choice.
-      # Examples:
-      #   pip install mkdocs mkdocs-material   (MkDocs)
-      #   pip install sphinx sphinx-rtd-theme   (Sphinx)
+      # Install the project with docs extras from pyproject.toml.
+      # This ensures the same dependencies used locally and on RTD.
       - name: Install docs dependencies
-        run: python -m pip install --upgrade pip mkdocs
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[docs]"
 
-      # Build the docs. Replace with your tool's build command.
-      # Examples:
-      #   mkdocs build --strict    (MkDocs)
-      #   sphinx-build docs/ _build/   (Sphinx)
+      # Build docs in strict mode — warnings become errors.
       - name: Build docs
         run: mkdocs build --strict
 
