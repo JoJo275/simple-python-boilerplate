@@ -76,7 +76,7 @@ spb-clean = "simple_python_boilerplate.dev_tools.clean:main"
 # Extra dependencies installed with: pip install -e ".[dev]"
 # NOTE: These are the SINGLE SOURCE OF TRUTH for all dev/test tools.
 # Hatch environments consume these via `features = [...]` (see below).
-# Dependabot reads these to auto-update tool versions.
+# Dependabot reads these to auto-update tool versions via PEP 621.
 [project.optional-dependencies]
 test = [
     "pytest",       # Testing framework
