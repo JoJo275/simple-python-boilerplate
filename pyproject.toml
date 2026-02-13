@@ -74,10 +74,19 @@ spb-clean = "simple_python_boilerplate.dev_tools.clean:main"
 # my_plugin = "simple_python_boilerplate.plugins:MyPlugin"
 
 # Extra dependencies installed with: pip install -e ".[dev]"
+# NOTE: These are the SINGLE SOURCE OF TRUTH for all dev/test tools.
+# Hatch environments consume these via `features = [...]` (see below).
+# Dependabot reads these to auto-update tool versions.
 [project.optional-dependencies]
-dev = [
+test = [
     "pytest",       # Testing framework
     "pytest-cov",   # Code coverage for pytest
+    # "pytest-asyncio",  # For async test support
+    # "pytest-mock",     # Mocking utilities
+    # "hypothesis",      # Property-based testing
+]
+dev = [
+    "simple-python-boilerplate[test]",  # Include test deps
     "ruff",         # Fast linter and formatter
     "mypy",         # Static type checker
     "pre-commit",   # Git hooks for automated checks
@@ -97,13 +106,6 @@ extras = [
 #     "mkdocs-material",     # Material theme for MkDocs
 #     "mkdocstrings[python]", # Auto-generate docs from docstrings
 # ]
-# test = [
-#     "pytest",
-#     "pytest-cov",
-#     "pytest-asyncio",      # For async test support
-#     "pytest-mock",         # Mocking utilities
-#     "hypothesis",          # Property-based testing
-# ]
 
 # ============================================================================
 # HATCH CONFIG
@@ -114,6 +116,13 @@ extras = [
 # ── Hatch environments ────────────────────────────────────────
 # Hatch manages virtual environments. Run commands with: hatch run <cmd>
 # or enter a shell with: hatch shell
+#
+# DEPENDENCY STRATEGY:
+#   Hatch envs use `features` to install extras from [project.optional-dependencies]
+#   instead of duplicating dependency lists. This means:
+#     1. [project.optional-dependencies] is the single source of truth
+#     2. Dependabot can auto-update all tool versions
+#     3. Both `pip install -e ".[dev]"` and `hatch shell` get the same deps
 #
 # IMPORTANT NUANCE — adding vs removing dependencies:
 #   Adding a dependency is straightforward: edit pyproject.toml and run
@@ -128,13 +137,7 @@ extras = [
 
 # Default environment — used by `hatch shell` and `hatch run <cmd>`
 [tool.hatch.envs.default]
-dependencies = [
-    "pytest",
-    "pytest-cov",
-    "ruff",
-    "mypy",
-    "pre-commit",
-]
+features = ["dev"]  # Installs [project.optional-dependencies].dev (includes test deps)
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args}"
@@ -153,10 +156,7 @@ check = ["lint", "fmt-check", "typecheck", "test"]
 #   hatch run +py=3.12 test:run  # Run on a specific version only
 #   hatch env show               # Show all environments and their matrices
 [tool.hatch.envs.test]
-dependencies = [
-    "pytest",
-    "pytest-cov",
-]
+features = ["test"]  # Installs [project.optional-dependencies].test
 
 [[tool.hatch.envs.test.matrix]]
 python = ["3.11", "3.12", "3.13", "3.14"]

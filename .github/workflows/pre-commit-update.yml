@@ -1,0 +1,53 @@
+# Runs `pre-commit autoupdate` weekly and opens a PR with bumped hook versions.
+# This keeps .pre-commit-config.yaml up to date automatically.
+
+name: Update pre-commit hooks
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
+  workflow_dispatch: # Manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Auto-update hooks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install pre-commit
+        run: python -m pip install --upgrade pip pre-commit
+
+      - name: Run pre-commit autoupdate
+        run: pre-commit autoupdate
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --exit-code .pre-commit-config.yaml && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7.0.8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/pre-commit-autoupdate
+          commit-message: "chore: update pre-commit hooks"
+          title: "chore: update pre-commit hooks"
+          body: |
+            Automated update of pre-commit hook versions via `pre-commit autoupdate`.
+
+            Review the diff to confirm the version bumps look correct, then merge.
+          labels: dependencies
+          delete-branch: true
