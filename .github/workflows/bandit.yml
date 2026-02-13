@@ -1,0 +1,77 @@
+# ──────────────────────────────────────────────────────────────
+# Bandit Workflow (static security analysis)
+# ──────────────────────────────────────────────────────────────
+# Scans Python source code for common security issues such as
+# hardcoded passwords, SQL injection, use of unsafe functions,
+# and insecure subprocess calls.
+#
+# Triggers:
+#   - Nightly schedule (03:00 UTC; 11pm ET during DST / 10pm ET otherwise)
+#   - Manual dispatch
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_BANDIT == 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: Bandit
+
+on:
+  schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time).
+    - cron: "0 3 * * *" # Daily 03:00 UTC (11pm ET during DST / 10pm ET otherwise)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bandit:
+    name: Bandit security scan
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_BANDIT == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install bandit
+        run: python -m pip install bandit[toml]
+
+      - name: Run bandit
+        run: bandit -r src/ -c pyproject.toml

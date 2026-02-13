@@ -302,10 +302,9 @@ strict = true  # Enable all strict type checking options
 # ============================================================================
 
 # -- Bandit (security linter) --
-# Install with: pip install bandit
-# [tool.bandit]
-# exclude_dirs = ["tests", ".venv"]
-# skips = ["B101"]  # Skip assert warnings
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]  # Skip assert warnings (asserts are fine outside production code)
 
 # -- Black (formatter) - if not using Ruff format --
 # [tool.black]
