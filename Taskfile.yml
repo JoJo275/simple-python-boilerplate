@@ -1,0 +1,153 @@
+# https://taskfile.dev
+# Install: https://taskfile.dev/installation/
+#
+# Usage:
+#   task              # list all tasks
+#   task test         # run tests
+#   task check        # run all quality checks
+#   task --list-all   # show all tasks including internal ones
+
+version: "3"
+
+silent: true
+
+vars:
+  SRC_DIR: src/
+  TEST_DIR: tests/
+
+tasks:
+  # ── Default ──────────────────────────────────────────────────
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  # ── Environment ─────────────────────────────────────────────
+  shell:
+    desc: Enter the Hatch dev shell
+    cmds:
+      - hatch shell
+
+  env:show:
+    desc: Show all Hatch environments and scripts
+    cmds:
+      - hatch env show
+
+  env:reset:
+    desc: Remove and recreate the default Hatch environment
+    cmds:
+      - hatch env remove default
+      - cmd: echo "Default environment removed. It will be recreated on next hatch command."
+
+  env:prune:
+    desc: Remove ALL Hatch environments
+    prompt: This will remove ALL Hatch environments. Continue?
+    cmds:
+      - hatch env prune
+
+  # ── Testing ─────────────────────────────────────────────────
+  test:
+    desc: Run tests
+    cmds:
+      - hatch run test {{.CLI_ARGS}}
+
+  test:v:
+    desc: Run tests with verbose output
+    cmds:
+      - hatch run test -v {{.CLI_ARGS}}
+
+  test:cov:
+    desc: Run tests with coverage
+    cmds:
+      - hatch run test-cov {{.CLI_ARGS}}
+
+  test:matrix:
+    desc: Run tests across all Python versions (3.11–3.14)
+    cmds:
+      - hatch run test:run {{.CLI_ARGS}}
+
+  test:matrix:cov:
+    desc: Run tests with coverage across all Python versions
+    cmds:
+      - hatch run test:cov {{.CLI_ARGS}}
+
+  # ── Linting & Formatting ───────────────────────────────────
+  lint:
+    desc: Check for linting issues
+    cmds:
+      - hatch run lint {{.CLI_ARGS}}
+
+  lint:fix:
+    desc: Auto-fix linting issues
+    cmds:
+      - hatch run lint-fix {{.CLI_ARGS}}
+
+  fmt:
+    desc: Apply formatting
+    cmds:
+      - hatch run fmt {{.CLI_ARGS}}
+
+  fmt:check:
+    desc: Check formatting without applying
+    cmds:
+      - hatch run fmt-check {{.CLI_ARGS}}
+
+  # ── Type Checking ──────────────────────────────────────────
+  typecheck:
+    desc: Run mypy type checker
+    cmds:
+      - hatch run typecheck {{.CLI_ARGS}}
+
+  # ── Quality Gates ──────────────────────────────────────────
+  check:
+    desc: Run all quality checks (lint, format, typecheck, test)
+    cmds:
+      - hatch run check
+
+  # ── Building ───────────────────────────────────────────────
+  build:
+    desc: Build source and wheel distributions
+    cmds:
+      - hatch build
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - hatch clean
+
+  # ── Pre-commit ─────────────────────────────────────────────
+  pre-commit:install:
+    desc: Install pre-commit hooks
+    cmds:
+      - hatch run pre-commit install
+
+  pre-commit:run:
+    desc: Run pre-commit on all files
+    cmds:
+      - hatch run pre-commit run --all-files
+
+  pre-commit:update:
+    desc: Update pre-commit hooks to latest versions
+    cmds:
+      - hatch run pre-commit autoupdate
+
+  # ── Utility ────────────────────────────────────────────────
+  clean:todo:
+    desc: Archive completed TODO items
+    cmds:
+      - hatch run spb-clean --todo
+
+  doctor:
+    desc: Run project health check
+    cmds:
+      - hatch run spb-doctor
+
+  version:
+    desc: Show project version
+    cmds:
+      - hatch version
+
+  info:
+    desc: Show project metadata
+    cmds:
+      - hatch project metadata
