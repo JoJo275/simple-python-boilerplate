@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to this project! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to this project! This document explains how to set up your environment, how changes flow through the quality pipeline, and what to expect at each stage.
 
 ---
 
@@ -8,9 +8,13 @@ Thank you for your interest in contributing to this project! This document provi
 
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
-- [Making Changes](#making-changes)
+- [Quality Pipeline Overview](#quality-pipeline-overview)
+- [Stage 1: Writing Code (Editor)](#stage-1-writing-code-editor)
+- [Stage 2: Pre-commit Hooks (Local)](#stage-2-pre-commit-hooks-local)
+- [Stage 3: Push & CI Workflows](#stage-3-push--ci-workflows)
+- [Stage 4: Pull Request Checks](#stage-4-pull-request-checks)
+- [Stage 5: Merge to Main](#stage-5-merge-to-main)
 - [Commit Messages](#commit-messages)
-- [Pull Requests](#pull-requests)
 - [Reporting Issues](#reporting-issues)
 - [Code of Conduct](#code-of-conduct)
 
@@ -30,63 +34,180 @@ Thank you for your interest in contributing to this project! This document provi
 ### Prerequisites
 
 - Python **3.11+**
-- `pip`
-- `pipx` (recommended for developer tools)
+- [Hatch](https://hatch.pypa.io/) (recommended) or `pip`
+- [Task](https://taskfile.dev/) (optional, for convenience commands)
 
-### 1. Create and activate a virtual environment
+### Option A: Using Hatch (recommended)
+
+```bash
+# Enter the dev environment (installs all dependencies automatically)
+hatch shell
+
+# Install pre-commit git hooks (one-time, required)
+pre-commit install
+```
+
+### Option B: Using pip
 
 ```bash
 python -m venv .venv
-```
 
-**Windows (PowerShell):**
-
-```powershell
+# Windows (PowerShell)
 .\.venv\Scripts\Activate.ps1
-```
 
-**macOS / Linux:**
-
-```bash
+# macOS / Linux
 source .venv/bin/activate
+
+# Install with dev dependencies
+python -m pip install -e ".[dev]"
+
+# Install pre-commit git hooks (one-time, required)
+pre-commit install
 ```
 
-### 2. Install the project in editable mode
-
-```bash
-python -m pip install -e .
-```
-
-### 3. Install developer tools (optional but recommended)
-
-See [docs/development.md](docs/development.md) for developer tooling details.
+> **Note:** `pre-commit install` must be run once per clone. It registers git hooks that run automatically before each commit.
 
 ---
 
-## Making Changes
+## Quality Pipeline Overview
 
-1. Create a new branch from `main`:
+Every change passes through multiple layers of automated checks before reaching `main`. This catches issues progressively — fast feedback first, comprehensive checks later.
 
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+```
+ You write code
+      │
+      ▼
+┌─────────────────────────────────────────┐
+│  Stage 1: Editor (real-time)            │
+│  Pylance/Pyright, Ruff extension        │
+└─────────────┬───────────────────────────┘
+              │  git commit
+              ▼
+┌─────────────────────────────────────────┐
+│  Stage 2: Pre-commit hooks (local)      │
+│  Ruff, mypy, bandit, file checks        │
+└─────────────┬───────────────────────────┘
+              │  git push
+              ▼
+┌─────────────────────────────────────────┐
+│  Stage 3: CI workflows (GitHub)         │
+│  Lint, test, typecheck, security, spell │
+└─────────────┬───────────────────────────┘
+              │  open PR
+              ▼
+┌─────────────────────────────────────────┐
+│  Stage 4: PR-specific checks            │
+│  PR title, dependency review, labeler   │
+└─────────────┬───────────────────────────┘
+              │  approved & merged
+              ▼
+┌─────────────────────────────────────────┐
+│  Stage 5: Post-merge (main)             │
+│  Changelog, release (on tag)            │
+└─────────────────────────────────────────┘
+```
 
-   Use descriptive branch names such as `fix/login-timeout` or `feat/add-cli`.
+---
 
-2. Make your changes
-3. Run tests to ensure nothing is broken:
+## Stage 1: Writing Code (Editor)
 
-   ```bash
-   pytest
-   ```
+These tools provide **real-time feedback** as you type — no commands needed.
 
-4. Commit your changes following the commit message guidelines below
+| Tool | What it does | How it helps |
+|------|-------------|--------------|
+| **Pylance / Pyright** | Type checking, IntelliSense, import resolution | Catches type errors and missing imports instantly |
+| **Ruff extension** | Inline lint warnings and auto-format on save | Shows style issues and potential bugs as you type |
+
+**Setup:** Install the [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) and [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) VS Code extensions. These are optional but strongly recommended — most issues they catch would otherwise fail at a later stage.
+
+---
+
+## Stage 2: Pre-commit Hooks (Local)
+
+When you run `git commit`, pre-commit hooks run **automatically** and block the commit if anything fails. This is your last line of defense before code leaves your machine.
+
+| Hook | What it checks |
+|------|---------------|
+| **trailing-whitespace** | Removes trailing whitespace |
+| **end-of-file-fixer** | Ensures files end with a newline |
+| **check-yaml / check-toml / check-json** | Validates config file syntax |
+| **check-added-large-files** | Blocks files over 1 MB |
+| **check-merge-conflict** | Catches leftover conflict markers |
+| **detect-private-key** | Prevents accidental secret commits |
+| **debug-statements** | Catches leftover `breakpoint()` / `pdb` imports |
+| **Ruff (lint + format)** | Linting with auto-fix and formatting |
+| **mypy** | Static type checking on `src/` |
+| **Bandit** | Security analysis (SQL injection, hardcoded secrets, etc.) |
+
+**If a hook fails:** Some hooks (Ruff, trailing-whitespace) auto-fix the file. Stage the fixes with `git add` and commit again. Others (mypy, bandit) require you to fix the code manually.
+
+**Bypassing hooks** (use sparingly): `git commit --no-verify`
+
+**Run hooks manually** without committing:
+```bash
+task pre-commit:run          # or: hatch run pre-commit run --all-files
+```
+
+---
+
+## Stage 3: Push & CI Workflows
+
+After pushing your branch, GitHub Actions workflows run automatically on every push and PR to `main`.
+
+| Workflow | What it does |
+|----------|-------------|
+| **lint-format** | Runs Ruff linter and formatter checks |
+| **test** | Runs pytest across Python 3.11, 3.12, and 3.13 |
+| **type-check** | Runs mypy in strict mode against `src/` |
+| **coverage** | Measures test coverage and uploads to Codecov |
+| **security-audit** | Runs pip-audit against vulnerability databases |
+| **codeql** | GitHub's static analysis for security vulnerabilities |
+| **spellcheck** | Catches typos with codespell |
+| **docs** | Builds documentation (when docs files change) |
+
+These workflows **must all pass** before a PR can be merged. If CI fails, check the workflow logs in the PR's "Checks" tab.
+
+> **Why do CI checks duplicate pre-commit?** Pre-commit can be bypassed (`--no-verify`) or skipped if not installed. CI is the authoritative gate — it runs regardless.
+
+---
+
+## Stage 4: Pull Request Checks
+
+These checks run **only on pull requests**, not on plain pushes.
+
+| Workflow | What it does |
+|----------|-------------|
+| **pr-title** | Validates the PR title follows conventional commit format (e.g., `feat: add login`) |
+| **dependency-review** | Flags newly added dependencies with known vulnerabilities or restrictive licenses |
+| **labeler** | Auto-labels the PR based on which files changed |
+
+### PR guidelines
+
+1. Keep PRs focused — one logical change per PR
+2. Write a clear description: what changed, why, and any relevant issue numbers
+3. Ensure your branch is up to date with `main`
+4. Request a review once all checks pass
+
+See [docs/development/pull-requests.md](docs/development/pull-requests.md) for detailed PR conventions.
+
+---
+
+## Stage 5: Merge to Main
+
+After approval and merge, additional automation runs:
+
+| Workflow | What it does |
+|----------|-------------|
+| **changelog** | Auto-generates CHANGELOG.md from conventional commits and opens a PR |
+| **release** | Builds and publishes the package when a version tag (`v*.*.*`) is pushed |
+
+This is why commit message format matters — the changelog is generated directly from your commit messages.
 
 ---
 
 ## Commit Messages
 
-This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+This project follows [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### Format
 
@@ -100,55 +221,25 @@ This project follows the [Conventional Commits](https://www.conventionalcommits.
 
 ### Types
 
-| Type        | Description                                                |
-|-------------|------------------------------------------------------------|
-| `feat`      | A new feature                                              |
-| `fix`       | A bug fix                                                  |
-| `docs`      | Documentation only changes                                 |
-| `style`     | Changes that do not affect the meaning of code             |
-| `refactor`  | A code change that neither fixes a bug nor adds a feature  |
-| `test`      | Adding missing tests or correcting existing tests          |
-| `chore`     | Changes to the build process or auxiliary tools            |
+| Type | Description |
+|------|-------------|
+| `feat` | A new feature |
+| `fix` | A bug fix |
+| `docs` | Documentation only changes |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `test` | Adding or updating tests |
+| `chore` | Maintenance (deps, CI config, tooling) |
+| `ci` | CI/CD workflow changes |
+| `style` | Formatting changes (no logic change) |
 
-### Using Commitizen
-
-We recommend using Commitizen to create properly formatted commits, but certainly not required:
+### Examples
 
 ```bash
-pipx install commitizen
-cz commit
+git commit -m "feat: add user authentication"
+git commit -m "fix(cli): handle missing config file gracefully"
+git commit -m "docs: update contributing guide"
+git commit -m "ci: add bandit to pre-commit hooks"
 ```
-
----
-
-## Pull Requests
-
-1. Ensure your branch is up to date with `main`
-2. Ensure all tests pass
-3. Write a clear PR description explaining:
-   - What changes you made
-   - Why you made them
-   - Any relevant issue numbers
-4. Request a review
-
----
-
-## Labels and Triage
-
-**Triage** is the process of reviewing new issues to categorize, prioritize, and determine next steps. It ensures issues don't get lost and helps maintainers focus on the most important work first.
-
-This project uses a standardized set of labels to:
-- Indicate issue status (needs-triage, confirmed, in-progress)
-- Set priority levels (p0-critical through p3-low)
-- Categorize by area (docs, cli, tests, etc.)
-- Track workflow state (needs-info, blocked, ready-for-review)
-
-When creating issues, maintainers will apply appropriate labels during triage. Contributors can help by:
-- Using clear, descriptive titles
-- Providing all requested information upfront
-- Responding promptly to `status: needs-info` requests
-
-See [docs/labels.md](docs/labels.md) for the full label catalog and how to apply them to your own repo.
 
 ---
 
@@ -158,8 +249,7 @@ When reporting issues, please include:
 
 - A clear and descriptive title
 - Steps to reproduce the issue
-- Expected behavior
-- Actual behavior
+- Expected vs. actual behavior
 - Python version and operating system
 - Any relevant error messages or logs
 
