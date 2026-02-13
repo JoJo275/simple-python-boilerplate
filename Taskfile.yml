@@ -185,7 +185,26 @@ tasks:
     cmds:
       - hatch run pip list --outdated
 
+  # ── Database ───────────────────────────────────────────────
+  db:reset:
+    desc: Reset the local development database
+    prompt: This will DELETE all data in the dev database. Continue?
+    cmds:
+      - sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
+      - cmd: echo "Database reset complete."
+
+  # ── Labels ────────────────────────────────────────────────
+  labels:apply:
+    desc: "Apply GitHub labels (usage: task labels:apply -- --set baseline [--repo OWNER/REPO] [--dry-run])"
+    cmds:
+      - hatch run python scripts/apply_labels.py {{.CLI_ARGS}}
+
   # ── Deep Clean ─────────────────────────────────────────────
+  clean:dev:
+    desc: "Run dev cleanup utility (usage: task clean:dev -- --todo)"
+    cmds:
+      - hatch run spb-clean {{.CLI_ARGS}}
+
   clean:all:
     desc: Remove all build artifacts and caches
     cmds:
