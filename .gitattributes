@@ -6,3 +6,21 @@
 *.sql linguist-language=SQL
 *.sql linguist-detectable=true
 *.sql linguist-vendored=false
+
+# ==============
+# HTML Language
+# ==============
+
+# Ensure HTML is counted
+*.html linguist-language=HTML
+*.html linguist-detectable=true
+*.html linguist-vendored=false
+
+# ==============
+# CSS Language
+# ==============
+
+# Ensure CSS is counted
+*.css linguist-language=CSS
+*.css linguist-detectable=true
+*.css linguist-vendored=false

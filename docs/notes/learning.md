@@ -1297,6 +1297,247 @@ It is a tool byproduct, managed by the packaging system.
 
 ---
 
+## What is `pyproject.toml`?
+
+`pyproject.toml` is a single configuration file (written in [TOML](https://toml.io/)) that defines everything about a Python project: metadata, dependencies, build instructions, and tool settings.
+
+Before `pyproject.toml`, Python projects needed multiple config files (`setup.py`, `setup.cfg`, `tox.ini`, `.flake8`, `mypy.ini`, etc.). Now most of that lives in one place.
+
+### The Standards Behind It
+
+| PEP | What It Defines | Year |
+|-----|----------------|------|
+| [PEP 518](https://peps.python.org/pep-0518/) | `[build-system]` table — how to build the project | 2016 |
+| [PEP 621](https://peps.python.org/pep-0621/) | `[project]` table — project metadata (name, version, deps, etc.) | 2020 |
+| [PEP 517](https://peps.python.org/pep-0517/) | Build backend interface (how pip talks to build tools) | 2017 |
+| [PEP 660](https://peps.python.org/pep-0660/) | Editable installs via build backends | 2021 |
+
+These PEPs made `pyproject.toml` the **standard** way to configure Python projects. Any PEP 621-compliant tool (pip, Hatch, setuptools, Flit, PDM, Dependabot, etc.) can read the `[project]` table.
+
+### Structure Overview
+
+A `pyproject.toml` has three major sections:
+
+```
+┌─────────────────────────────────────────────────┐
+│  [build-system]            ← PEP 518            │
+│  How to build this project                      │
+├─────────────────────────────────────────────────┤
+│  [project]                 ← PEP 621            │
+│  What this project IS (metadata, deps, etc.)    │
+│  ├─ [project.scripts]                           │
+│  ├─ [project.urls]                              │
+│  └─ [project.optional-dependencies]             │
+├─────────────────────────────────────────────────┤
+│  [tool.*]                  ← Tool-specific      │
+│  Configuration for individual tools             │
+│  ├─ [tool.hatch.*]                              │
+│  ├─ [tool.pytest.*]                             │
+│  ├─ [tool.ruff.*]                               │
+│  ├─ [tool.mypy]                                 │
+│  └─ [tool.coverage.*]                           │
+└─────────────────────────────────────────────────┘
+```
+
+### Section 1: `[build-system]` (PEP 518)
+
+Tells pip and other installers **how** to build your project.
+
+```toml
+[build-system]
+requires = ["hatchling"]           # What to download to build
+build-backend = "hatchling.build"  # The Python object that does the build
+```
+
+| Field | Purpose | Example Values |
+|-------|---------|----------------|
+| `requires` | Build-time dependencies (downloaded by pip) | `["hatchling"]`, `["setuptools>=68"]`, `["flit_core>=3.9"]` |
+| `build-backend` | Python callable that builds sdist/wheel | `"hatchling.build"`, `"setuptools.build_meta"`, `"flit_core.api"` |
+
+**Key insight:** You don't need Hatch installed to `pip install .` your project. pip downloads `hatchling` automatically based on `requires`. Hatch (the CLI) is a separate, optional developer tool.
+
+### Section 2: `[project]` (PEP 621)
+
+Describes **what** your project is. This is standardized metadata — every tool reads the same fields.
+
+```toml
+[project]
+name = "my-project"                  # Package name (PyPI / pip install)
+version = "0.1.0"                    # Current version
+description = "One-line summary"     # Short description
+readme = "README.md"                 # Long description file
+requires-python = ">=3.11"           # Minimum Python version
+license = {text = "Apache-2.0"}      # SPDX license identifier
+authors = [{name = "You"}]           # Author(s)
+```
+
+#### Subfields of `[project]`
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `name` | string | Package name on PyPI, used with `pip install <name>` |
+| `version` | string | SemVer version (or `dynamic = ["version"]` for auto) |
+| `description` | string | One-line summary shown on PyPI |
+| `readme` | string/table | Path to long description (usually README.md) |
+| `requires-python` | string | Minimum Python version specifier |
+| `license` | table | SPDX license identifier or file path |
+| `authors` | array of tables | Name and/or email of author(s) |
+| `keywords` | array of strings | PyPI search keywords |
+| `classifiers` | array of strings | [PyPI classifiers](https://pypi.org/classifiers/) (maturity, license, Python versions) |
+| `dependencies` | array of strings | **Runtime** dependencies (installed by `pip install .`) |
+
+#### `[project.scripts]` — CLI Entry Points
+
+Maps command names to Python functions. pip creates executables for these automatically.
+
+```toml
+[project.scripts]
+my-tool = "my_package.main:main"     # Runs main() from my_package/main.py
+my-tool-doctor = "my_package.main:doctor"
+```
+
+After `pip install .`, typing `my-tool` in a terminal calls `my_package.main:main()`.
+
+#### `[project.urls]` — Project Links
+
+Shown on the PyPI sidebar.
+
+```toml
+[project.urls]
+Homepage = "https://github.com/user/project"
+Repository = "https://github.com/user/project"
+Documentation = "https://project.readthedocs.io"
+Changelog = "https://github.com/user/project/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/user/project/issues"
+```
+
+#### `[project.optional-dependencies]` — Extra Dependency Groups
+
+Dependencies that are only installed when explicitly requested. This is PEP 621, so **any tool** (pip, Hatch, Dependabot, tox, nox) understands it.
+
+```toml
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+dev = ["my-project[test]", "ruff", "mypy"]   # Can reference other groups!
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.4"]
+```
+
+Install with: `pip install -e ".[dev]"` or `pip install -e ".[test,docs]"`.
+
+**Why this matters for Hatch:** Hatch environments reference these groups via `features = ["dev"]` instead of duplicating the dependency list. One source of truth, two consumers.
+
+**Why this matters for Dependabot:** Dependabot reads `[project.optional-dependencies]` and auto-creates PRs to update version specifiers (e.g., `"ruff"` → `"ruff>=0.9.1"`).
+
+### Section 3: `[tool.*]` — Tool-Specific Config
+
+Each tool gets its own namespace under `[tool]`. This is not standardized — each tool defines its own schema.
+
+```toml
+[tool.hatch.envs.default]           # Hatch environment config
+[tool.pytest.ini_options]           # pytest settings
+[tool.ruff]                         # Ruff linter/formatter
+[tool.mypy]                         # mypy type checker
+[tool.coverage.run]                 # coverage.py
+[tool.bandit]                       # Bandit security linter
+```
+
+**Key point:** `[tool.*]` sections are ignored by tools that don't own them. Ruff doesn't care about `[tool.mypy]`, and mypy doesn't care about `[tool.ruff]`. They coexist peacefully.
+
+#### Hatch-Specific Tool Config
+
+Hatch uses `[tool.hatch.*]` for environments, scripts, build config, and versioning:
+
+```toml
+# Environments — isolated virtualenvs with specific dependency groups
+[tool.hatch.envs.default]
+features = ["dev"]                     # Install [project.optional-dependencies].dev
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args}"                 # `hatch run test`
+lint = "ruff check {args: src/}"       # `hatch run lint`
+
+# Test matrix — test across Python versions
+[tool.hatch.envs.test]
+features = ["test"]
+
+[[tool.hatch.envs.test.matrix]]        # Note: double brackets = array of tables
+python = ["3.11", "3.12", "3.13"]
+
+# Build config
+[tool.hatch.build.targets.wheel]
+packages = ["src/my_package"]
+```
+
+### TOML Syntax Quick Reference
+
+TOML has a few syntax patterns that can trip you up:
+
+| Syntax | Meaning | Example |
+|--------|---------|---------|
+| `[section]` | Table (like a dict) | `[project]` |
+| `[section.subsection]` | Nested table | `[tool.ruff.lint]` |
+| `[[section]]` | Array of tables (list of dicts) | `[[tool.hatch.envs.test.matrix]]` |
+| `key = "value"` | String | `name = "my-project"` |
+| `key = ["a", "b"]` | Array | `dependencies = ["click"]` |
+| `key = {a = "b"}` | Inline table | `license = {text = "MIT"}` |
+| `key = [{a = "b"}]` | Array of inline tables | `authors = [{name = "You"}]` |
+
+### How Tools Discover `pyproject.toml`
+
+Most tools (pytest, ruff, mypy, etc.) walk up the directory tree from the current working directory until they find a `pyproject.toml` with their `[tool.X]` section. No need to pass `--config` flags.
+
+### Putting It All Together
+
+```toml
+# ── How to build ──
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# ── What this project is ──
+[project]
+name = "my-project"
+version = "0.1.0"
+dependencies = ["requests"]
+
+[project.optional-dependencies]
+dev = ["ruff", "pytest"]
+
+[project.scripts]
+my-cli = "my_project.main:main"
+
+# ── How tools behave ──
+[tool.hatch.envs.default]
+features = ["dev"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+```
+
+One file. Everything in one place. Every tool knows where to look.
+
+### Dependabot and `pyproject.toml`
+
+Dependabot understands PEP 621 fully. It scans:
+
+- `[project].dependencies` — runtime deps
+- `[project.optional-dependencies].*` — all extras (dev, test, docs, etc.)
+
+It creates PRs to update version specifiers when new releases are published.
+
+**What Dependabot does NOT do:**
+
+- It does **not** update version numbers inside TOML comments (e.g., `# v0.6.9` in a comment)
+- It does **not** update versions in non-standard locations (Taskfile.yml, scripts, README examples)
+- It only touches the actual dependency specifier strings
+
+If you have comments documenting current versions (like `"ruff",  # v0.9.1`), those comments will become stale as Dependabot bumps the specifier. You need a separate script or manual process to keep comments current.
+
+---
+
 ## Resources
 
 ### Python Packaging

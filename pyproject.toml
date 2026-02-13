@@ -79,7 +79,7 @@ spb-clean = "simple_python_boilerplate.dev_tools.clean:main"
 # Dependabot reads these to auto-update tool versions via PEP 621.
 [project.optional-dependencies]
 test = [
-    "pytest",       # Testing framework
+    "pytest",  # Testing framework (v8.4.2)
     "pytest-cov",   # Code coverage for pytest
     # "pytest-asyncio",  # For async test support
     # "pytest-mock",     # Mocking utilities
@@ -103,10 +103,10 @@ extras = [
     # "devtools",   # Debug utilities: debug(variable)
 ]
 docs = [
-    "mkdocs>=1.6",               # Documentation site generator
-    "mkdocs-material>=9.4",      # Material theme (palette toggle, code copy, etc.)
-    "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style)
-    "mkdocstrings[python]>=0.27", # Auto-generate docs from docstrings
+    "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
+    "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
+    "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
+    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
 ]
 
 # ============================================================================

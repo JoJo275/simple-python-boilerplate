@@ -189,6 +189,16 @@ tasks:
     cmds:
       - hatch run pip list --outdated
 
+  deps:versions:
+    desc: Show installed versions of all project dependencies
+    cmds:
+      - hatch run python scripts/dep_versions.py --no-latest {{.CLI_ARGS}}
+
+  deps:update-comments:
+    desc: Update version comments in pyproject.toml to match installed versions
+    cmds:
+      - hatch run python scripts/dep_versions.py --update {{.CLI_ARGS}}
+
   pip:upgrade:
     desc: Upgrade pip to the latest version
     cmds:
