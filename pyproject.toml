@@ -301,6 +301,7 @@ strict = true  # Enable all strict type checking options
 # OTHER TOOL CONFIGURATIONS (uncomment as needed)
 # ============================================================================
 
+# runtime configuartion for your package (e.g., logging, feature flags)
 # -- Bandit (security linter) --
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
