@@ -102,11 +102,12 @@ extras = [
     # "ipython",    # Enhanced interactive Python shell
     # "devtools",   # Debug utilities: debug(variable)
 ]
-# docs = [
-#     "mkdocs",              # Documentation generator
-#     "mkdocs-material",     # Material theme for MkDocs
-#     "mkdocstrings[python]", # Auto-generate docs from docstrings
-# ]
+docs = [
+    "mkdocs>=1.6",               # Documentation site generator
+    "mkdocs-material>=9.4",      # Material theme (palette toggle, code copy, etc.)
+    "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style)
+    "mkdocstrings[python]>=0.27", # Auto-generate docs from docstrings
+]
 
 # ============================================================================
 # HATCH CONFIG
@@ -149,6 +150,17 @@ fmt = "ruff format {args: src/ tests/}"
 fmt-check = "ruff format --check {args: src/ tests/}"
 typecheck = "mypy {args: src/}"
 check = ["lint", "fmt-check", "typecheck", "test"]
+
+# ── Docs environment — build and serve documentation ──────────
+# Usage:
+#   hatch run docs:serve   # Live-reload dev server at http://127.0.0.1:8000
+#   hatch run docs:build   # Build static site (strict mode)
+[tool.hatch.envs.docs]
+features = ["docs"]
+
+[tool.hatch.envs.docs.scripts]
+serve = "mkdocs serve {args}"
+build = "mkdocs build --strict {args}"
 
 # ── Test matrix — run tests across multiple Python versions ───
 # Usage:
