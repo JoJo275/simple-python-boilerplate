@@ -241,6 +241,17 @@ git commit -m "docs: update contributing guide"
 git commit -m "ci: add bandit to pre-commit hooks"
 ```
 
+### Commitizen (optional)
+
+[Commitizen](https://commitizen-tools.github.io/commitizen/) provides an interactive prompt that walks you through writing a properly formatted commit message:
+
+```bash
+pipx install commitizen
+cz commit
+```
+
+This is entirely optional — write commits manually if you prefer. The PR title check and changelog generation only require the format, not the tool.
+
 ---
 
 ## Reporting Issues
