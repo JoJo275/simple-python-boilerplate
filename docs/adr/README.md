@@ -38,6 +38,9 @@ Each ADR follows this structure:
 | [014](014-no-template-engine.md) | No template engine — manual customisation | Accepted |
 | [015](015-no-github-directory-readme.md) | No README.md in .github/ directory | Accepted |
 | [016](016-hatchling-and-hatch.md) | Use Hatchling (build backend) and Hatch (project manager) together | Accepted |
+| [017](017-task-runner.md) | Use Taskfile as the project task runner | Accepted |
+| [018](018-bandit-for-security-linting.md) | Use Bandit for Python security linting | Accepted |
+| [019](019-containerfile.md) | Use Containerfile for OCI-compatible container builds | Accepted |
 
 ## Archive
 
