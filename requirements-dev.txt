@@ -19,6 +19,9 @@ ruff
 # Type Checking
 mypy
 
+# Security
+bandit
+
 # Git Hooks
 pre-commit
 

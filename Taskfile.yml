@@ -97,7 +97,11 @@ tasks:
     desc: Run mypy type checker
     cmds:
       - hatch run typecheck {{.CLI_ARGS}}
-
+  # ── Security ───────────────────────────────────────────
+  security:
+    desc: Run bandit security linter
+    cmds:
+      - hatch run bandit -r src/ {{.CLI_ARGS}}
   # ── Quality Gates ──────────────────────────────────────────
   check:
     desc: Run all quality checks (lint, format, typecheck, test)

@@ -90,6 +90,7 @@ dev = [
     "ruff",         # Fast linter and formatter
     "mypy",         # Static type checker
     "pre-commit",   # Git hooks for automated checks
+    "bandit",       # Security linter
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
 extras = [
