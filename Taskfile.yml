@@ -185,6 +185,11 @@ tasks:
     cmds:
       - hatch run pip list --outdated
 
+  pip:upgrade:
+    desc: Upgrade pip to the latest version
+    cmds:
+      - hatch run pip install --upgrade pip
+
   # ── Database ───────────────────────────────────────────────
   db:reset:
     desc: Reset the local development database
@@ -198,6 +203,21 @@ tasks:
     desc: "Apply GitHub labels (usage: task labels:apply -- --set baseline [--repo OWNER/REPO] [--dry-run])"
     cmds:
       - hatch run python scripts/apply_labels.py {{.CLI_ARGS}}
+
+  labels:dry-run:
+    desc: Preview baseline labels without applying
+    cmds:
+      - hatch run python scripts/apply_labels.py --set baseline --dry-run
+
+  labels:baseline:
+    desc: Apply baseline labels to the current repo
+    cmds:
+      - hatch run python scripts/apply_labels.py --set baseline
+
+  labels:full:
+    desc: Apply extended labels to the current repo
+    cmds:
+      - hatch run python scripts/apply_labels.py --set extended
 
   # ── Deep Clean ─────────────────────────────────────────────
   clean:dev:
