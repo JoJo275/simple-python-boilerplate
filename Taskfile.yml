@@ -209,6 +209,17 @@ tasks:
     cmds:
       - hatch run python -m pip install --upgrade pip
 
+  # ── Workflow Actions ───────────────────────────────────────
+  actions:versions:
+    desc: Show SHA-pinned GitHub Actions with their version tags
+    cmds:
+      - hatch run python scripts/workflow_versions.py show {{.CLI_ARGS}}
+
+  actions:update-comments:
+    desc: Update version comments on SHA-pinned actions in workflow files
+    cmds:
+      - hatch run python scripts/workflow_versions.py update-comments
+
   # ── Database ───────────────────────────────────────────────
   db:reset:
     desc: Reset the local development database
