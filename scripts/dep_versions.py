@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency version manager for pyproject.toml.
+"""Dependency version manager for pyproject.toml and requirements files.
 
 Show installed/latest versions, update inline comments, and upgrade
 individual or all dependencies.
@@ -7,6 +7,13 @@ individual or all dependencies.
 Dependabot updates the actual version *specifiers* (e.g., ``>=1.6`` to
 ``>=1.7``) but does NOT touch comments. This script fills that gap and
 adds the ability to upgrade dependencies via pip.
+
+The ``update-comments`` command annotates **every** dependency line with
+a succinct description (from PyPI metadata) and the installed version.
+Lines that already have a comment get their version refreshed; lines
+without a comment receive a new ``# <summary> (vX.Y.Z)`` annotation.
+This works across pyproject.toml **and** any requirements*.txt files
+found in the project root.
 
 Requirements:
     - Python 3.11+
@@ -29,6 +36,7 @@ import re
 import subprocess
 import sys
 from importlib.metadata import PackageNotFoundError
+from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
@@ -38,6 +46,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
+REQ_FILES = sorted(ROOT.glob("requirements*.txt"))
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -48,6 +57,30 @@ def _installed_version(pkg: str) -> str | None:
     """Return the installed version of *pkg*, or ``None``."""
     try:
         return pkg_version(pkg)
+    except PackageNotFoundError:
+        return None
+
+
+def _package_summary(pkg: str) -> str | None:
+    """Return the one-line PyPI summary for *pkg*, or ``None``.
+
+    Uses locally installed metadata — no network call required.
+    If the summary starts with the package name (e.g. ``"pytest:
+    simple powerful testing…"``), the redundant prefix is stripped.
+    """
+    try:
+        meta = pkg_metadata(pkg)
+        summary: str | None = meta.get("Summary")
+        if not summary:
+            return None
+        # Strip trailing periods for consistency
+        summary = summary.rstrip(".")
+        # Remove leading "pkgname: " or "pkgname - " prefix (redundant)
+        prefix_re = re.compile(
+            r"^" + re.escape(pkg) + r"\s*[:—–-]\s*", re.IGNORECASE,
+        )
+        summary = prefix_re.sub("", summary)
+        return summary
     except PackageNotFoundError:
         return None
 
@@ -81,6 +114,18 @@ def _normalise_name(raw: str) -> str:
     """
     name = re.split(r"[><=!~;\[]", raw)[0].strip()
     return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def _capitalise(text: str) -> str:
+    """Upper-case the first letter, leave the rest unchanged.
+
+    Unlike ``str.capitalize()``, this does **not** lower-case the tail,
+    so ``"PyPI metadata"`` stays ``"PyPI metadata"`` instead of becoming
+    ``"Pypi metadata"``.
+    """
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
 
 
 # ---------------------------------------------------------------------------
@@ -228,11 +273,17 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
 
 
 def update_comments(rows: list[dict[str, str | None]]) -> int:
-    """Rewrite inline ``# vX.Y.Z`` comments in pyproject.toml.
+    """Rewrite inline comments on dependency lines in pyproject.toml.
 
-    For every dependency line that has a trailing comment, replace or
-    append the version portion with the currently installed version.
-    Lines without a comment are left untouched.
+    Behaviour per line:
+
+    * **Has a comment with a version** — version is replaced with the
+      installed version, description text is preserved.
+    * **Has a comment without a version** — installed version is appended
+      in parentheses.
+    * **No comment at all** — a new comment is generated from the
+      package's PyPI summary and the installed version, e.g.
+      ``# Simple powerful testing with Python (v8.4.2)``.
 
     Returns the number of lines modified.
     """
@@ -257,27 +308,33 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
         name = _normalise_name(spec)
         trail = m.group("trail")
 
-        if name not in versions or "#" not in trail:
+        if name not in versions:
             continue
 
         installed = versions[name]
 
-        comment_match = re.search(r"#\s*(.*)", trail)
-        if not comment_match:
-            continue
+        if "#" in trail:
+            # ---- existing comment: update version in place ----
+            comment_match = re.search(r"#\s*(.*)", trail)
+            if not comment_match:
+                continue
 
-        comment_text = comment_match.group(1).strip()
+            comment_text = comment_match.group(1).strip()
 
-        # Replace existing version or append
-        ver_in_comment = re.search(r"v?\d+\.\d+[\.\d]*", comment_text)
-        if ver_in_comment:
-            new_comment = (
-                comment_text[: ver_in_comment.start()]
-                + f"v{installed}"
-                + comment_text[ver_in_comment.end() :]
-            )
+            ver_in_comment = re.search(r"v?\d+\.\d+[\.\d]*", comment_text)
+            if ver_in_comment:
+                new_comment = (
+                    comment_text[: ver_in_comment.start()]
+                    + f"v{installed}"
+                    + comment_text[ver_in_comment.end() :]
+                )
+            else:
+                new_comment = f"{comment_text} (v{installed})"
         else:
-            new_comment = f"{comment_text} (v{installed})"
+            # ---- no comment: generate description + version ----
+            summary = _package_summary(name)
+            desc = _capitalise(summary) if summary else name
+            new_comment = f"{desc} (v{installed})"
 
         new_trail = f"  # {new_comment}"
         new_line = f'{m.group("indent")}"{spec}"{m.group("sep")}{new_trail}\n'
@@ -290,6 +347,99 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
         PYPROJECT.write_text("".join(lines), encoding="utf-8")
 
     return modified
+
+
+# ---------------------------------------------------------------------------
+# Requirements-file comment updater
+# ---------------------------------------------------------------------------
+
+# Matches an uncommented dependency line in a requirements file.
+# Examples:  pytest, pytest>=8.0, pytest==8.4.2, ruff  # some comment
+_REQ_DEP_RE = re.compile(
+    r"""
+    ^                        # start of line
+    (?P<spec>[A-Za-z0-9]     # package name starts with alphanumeric
+        [A-Za-z0-9._-]*      # rest of package name
+        (?:\[[^\]]+\])?      # optional extras  e.g. [python]
+        (?:[><=!~]\S*)?)     # optional version constraint
+    (?P<trail>\s*(?:[#].*)?) # optional trailing comment
+    $
+    """,
+    re.VERBOSE,
+)
+
+
+def update_requirements_comments() -> dict[str, int]:
+    """Update inline comments in every ``requirements*.txt`` file.
+
+    The same logic as ``update_comments`` for pyproject.toml is applied:
+
+    * Lines with a comment get their version refreshed.
+    * Lines without a comment receive a generated
+      ``# <summary> (vX.Y.Z)`` annotation.
+
+    Returns a mapping ``{filename: lines_modified}``.
+    """
+    results: dict[str, int] = {}
+
+    for req_path in REQ_FILES:
+        text = req_path.read_text(encoding="utf-8")
+        lines = text.splitlines(keepends=True)
+        modified = 0
+
+        for i, line in enumerate(lines):
+            stripped = line.strip()
+            # Skip blanks, pure comments, options, and -r includes
+            if (
+                not stripped
+                or stripped.startswith("#")
+                or stripped.startswith("-")
+            ):
+                continue
+
+            m = _REQ_DEP_RE.match(stripped)
+            if not m:
+                continue
+
+            raw_spec = m.group("spec")
+            name = _normalise_name(raw_spec)
+            trail = m.group("trail").strip()
+            installed = _installed_version(name)
+
+            if not installed:
+                continue
+
+            if trail and "#" in trail:
+                # Update existing comment
+                comment_match = re.search(r"#\s*(.*)", trail)
+                if not comment_match:
+                    continue
+                comment_text = comment_match.group(1).strip()
+                ver_in = re.search(r"v?\d+\.\d+[\.\d]*", comment_text)
+                if ver_in:
+                    new_comment = (
+                        comment_text[: ver_in.start()]
+                        + f"v{installed}"
+                        + comment_text[ver_in.end() :]
+                    )
+                else:
+                    new_comment = f"{comment_text} (v{installed})"
+            else:
+                # Generate new comment
+                summary = _package_summary(name)
+                desc = _capitalise(summary) if summary else name
+                new_comment = f"{desc} (v{installed})"
+
+            new_line = f"{raw_spec}  # {new_comment}\n"
+            if new_line != lines[i]:
+                lines[i] = new_line
+                modified += 1
+
+        if modified:
+            req_path.write_text("".join(lines), encoding="utf-8")
+        results[req_path.name] = modified
+
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -343,7 +493,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the argument parser with subcommands."""
     parser = argparse.ArgumentParser(
         prog="dep_versions",
-        description="Dependency version manager for pyproject.toml.",
+        description="Dependency version manager for pyproject.toml and requirements files.",
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -361,7 +511,11 @@ def build_parser() -> argparse.ArgumentParser:
     # -- update-comments --
     sub.add_parser(
         "update-comments",
-        help="Update inline version comments in pyproject.toml.",
+        help=(
+            "Update inline version comments in pyproject.toml and "
+            "requirements*.txt files.  Adds descriptions and versions "
+            "to lines that have no comment."
+        ),
     )
 
     # -- upgrade --
@@ -409,14 +563,21 @@ def main() -> None:
             print("  No dependencies found in pyproject.toml.")
             return
         print_report(rows)
+
+        # ---- pyproject.toml ----
         count = update_comments(rows)
         if count:
-            print(f"\nUpdated {count} comment(s) in pyproject.toml")
+            print(f"\n  Updated {count} comment(s) in pyproject.toml")
         else:
-            print(
-                "\n  No comments to update."
-                " Add inline # comments to dep lines to use this feature."
-            )
+            print("\n  pyproject.toml: no changes needed.")
+
+        # ---- requirements*.txt ----
+        req_results = update_requirements_comments()
+        for fname, n in req_results.items():
+            if n:
+                print(f"  Updated {n} comment(s) in {fname}")
+            else:
+                print(f"  {fname}: no changes needed.")
 
     elif command == "upgrade":
         pkg = getattr(args, "package", None)

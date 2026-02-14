@@ -79,22 +79,22 @@ spb-clean = "simple_python_boilerplate.dev_tools.clean:main"
 # Dependabot reads these to auto-update tool versions via PEP 621.
 [project.optional-dependencies]
 test = [
-    "pytest",  # Testing framework (v8.4.2)
-    "pytest-cov",   # Code coverage for pytest
+    "pytest",  # Testing framework (v9.0.2)
+    "pytest-cov",  # Code coverage for pytest (v7.0.0)
     # "pytest-asyncio",  # For async test support
     # "pytest-mock",     # Mocking utilities
     # "hypothesis",      # Property-based testing
 ]
 dev = [
     "simple-python-boilerplate[test]",  # Include test deps
-    "ruff",         # Fast linter and formatter
-    "mypy",         # Static type checker
-    "pre-commit",   # Git hooks for automated checks
-    "bandit",       # Security linter
+    "ruff",  # Fast linter and formatter (v0.15.0)
+    "mypy",  # Static type checker (v1.19.1)
+    "pre-commit",  # Git hooks for automated checks (v4.5.1)
+    "bandit",  # Security linter (v1.9.3)
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
 extras = [
-    "pipdeptree",   # Visualize dependency tree: python -m pipdeptree
+    "pipdeptree",  # Visualize dependency tree: python -m pipdeptree (v2.30.0)
     # "pip-tools",  # Pin dependencies: pip-compile pyproject.toml
     # "pip-audit",  # Check for security vulnerabilities in dependencies
     # "rich",       # Pretty console output for debugging

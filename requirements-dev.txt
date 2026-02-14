@@ -10,20 +10,20 @@
 -r requirements.txt
 
 # Testing
-pytest
-pytest-cov
+pytest  # Simple powerful testing with Python (v9.0.2)
+pytest-cov  # Pytest plugin for measuring coverage (v7.0.0)
 
 # Linting & Formatting
-ruff
+ruff  # An extremely fast Python linter and code formatter, written in Rust (v0.15.0)
 
 # Type Checking
-mypy
+mypy  # Optional static typing for Python (v1.19.1)
 
 # Security
-bandit
+bandit  # Security oriented static analyser for python code (v1.9.3)
 
 # Git Hooks
-pre-commit
+pre-commit  # A framework for managing and maintaining multi-language pre-commit hooks (v4.5.1)
 
 # Optional helpful tools (uncomment as needed)
 # pipdeptree      # Dependency tree visualization
