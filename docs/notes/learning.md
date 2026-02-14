@@ -135,6 +135,47 @@ There are a lot of overlapping tools in the Python ecosystem. This table groups 
 | **standard-version** | `npm install standard-version` | Bump version, generate changelog from Conventional Commits, create Git tag | Simple, focused on versioning + changelog | Node.js dependency, archived/maintenance-only |
 | **bump2version** | `pip install bump2version` | Find-and-replace version strings across files, create Git tag | Simple, language-agnostic, config file driven | No commit message parsing, no changelog generation, maintenance mode |
 
+#### Commit Message Prefixes (Conventional Commits)
+
+| Prefix | Meaning | When to use | Version bump | Example |
+|--------|---------|-------------|--------------|---------|
+| `feat:` | New feature | Adding new user-facing functionality | Minor | `feat: add user login endpoint` |
+| `fix:` | Bug fix | Fixing a defect or incorrect behavior | Patch | `fix: correct null check in parser` |
+| `docs:` | Documentation | Changes to documentation only | None | `docs: update API usage guide` |
+| `style:` | Code style | Formatting, whitespace — no logic change | None | `style: fix indentation in models` |
+| `refactor:` | Refactoring | Restructuring code without changing behavior | None | `refactor: extract validation into helper` |
+| `perf:` | Performance | Improving performance without changing behavior | Patch | `perf: cache database query results` |
+| `test:` | Tests | Adding or updating tests only | None | `test: add unit tests for auth module` |
+| `build:` | Build system | Changes to build config or dependencies | None | `build: upgrade hatchling to 1.25` |
+| `ci:` | CI/CD | Changes to CI/CD configuration or scripts | None | `ci: add mypy check to PR workflow` |
+| `chore:` | Maintenance | Routine tasks, tooling, no production code change | None | `chore: update .gitignore` |
+| `revert:` | Revert | Reverting a previous commit | Varies | `revert: undo feat: add login endpoint` |
+| `feat!:` / `fix!:` | Breaking change | Append `!` after any type for incompatible API changes | Major | `feat!: remove deprecated login endpoint` |
+
+> **Tip:** Use a `BREAKING CHANGE:` footer in the commit body for longer breaking change explanations.
+
+#### Branch Prefixes
+
+| Branch prefix | Meaning | When to use | Typical merge expectation | Example |
+|---------------|---------|-------------|---------------------------|---------|
+| `wip/` | Work in progress | Incomplete work, not ready for review | Draft PR or no PR yet | `wip/user-auth-flow` |
+| `spike/` | Technical spike | Time-boxed research or proof of concept | May not merge — results documented | `spike/graphql-feasibility` |
+| `explore/` | Exploration | Experimenting with an idea or library | May not merge — learning exercise | `explore/htmx-integration` |
+| `chore/` | Maintenance | Routine tasks, config, tooling changes | Merge after review | `chore/update-gitignore` |
+| `feat/` | Feature | New user-facing functionality | Merge after review + tests pass | `feat/user-login` |
+| `fix/` | Bug fix | Fixing a defect or incorrect behavior | Merge after review + tests pass | `fix/null-pointer-in-parser` |
+| `docs/` | Documentation | Changes to documentation only | Merge after review | `docs/update-readme` |
+| `refactor/` | Refactoring | Restructuring code without changing behavior | Merge after review + tests pass | `refactor/extract-auth-service` |
+| `test/` | Tests | Adding or updating tests only | Merge after review | `test/add-auth-unit-tests` |
+| `ci/` | CI/CD | Changes to CI/CD configuration | Merge after review | `ci/add-mypy-workflow` |
+| `build/` | Build system | Build config, packaging, dependencies | Merge after review | `build/upgrade-hatchling` |
+| `perf/` | Performance | Performance improvements | Merge after review + benchmarks | `perf/cache-db-queries` |
+| `style/` | Code style | Formatting, whitespace — no logic change | Merge after review | `style/fix-indentation` |
+| `release/` | Release | Preparing a release (version bump, changelog) | Merge to main, tag, deploy | `release/v1.2.0` |
+| `hotfix/` | Hotfix | Urgent production fix | Fast-track merge + deploy | `hotfix/fix-login-crash` |
+| `deps/` | Dependencies | Dependency updates (manual or grouped) | Merge after CI passes | `deps/bump-requests-2.32` |
+| `sec/` | Security | Security-related fix or hardening | Merge after review (may be private) | `sec/patch-ssrf-vulnerability` |
+
 #### What this project uses
 
 | Category | Tool | Why |
