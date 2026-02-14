@@ -202,6 +202,8 @@ Tools I found helpful during development:
 | `pip-tools` | `pip install pip-tools` | Pin dependencies with `pip-compile` |
 | `pip-audit` | `pip install pip-audit` | Check for security vulnerabilities |
 | `rich` | `pip install rich` | Pretty console output and tables |
+| `typer` | `pip install typer` | Build CLI apps with type hints |
+| `click` | `pip install click` | Composable command-line toolkit |
 | `icecream` | `pip install icecream` | Better debug printing: `ic(variable)` |
 | `ipython` | `pip install ipython` | Enhanced interactive Python shell |
 | `devtools` | `pip install devtools` | Debug utilities: `debug(variable)` |
