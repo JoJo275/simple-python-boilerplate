@@ -24,6 +24,9 @@ Usage:
     python scripts/workflow_versions.py show           # Same as above
     python scripts/workflow_versions.py show --offline # Skip GitHub API
     python scripts/workflow_versions.py update-comments # Sync comments + add descriptions
+    python scripts/workflow_versions.py upgrade        # Upgrade ALL actions to latest
+    python scripts/workflow_versions.py upgrade actions/checkout          # Upgrade one action
+    python scripts/workflow_versions.py upgrade actions/checkout v6.1.0   # Pin to a version
 """
 
 from __future__ import annotations
@@ -217,6 +220,72 @@ def _resolve_tag(
 
 
 # ---------------------------------------------------------------------------
+# Latest release / tag-to-SHA resolution
+# ---------------------------------------------------------------------------
+
+
+def _latest_tag(repo_slug: str) -> str | None:
+    """Return the most recent semver-style release tag for *repo_slug*.
+
+    Tries the Releases API first (returns the tag of the latest
+    published release).  If the release tag doesn't look like a
+    version (e.g. ``codeql-bundle-v2.24.1``), falls back to
+    scanning the first page of tags for the newest ``vX.Y.Z``
+    style tag.
+    """
+    _semver_re = re.compile(r"^v?\d+\.\d+")
+
+    # Strategy 1: latest release (fast, 1 API call)
+    url = f"https://api.github.com/repos/{repo_slug}/releases/latest"
+    data = _gh_api(url)
+    if isinstance(data, dict):
+        tag = data.get("tag_name", "")
+        if tag and _semver_re.match(tag):
+            return tag
+
+    # Strategy 2: first semver tag on page 1
+    url = f"https://api.github.com/repos/{repo_slug}/tags?per_page=30"
+    data = _gh_api(url)
+    if isinstance(data, list):
+        for tag_info in data:
+            tag = tag_info.get("name", "")
+            if tag and _semver_re.match(tag):
+                return tag
+
+    return None
+
+
+def _resolve_sha_for_tag(
+    repo_slug: str, tag_name: str,
+) -> str | None:
+    """Resolve *tag_name* to its commit SHA.
+
+    Handles both lightweight and annotated tags.
+    """
+    url = (
+        f"https://api.github.com/repos/{repo_slug}"
+        f"/git/matching-refs/tags/{tag_name}"
+    )
+    data = _gh_api(url)
+    if not isinstance(data, list):
+        return None
+
+    for ref in data:
+        ref_name = ref.get("ref", "").removeprefix("refs/tags/")
+        if ref_name != tag_name:
+            continue
+        obj = ref.get("object", {})
+        ref_sha = obj.get("sha", "")
+        ref_type = obj.get("type", "")
+        if ref_type == "commit":
+            return ref_sha
+        if ref_type == "tag":
+            return _peel_to_commit(repo_slug, ref_sha)
+
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Action descriptions
 # ---------------------------------------------------------------------------
 
@@ -311,8 +380,16 @@ def _action_description(action: str) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+def _repo_slug(action: str) -> str:
+    """Strip sub-path from an action reference to get ``owner/repo``."""
+    parts = action.split("/")
+    return f"{parts[0]}/{parts[1]}"
+
+
 def scan_workflows(
-    *, resolve_tags: bool = True,
+    *,
+    resolve_tags: bool = True,
+    check_latest: bool = False,
 ) -> list[dict[str, str | None]]:
     """Find all ``uses: owner/repo@SHA`` lines across workflow files.
 
@@ -323,14 +400,17 @@ def scan_workflows(
         - ``sha``: the full 40-char SHA
         - ``comment_tag``: tag from the existing inline comment (or None)
         - ``resolved_tag``: tag resolved via GitHub API (or None)
+        - ``latest_tag``: newest release tag (or None)
         - ``stale``: "yes" | "missing" | "no-desc" | ""
+        - ``upgradable``: "yes" if latest_tag differs from current
         - ``has_description``: "yes" if comment has a description
     """
     if not WORKFLOWS_DIR.is_dir():
         return []
 
     rows: list[dict[str, str | None]] = []
-    seen_shas: dict[str, str | None] = {}  # "action@SHA" -> resolved tag
+    seen_shas: dict[str, str | None] = {}   # "action@SHA" -> resolved tag
+    seen_latest: dict[str, str | None] = {}  # repo_slug -> latest tag
 
     for wf in sorted(WORKFLOWS_DIR.glob("*.yml")):
         text = wf.read_text(encoding="utf-8")
@@ -342,6 +422,7 @@ def scan_workflows(
             action = m.group("action")
             sha = m.group("ref")
             trail = m.group("trail").strip()
+            slug = _repo_slug(action)
 
             # Extract existing comment tag and detect description
             comment_tag: str | None = None
@@ -372,6 +453,15 @@ def scan_workflows(
                     )
                     seen_shas[cache_key] = resolved_tag
 
+            # Fetch latest tag (cached per repo)
+            latest_tag: str | None = None
+            if check_latest:
+                if slug in seen_latest:
+                    latest_tag = seen_latest[slug]
+                else:
+                    latest_tag = _latest_tag(slug)
+                    seen_latest[slug] = latest_tag
+
             stale = ""
             if comment_tag and resolved_tag and comment_tag != resolved_tag:
                 stale = "yes"
@@ -380,6 +470,13 @@ def scan_workflows(
             elif not has_desc and (comment_tag or resolved_tag):
                 stale = "no-desc"
 
+            current = resolved_tag or comment_tag
+            upgradable = (
+                "yes"
+                if current and latest_tag and current != latest_tag
+                else ""
+            )
+
             rows.append({
                 "file": wf.name,
                 "line": str(lineno),
@@ -387,7 +484,9 @@ def scan_workflows(
                 "sha": sha,
                 "comment_tag": comment_tag,
                 "resolved_tag": resolved_tag,
+                "latest_tag": latest_tag,
                 "stale": stale,
+                "upgradable": upgradable,
                 "has_description": "yes" if has_desc else "",
             })
 
@@ -405,27 +504,50 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         print("  No SHA-pinned actions found.")
         return
 
+    has_latest = any(r.get("latest_tag") for r in rows)
+
     w_file = max(len(r["file"] or "") for r in rows)
     w_action = max(len(r["action"] or "") for r in rows)
     w_ctag = max((len(r["comment_tag"] or "-") for r in rows), default=7)
     w_rtag = max((len(r["resolved_tag"] or "-") for r in rows), default=8)
 
-    hdr = (
-        f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
-        f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  Stale?"
-    )
+    if has_latest:
+        w_ltag = max(
+            (len(r["latest_tag"] or "-") for r in rows), default=6,
+        )
+        hdr = (
+            f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
+            f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  "
+            f"{'Latest':<{w_ltag}}  Upgrade?"
+        )
+    else:
+        w_ltag = 0
+        hdr = (
+            f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
+            f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  Stale?"
+        )
     print(hdr)
     print("  " + "-" * (len(hdr) - 2))
 
     for r in rows:
         ctag = r["comment_tag"] or "-"
         rtag = r["resolved_tag"] or "-"
-        flag_map = {"yes": "^", "missing": "+", "no-desc": "d"}
-        flag = flag_map.get(r["stale"] or "", "")
-        print(
-            f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
-            f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
-        )
+
+        if has_latest:
+            ltag = r.get("latest_tag") or "-"
+            uflag = "^" if r.get("upgradable") == "yes" else ""
+            print(
+                f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
+                f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  "
+                f"{ltag:<{w_ltag}}  {uflag}"
+            )
+        else:
+            flag_map = {"yes": "^", "missing": "+", "no-desc": "d"}
+            flag = flag_map.get(r["stale"] or "", "")
+            print(
+                f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
+                f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -553,6 +675,127 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Upgrade
+# ---------------------------------------------------------------------------
+
+
+def upgrade_action(
+    action: str,
+    target_tag: str,
+    rows: list[dict[str, str | None]],
+) -> int:
+    """Upgrade all occurrences of *action* to *target_tag*.
+
+    Resolves the tag to a commit SHA via the GitHub API, then
+    rewrites every matching ``uses:`` line (SHA + comment).
+
+    Returns the number of lines modified.
+    """
+    slug = _repo_slug(action)
+    new_sha = _resolve_sha_for_tag(slug, target_tag)
+    if not new_sha:
+        print(f"  [!] Could not resolve {target_tag} for {slug}")
+        return 0
+
+    # Group affected rows by file
+    by_file: dict[str, list[dict[str, str | None]]] = {}
+    for r in rows:
+        if _repo_slug(r["action"] or "") == slug:
+            fname = r["file"] or ""
+            by_file.setdefault(fname, []).append(r)
+
+    modified_total = 0
+
+    for fname, file_rows in by_file.items():
+        wf_path = WORKFLOWS_DIR / fname
+        text = wf_path.read_text(encoding="utf-8")
+        lines = text.splitlines(keepends=True)
+        modified = 0
+
+        for r in file_rows:
+            idx = int(r["line"] or "0") - 1
+            if idx < 0 or idx >= len(lines):
+                continue
+
+            line = lines[idx].rstrip("\n")
+            m = _USES_RE.match(line)
+            if not m:
+                continue
+
+            trail = m.group("trail")
+
+            # Update the version in the comment
+            if "#" in trail:
+                # Replace version in parens: (v1.2.3) -> (v2.0.0)
+                new_trail = re.sub(
+                    r"\(v?\d+\.\d+[\.\d]*\)",
+                    f"({target_tag})",
+                    trail,
+                )
+                # Also handle bare "# v1.2.3" style
+                if new_trail == trail:
+                    new_trail = re.sub(
+                        r"#\s*v?\d+\.\d+\S*",
+                        f"# {target_tag}",
+                        trail,
+                        count=1,
+                    )
+            else:
+                new_trail = f" # {target_tag}"
+
+            new_line = (
+                f"{m.group('indent')}"
+                f"{'- ' if line.lstrip().startswith('-') else ''}"
+                f"uses: {m.group('action')}@{new_sha}"
+                f"{new_trail}\n"
+            )
+
+            if new_line != lines[idx]:
+                lines[idx] = new_line
+                modified += 1
+
+        if modified:
+            wf_path.write_text("".join(lines), encoding="utf-8")
+            modified_total += modified
+
+    return modified_total
+
+
+def upgrade_all_actions(
+    rows: list[dict[str, str | None]],
+) -> int:
+    """Upgrade all actions that have a newer version available.
+
+    Returns the number of lines modified.
+    """
+    # Collect unique (slug, latest_tag) pairs
+    seen: set[str] = set()
+    upgrades: list[tuple[str, str]] = []
+    for r in rows:
+        if r.get("upgradable") != "yes":
+            continue
+        action = r["action"] or ""
+        slug = _repo_slug(action)
+        latest = r.get("latest_tag") or ""
+        if slug not in seen and latest:
+            seen.add(slug)
+            upgrades.append((action, latest))
+
+    modified_total = 0
+    for action, target_tag in upgrades:
+        slug = _repo_slug(action)
+        print(f"  {slug}: upgrading to {target_tag} …")
+        count = upgrade_action(action, target_tag, rows)
+        if count:
+            print(f"    updated {count} line(s)")
+            modified_total += count
+        else:
+            print("    no changes")
+
+    return modified_total
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -587,6 +830,26 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    upgrade_p = sub.add_parser(
+        "upgrade",
+        help="Upgrade actions to their latest release (or a specific version).",
+    )
+    upgrade_p.add_argument(
+        "action",
+        nargs="?",
+        default=None,
+        help=(
+            "Action to upgrade (e.g. actions/checkout). "
+            "Omit to upgrade all upgradable actions."
+        ),
+    )
+    upgrade_p.add_argument(
+        "version",
+        nargs="?",
+        default=None,
+        help="Target version tag (e.g. v6.1.0). Omit for latest.",
+    )
+
     return parser
 
 
@@ -604,7 +867,10 @@ def main() -> None:
 
     if command == "show":
         offline = getattr(args, "offline", False)
-        rows = scan_workflows(resolve_tags=not offline)
+        rows = scan_workflows(
+            resolve_tags=not offline,
+            check_latest=not offline,
+        )
         if not rows:
             print("  No SHA-pinned actions found in workflow files.")
             return
@@ -613,6 +879,7 @@ def main() -> None:
         # Summary
         stale = [r for r in rows if r["stale"] in ("yes", "missing")]
         no_desc = [r for r in rows if r["stale"] == "no-desc"]
+        upgradable = [r for r in rows if r.get("upgradable") == "yes"]
         if stale or no_desc:
             parts: list[str] = []
             if stale:
@@ -624,6 +891,20 @@ def main() -> None:
             print(f"\n  Needs updating: {', '.join(parts)}")
         else:
             print("\n  All comments are up to date.")
+
+        # Dedupe upgradable by repo slug
+        seen_slugs: set[str] = set()
+        unique_upgradable: list[dict[str, str | None]] = []
+        for r in upgradable:
+            slug = _repo_slug(r["action"] or "")
+            if slug not in seen_slugs:
+                seen_slugs.add(slug)
+                unique_upgradable.append(r)
+        if unique_upgradable:
+            print(
+                f"  {len(unique_upgradable)} action(s) can be "
+                f"upgraded (^ = upgrade available)",
+            )
 
     elif command == "update-comments":
         rows = scan_workflows(resolve_tags=True)
@@ -645,6 +926,74 @@ def main() -> None:
             print(f"\n  Updated {count} comment(s) across workflow files.")
         else:
             print("\n  No changes made.")
+
+    elif command == "upgrade":
+        action_arg = getattr(args, "action", None)
+        version_arg = getattr(args, "version", None)
+
+        if action_arg:
+            # Upgrade a specific action
+            rows = scan_workflows(resolve_tags=True, check_latest=True)
+            if not rows:
+                print("  No SHA-pinned actions found.")
+                sys.exit(1)
+
+            # Verify the action exists in workflows
+            slug = _repo_slug(action_arg)
+            matching = [
+                r for r in rows
+                if _repo_slug(r["action"] or "") == slug
+            ]
+            if not matching:
+                print(f"  '{action_arg}' not found in workflow files.")
+                sys.exit(1)
+
+            if version_arg:
+                target = version_arg
+            else:
+                target = matching[0].get("latest_tag")
+                if not target:
+                    print(f"  Could not determine latest tag for {slug}.")
+                    sys.exit(1)
+
+            current = (
+                matching[0].get("resolved_tag")
+                or matching[0].get("comment_tag")
+            )
+            print(f"  {slug}: {current} -> {target}")
+            count = upgrade_action(action_arg, target, rows)
+            if count:
+                print(f"\n  Upgraded {count} line(s) across workflow files.")
+            else:
+                print("\n  No changes made.")
+        else:
+            # Upgrade all
+            rows = scan_workflows(resolve_tags=True, check_latest=True)
+            if not rows:
+                print("  No SHA-pinned actions found.")
+                return
+            print_report(rows)
+
+            upgradable = [r for r in rows if r.get("upgradable") == "yes"]
+            if not upgradable:
+                print("\n  All actions are already at their latest version.")
+                return
+
+            # Dedupe by slug
+            seen_slugs_u: set[str] = set()
+            unique: list[dict[str, str | None]] = []
+            for r in upgradable:
+                s = _repo_slug(r["action"] or "")
+                if s not in seen_slugs_u:
+                    seen_slugs_u.add(s)
+                    unique.append(r)
+
+            print(f"\n  Upgrading {len(unique)} action(s) …\n")
+            count = upgrade_all_actions(rows)
+            if count:
+                print(f"\n  Upgraded {count} line(s) across workflow files.")
+            else:
+                print("\n  No changes made.")
 
     print()
 
