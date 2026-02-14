@@ -81,7 +81,35 @@ def _gh_api(url: str) -> object:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
             return json.loads(resp.read().decode())
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+    except urllib.error.HTTPError as exc:
+        if exc.code == 403:
+            print(
+                "  [!] GitHub API rate limit reached."
+                " Set GITHUB_TOKEN env var for 5,000 req/hr"
+                " (current: 60/hr unauthenticated).",
+                file=sys.stderr,
+            )
+        elif exc.code == 404:
+            pass  # repo or ref not found — expected for some lookups
+        else:
+            print(
+                f"  [!] GitHub API error: HTTP {exc.code} for {url}",
+                file=sys.stderr,
+            )
+        return None
+    except urllib.error.URLError as exc:
+        print(
+            f"  [!] Network error: {exc.reason}",
+            file=sys.stderr,
+        )
+        return None
+    except TimeoutError:
+        print(
+            "  [!] GitHub API request timed out.",
+            file=sys.stderr,
+        )
+        return None
+    except json.JSONDecodeError:
         return None
 
 
