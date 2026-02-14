@@ -67,10 +67,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # Checkout a Git repository at a particular version (v6.0.1)
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
           cache: "pip"
@@ -81,7 +81,7 @@ jobs:
           python -m pip install -e .
 
       - name: Run pip-audit
-        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # v1.1.0
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # Use pip-audit to scan Python dependencies for… (v1.1.0)
         with:
           # Audit the current environment (installed packages)
           # Use --desc to include vulnerability descriptions

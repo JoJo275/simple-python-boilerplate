@@ -82,10 +82,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # Checkout a Git repository at a particular version (v6.0.1)
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
           cache: "pip"
@@ -102,7 +102,7 @@ jobs:
       # dependency-snapshot flag also submits dependency data
       # to GitHub's Dependency Submission API (channel 4).
       - name: Generate SPDX SBOM (primary)
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # Creates an SBOM (Software Bill Of Materials)… (v0.22.2)
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -113,7 +113,7 @@ jobs:
       # Generates a CycloneDX 1.x JSON SBOM for consumers
       # that prefer the CycloneDX standard.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # Creates an SBOM (Software Bill Of Materials)… (v0.22.2)
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json

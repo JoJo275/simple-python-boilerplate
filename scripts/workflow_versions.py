@@ -8,6 +8,12 @@ tag that each SHA points to (via the GitHub API).
 Dependabot updates the SHA hashes in ``uses:`` lines but does **not**
 touch the inline version comments. This script fills that gap.
 
+The ``update-comments`` command also annotates each ``uses:`` line
+with a succinct description of the action (fetched from the action's
+``action.yml`` metadata via the GitHub API). Lines that already have
+a description are left unchanged; lines with only a version tag
+receive a new ``# <description> (vX.Y.Z)`` annotation.
+
 Requirements:
     - Python 3.11+
     - Internet access (queries the GitHub API)
@@ -17,12 +23,13 @@ Usage:
     python scripts/workflow_versions.py                # Show all actions
     python scripts/workflow_versions.py show           # Same as above
     python scripts/workflow_versions.py show --offline # Skip GitHub API
-    python scripts/workflow_versions.py update-comments # Sync comments with resolved tags
+    python scripts/workflow_versions.py update-comments # Sync comments + add descriptions
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -210,6 +217,96 @@ def _resolve_tag(
 
 
 # ---------------------------------------------------------------------------
+# Action descriptions
+# ---------------------------------------------------------------------------
+
+
+def _shorten_description(desc: str) -> str:
+    """Shorten an action description to a succinct phrase.
+
+    Strips common boilerplate prefixes (e.g. "This action …"),
+    takes the first sentence, and truncates to keep inline
+    comments readable.
+    """
+    # Strip boilerplate prefixes
+    desc = re.sub(
+        r"^(This action\s+|"
+        r"A GitHub Action (that |for |to )|"
+        r"GitHub Action[,]?\s*(that |for |to )?)",
+        "",
+        desc,
+        flags=re.IGNORECASE,
+    )
+    # Take first sentence (up to period, exclamation, or semicolon)
+    sentence_match = re.match(r"^([^.!;]+)", desc)
+    if sentence_match:
+        desc = sentence_match.group(1).strip()
+    # Strip trailing punctuation
+    desc = desc.rstrip(".,;:!")
+    # Capitalise first letter (preserve rest)
+    if desc:
+        desc = desc[0].upper() + desc[1:]
+    # Truncate if too long
+    if len(desc) > 50:
+        truncated = desc[:47]
+        last_space = truncated.rfind(" ")
+        if last_space > 30:
+            truncated = truncated[:last_space]
+        desc = truncated + "…"
+    return desc
+
+
+def _action_description(action: str) -> str | None:
+    """Fetch the one-line description from an action's ``action.yml``.
+
+    Uses the GitHub Contents API to read the action metadata.
+    Handles sub-path actions (e.g. ``github/codeql-action/init``
+    looks up ``init/action.yml`` in ``github/codeql-action``).
+
+    Returns a shortened description string, or ``None`` on failure.
+    """
+    parts = action.split("/")
+    if len(parts) < 2:
+        return None
+    repo_slug = f"{parts[0]}/{parts[1]}"
+    sub_path = "/".join(parts[2:]) if len(parts) > 2 else ""
+
+    for filename in ("action.yml", "action.yaml"):
+        path = f"{sub_path}/{filename}" if sub_path else filename
+        url = f"https://api.github.com/repos/{repo_slug}/contents/{path}"
+        data = _gh_api(url)
+        if not isinstance(data, dict) or "content" not in data:
+            continue
+
+        try:
+            raw = base64.b64decode(data["content"]).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            continue
+
+        # Simple YAML parsing: find top-level ``description:`` key
+        for yml_line in raw.splitlines():
+            if not yml_line.startswith("description"):
+                continue
+            dm = re.match(r"^description:\s*(.+)$", yml_line)
+            if not dm:
+                continue
+            value = dm.group(1).strip()
+            # Skip block scalar indicators
+            if value in (">", "|", ">-", "|-", ""):
+                break
+            # Remove surrounding quotes
+            if (
+                len(value) >= 2
+                and value[0] in ("'", '"')
+                and value[-1] == value[0]
+            ):
+                value = value[1:-1]
+            return _shorten_description(value)
+
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Scanner
 # ---------------------------------------------------------------------------
 
@@ -226,7 +323,8 @@ def scan_workflows(
         - ``sha``: the full 40-char SHA
         - ``comment_tag``: tag from the existing inline comment (or None)
         - ``resolved_tag``: tag resolved via GitHub API (or None)
-        - ``stale``: "yes" if comment_tag != resolved_tag
+        - ``stale``: "yes" | "missing" | "no-desc" | ""
+        - ``has_description``: "yes" if comment has a description
     """
     if not WORKFLOWS_DIR.is_dir():
         return []
@@ -245,12 +343,22 @@ def scan_workflows(
             sha = m.group("ref")
             trail = m.group("trail").strip()
 
-            # Extract existing comment tag
+            # Extract existing comment tag and detect description
             comment_tag: str | None = None
+            has_desc = False
             if "#" in trail:
-                comment_match = re.search(r"#\s*(v?\S+)", trail)
-                if comment_match:
-                    comment_tag = comment_match.group(1)
+                # Try: description with version in parens "# Desc (v1.2.3)"
+                paren_match = re.search(
+                    r"\((v?\d+\.\d+[\.\d]*)\)", trail,
+                )
+                if paren_match:
+                    comment_tag = paren_match.group(1)
+                    has_desc = True
+                else:
+                    # Fallback: bare version tag "# v1.2.3"
+                    comment_match = re.search(r"#\s*(v?\S+)", trail)
+                    if comment_match:
+                        comment_tag = comment_match.group(1)
 
             # Resolve tag from SHA (cached per SHA)
             resolved_tag: str | None = None
@@ -269,6 +377,8 @@ def scan_workflows(
                 stale = "yes"
             elif not comment_tag and resolved_tag:
                 stale = "missing"
+            elif not has_desc and (comment_tag or resolved_tag):
+                stale = "no-desc"
 
             rows.append({
                 "file": wf.name,
@@ -278,6 +388,7 @@ def scan_workflows(
                 "comment_tag": comment_tag,
                 "resolved_tag": resolved_tag,
                 "stale": stale,
+                "has_description": "yes" if has_desc else "",
             })
 
     return rows
@@ -309,7 +420,8 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     for r in rows:
         ctag = r["comment_tag"] or "-"
         rtag = r["resolved_tag"] or "-"
-        flag = "^" if r["stale"] == "yes" else ("+" if r["stale"] == "missing" else "")
+        flag_map = {"yes": "^", "missing": "+", "no-desc": "d"}
+        flag = flag_map.get(r["stale"] or "", "")
         print(
             f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
             f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
@@ -322,19 +434,42 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
 
 
 def update_comments(rows: list[dict[str, str | None]]) -> int:
-    """Update or add inline ``# vX.Y.Z`` comments on ``uses:`` lines.
+    """Update or add inline ``# <description> (vX.Y.Z)`` comments.
 
     For every action line where the resolved tag differs from the
-    comment (or where no comment exists), the comment is rewritten.
+    comment, where no comment exists, or where a description is
+    missing, the comment is rewritten with a succinct description
+    (fetched from the action's ``action.yml``) and the resolved tag.
 
     Returns the total number of lines modified across all files.
     """
-    # Group rows by file
+    # Group rows by file — include no-desc alongside yes/missing
     by_file: dict[str, list[dict[str, str | None]]] = {}
     for r in rows:
         fname = r["file"] or ""
-        if r["resolved_tag"] and r["stale"] in ("yes", "missing"):
+        tag = r["resolved_tag"] or r["comment_tag"] or ""
+        if tag and r["stale"] in ("yes", "missing", "no-desc"):
             by_file.setdefault(fname, []).append(r)
+
+    if not by_file:
+        return 0
+
+    # Fetch descriptions for unique actions that need them
+    desc_cache: dict[str, str | None] = {}
+    actions_needing_desc = {
+        r["action"] or ""
+        for r in rows
+        if r.get("has_description") != "yes"
+        and r["stale"] in ("yes", "missing", "no-desc")
+    }
+    actions_needing_desc.discard("")
+    if actions_needing_desc:
+        print(f"\n  Fetching descriptions for {len(actions_needing_desc)} action(s) …")
+    for action in sorted(actions_needing_desc):
+        if action not in desc_cache:
+            desc_cache[action] = _action_description(action)
+            status = desc_cache[action] or "(not found)"
+            print(f"    {action}: {status}")
 
     modified_total = 0
 
@@ -344,15 +479,17 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
         lines = text.splitlines(keepends=True)
         modified = 0
 
-        # Build a lookup: line number -> resolved tag
-        updates: dict[int, str] = {}
+        # Build a lookup: line number -> (tag, action, has_desc)
+        updates: dict[int, tuple[str, str, bool]] = {}
         for r in file_rows:
             lineno = int(r["line"] or "0")
-            tag = r["resolved_tag"] or ""
+            tag = r["resolved_tag"] or r["comment_tag"] or ""
+            action = r["action"] or ""
+            has_desc = r.get("has_description") == "yes"
             if lineno and tag:
-                updates[lineno] = tag
+                updates[lineno] = (tag, action, has_desc)
 
-        for lineno, new_tag in updates.items():
+        for lineno, (new_tag, action, has_desc) in updates.items():
             idx = lineno - 1
             if idx >= len(lines):
                 continue
@@ -363,13 +500,39 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
                 continue
 
             trail = m.group("trail")
+            desc = desc_cache.get(action) if not has_desc else None
 
             if "#" in trail:
-                # Replace existing comment tag
-                new_trail = re.sub(r"#\s*v?\S+", f"# {new_tag}", trail, count=1)
+                if has_desc:
+                    # Already has description — just update version in parens
+                    new_trail = re.sub(
+                        r"\(v?\d+\.\d+[\.\d]*\)",
+                        f"({new_tag})",
+                        trail,
+                        count=1,
+                    )
+                else:
+                    # No description — rewrite entire comment
+                    if desc:
+                        new_trail = re.sub(
+                            r"#\s*v?\S+.*",
+                            f"# {desc} ({new_tag})",
+                            trail,
+                            count=1,
+                        )
+                    else:
+                        new_trail = re.sub(
+                            r"#\s*v?\S+",
+                            f"# {new_tag}",
+                            trail,
+                            count=1,
+                        )
             else:
-                # Append new comment
-                new_trail = f" # {new_tag}"
+                # No comment at all
+                if desc:
+                    new_trail = f" # {desc} ({new_tag})"
+                else:
+                    new_trail = f" # {new_tag}"
 
             new_line = (
                 f"{m.group('indent')}"
@@ -418,8 +581,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser(
         "update-comments",
         help=(
-            "Update inline version comments to match the tag each SHA "
-            "resolves to. Requires GitHub API access."
+            "Update inline version comments and add action descriptions. "
+            "Comments are rewritten as '# <description> (vX.Y.Z)'. "
+            "Requires GitHub API access."
         ),
     )
 
@@ -448,8 +612,16 @@ def main() -> None:
 
         # Summary
         stale = [r for r in rows if r["stale"] in ("yes", "missing")]
-        if stale:
-            print(f"\n  {len(stale)} comment(s) need updating (^ = stale, + = missing)")
+        no_desc = [r for r in rows if r["stale"] == "no-desc"]
+        if stale or no_desc:
+            parts: list[str] = []
+            if stale:
+                parts.append(
+                    f"{len(stale)} version(s) (^ = stale, + = missing)",
+                )
+            if no_desc:
+                parts.append(f"{len(no_desc)} description(s) (d = no desc)")
+            print(f"\n  Needs updating: {', '.join(parts)}")
         else:
             print("\n  All comments are up to date.")
 
@@ -460,8 +632,11 @@ def main() -> None:
             return
         print_report(rows)
 
-        stale = [r for r in rows if r["stale"] in ("yes", "missing")]
-        if not stale:
+        needs_update = [
+            r for r in rows
+            if r["stale"] in ("yes", "missing", "no-desc")
+        ]
+        if not needs_update:
             print("\n  All comments are already up to date.")
             return
 

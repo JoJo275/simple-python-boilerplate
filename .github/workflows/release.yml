@@ -52,10 +52,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # Checkout a Git repository at a particular version (v6.0.1)
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
 
@@ -69,7 +69,7 @@ jobs:
 
       # Persist the built artifacts so the publish job can use them
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # Upload a build artifact that can be used by… (v6.0.0)
         with:
           name: dist
           path: dist/
@@ -96,7 +96,7 @@ jobs:
     steps:
       # Retrieve the dist/ artifacts uploaded by the build job
       - name: Download distribution artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # Download a build artifact that was previously… (v6.0.0)
         with:
           name: dist
           path: dist/
@@ -104,7 +104,7 @@ jobs:
       # Publish to PyPI only when the secret exists
       - name: Publish to PyPI
         if: ${{ env.PUBLISH_TOKEN != '' }}
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # Upload Python distribution packages to PyPI (v1.13.0)
 
       # Fail with a helpful message when the secret is missing.
       # If you want this step to skip without failing the workflow,
@@ -129,10 +129,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # Checkout a Git repository at a particular version (v6.0.1)
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
           cache: "pip"
@@ -144,7 +144,7 @@ jobs:
 
       # SPDX 2.3 JSON — primary format
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # Creates an SBOM (Software Bill Of Materials)… (v0.22.2)
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -152,7 +152,7 @@ jobs:
 
       # CycloneDX 1.x JSON — secondary format
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # Creates an SBOM (Software Bill Of Materials)… (v0.22.2)
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
@@ -161,7 +161,7 @@ jobs:
       # Bundle both SBOMs into a single artifact for the
       # github-release job to download and attach.
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # Upload a build artifact that can be used by… (v6.0.0)
         with:
           name: sbom
           path: |
@@ -185,14 +185,14 @@ jobs:
     steps:
       # Retrieve the dist/ artifacts uploaded by the build job
       - name: Download distribution artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # Download a build artifact that was previously… (v6.0.0)
         with:
           name: dist
           path: dist/
 
       # Retrieve the SBOM artifacts uploaded by the sbom job
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # Download a build artifact that was previously… (v6.0.0)
         with:
           name: sbom
           path: sbom/
