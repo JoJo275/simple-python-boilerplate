@@ -162,3 +162,9 @@ $RECYCLE.BIN/
 # Local scratch SQL (use scratch.example.sql as template)
 scripts/sql/scratch.sql
 
+# =========================================
+# Documentation build output (MkDocs)
+# =========================================
+# Generated static site — rebuilt from source with `mkdocs build`
+site/
+
