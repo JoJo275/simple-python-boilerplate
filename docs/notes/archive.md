@@ -24,6 +24,7 @@ Completed items from [todo.md](todo.md), preserved for reference.
 
 ### Completed
 
+- [X] docs stack: (1) presentation = (Theme: Material for MKDocs), (2) API reference (API reference: mkdocstrings + Python handler), (3) publishing (Markdown power-ups: pymdown-extensions), and optionally (4) versioning (Publishing: GitHub Pages via mkdocs gh-deploy or Read the Docs (RTD)).
 - [X] add in docstring style enforcement with a tool like `pydocstyle` to ensure consistent and comprehensive documentation with ruff in pyproject.toml. *This would involve adding `pydocstyle` to the list of dependencies in `pyproject.toml` and configuring it to enforce a specific docstring style (e.g., Google, NumPy, or reStructuredText). This would help ensure that all functions, classes, and modules in the project have consistent and comprehensive docstrings, improving code readability and maintainability.*
 - [X] Add in bandit for security linting and checks. *This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template.*
 - [X] Refactor repo scripts with custom CLI commands
