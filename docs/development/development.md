@@ -161,6 +161,20 @@ pipx install commitizen
 cz commit
 ```
 
+#### Optional: Commit Template
+
+This repo includes a `.gitmessage.txt` that pre-fills your editor with the suggested format and prompts (Why / What changed / How tested):
+
+```bash
+# Activate (for this repo only)
+git config commit.template .gitmessage.txt
+
+# Deactivate
+git config --unset commit.template
+```
+
+Once activated, `git commit` (without `-m`) opens your editor with the template. All `#` lines are stripped from the final message.
+
 ---
 
 ## Helpful Tools (Optional)

@@ -241,6 +241,22 @@ git commit -m "docs: update contributing guide"
 git commit -m "ci: add bandit to pre-commit hooks"
 ```
 
+### Commit Template (optional)
+
+This repo includes a `.gitmessage.txt` commit template that pre-fills your editor with the suggested format and prompts for Why / What changed / How tested.
+
+```bash
+# Activate (for this repo only)
+git config commit.template .gitmessage.txt
+
+# Deactivate
+git config --unset commit.template
+```
+
+Once activated, running `git commit` (without `-m`) opens your editor with the template. All `#` lines are comments and are stripped from the final message.
+
+> **Note:** `git commit -m "..."` bypasses the template entirely — it only appears when Git opens an editor.
+
 ### Commitizen (optional)
 
 [Commitizen](https://commitizen-tools.github.io/commitizen/) provides an interactive prompt that walks you through writing a properly formatted commit message:

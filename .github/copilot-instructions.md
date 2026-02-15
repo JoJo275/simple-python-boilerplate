@@ -58,6 +58,30 @@ A Python boilerplate project using:
 - One logical change per commit
 - PR titles follow conventional commit format
 
+### Commit Message Format
+
+When generating commit messages, follow the template in `.gitmessage.txt`:
+
+```
+<type>(<scope>): <description>
+
+Why: <motivation for the change>
+
+What changed: <summary of changes>
+
+How tested: <how the change was verified>
+
+Breaking change: <describe if applicable, otherwise omit>
+
+Issues/Refs: #<issue number if applicable, otherwise omit>
+```
+
+- **type** — `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- **scope** — optional area affected (e.g., `cli`, `docs`, `ci`)
+- **description** — imperative mood, lowercase, no period, max 50 chars
+- Body sections (`Why`, `What changed`, `How tested`) should be included for non-trivial commits
+- Omit `Breaking change` and `Issues/Refs` sections when not applicable
+
 ### CI/CD
 - GitHub Actions pinned to full commit SHAs (not tags)
 - Workflows separated by concern (e.g., test, lint, release)

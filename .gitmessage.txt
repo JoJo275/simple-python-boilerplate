@@ -1,0 +1,36 @@
+# <type>(<scope>): <description>
+#
+# Why:
+#
+# What changed:
+#
+# How tested:
+#
+# Breaking change:
+#
+# Issues/Refs:
+#
+# --- Types ---
+# feat     New feature or capability
+# fix      Bug fix
+# docs     Documentation only
+# style    Whitespace, formatting (no logic changes)
+# refactor Code restructuring (no feature/fix)
+# perf     Performance improvement
+# test     Adding or fixing tests
+# build    Build system, dependencies
+# ci       CI/CD configuration
+# chore    Maintenance, tooling, config
+# revert   Reverting a previous commit
+#
+# --- Rules ---
+# - Subject: imperative mood, lowercase, no period, max 50 chars
+# - Body: wrap at 72 chars, explain *what* and *why* (not how)
+# - Breaking change: add ! after type/scope, add BREAKING CHANGE footer
+#
+# --- Examples ---
+# feat: add user authentication
+# fix(cli): handle missing config file gracefully
+# docs: update installation guide
+# ci: add Python 3.13 to test matrix
+# feat(api)!: change authentication to OAuth2
