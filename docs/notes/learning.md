@@ -1721,6 +1721,158 @@ The shebang (`#!`) must be the **first line** of the script, with no leading whi
 
 `#!/usr/bin/env bash` is preferred over `#!/bin/bash` because bash isn't always at `/bin/bash` (e.g., on NixOS or some BSD systems). `env` searches `$PATH` to find it.
 
+### Hook Scripts in Other Programming Languages
+
+Git hooks don't have to be shell scripts. Any executable file with a valid shebang line works. This opens the door to Python, Node.js, Ruby, Perl, Rust, Go — whatever you have installed.
+
+#### Language Examples for Hooks
+
+**Python:**
+```python
+#!/usr/bin/env python3
+"""pre-commit hook: check for TODO comments with no issue reference."""
+import subprocess
+import sys
+
+result = subprocess.run(
+    ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
+    capture_output=True, text=True
+)
+staged_files = result.stdout.strip().splitlines()
+
+for filepath in staged_files:
+    with open(filepath) as f:
+        for i, line in enumerate(f, 1):
+            if "TODO" in line and "#" not in line.split("TODO")[1][:10]:
+                print(f"{filepath}:{i}: TODO without issue reference")
+                sys.exit(1)
+```
+
+**Node.js:**
+```javascript
+#!/usr/bin/env node
+// pre-commit hook: validate JSON files
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const staged = execSync('git diff --cached --name-only --diff-filter=ACM')
+  .toString().trim().split('\n')
+  .filter(f => f.endsWith('.json'));
+
+let failed = false;
+for (const file of staged) {
+  try {
+    JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    console.error(`Invalid JSON: ${file} — ${e.message}`);
+    failed = true;
+  }
+}
+process.exit(failed ? 1 : 0);
+```
+
+**Ruby:**
+```ruby
+#!/usr/bin/env ruby
+# pre-commit hook: check for binding.pry left in code
+staged = `git diff --cached --name-only --diff-filter=ACM`.split("\n")
+staged.select { |f| f.end_with?('.rb') }.each do |file|
+  File.readlines(file).each_with_index do |line, i|
+    if line.include?('binding.pry')
+      puts "#{file}:#{i + 1}: Remove binding.pry before committing"
+      exit 1
+    end
+  end
+end
+```
+
+**Perl:**
+```perl
+#!/usr/bin/env perl
+# pre-commit hook: check for trailing whitespace
+use strict;
+my @files = `git diff --cached --name-only --diff-filter=ACM`;
+chomp @files;
+for my $file (@files) {
+    open my $fh, '<', $file or next;
+    while (<$fh>) {
+        if (/\s+$/) {
+            print "$file:$.: trailing whitespace\n";
+            exit 1;
+        }
+    }
+}
+```
+
+#### Compiled Languages as Hooks
+
+Compiled languages (Rust, Go, C) can also be used — you compile the binary first, then point the hook at it. This is less common for one-off hooks but used by dedicated hook tools:
+
+```bash
+#!/bin/sh
+# Hook that delegates to a compiled Go binary
+exec .git/hooks/bin/my-hook "$@"
+```
+
+Notable tools written in compiled languages that serve as hook systems:
+- **lefthook** (Go) — fast, parallel hook runner with YAML config
+- **rusty-hook** (Rust) — lightweight hook runner for Node projects
+- **overcommit** (Ruby) — full-featured hook manager
+
+#### Shells vs Programming Languages for Hooks
+
+| Factor | Shell (sh/bash) | Python | Node.js | Compiled (Go/Rust) |
+|--------|----------------|--------|---------|-------------------|
+| **Startup speed** | Instant (~5ms) | Slow (~50-100ms) | Slow (~100ms) | Instant (~5ms) |
+| **Portability** | sh is everywhere | Needs Python installed | Needs Node installed | Binary runs anywhere |
+| **String/text processing** | Awkward (sed, awk, grep) | Excellent | Good | Good |
+| **Error handling** | Fragile (`set -e`, exit codes) | try/except, robust | try/catch, robust | Strong type system |
+| **File system operations** | Basic (test, find, ls) | `pathlib`, `os` — powerful | `fs` module — decent | Full stdlib |
+| **JSON/YAML parsing** | Needs `jq` or similar | Built-in `json` module | Built-in `JSON` | Serde (Rust), encoding/json |
+| **Git integration** | Native (`git` commands) | Subprocess calls | Subprocess or libraries | Subprocess or `git2` |
+| **Complexity ceiling** | Low (~50 lines max) | Unlimited | Unlimited | Unlimited |
+| **Dependencies** | None | pip/venv | npm/node_modules | Compile step |
+| **Debugging** | Painful (`set -x`) | Proper debugger (pdb) | Proper debugger | Proper debugger |
+| **Windows support** | Needs Git Bash/WSL | Native | Native | Native |
+
+#### When to Use What
+
+| Scenario | Best Choice | Why |
+|----------|------------|-----|
+| Simple file checks (whitespace, merge markers) | **Shell (sh)** | 2-5 lines, no dependencies, instant |
+| Check staged file contents or patterns | **Python** | Easy file I/O, regex, readable |
+| Validate JSON/YAML/config files | **Python or Node** | Built-in parsers |
+| Complex multi-step validation | **Python** | Best balance of power and readability |
+| Enforce commit message format | **Shell or Python** | Shell for simple regex, Python for complex rules |
+| Performance-critical (huge repos) | **Compiled (Go/Rust)** | Sub-millisecond execution |
+| Team with mixed OS (Windows + Mac + Linux) | **Python or Node** | Cross-platform without shell quirks |
+| You already use pre-commit framework | **Doesn't matter** | pre-commit abstracts the language away |
+
+#### The Reality: pre-commit Framework Handles This
+
+In practice, choosing a language for hooks is mostly academic if you use the `pre-commit` framework (which this project does). Each hook in `.pre-commit-config.yaml` runs its own tool in an isolated environment:
+
+```yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit  # Rust binary
+    hooks:
+      - id: ruff           # ← you don't care that Ruff is written in Rust
+  - repo: https://github.com/pre-commit/mirrors-mypy     # Python tool
+    hooks:
+      - id: mypy           # ← you don't care that mypy is Python
+  - repo: https://github.com/pre-commit/pre-commit-hooks # Python scripts
+    hooks:
+      - id: check-yaml     # ← you don't care about the implementation
+```
+
+The framework:
+- Downloads and installs each hook's dependencies automatically
+- Creates isolated environments (virtualenvs for Python, node_modules for Node, etc.)
+- Handles shebang lines and shell compatibility
+- Works identically on macOS, Linux, and Windows
+
+**Bottom line:** The pre-commit framework lets you use the *best tool for the job* regardless of what language it's written in. You pick hooks by *what they check*, not *what language they use*.
+
 ### Quick Reference: Shell Config Files
 
 | Shell | Login Shell | Interactive (non-login) | Notes |
