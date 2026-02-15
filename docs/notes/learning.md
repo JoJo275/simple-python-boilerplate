@@ -1579,6 +1579,159 @@ If you have comments documenting current versions (like `"ruff",  # v0.9.1`), th
 
 ---
 
+## Shells: sh, bash, zsh, and Others
+
+Shells are command-line interpreters — programs that read your commands and execute them. They matter for git hooks, scripts, CI pipelines, and daily terminal use. Each shell is a superset or variant of the one before it.
+
+### The Shell Family Tree
+
+```
+sh (Bourne Shell, 1979)
+ └── bash (Bourne Again Shell, 1989)
+      └── zsh (Z Shell, 1990)
+
+csh (C Shell, 1978)         ← separate lineage
+ └── tcsh
+      └── fish (2005)       ← inspired by csh, but independent
+```
+
+### Shell Comparison
+
+| Shell | Full Name | Default On | Best For | Key Trait |
+|-------|-----------|-----------|----------|-----------|
+| **sh** | Bourne Shell | POSIX systems, Docker `alpine` | Portable scripts, git hooks, CI | Minimal — works everywhere |
+| **bash** | Bourne Again Shell | Most Linux distros, older macOS | General scripting, interactive use | Arrays, `[[ ]]`, `$()`, rich scripting |
+| **zsh** | Z Shell | macOS (since Catalina), many devs | Interactive daily use | Plugins (Oh My Zsh), autocomplete, glob |
+| **dash** | Debian Almquist Shell | Debian/Ubuntu (`/bin/sh` → dash) | System scripts | Extremely fast, strict POSIX |
+| **fish** | Friendly Interactive Shell | — (opt-in) | Interactive use, beginners | Syntax highlighting, autosuggestions |
+| **PowerShell** | PowerShell | Windows | Windows automation, .NET | Object pipeline (not text), cmdlets |
+
+### sh — The Portable Baseline
+
+`sh` (POSIX shell) is the lowest common denominator. If you write a script in `sh`, it will run on virtually any Unix-like system — Linux, macOS, BSD, Docker containers, CI runners.
+
+```bash
+#!/bin/sh
+# This runs everywhere. No bashisms allowed.
+echo "Hello from sh"
+```
+
+**Key limitations** (things sh does NOT have):
+- No arrays (`arr=(a b c)` is bash)
+- No `[[ ]]` (use `[ ]` instead)
+- No `$(( ))` for arithmetic in all implementations
+- No `{1..10}` brace expansion
+- No `function` keyword (just `myfunc() { ... }`)
+
+**Why this matters:** On Debian/Ubuntu, `/bin/sh` is actually `dash` (not bash), so scripts with `#!/bin/sh` that use bash features will silently break.
+
+### bash — The Workhorse
+
+Bash is the most widely used shell for scripting. It extends sh with arrays, better string manipulation, `[[ ]]` tests, process substitution, and more.
+
+```bash
+#!/bin/bash
+# Bash-specific features
+names=("alice" "bob" "charlie")      # arrays
+for name in "${names[@]}"; do
+    if [[ "$name" == a* ]]; then     # [[ ]] pattern matching
+        echo "Found: $name"
+    fi
+done
+```
+
+**Bash vs sh — common "bashisms" that break in sh:**
+
+| Feature | bash | sh (POSIX) |
+|---------|------|-----------|
+| Test syntax | `[[ -f file ]]` | `[ -f file ]` |
+| Arrays | `arr=(a b c)` | Not available |
+| String substitution | `${var//old/new}` | Not available |
+| Process substitution | `<(command)` | Not available |
+| Brace expansion | `{1..5}` | Not available |
+| `source` command | `source file` | `. file` |
+| Function keyword | `function foo()` | `foo()` |
+
+### zsh — The Interactive Powerhouse
+
+zsh is bash-compatible for most scripting but shines as an interactive shell with better tab completion, theming, spelling correction, and plugin ecosystems like **Oh My Zsh**.
+
+```zsh
+#!/bin/zsh
+# zsh-specific features
+typeset -A config                   # associative arrays (bash 4+ also has these)
+config[host]=localhost
+config[port]=8080
+echo "Server: $config[host]:$config[port]"
+
+# Glob qualifiers — zsh-only
+print -l *.py(om)                   # list .py files sorted by modification time
+```
+
+**Why macOS switched to zsh:** Apple shipped bash 3.2 (2007) because bash 4+ is GPLv3, which conflicts with Apple's licensing. Rather than ship ancient bash, they switched the default to zsh (MIT-licensed) in macOS Catalina (2019).
+
+### Which Shell for What?
+
+| Use Case | Recommended Shell | Why |
+|----------|------------------|-----|
+| **Git hooks** | `#!/bin/sh` | Portability — hooks must work on every contributor's machine |
+| **CI/CD scripts** | `#!/bin/sh` or `#!/bin/bash` | CI runners have bash, but sh is safer for Docker alpine |
+| **Complex automation scripts** | `#!/bin/bash` | Need arrays, string ops, or conditionals |
+| **Daily terminal use** | zsh or fish | Better autocomplete, history, plugins |
+| **Makefiles / Taskfiles** | sh (implicit) | Make uses `/bin/sh` by default |
+| **Docker `RUN` commands** | sh | Alpine images only have sh, not bash |
+| **Windows scripts** | PowerShell | Native, object-based pipeline |
+
+### Shells and Git Hooks
+
+Git hooks are executable scripts in `.git/hooks/`. The shebang line (`#!/bin/sh`) determines which shell interprets them.
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit — runs before every commit
+# Using sh for maximum portability
+
+echo "Running pre-commit checks..."
+python -m ruff check src/ || exit 1
+```
+
+**Why pre-commit (the framework) helps:** Instead of writing raw shell hook scripts, `pre-commit` manages hooks via `.pre-commit-config.yaml`. It handles shebang lines, virtual environments, and cross-platform compatibility — you never need to think about which shell the hook uses.
+
+**Without pre-commit** (raw hooks):
+- You write shell scripts directly in `.git/hooks/`
+- You choose the shell (`#!/bin/sh`, `#!/bin/bash`, etc.)
+- You handle portability yourself
+- Hooks aren't versioned (`.git/hooks/` is not committed)
+
+**With pre-commit** (framework):
+- Hooks are defined in `.pre-commit-config.yaml` (versioned)
+- The framework generates the actual hook scripts
+- Each hook tool runs in its own isolated environment
+- Shell portability is handled for you
+
+### Common Gotcha: Shebang Lines
+
+The shebang (`#!`) must be the **first line** of the script, with no leading whitespace or BOM:
+
+```bash
+#!/bin/sh          ← correct
+#!/bin/bash        ← correct, but limits portability
+#!/usr/bin/env bash  ← most portable way to invoke bash (finds it in $PATH)
+```
+
+`#!/usr/bin/env bash` is preferred over `#!/bin/bash` because bash isn't always at `/bin/bash` (e.g., on NixOS or some BSD systems). `env` searches `$PATH` to find it.
+
+### Quick Reference: Shell Config Files
+
+| Shell | Login Shell | Interactive (non-login) | Notes |
+|-------|------------|------------------------|-------|
+| **bash** | `~/.bash_profile` or `~/.profile` | `~/.bashrc` | `.bash_profile` often sources `.bashrc` |
+| **zsh** | `~/.zprofile` then `~/.zshrc` | `~/.zshrc` | Oh My Zsh configures this |
+| **sh** | `~/.profile` | — | Minimal config |
+| **fish** | `~/.config/fish/config.fish` | Same file | No login/non-login split |
+
+---
+
 ## Resources
 
 ### Python Packaging
