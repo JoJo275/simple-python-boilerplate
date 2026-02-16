@@ -41,6 +41,7 @@ Each ADR follows this structure:
 | [017](017-task-runner.md) | Use Taskfile as the project task runner | Accepted |
 | [018](018-bandit-for-security-linting.md) | Use Bandit for Python security linting | Accepted |
 | [019](019-containerfile.md) | Use Containerfile for OCI-compatible container builds | Accepted |
+| [020](020-mkdocs-documentation-stack.md) | Use MkDocs with Material theme for project documentation | Accepted |
 
 ## Archive
 
