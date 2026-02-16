@@ -34,8 +34,9 @@ on:
     #   │ │ │ │ │
     #   * * * * *
     #
-    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time).
-    - cron: "0 3 * * *" # Daily 03:00 UTC (11pm ET during DST / 10pm ET otherwise)
+    # Because cron is fixed to UTC, local time shifts with DST:
+    #   03:00 UTC = 22:00 EST (Nov–Mar) / 23:00 EDT (Mar–Nov)
+    - cron: "0 3 * * *" # Daily 03:00 UTC
   workflow_dispatch:
 
 permissions:
