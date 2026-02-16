@@ -333,6 +333,108 @@ repos:
 - **Consistent** — Same checks for everyone
 - **CI friendly** — Run same hooks in CI as backup
 
+### Authoring Custom Git Hooks
+
+Beyond using existing hooks, you can author your own and publish them for others to use. Custom hooks live in a Git repository with a `.pre-commit-hooks.yaml` file at the root that declares the available hooks.
+
+#### How It Works
+
+1. Create a new Git repository for your hook(s).
+2. Write the script or tool that performs the check.
+3. Add a `.pre-commit-hooks.yaml` file describing the hook(s).
+4. Tag a release — consumers pin to this tag via `rev` in their `.pre-commit-config.yaml`.
+
+#### `.pre-commit-hooks.yaml` Fields
+
+The `.pre-commit-hooks.yaml` file is a list of hook definitions. Each entry supports these fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Unique identifier for the hook (used in consumers' `hooks:` list) |
+| `name` | Yes | Human-readable name shown during execution |
+| `entry` | Yes | The executable to run (script path, command, or console_script) |
+| `language` | Yes | How to install/run the hook (`python`, `node`, `system`, `script`, `docker`, etc.) |
+| `files` | No | Regex pattern for filenames to pass to the hook (default: `''` — all files) |
+| `exclude` | No | Regex pattern for filenames to exclude |
+| `types` | No | File types to filter on (e.g., `[python]`, `[yaml]`) — uses `identify` library types |
+| `types_or` | No | Like `types` but matches if *any* type matches (OR logic instead of AND) |
+| `exclude_types` | No | File types to exclude |
+| `always_run` | No | If `true`, run even when no matching files are staged (default: `false`) |
+| `pass_filenames` | No | If `true`, staged filenames are passed as arguments (default: `true`) |
+| `require_serial` | No | If `true`, disable parallel execution for this hook (default: `false`) |
+| `args` | No | Default arguments passed to `entry` (consumers can override via `args` in their config) |
+| `description` | No | Short description of what the hook does |
+| `minimum_pre_commit_version` | No | Minimum pre-commit version required (e.g., `'3.0.0'`) |
+| `stages` | No | Which git hook stages to run in (e.g., `[pre-commit]`, `[pre-push]`, `[commit-msg]`) |
+| `verbose` | No | If `true`, force hook output to be printed even on success (default: `false`) |
+| `additional_dependencies` | No | Extra packages to install alongside the hook |
+| `language_version` | No | Version of the language runtime to use (e.g., `python3.11`) |
+
+#### Minimal Example
+
+A simple hook that checks for `TODO` comments:
+
+```yaml
+# .pre-commit-hooks.yaml
+- id: no-todos
+  name: Check for TODO comments
+  entry: grep -rn TODO
+  language: system
+  types: [python]
+  pass_filenames: true
+```
+
+#### Python Script Hook Example
+
+For hooks written in Python, structure the repo as an installable package:
+
+```
+my-hooks/
+├── .pre-commit-hooks.yaml
+├── pyproject.toml
+└── my_hooks/
+    └── check_something.py
+```
+
+```yaml
+# .pre-commit-hooks.yaml
+- id: check-something
+  name: Check something custom
+  entry: check-something       # console_scripts entry point
+  language: python
+  types: [python]
+```
+
+The `language: python` setting tells pre-commit to create an isolated virtualenv and `pip install` the hook repository, so any `console_scripts` defined in `pyproject.toml` become available as the `entry`.
+
+#### Hook Stages
+
+Git supports multiple hook points. Pre-commit can target different stages:
+
+| Stage | Git Hook | When It Runs |
+|-------|----------|--------------|
+| `pre-commit` | `pre-commit` | Before commit is created (default) |
+| `pre-merge-commit` | `pre-merge-commit` | Before merge commit is created |
+| `pre-push` | `pre-push` | Before push to remote |
+| `commit-msg` | `commit-msg` | After commit message is entered (can validate or modify it) |
+| `post-checkout` | `post-checkout` | After `git checkout` or `git switch` |
+| `post-commit` | `post-commit` | After commit is created |
+| `post-merge` | `post-merge` | After a merge completes |
+| `post-rewrite` | `post-rewrite` | After `git rebase` or `git commit --amend` |
+| `prepare-commit-msg` | `prepare-commit-msg` | Before the commit message editor opens |
+| `manual` | — | Only runs via `pre-commit run --hook-stage manual` |
+
+To install hooks for non-default stages: `pre-commit install --hook-type commit-msg`
+
+#### References
+
+- [Creating new hooks — pre-commit docs](https://pre-commit.com/#creating-new-hooks) — Official guide to authoring hooks
+- [`.pre-commit-hooks.yaml` specification](https://pre-commit.com/#pre-commit-hooks-yaml) — Full field reference for hook definitions
+- [Supported languages](https://pre-commit.com/#supported-languages) — All `language` values and how each is installed/executed
+- [Supported hook stages](https://pre-commit.com/#confining-hooks-to-run-at-certain-stages) — Details on `stages` field and hook stage configuration
+- [Git documentation: githooks](https://git-scm.com/docs/githooks) — Underlying Git hooks that pre-commit wraps
+- [identify library — file type tags](https://github.com/pre-commit/identify) — Reference for `types` / `types_or` values
+
 ---
 
 ## GitHub Actions Workflows
