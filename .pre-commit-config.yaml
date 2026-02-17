@@ -139,6 +139,12 @@ repos:
           requirements.*\.txt$|
           SECURITY\.md$
 
+      - id: no-nul-bytes
+        name: Block NUL bytes in text files
+        entry: '\x00'
+        language: pygrep
+        types: [text]
+
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)  [DISABLED]
   # Install: pre-commit install --hook-type commit-msg
