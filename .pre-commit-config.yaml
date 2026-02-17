@@ -48,6 +48,7 @@ repos:
       - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
       - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
       - id: detect-private-key         # Detect private keys
+      - id: fix-byte-order-marker      # Remove UTF-8 BOM (causes subtle bugs on Linux/CI)
       - id: name-tests-test            # Enforce test_*.py naming in tests/
         args: ['--pytest-test-first']
         files: ^tests/
