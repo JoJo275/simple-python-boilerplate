@@ -1,20 +1,31 @@
 # =============================================================================
 # Pre-commit Configuration
 # =============================================================================
-# Runs automated checks before each git commit.
+# Runs automated checks at different stages of the Git workflow.
 #
 # Setup:
 #   pip install pre-commit
-#   pre-commit install
+#   pre-commit install                              # pre-commit stage
+#   pre-commit install --hook-type commit-msg        # commit-msg stage
+#   pre-commit install --hook-type pre-push          # pre-push stage
 #
 # Manual run:
 #   pre-commit run --all-files
 #
 # Update hooks:
 #   pre-commit autoupdate
+#
+# Temporarily disable a hook (without removing it):
+#   Set  stages: [manual]  on any hook — it will only run when called
+#   explicitly with:  pre-commit run <hook-id> --hook-stage manual
 # =============================================================================
 
 repos:
+  # ===========================================================================
+  # STAGE: pre-commit  (runs on every `git commit`)
+  # Install: pre-commit install
+  # ===========================================================================
+
   # ---------------------------------------------------------------------------
   # General file checks
   # ---------------------------------------------------------------------------
@@ -22,18 +33,29 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace        # Remove trailing whitespace
+        stages: [pre-commit]
       - id: end-of-file-fixer          # Ensure files end with newline
+        stages: [pre-commit]
       - id: check-yaml                 # Validate YAML syntax
+        stages: [pre-commit]
       - id: check-toml                 # Validate TOML syntax
+        stages: [pre-commit]
       - id: check-json                 # Validate JSON syntax
+        stages: [pre-commit]
       - id: check-added-large-files    # Prevent giant files from being committed
         args: ['--maxkb=1000']
+        stages: [pre-commit]
       - id: check-merge-conflict       # Check for merge conflict markers
+        stages: [pre-commit]
       - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
+        stages: [pre-commit]
       - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
+        stages: [pre-commit]
       - id: detect-private-key         # Detect private keys
-      - id: mixed-line-ending           # Normalize line endings (LF)
+        stages: [pre-commit]
+      - id: mixed-line-ending          # Normalize line endings (LF)
         args: ['--fix=lf']
+        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Ruff - Fast Python linter and formatter
@@ -44,8 +66,10 @@ repos:
       # Linter
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
+        stages: [pre-commit]
       # Formatter (replaces black)
       - id: ruff-format
+        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Type checking with mypy
@@ -58,6 +82,7 @@ repos:
         args: [--ignore-missing-imports]
         # Only check src/ to avoid issues with untyped test files
         files: ^src/
+        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Security checks
@@ -70,9 +95,10 @@ repos:
         additional_dependencies: ["bandit[toml]"]
         # Skip test files
         exclude: ^tests/
+        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
-  # Local hooks
+  # Local hooks (pre-commit stage)
   # ---------------------------------------------------------------------------
   - repo: local
     hooks:
@@ -82,6 +108,35 @@ repos:
         language: pygrep
         types: [text]
         exclude: \.pre-commit-config\.yaml$
+        stages: [pre-commit]
+
+  # ===========================================================================
+  # STAGE: commit-msg  (validates the commit message)
+  # Install: pre-commit install --hook-type commit-msg
+  # ===========================================================================
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.0.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+
+  # ===========================================================================
+  # STAGE: pre-push  (runs on `git push` — good for slower checks)
+  # Install: pre-commit install --hook-type pre-push
+  # ===========================================================================
+
+  # Uncomment to run full test suite before pushing:
+  # - repo: local
+  #   hooks:
+  #     - id: tests
+  #       name: Run test suite
+  #       entry: hatch run test
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+  #       stages: [pre-push]
 
 # =============================================================================
 # CI Configuration (optional)
