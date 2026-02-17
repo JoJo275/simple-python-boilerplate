@@ -56,7 +56,7 @@ Please provide as much context as possible to facilitate discussion.
 <!-- What area does this change affect? -->
 <!-- Options: Architecture / System design | API design | Data model / Schema | Module / Component structure | Interface / Protocol | Configuration / Settings | Multiple areas | Other -->
 
-**Scope:** 
+**Scope:**
 
 ---
 
@@ -82,15 +82,15 @@ Please provide as much context as possible to facilitate discussion.
 
 <!-- Outline the key steps or phases to implement this design. -->
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ### Estimated Effort / Complexity
 
 <!-- Small (S) – A few hours to a day | Medium (M) – A few days to a week | Large (L) – Multiple weeks or more | Unsure -->
 
-**Effort:** 
+**Effort:**
 
 ---
 
@@ -100,7 +100,7 @@ Please provide as much context as possible to facilitate discussion.
 
 <!-- No – Backward compatible | Yes – Breaking changes required | Partially – Some breaking changes | Unsure -->
 
-**Breaking Change:** 
+**Breaking Change:**
 
 ### Migration Path (if breaking)
 
@@ -126,8 +126,8 @@ Please provide as much context as possible to facilitate discussion.
 
 <!-- What questions remain unresolved? What areas need input from reviewers? -->
 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
 
 ---
 
@@ -137,7 +137,7 @@ Please provide as much context as possible to facilitate discussion.
 
 <!-- Yes, I'd like to implement this | Yes, but I'd need guidance | Maybe, depending on complexity | No, I'm just proposing the idea -->
 
-**Willing to implement:** 
+**Willing to implement:**
 
 ---
 
@@ -145,7 +145,7 @@ Please provide as much context as possible to facilitate discussion.
 
 <!-- Links to similar designs in other projects, standards, research, or related issues. -->
 
-- 
+-
 
 ## Additional Context (Optional)
 

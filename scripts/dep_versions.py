@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import argparse
 import re
-import subprocess
+import subprocess  # nosec B404
 import sys
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import metadata as pkg_metadata
@@ -77,7 +77,8 @@ def _package_summary(pkg: str) -> str | None:
         summary = summary.rstrip(".")
         # Remove leading "pkgname: " or "pkgname - " prefix (redundant)
         prefix_re = re.compile(
-            r"^" + re.escape(pkg) + r"\s*[:—–-]\s*", re.IGNORECASE,
+            r"^" + re.escape(pkg) + r"\s*[:—–-]\s*",
+            re.IGNORECASE,
         )
         summary = prefix_re.sub("", summary)
         return summary
@@ -91,7 +92,7 @@ def _latest_version(pkg: str) -> str | None:
     Returns ``None`` on any failure (network, pip too old, etc.).
     """
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec B603
             [sys.executable, "-m", "pip", "index", "versions", pkg],
             capture_output=True,
             text=True,
@@ -224,18 +225,18 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
 
             installed = _installed_version(name)
             latest = _latest_version(name) if check_latest else None
-            upgradable = (
-                installed != latest if installed and latest else None
-            )
+            upgradable = installed != latest if installed and latest else None
 
-            rows.append({
-                "group": group,
-                "name": name,
-                "specifier": raw,
-                "installed": installed,
-                "latest": latest,
-                "upgradable": "yes" if upgradable else "",
-            })
+            rows.append(
+                {
+                    "group": group,
+                    "name": name,
+                    "specifier": raw,
+                    "installed": installed,
+                    "latest": latest,
+                    "upgradable": "yes" if upgradable else "",
+                }
+            )
 
     return rows
 
@@ -390,11 +391,7 @@ def update_requirements_comments() -> dict[str, int]:
         for i, line in enumerate(lines):
             stripped = line.strip()
             # Skip blanks, pure comments, options, and -r includes
-            if (
-                not stripped
-                or stripped.startswith("#")
-                or stripped.startswith("-")
-            ):
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
                 continue
 
             m = _REQ_DEP_RE.match(stripped)
@@ -461,7 +458,7 @@ def upgrade_package(name: str, target_version: str | None = None) -> bool:
     spec = f"{name}=={target_version}" if target_version else name
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", spec]
     print(f"  pip install --upgrade {spec}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
     if result.returncode != 0:
         print(f"  FAILED: {result.stderr.strip()}")
         return False
@@ -589,11 +586,7 @@ def main() -> None:
             # Verify it's one of our declared deps
             text = PYPROJECT.read_text(encoding="utf-8")
             groups = _parse_deps_from_toml(text)
-            all_deps = {
-                _normalise_name(s)
-                for specs in groups.values()
-                for s in specs
-            }
+            all_deps = {_normalise_name(s) for specs in groups.values() for s in specs}
             if normalised not in all_deps:
                 print(
                     f"  '{pkg}' is not declared in pyproject.toml."

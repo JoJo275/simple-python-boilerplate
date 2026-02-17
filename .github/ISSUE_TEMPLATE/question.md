@@ -1,6 +1,6 @@
 ---
 name: ❓ Question
-about: Ask a specific technical question about the project. 
+about: Ask a specific technical question about the project.
     For general help or discussions, please use Discussions instead.
 title: "[QUESTION] Short description of your question"
 labels: question, status: needs-triage

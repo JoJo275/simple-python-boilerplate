@@ -1,10 +1,10 @@
 # Bug Bounty Program
 
 > **⚠️ THIS IS A TEMPLATE — NOT AN ACTIVE BUG BOUNTY PROGRAM**
-> 
-> **This document is an example only. It is NOT active for this repository.**  
+>
+> **This document is an example only. It is NOT active for this repository.**
 > **Do not submit vulnerability reports expecting rewards for this template repo.**
-> 
+>
 > To use this template: copy it to your own repository, replace all placeholders, and link it from your SECURITY.md.
 
 
@@ -45,7 +45,7 @@ The following are eligible for rewards:
 
 | Severity | Examples | Reward Range |
 |----------|----------|--------------|
-| **Critical** | Remote code execution, authentication bypass, data breach | $[X] – $[Y] | 
+| **Critical** | Remote code execution, authentication bypass, data breach | $[X] – $[Y] |
 | **High** | Privilege escalation, significant data exposure, injection attacks | $[X] – $[Y] |
 | **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $[X] – $[Y] |
 | **Low** | Minor information leaks, theoretical attacks | Recognition only |
@@ -111,7 +111,7 @@ We will not pursue legal action against researchers who:
 
 **If you are using this as a template:** Replace the link, email, and all placeholders below before publishing. Do not ship this file with example values.
 
-1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)  
+1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)
    **⚠️ TODO:** Replace `[OWNER]/[REPO]` with your actual repository path
 2. **Email:** `[security-email]@[your-domain].com`
 3. **PGP Encrypted:** See key details below (if available)

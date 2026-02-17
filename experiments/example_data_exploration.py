@@ -1,5 +1,4 @@
-"""
-Example experiment: Quick data exploration.
+"""Example experiment: Quick data exploration.
 
 This is a scratch file for ad-hoc data analysis.
 Delete this file when creating your own project.

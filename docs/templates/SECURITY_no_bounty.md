@@ -47,15 +47,15 @@ Instead, please report security vulnerabilities via one of the following methods
 <!-- TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values -->
 <!-- TODO: Ensure Security Advisories are enabled in repo settings (Settings → Security → Private vulnerability reporting); otherwise the link below may 404. -->
 
-1. **GitHub Security Advisories (Preferred)**  
+1. **GitHub Security Advisories (Preferred)**
    Use [GitHub's private vulnerability reporting](https://github.com/[OWNER]/[REPO]/security/advisories/new) to submit a report directly.
 
-2. **Email**  
+2. **Email**
    Contact the maintainers directly at: `security@example.com`
 
-3. **PGP Encrypted Email** (Optional)  
+3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
-   
+
    <!-- TODO: Add your PGP key fingerprint (full 40-character format):
    Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
    Public key: https://keys.openpgp.org/search?q=security@example.com

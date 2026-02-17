@@ -1,6 +1,6 @@
 ---
 name: ✨ Feature Request
-about: Suggest a new feature or enhancement for the project. 
+about: Suggest a new feature or enhancement for the project.
     For early-stage ideas or discussions, please use Discussions first.
 title: "[FEATURE] Short description of the feature"
 labels: enhancement, status: needs-triage

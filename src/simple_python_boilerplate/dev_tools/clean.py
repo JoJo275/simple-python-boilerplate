@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Clean utility for repository maintenance tasks.
+"""Clean utility for repository maintenance tasks.
 
 Usage:
     spb-clean --todo     Archive completed TODO items
@@ -27,8 +26,7 @@ def get_repo_root() -> Path:
 
 
 def archive_todos() -> int:
-    """
-    Move completed TODO items from todo.md to archive.md.
+    """Move completed TODO items from todo.md to archive.md.
 
     Returns:
         Number of items archived.

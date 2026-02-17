@@ -20,7 +20,7 @@ There are some notes to myself and throughout the repo to remind me of certain t
 
 A lot of the populating data in this repo (files, docs, etc) is set up with real content that relates to this repo which serve as examples and references for future use.
 
-Most of the workflows and automation are disabled by default to avoid confusion and allow you to enable and adapt them as needed for your own projects. 
+Most of the workflows and automation are disabled by default to avoid confusion and allow you to enable and adapt them as needed for your own projects.
 
 The core python development workflow that was left enabled by default:
 
@@ -326,7 +326,7 @@ Potential additions in the future:
 
 These may be added once I have covered the relevant concepts.
 
-[Developer note]  
+[Developer note]
 *Developer notes are formatted like this.*
 
 ## Templates
@@ -340,7 +340,7 @@ Choose one:
 1. Keep the template you prefer
 2. Delete or rename the other
 
-Remember to create the corrosponding labels for each issue in your repo for whatever issue templates you choose to use.  
+Remember to create the corrosponding labels for each issue in your repo for whatever issue templates you choose to use.
 [issues -> labels -> new label]
 
 ## Getting Help
@@ -428,4 +428,4 @@ pick security.md with the bounty program or the one without it.
 
 ## CLI entry points
 
-spb - 
+spb -

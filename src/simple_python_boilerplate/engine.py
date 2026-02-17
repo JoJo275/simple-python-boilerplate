@@ -1,5 +1,4 @@
-"""
-Core business logic and processing engine.
+"""Core business logic and processing engine.
 
 This module contains the core functionality of the application, independent of
 any interface (CLI, API, etc.). It should be interface-agnostic and focused
@@ -58,6 +57,7 @@ def get_version_info() -> VersionInfo:
         pkg_version = version("simple-python-boilerplate")
     except PackageNotFoundError:
         from simple_python_boilerplate import __version__
+
         pkg_version = f"{__version__} (editable/dev install)"
 
     py_ver = sys.version_info

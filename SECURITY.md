@@ -19,19 +19,19 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report security vulnerabilities via one of the following methods:
 
-1. **GitHub Security Advisories (Preferred)**  
+1. **GitHub Security Advisories (Preferred)**
    Use [GitHub's private vulnerability reporting](https://github.com/JoJo275/simple-python-boilerplate/security/advisories/new) to submit a report directly.
 
    > ℹ️ *If you forked this repo, update the link above to point to your own repository.*
 
-2. **Email**  
+2. **Email**
    Contact the maintainers directly at: `security@example.com`
-   
+
    <!-- TODO: Replace with your actual security contact email -->
 
-3. **PGP Encrypted Email** (Optional)  
+3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
-   
+
    <!-- TODO: Add your PGP key fingerprint here, e.g.:
    Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
    Public key: https://keys.openpgp.org/search?q=security@example.com

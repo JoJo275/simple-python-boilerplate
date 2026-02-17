@@ -1,5 +1,4 @@
-"""
-HTTP/REST API interface.
+"""HTTP/REST API interface.
 
 This module provides the API layer for the application. It handles HTTP
 requests, routing, serialization, and response formatting. The actual

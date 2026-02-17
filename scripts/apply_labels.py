@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import subprocess  # nosec B404
 import sys
 import urllib.parse
 from pathlib import Path
@@ -28,13 +28,13 @@ ROOT = HERE.parent
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, text=True, capture_output=True)
+    return subprocess.run(cmd, text=True, capture_output=True)  # nosec B603
 
 
 def gh_exists() -> bool:
     """Check if GitHub CLI is installed."""
     try:
-        subprocess.run(["gh", "--version"], capture_output=True, check=True)
+        subprocess.run(["gh", "--version"], capture_output=True, check=True)  # nosec B603 B607
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -47,7 +47,9 @@ def default_repo() -> str | None:
     return (p.stdout or "").strip() or None
 
 
-def gh_api(method: str, endpoint: str, fields: dict[str, str]) -> subprocess.CompletedProcess:
+def gh_api(
+    method: str, endpoint: str, fields: dict[str, str]
+) -> subprocess.CompletedProcess:
     cmd = ["gh", "api", "-X", method, endpoint]
     for k, v in fields.items():
         cmd += ["-f", f"{k}={v}"]
@@ -63,12 +65,18 @@ def main() -> int:
 
     # Ensure gh is installed
     if not gh_exists():
-        print("Error: GitHub CLI (gh) is not installed. Install from https://cli.github.com/", file=sys.stderr)
+        print(
+            "Error: GitHub CLI (gh) is not installed. Install from https://cli.github.com/",
+            file=sys.stderr,
+        )
         return 2
 
     repo = args.repo or default_repo()
     if not repo:
-        print("Error: could not determine repo. Run inside a repo or pass --repo OWNER/REPO.", file=sys.stderr)
+        print(
+            "Error: could not determine repo. Run inside a repo or pass --repo OWNER/REPO.",
+            file=sys.stderr,
+        )
         return 2
 
     spec = ROOT / "labels" / f"{args.set}.json"
@@ -106,14 +114,22 @@ def main() -> int:
         desc = lab.get("description", "")
 
         # Try create
-        p = gh_api("POST", f"repos/{repo}/labels", {"name": name, "color": color, "description": desc})
+        p = gh_api(
+            "POST",
+            f"repos/{repo}/labels",
+            {"name": name, "color": color, "description": desc},
+        )
         if p.returncode == 0:
             created += 1
             continue
 
         # Update existing (name must be URL-encoded)
         encoded = urllib.parse.quote(name, safe="")
-        p2 = gh_api("PATCH", f"repos/{repo}/labels/{encoded}", {"new_name": name, "color": color, "description": desc})
+        p2 = gh_api(
+            "PATCH",
+            f"repos/{repo}/labels/{encoded}",
+            {"new_name": name, "color": color, "description": desc},
+        )
         if p2.returncode == 0:
             updated += 1
             continue
@@ -135,6 +151,7 @@ def main() -> int:
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

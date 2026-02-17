@@ -1,5 +1,4 @@
-"""
-Application entry points (thin wrappers).
+"""Application entry points (thin wrappers).
 
 This module contains the entry points configured in pyproject.toml. These are
 the functions that get called when users run CLI commands. They should be thin
@@ -16,7 +15,7 @@ Entry points (configured in pyproject.toml):
     - print_version: Show version info
     - doctor: Diagnose environment issues
 
-See also:
+See Also:
     - cli.py: Argument parsing and command structure
     - engine.py: Core business logic
     - api.py: HTTP/REST interface
@@ -71,15 +70,14 @@ def doctor() -> None:
     print(f"  Executable: {diag['executable']}")
     print(f"  Prefix:     {diag['prefix']}")
     venv_status = (
-        '✅ Yes' if diag['in_virtual_env']
-        else '⚠️  No (consider using a venv)'
+        "✅ Yes" if diag["in_virtual_env"] else "⚠️  No (consider using a venv)"
     )
     print(f"  Virtual env: {venv_status}")
     print()
 
     # Check for common dev tools
     print("== Dev Tools ==")
-    for tool, path in diag['tools'].items():
+    for tool, path in diag["tools"].items():
         if path:
             print(f"  {tool}: ✅ {path}")
         else:
@@ -88,7 +86,7 @@ def doctor() -> None:
 
     # Check for config files
     print("== Config Files ==")
-    for cfg, exists in diag['config_files'].items():
+    for cfg, exists in diag["config_files"].items():
         print(f"  {cfg}: {'✅ found' if exists else '⚠️  missing'}")
     print()
 

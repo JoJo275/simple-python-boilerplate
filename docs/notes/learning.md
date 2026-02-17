@@ -1086,7 +1086,7 @@ User sees result
 def process_data(data: str) -> str:
     return f"Processed: {data}"
 
-# cli.py — CLI contract  
+# cli.py — CLI contract
 def run(args):
     from engine import process_data
     result = process_data(args.input)
@@ -1175,8 +1175,8 @@ def main():
 
 ### One-sentence Rule (worth memorizing)
 
-> Installable CLIs define behavior.  
-> Just coordinates behavior.  
+> Installable CLIs define behavior.
+> Just coordinates behavior.
 > Scripts are temporary.
 
 ### Why This Matters for Your Template
@@ -1401,8 +1401,8 @@ These exist in many ecosystems and are not caches, but tooling state.
 
 ### Mental Model (use this)
 
-> Caches speed things up.  
-> Metadata describes installed artifacts.  
+> Caches speed things up.
+> Metadata describes installed artifacts.
 > Neither is source code.
 
 If deleting it only requires reinstalling or rebuilding → it does not belong in git.

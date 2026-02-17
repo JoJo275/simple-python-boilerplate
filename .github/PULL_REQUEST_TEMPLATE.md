@@ -29,9 +29,9 @@ Brief description of the changes in this PR.
 <!-- Help reviewers verify your changes. Don't make them guess! -->
 
 **Steps:**
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 **Test command(s):**
 ```bash

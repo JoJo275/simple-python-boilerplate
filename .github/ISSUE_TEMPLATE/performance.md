@@ -115,9 +115,9 @@ Or: "Data is confidential, but it's a 500MB CSV with 100k rows"
 
 ### Steps to Reproduce
 <!-- Steps to reproduce the performance issue -->
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ### Minimal Reproduction Code (Optional)
 ```python

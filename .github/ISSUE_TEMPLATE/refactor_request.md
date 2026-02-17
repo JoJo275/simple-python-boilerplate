@@ -151,9 +151,9 @@ Please provide enough context to understand the value of this change.
 <!-- When is this refactor complete? What must be true to close this issue? -->
 
 **Done when:**
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
+- [ ]
 
 ---
 

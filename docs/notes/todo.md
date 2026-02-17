@@ -21,7 +21,7 @@ Things to explore, implement, or learn more about.
 - [ ] Add Makefile or taskfile for common commands
 - [ ] Explore Nox/Tox for multi-environment testing
 - [ ] Set up GitHub Codespaces configuration
-- [ ] Implement Sphinx/MkDocs documentation generation (learn what this even is).  
+- [ ] Implement Sphinx/MkDocs documentation generation (learn what this even is).
 *From what I've read so far this is like a static website generator for documentation, similar to Jekyll but for docs specifically.*
 - [ ] Add more ADRs for architectural decisions
 - [ ] Add more detailed development workflow docs
@@ -58,7 +58,7 @@ Things to explore, implement, or learn more about.
 - [ ] Best practice for versioning: manual vs automated?
 - [ ] When is namespace packaging appropriate?
 - [ ] How to manage multiple Python versions in CI?
-- [ ] 
+- [ ]
 
 ## Bookmarks
 

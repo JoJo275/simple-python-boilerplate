@@ -1,5 +1,4 @@
-"""
-Command-line interface definitions and argument parsing.
+"""Command-line interface definitions and argument parsing.
 
 This module handles CLI argument parsing and command definitions. It provides
 the user-facing command structure while delegating actual work to the engine
@@ -42,7 +41,8 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
-        "-v", "--version",
+        "-v",
+        "--version",
         action="store_true",
         help="Show version information and exit",
     )
@@ -54,17 +54,14 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     # Add subcommands
-    subparsers = parser.add_subparsers(
-        dest="command", help="Available commands"
-    )
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Process command
-    process_parser = subparsers.add_parser(
-        "process", help="Process input data"
-    )
+    process_parser = subparsers.add_parser("process", help="Process input data")
     process_parser.add_argument("input", help="Input data to process")
     process_parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help="Output file (default: stdout)",
     )
 
@@ -98,6 +95,7 @@ def run(args: argparse.Namespace) -> int:
     """
     if args.version:
         from simple_python_boilerplate.engine import get_version_info
+
         info = get_version_info()
         print(f"simple-python-boilerplate {info['package_version']}")
         print(f"Python {info['python_full']}")
@@ -105,6 +103,7 @@ def run(args: argparse.Namespace) -> int:
 
     if args.command == "doctor":
         from simple_python_boilerplate.main import doctor
+
         doctor()  # doctor() in main.py handles formatting
         return 0
 
