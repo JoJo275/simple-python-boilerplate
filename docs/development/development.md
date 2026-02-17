@@ -257,6 +257,92 @@ repos:
         additional_dependencies: []
 ```
 
+### Seeing Which Hooks Are Enabled
+
+#### With pre-commit
+
+```bash
+# List all configured hooks and their repo/rev from .pre-commit-config.yaml
+pre-commit run --all-files --list-hooks
+
+# Or simply inspect the config file directly
+cat .pre-commit-config.yaml
+```
+
+Each `- id:` entry under `hooks:` in `.pre-commit-config.yaml` is an enabled hook. This project uses:
+
+| Hook | Source | Purpose |
+|------|--------|---------|
+| `trailing-whitespace` | pre-commit-hooks | Remove trailing whitespace |
+| `end-of-file-fixer` | pre-commit-hooks | Ensure files end with newline |
+| `check-yaml` | pre-commit-hooks | Validate YAML syntax |
+| `check-toml` | pre-commit-hooks | Validate TOML syntax |
+| `check-json` | pre-commit-hooks | Validate JSON syntax |
+| `check-added-large-files` | pre-commit-hooks | Prevent giant files (>1 MB) |
+| `check-merge-conflict` | pre-commit-hooks | Detect merge conflict markers |
+| `check-case-conflict` | pre-commit-hooks | Detect case-insensitive filename clashes |
+| `debug-statements` | pre-commit-hooks | Find leftover debugger imports |
+| `detect-private-key` | pre-commit-hooks | Detect committed private keys |
+| `ruff` | ruff-pre-commit | Lint Python code (with auto-fix) |
+| `ruff-format` | ruff-pre-commit | Format Python code |
+| `mypy` | mirrors-mypy | Type checking (`src/` only) |
+| `bandit` | bandit | Security linting (excludes `tests/`) |
+
+#### Without pre-commit (raw Git hooks)
+
+```bash
+# List installed Git hook scripts
+ls .git/hooks/
+
+# Show what a specific hook does
+cat .git/hooks/pre-commit
+```
+
+Hook files without a `.sample` extension are active. When pre-commit is installed, `.git/hooks/pre-commit` is a shim that delegates to the pre-commit framework.
+
+### Disabling Hooks
+
+#### With pre-commit
+
+```bash
+# Uninstall pre-commit hooks from this repo (removes the .git/hooks/pre-commit shim)
+pre-commit uninstall
+
+# Skip hooks for a single commit
+SKIP=all git commit -m "feat: commit without hooks"
+# On Windows (PowerShell)
+$env:SKIP="all"; git commit -m "feat: commit without hooks"; Remove-Item Env:SKIP
+
+# Skip specific hooks only (comma-separated hook IDs)
+SKIP=mypy,bandit git commit -m "fix: skip slow hooks this time"
+# On Windows (PowerShell)
+$env:SKIP="mypy,bandit"; git commit -m "fix: skip slow hooks this time"; Remove-Item Env:SKIP
+
+# Re-enable hooks later
+pre-commit install
+```
+
+#### Without pre-commit (raw Git)
+
+```bash
+# Skip all Git hooks for a single commit
+git commit --no-verify -m "feat: bypass all hooks"
+# Short form
+git commit -n -m "feat: bypass all hooks"
+
+# Disable hooks globally by pointing core.hooksPath to an empty directory
+mkdir -p /tmp/no-hooks
+git config core.hooksPath /tmp/no-hooks
+
+# Restore default hooks path
+git config --unset core.hooksPath
+
+# Or delete the hook script directly (permanent until re-installed)
+rm .git/hooks/pre-commit
+```
+
+> **Tip:** Use `--no-verify` / `-n` for quick one-off bypasses. Use `pre-commit uninstall` if you want hooks off until you explicitly re-enable them.
+
 ---
 
 ## Dependency Management
