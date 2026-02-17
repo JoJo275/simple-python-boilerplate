@@ -15,7 +15,7 @@ version = "0.1.0"
 description = "Simple Python boilerplate using src/ layout"
 readme = "README.md"                    # Relative to pyproject.toml → root README.md
 requires-python = ">=3.11"
-license = {text = "Apache-2.0"}
+license = {file = "LICENSE"}
 authors = [{name = "Joseph"}]
 
 # Keywords for PyPI search discoverability
@@ -37,7 +37,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+    # "Programming Language :: Python :: 3.14",  # Uncomment when CI matrix includes 3.14
     # "Topic :: Software Development :: Libraries",
     # "Topic :: Utilities",
     "Typing :: Typed",
@@ -63,7 +63,6 @@ dependencies = [
 spb = "simple_python_boilerplate.main:main"
 spb-version = "simple_python_boilerplate.main:print_version"
 spb-doctor = "simple_python_boilerplate.main:doctor"
-spb-clean = "simple_python_boilerplate.dev_tools.clean:main"
 
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]
@@ -86,7 +85,7 @@ test = [
     # "hypothesis",      # Property-based testing
 ]
 dev = [
-    "simple-python-boilerplate[test]",  # Include test deps
+    "simple-python-boilerplate[test]",  # Include test deps (update this if you rename the project)
     "ruff",  # Fast linter and formatter (v0.15.0)
     "mypy",  # Static type checker (v1.19.1)
     "pre-commit",  # Git hooks for automated checks (v4.5.1)
@@ -106,7 +105,7 @@ docs = [
     "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
     "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
     "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
-    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
+    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (mkdocstrings v0.29.1, handler: mkdocstrings-python v1.0.3)
 ]
 
 # ============================================================================
@@ -150,6 +149,7 @@ fmt = "ruff format {args: src/ tests/}"
 fmt-check = "ruff format --check {args: src/ tests/}"
 typecheck = "mypy {args: src/}"
 check = ["lint", "fmt-check", "typecheck", "test"]
+clean = "python -m simple_python_boilerplate.dev_tools.clean {args}"
 
 # ── Docs environment — build and serve documentation ──────────
 # Usage:
@@ -172,7 +172,7 @@ build = "mkdocs build --strict {args}"
 features = ["test"]  # Installs [project.optional-dependencies].test
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.11", "3.12", "3.13", "3.14"]
+python = ["3.11", "3.12", "3.13"]  # Keep aligned with CI matrix and classifiers
 
 [tool.hatch.envs.test.scripts]
 run = "pytest {args}"
@@ -252,7 +252,7 @@ show_missing = true
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
-    "if __name__ == .__main__.:",
+    'if __name__ == "__main__":',
     "raise NotImplementedError",
 ]
 
@@ -360,6 +360,7 @@ skips = ["B101"]  # Skip assert warnings (asserts are fine outside production co
 # NOTES FOR BOILERPLATE USERS
 # ============================================================================
 # 1. Create py.typed file in src/simple_python_boilerplate/ for PEP 561 typed package
+#    AND ensure it's included in the wheel — see [tool.hatch.build.targets.wheel] above
 # 2. Consider using pre-commit hooks - see .pre-commit-config.yaml
 # 3. For dynamic versioning, consider: setuptools-scm, hatch-vcs, or semantic-release
 # 4. Test your package build with: python -m build

@@ -107,8 +107,12 @@ def archive_todos() -> int:
     return len(completed_items)
 
 
-def main() -> None:
-    """Main entry point for the clean CLI."""
+def main() -> int:
+    """Main entry point for the clean CLI.
+
+    Returns:
+        Exit code (0 = success).
+    """
     parser = argparse.ArgumentParser(
         prog="spb-clean",
         description="Repository maintenance and cleanup utilities.",
@@ -139,12 +143,14 @@ def main() -> None:
     # If no arguments provided, show help
     if not any(vars(args).values()):
         parser.print_help()
-        sys.exit(0)
+        return 0
 
     # Execute requested actions
     if args.todo:
         archive_todos()
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
