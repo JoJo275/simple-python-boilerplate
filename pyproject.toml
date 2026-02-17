@@ -264,7 +264,7 @@ target-version = "py311"
 # exclude = [".venv", "build", "dist"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "D"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade, D=pydocstyle
+select = ["E", "F", "I", "UP", "D", "T20"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade, D=pydocstyle, T20=flake8-print (no print/pprint)
 ignore = [
     "E501",   # Ignore line length limit
     "D100",   # Missing docstring in public module
@@ -294,13 +294,14 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # Enforce Google-style docstrings
 
+[tool.ruff.lint.per-file-ignores]
+# Allow print() and skip docstring rules in tests, scripts, and experiments
+"tests/**" = ["T20", "D"]
+"scripts/**" = ["T20", "D"]
+"experiments/**" = ["T20", "D"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["simple_python_boilerplate"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["D"]          # Don't require docstrings in tests
-"scripts/*" = ["D"]        # Don't require docstrings in utility scripts
-"experiments/*" = ["D"]    # Don't require docstrings in scratch/exploration files
 
 # -- Mypy (type checker) --
 [tool.mypy]
