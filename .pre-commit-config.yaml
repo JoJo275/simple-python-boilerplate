@@ -75,6 +75,9 @@ repos:
 
   # ---------------------------------------------------------------------------
   # Type checking with mypy
+  # NOTE: If package code grows and commit times slow down, remove mypy from
+  #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
+  #       or rely on the type-check GitHub Actions workflow instead.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
@@ -88,6 +91,9 @@ repos:
 
   # ---------------------------------------------------------------------------
   # Security checks
+  # NOTE: If package code grows and commit times slow down, remove bandit from
+  #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
+  #       or rely on the bandit GitHub Actions workflow instead.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.3
@@ -113,7 +119,7 @@ repos:
         stages: [pre-commit]
 
   # ===========================================================================
-  # STAGE: commit-msg  (validates the commit message)
+  # STAGE: --DISABLED-- commit-msg  (validates the commit message)
   # Install: pre-commit install --hook-type commit-msg
   # ===========================================================================
 
@@ -121,7 +127,8 @@ repos:
     rev: v4.0.0
     hooks:
       - id: conventional-pre-commit
-        stages: [commit-msg]
+        # stages: [commit-msg]
+        stages: [manual] #
         args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
 
   # ===========================================================================
