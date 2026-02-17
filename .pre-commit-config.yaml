@@ -33,7 +33,9 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace        # Remove trailing whitespace
+        # comment line blow out and uncomment stages: [manual] to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
         stages: [pre-commit]
+        # stages: [manual]             # Uncomment to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
       - id: end-of-file-fixer          # Ensure files end with newline
         stages: [pre-commit]
       - id: check-yaml                 # Validate YAML syntax
