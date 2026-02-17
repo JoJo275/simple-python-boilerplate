@@ -178,6 +178,58 @@ pre-commit run --all-files
 pre-commit autoupdate
 ```
 
+### See Enabled Hooks
+
+```bash
+# List all configured hooks from .pre-commit-config.yaml
+pre-commit run --all-files --list-hooks
+
+# Or inspect the config directly
+cat .pre-commit-config.yaml
+
+# List raw Git hook scripts
+ls .git/hooks/
+```
+
+### Disable / Skip Hooks
+
+```bash
+# Uninstall pre-commit hooks from this repo
+pre-commit uninstall
+
+# Skip ALL hooks for a single commit
+SKIP=all git commit -m "feat: commit without hooks"
+# Windows (PowerShell)
+$env:SKIP="all"; git commit -m "feat: commit without hooks"; Remove-Item Env:SKIP
+
+# Skip specific hooks only (comma-separated IDs)
+SKIP=mypy,bandit git commit -m "fix: skip slow hooks"
+# Windows (PowerShell)
+$env:SKIP="mypy,bandit"; git commit -m "fix: skip slow hooks"; Remove-Item Env:SKIP
+
+# Re-enable hooks
+pre-commit install
+```
+
+### Without pre-commit (raw Git)
+
+```bash
+# Skip all Git hooks for a single commit
+git commit --no-verify -m "feat: bypass all hooks"
+# Short form
+git commit -n -m "feat: bypass all hooks"
+
+# Disable hooks globally via hooksPath
+mkdir -p /tmp/no-hooks
+git config core.hooksPath /tmp/no-hooks
+
+# Restore default hooks path
+git config --unset core.hooksPath
+
+# Or delete the hook script directly
+rm .git/hooks/pre-commit
+```
+
 ## Quick Checks Before PR
 
 ```bash
