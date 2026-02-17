@@ -69,6 +69,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
+        with:
+          persist-credentials: false
 
       # Reads .github/labeler.yml and applies matching labels
       # to the PR based on which files were changed.

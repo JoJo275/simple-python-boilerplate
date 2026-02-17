@@ -61,6 +61,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
         with:
           fetch-depth: 0  # Full history needed to generate changelog
+          persist-credentials: false
 
       # Generate (or update) CHANGELOG.md from conventional commits.
       # git-cliff groups commits by type: feat, fix, docs, refactor, etc.
