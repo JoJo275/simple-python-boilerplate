@@ -20,6 +20,8 @@
 #   explicitly with:  pre-commit run <hook-id> --hook-stage manual
 # =============================================================================
 
+default_stages: [pre-commit]
+
 repos:
   # ===========================================================================
   # STAGE: pre-commit  (runs on every `git commit`)
@@ -33,31 +35,24 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace        # Remove trailing whitespace
-        # comment line blow out and uncomment stages: [manual] to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
-        stages: [pre-commit]
+        # Comment out and uncomment stages: [manual] to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
         # stages: [manual]             # Uncomment to disable — only runs via: pre-commit run trailing-whitespace --hook-stage manual
       - id: end-of-file-fixer          # Ensure files end with newline
-        stages: [pre-commit]
       - id: check-yaml                 # Validate YAML syntax
-        stages: [pre-commit]
       - id: check-toml                 # Validate TOML syntax
-        stages: [pre-commit]
       - id: check-json                 # Validate JSON syntax
-        stages: [pre-commit]
+      - id: check-ast                  # Validate Python syntax (catches SyntaxError)
       - id: check-added-large-files    # Prevent giant files from being committed
         args: ['--maxkb=1000']
-        stages: [pre-commit]
       - id: check-merge-conflict       # Check for merge conflict markers
-        stages: [pre-commit]
       - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
-        stages: [pre-commit]
       - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
-        stages: [pre-commit]
       - id: detect-private-key         # Detect private keys
-        stages: [pre-commit]
+      - id: name-tests-test            # Enforce test_*.py naming in tests/
+        args: ['--pytest-test-first']
+        files: ^tests/
       - id: mixed-line-ending          # Normalize line endings (LF)
         args: ['--fix=lf']
-        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Ruff - Fast Python linter and formatter
@@ -68,10 +63,8 @@ repos:
       # Linter
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        stages: [pre-commit]
       # Formatter (replaces black)
       - id: ruff-format
-        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Type checking with mypy
@@ -83,11 +76,9 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        additional_dependencies: []
         args: [--ignore-missing-imports]
         # Only check src/ to avoid issues with untyped test files
         files: ^src/
-        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Security checks
@@ -103,7 +94,6 @@ repos:
         additional_dependencies: ["bandit[toml]"]
         # Skip test files
         exclude: ^tests/
-        stages: [pre-commit]
 
   # ---------------------------------------------------------------------------
   # Local hooks (pre-commit stage)
@@ -116,10 +106,9 @@ repos:
         language: pygrep
         types: [text]
         exclude: \.pre-commit-config\.yaml$
-        stages: [pre-commit]
 
   # ===========================================================================
-  # STAGE: --DISABLED-- commit-msg  (validates the commit message)
+  # STAGE: commit-msg  (validates the commit message)  [DISABLED]
   # Install: pre-commit install --hook-type commit-msg
   # ===========================================================================
 
@@ -127,8 +116,7 @@ repos:
     rev: v4.0.0
     hooks:
       - id: conventional-pre-commit
-        # stages: [commit-msg]
-        stages: [manual] #
+        stages: [manual]  # Change to [commit-msg] to enable
         args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
 
   # ===========================================================================
