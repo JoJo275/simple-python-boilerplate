@@ -126,6 +126,18 @@ repos:
         types: [text]
         exclude: \.pre-commit-config\.yaml$
 
+      - id: no-secrets-patterns
+        name: Block secrets / credentials patterns
+        entry: "(?i)(api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)\\s*[:=]\\s*[\"'][^\\s\"']{8,}"
+        language: pygrep
+        types: [text]
+        exclude: >-
+          (?x)
+          \.pre-commit-config\.yaml$|
+          \.env\.example$|
+          requirements.*\.txt$|
+          SECURITY\.md$
+
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)  [DISABLED]
   # Install: pre-commit install --hook-type commit-msg
