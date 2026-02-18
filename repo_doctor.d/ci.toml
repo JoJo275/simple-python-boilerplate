@@ -1,0 +1,116 @@
+# =============================================================================
+# repo_doctor.d/ci.toml — Deeper CI/CD & GitHub Actions checks
+# =============================================================================
+# Activate: --profile ci   or   profiles = ["ci"] in [doctor]
+#
+# Goes beyond the core workflow-existence checks in .repo-doctor.toml and
+# validates workflow content, pinning practices, and CI hygiene.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Workflow hardening
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows"
+regex = "(?m)permissions:"
+level = "warn"
+category = "ci"
+impact = "No explicit permissions: in any workflow — jobs run with the default (broad) GITHUB_TOKEN scope."
+hint = "Add top-level 'permissions: {}' or per-job permissions to follow least-privilege."
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows"
+regex = "uses:\\s*\\S+@[0-9a-f]{40}"
+level = "warn"
+category = "ci"
+impact = "At least one action is not pinned to a full commit SHA — supply-chain risk."
+hint = "Pin all 'uses:' to commit SHAs instead of tags (e.g., actions/checkout@<sha>)."
+link = "docs/adr/004-pin-action-shas.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Dependabot / Renovate
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".github/dependabot.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Dependabot config missing — automatic dependency update PRs won't be created."
+link = "docs/adr/010-dependabot-for-dependency-updates.md"
+
+[[rule]]
+type = "regex_present"
+path = ".github/dependabot.yml"
+regex = "(?i)package-ecosystem.*github-actions"
+level = "info"
+category = "ci"
+impact = "Dependabot doesn't list github-actions ecosystem — action SHAs won't be updated automatically."
+hint = "Add a github-actions entry to dependabot.yml."
+only_if.path = ".github/dependabot.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".github/dependabot.yml"
+regex = "(?i)package-ecosystem.*pip"
+level = "info"
+category = "ci"
+impact = "Dependabot doesn't list pip ecosystem — Python dependency updates won't be automated."
+hint = "Add a pip entry to dependabot.yml."
+only_if.path = ".github/dependabot.yml"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Branch protection awareness
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".github/CODEOWNERS"
+kind = "file"
+level = "info"
+category = "ci"
+impact = "No CODEOWNERS — PR review assignments won't be automatic."
+hint = "Create .github/CODEOWNERS with '* @your-github-username'."
+fix = "mkdir -p .github && echo '* @your-github-username' > .github/CODEOWNERS"
+
+
+# ---------------------------------------------------------------------------
+# Security workflows
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows"
+regex = "(?i)codeql|code-scanning|security"
+level = "info"
+category = "ci"
+impact = "No code-scanning or CodeQL workflow detected — GitHub security alerts may not cover custom code."
+hint = "Add a CodeQL analysis workflow or enable GitHub Advanced Security."
+link = "docs/adr/012-multi-layer-security-scanning.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows"
+regex = "(?i)sbom|cyclonedx|spdx|bill.of.materials"
+level = "info"
+category = "ci"
+impact = "No SBOM generation step detected in CI — software supply-chain transparency is missing."
+hint = "Add an SBOM generation step (CycloneDX, SPDX, or syft)."
+link = "docs/adr/013-sbom-bill-of-materials.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."

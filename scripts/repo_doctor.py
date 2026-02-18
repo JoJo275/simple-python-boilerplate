@@ -8,7 +8,9 @@ Usage::
 
     python scripts/repo_doctor.py
     python scripts/repo_doctor.py --missing --staged
-    python scripts/repo_doctor.py --category ci --level warn
+    python scripts/repo_doctor.py --category ci --min-level info
+    python scripts/repo_doctor.py --include-info
+    python scripts/repo_doctor.py --profile python --profile docs
     python scripts/repo_doctor.py --fix
 """
 
@@ -67,6 +69,17 @@ class Warning:
     message: str
 
 
+@dataclass(frozen=True)
+class DoctorConfig:
+    """Settings from the ``[doctor]`` section of ``.repo-doctor.toml``."""
+
+    ignore_missing: frozenset[str] = field(default_factory=frozenset)
+    profiles: tuple[str, ...] = field(default_factory=tuple)
+
+
+_LEVEL_ORDER: dict[str, int] = {"info": 0, "warn": 1}
+
+
 # ---------------------------------------------------------------------------
 # Git helpers
 # ---------------------------------------------------------------------------
@@ -78,7 +91,7 @@ def _run_git(root: Path, args: list[str]) -> tuple[int, str, str]:
     """Run a git command and return *(returncode, stdout, stderr)*."""
     if _GIT_CMD is None:
         return 1, "", "git not found on PATH"
-    result = subprocess.run(  # nosec B603 B607  # noqa: S603, S607
+    result = subprocess.run(  # nosec B603  # noqa: S603, S607
         [_GIT_CMD, *args],
         cwd=root,
         text=True,
@@ -196,18 +209,9 @@ def _matches_deletion(rule_path: str, rule_kind: str, deleted_path: str) -> bool
 # ---------------------------------------------------------------------------
 
 
-def _load_rules(root: Path) -> list[Rule]:
-    """Parse ``.repo-doctor.toml`` and return a list of rules."""
-    cfg = root / ".repo-doctor.toml"
-    if not cfg.exists():
-        return []
-    if tomllib is None:
-        return []
-
-    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
-    raw_rules: list[dict[str, Any]] = data.get("rule", [])
+def _parse_rule_entries(raw_rules: list[dict[str, Any]]) -> list[Rule]:
+    """Convert raw TOML dicts into validated :class:`Rule` objects."""
     rules: list[Rule] = []
-
     for entry in raw_rules:
         only_if = None
         oi = entry.get("only_if")
@@ -230,8 +234,71 @@ def _load_rules(root: Path) -> list[Rule]:
                 only_if=only_if,
             )
         )
-
     return [r for r in rules if r.type and r.path]
+
+
+def _load_doctor_config(data: dict[str, Any]) -> DoctorConfig:
+    """Parse the ``[doctor]`` section from parsed TOML *data*."""
+    doctor = data.get("doctor", {})
+    if not isinstance(doctor, dict):
+        return DoctorConfig()
+
+    ignore = doctor.get("ignore_missing", [])
+    if not isinstance(ignore, list):
+        ignore = []
+
+    profiles = doctor.get("profiles", [])
+    if not isinstance(profiles, list):
+        profiles = []
+
+    return DoctorConfig(
+        ignore_missing=frozenset(str(p) for p in ignore),
+        profiles=tuple(str(p) for p in profiles),
+    )
+
+
+def _load_rules(root: Path) -> tuple[list[Rule], DoctorConfig]:
+    """Parse ``.repo-doctor.toml`` and return rules plus doctor config."""
+    cfg = root / ".repo-doctor.toml"
+    if not cfg.exists():
+        return [], DoctorConfig()
+    if tomllib is None:
+        return [], DoctorConfig()
+
+    data = tomllib.loads(cfg.read_text(encoding="utf-8"))
+    rules = _parse_rule_entries(data.get("rule", []))
+    config = _load_doctor_config(data)
+    return rules, config
+
+
+def _load_profile_rules(root: Path, profiles: list[str]) -> list[Rule]:
+    """Load additional rules from ``repo_doctor.d/<name>.toml`` files.
+
+    The special profile name ``"all"`` loads every ``.toml`` file in the
+    directory.
+    """
+    profile_dir = root / "repo_doctor.d"
+    if not profile_dir.is_dir() or tomllib is None:
+        return []
+
+    files_to_load: list[Path] = []
+    for name in profiles:
+        if name == "all":
+            files_to_load = sorted(profile_dir.glob("*.toml"))
+            break
+        candidate = profile_dir / f"{name}.toml"
+        if candidate.is_file():
+            files_to_load.append(candidate)
+
+    all_rules: list[Rule] = []
+    for fpath in files_to_load:
+        try:
+            data = tomllib.loads(fpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            # Skip unreadable or unparsable profile files gracefully.
+            continue
+        all_rules.extend(_parse_rule_entries(data.get("rule", [])))
+    return all_rules
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +350,9 @@ def _evaluate_rules(
                 )
 
         elif rule.type == "toml_has_path":
+            if not _exists_kind(root, rule.path, "file"):
+                # Target file missing — the anchor "exists" rule covers this.
+                continue
             ok, note = _toml_has_path(root, rule.path, rule.toml_path)
             if not ok:
                 if note:
@@ -374,10 +444,25 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Only show rules matching this category (e.g. ci, hooks, security).",
     )
     parser.add_argument(
-        "--level",
+        "--min-level",
+        default="warn",
+        choices=["info", "warn"],
+        help="Minimum severity to display (default: warn). Use 'info' to include everything.",
+    )
+    parser.add_argument(
+        "--include-info",
+        action="store_true",
+        help="Include info-level checks (shorthand for --min-level info).",
+    )
+    parser.add_argument(
+        "--profile",
+        action="append",
         default=None,
-        choices=["warn", "info"],
-        help="Only show rules at this level.",
+        metavar="NAME",
+        help=(
+            "Load additional rules from repo_doctor.d/NAME.toml "
+            "(repeatable; 'all' loads everything)."
+        ),
     )
     parser.add_argument(
         "--no-hints",
@@ -408,7 +493,14 @@ def main() -> int:
         args.staged = True
 
     root = _repo_root()
-    rules = _load_rules(root)
+    rules, config = _load_rules(root)
+
+    # Merge profile rules (config defaults + CLI overrides)
+    profile_names: list[str] = list(config.profiles)
+    if args.profile:
+        profile_names.extend(args.profile)
+    if profile_names:
+        rules.extend(_load_profile_rules(root, profile_names))
 
     if not rules:
         print(
@@ -417,11 +509,18 @@ def main() -> int:
         )
         return 0
 
-    # Filter rules by category / level if requested
+    # Filter by minimum severity level
+    min_level = "info" if args.include_info else args.min_level
+    min_order = _LEVEL_ORDER.get(min_level, 0)
+    rules = [r for r in rules if _LEVEL_ORDER.get(r.level, 0) >= min_order]
+
+    # Filter by category if requested
     if args.category:
         rules = [r for r in rules if r.category == args.category]
-    if args.level:
-        rules = [r for r in rules if r.level == args.level]
+
+    # Remove explicitly ignored paths
+    if config.ignore_missing:
+        rules = [r for r in rules if r.path not in config.ignore_missing]
 
     deleted = set(_list_deleted_paths(root, staged=args.staged, diff_range=args.diff))
 

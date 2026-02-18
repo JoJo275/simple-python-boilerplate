@@ -20,6 +20,23 @@
 
 
 # =============================================================================
+# [doctor] — Repo doctor settings (noise reduction, profiles)
+# =============================================================================
+
+[doctor]
+# Paths to suppress when intentionally removed.  The doctor prints nothing for
+# these, so "acknowledged deletions" produce zero noise.
+# ignore_missing = [
+#     "CHANGELOG.md",
+#     "CODE_OF_CONDUCT.md",
+# ]
+
+# Default profiles to load from repo_doctor.d/*.toml.
+# Override on the CLI with: --profile <name>  (repeatable; 'all' loads every file).
+# profiles = ["python"]
+
+
+# =============================================================================
 # CATEGORY: packaging — Build system, imports, package structure
 # =============================================================================
 
@@ -102,6 +119,8 @@ level = "warn"
 category = "ci"
 impact = "Test workflow missing — branch protection 'test' required check will fail; PRs can't merge."
 link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
 
 [[rule]]
 type = "exists"
@@ -111,6 +130,8 @@ level = "warn"
 category = "ci"
 impact = "Lint/format workflow missing — branch protection 'lint' required check will fail; PRs can't merge."
 link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
 
 [[rule]]
 type = "exists"
@@ -120,6 +141,8 @@ level = "warn"
 category = "ci"
 impact = "Type-check workflow missing — branch protection 'type-check' required check will fail; PRs can't merge."
 link = "docs/adr/003-separate-workflow-files.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
 
 [[rule]]
 type = "exists"

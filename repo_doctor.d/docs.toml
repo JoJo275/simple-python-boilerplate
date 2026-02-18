@@ -1,0 +1,157 @@
+# =============================================================================
+# repo_doctor.d/docs.toml — Documentation & MkDocs checks
+# =============================================================================
+# Activate: --profile docs   or   profiles = ["docs"] in [doctor]
+#
+# Verifies that the documentation stack (MkDocs, ADRs, guides) is consistent
+# and complete.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# MkDocs structure
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "mkdocs.yml"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs config missing — docs build steps will fail and docs site links will be stale."
+hint = "Restore mkdocs.yml or remove MkDocs-related CI steps/docs references."
+link = "docs/adr/020-mkdocs-documentation-stack.md"
+
+[[rule]]
+type = "exists"
+path = "docs/mkdocs/index.md"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs index page missing — the docs site will have no landing page."
+hint = "Create docs/mkdocs/index.md with a project overview."
+only_if.path = "mkdocs.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "docs/mkdocs/guide"
+kind = "dir"
+level = "info"
+category = "docs"
+impact = "No guide/ directory under mkdocs docs — user-facing guides section will be empty."
+only_if.path = "mkdocs.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = "docs/mkdocs/reference"
+kind = "dir"
+level = "info"
+category = "docs"
+impact = "No reference/ directory under mkdocs docs — API/reference section will be empty."
+only_if.path = "mkdocs.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "mkdocs.yml"
+regex = "(?i)nav:"
+level = "info"
+category = "docs"
+impact = "mkdocs.yml has no nav: section — MkDocs will auto-discover pages which may produce unexpected ordering."
+hint = "Add an explicit nav: section for deterministic page ordering."
+only_if.path = "mkdocs.yml"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# ADRs (Architecture Decision Records)
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "docs/adr"
+kind = "dir"
+level = "info"
+category = "docs"
+impact = "No ADR directory — architecture decisions aren't tracked in a structured format."
+hint = "Create docs/adr/ and add ADRs for key decisions."
+
+[[rule]]
+type = "exists"
+path = "docs/adr/README.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "ADR directory has no README — visitors won't know what ADRs are or how to create new ones."
+only_if.path = "docs/adr"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Development guides
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "docs/development"
+kind = "dir"
+level = "info"
+category = "docs"
+impact = "No development docs directory — contributors won't find setup or workflow instructions."
+
+[[rule]]
+type = "exists"
+path = "docs/development/dev-setup.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No dev setup guide — new contributors won't know how to get a working environment."
+only_if.path = "docs/development"
+only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Standard project files
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "CONTRIBUTING.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No contributing guide — new contributors won't know the workflow, branch naming, or PR process."
+
+[[rule]]
+type = "exists"
+path = "CHANGELOG.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No changelog — users can't see what changed between releases."
+
+[[rule]]
+type = "exists"
+path = "CODE_OF_CONDUCT.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No code of conduct — open-source best practice for community repos."
+
+[[rule]]
+type = "exists"
+path = "docs/release-policy.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No release policy — contributors and users won't know the versioning/release cadence."
+
+[[rule]]
+type = "exists"
+path = "docs/repo-layout.md"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No repo layout doc — new contributors need a map of the project structure."
