@@ -16,11 +16,13 @@ from __future__ import annotations
 
 import sys
 
+CHUNK_SIZE = 1024 * 1024  # 1 MiB
+
 
 def check_file(path: str) -> bool:
     try:
         with open(path, "rb") as f:
-            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            for chunk in iter(lambda: f.read(CHUNK_SIZE), b""):
                 if b"\x00" in chunk:
                     return True
         return False
