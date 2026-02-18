@@ -1,0 +1,59 @@
+# ──────────────────────────────────────────────────────────────
+# .dockerignore
+# ──────────────────────────────────────────────────────────────
+# Mirror of .containerignore for Docker compatibility.
+# Podman reads .containerignore; Docker reads .dockerignore.
+# Keep both files in sync.
+# ──────────────────────────────────────────────────────────────
+
+# Version control
+.git/
+.gitignore
+
+# CI / GitHub
+.github/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.code-workspace
+
+# Python artifacts
+__pycache__/
+*.py[codz]
+*.egg-info/
+build/
+dist/
+sdist/
+wheels/
+
+# Testing & coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Documentation & notes
+docs/
+*.md
+LICENSE
+
+# Database & runtime data
+db/
+var/
+
+# Scripts, experiments, labels
+scripts/
+experiments/
+labels/
+
+# OS files
+.DS_Store
+Thumbs.db

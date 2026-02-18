@@ -15,22 +15,40 @@
 #   Stage 1 (builder) – installs build tools + builds the wheel
 #   Stage 2 (runtime) – copies only the installed package into
 #                        a slim image with no build tooling
+#
+# Pinning the base image:
+#   The base image is pinned to a specific digest for reproducible
+#   builds. To update, run:
+#     docker pull python:3.12-slim
+#     docker inspect --format='{{index .RepoDigests 0}}' python:3.12-slim
+#   Then replace the digest below.
 # ──────────────────────────────────────────────────────────────
 
+# Base image digest — pin for reproducibility (update via comment above)
+ARG PYTHON_BASE=python:3.12-slim@sha256:48006ff57afe15f247ad3da166e9487da0f66a94adbc92810b0e189382d79246
+
 # ── Stage 1: Build ────────────────────────────────────────────
-FROM python:3.12-slim AS builder
+FROM ${PYTHON_BASE} AS builder
 
 WORKDIR /build
 
-# Install build dependencies first (layer caching)
+# Install build tool first (layer cached independently of source changes)
 COPY pyproject.toml README.md ./
-COPY src/ src/
+RUN python -m pip install --no-cache-dir build
 
-RUN python -m pip install --no-cache-dir build \
-    && python -m build --wheel --outdir /build/dist
+# Copy source and build the wheel
+COPY src/ src/
+RUN python -m build --wheel --outdir /build/dist
 
 # ── Stage 2: Runtime ──────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM ${PYTHON_BASE} AS runtime
+
+# OCI image metadata
+# See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
+LABEL org.opencontainers.image.title="simple-python-boilerplate" \
+      org.opencontainers.image.description="A Python boilerplate project" \
+      org.opencontainers.image.source="https://github.com/YOUR_USERNAME/simple-python-boilerplate" \
+      org.opencontainers.image.licenses="MIT"
 
 # Don't run as root
 RUN groupadd --gid 1000 app \
@@ -44,6 +62,10 @@ RUN python -m pip install --no-cache-dir /tmp/*.whl \
     && rm -rf /tmp/*.whl
 
 USER app
+
+# Healthcheck — uncomment if this becomes an HTTP service:
+# HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+#   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
 
 # Default command — runs the CLI entry point
 ENTRYPOINT ["spb"]
