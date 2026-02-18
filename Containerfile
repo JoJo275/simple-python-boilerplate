@@ -48,7 +48,7 @@ FROM ${PYTHON_BASE} AS runtime
 LABEL org.opencontainers.image.title="simple-python-boilerplate" \
       org.opencontainers.image.description="A Python boilerplate project" \
       org.opencontainers.image.source="https://github.com/YOUR_USERNAME/simple-python-boilerplate" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="Apache-2.0"
 
 # Don't run as root
 RUN groupadd --gid 1000 app \
