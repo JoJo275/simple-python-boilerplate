@@ -441,6 +441,8 @@ To install hooks for non-default stages: `pre-commit install --hook-type commit-
 
 #### Common Hooks by Stage
 
+> **Note:** The repos listed below are popular, widely-used choices — not an exhaustive list. Many alternative hooks exist for each stage. Browse [pre-commit.com/hooks](https://pre-commit.com/hooks.html) for a searchable directory.
+
 **`pre-commit`** — Fast checks that run on every commit (the default stage):
 
 | Hook | Repo | What It Does |
