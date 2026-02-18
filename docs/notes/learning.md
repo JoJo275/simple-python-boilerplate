@@ -291,6 +291,78 @@ python -c "import sys; print(sys.executable)"
 
 If it doesn't show `.venv`, you're using the wrong Python!
 
+### Viewing Installed Packages
+
+```bash
+# List all packages in the current environment (venv or global)
+pip list
+
+# Same but in requirements.txt format (useful for diffing)
+pip freeze
+
+# Show details for a specific package (version, location, dependencies)
+pip show <package-name>
+
+# Show where pip is installing to
+pip -V
+```
+
+**Global vs local (venv):** The commands above always operate on whichever Python environment is active. If a venv is activated, they show/affect only that venv. If no venv is active, they target the global (user or system) Python.
+
+To explicitly target the global Python when a venv is active:
+
+```bash
+# Windows — use the full path to the global pip
+& "C:\Users\$env:USERNAME\AppData\Local\Programs\Python\Python3*\Scripts\pip.exe" list
+
+# macOS/Linux
+/usr/bin/python3 -m pip list
+# or
+python3 -m pip list  # if no venv is active
+```
+
+### Removing Packages
+
+```bash
+# Uninstall a single package
+pip uninstall <package-name>
+
+# Uninstall without confirmation prompt
+pip uninstall -y <package-name>
+```
+
+#### Bulk-Remove All pip Packages
+
+To wipe every package in the current environment (useful for a clean slate):
+
+```bash
+# Generate the list and pipe it to uninstall (keeps pip itself)
+pip freeze | xargs pip uninstall -y
+
+# PowerShell equivalent
+pip freeze | ForEach-Object { pip uninstall -y $_ }
+```
+
+> **Easier alternative for venvs:** Just delete and recreate the venv. It's faster and guarantees a clean state:
+>
+> ```bash
+> deactivate                    # exit the venv first
+> Remove-Item -Recurse .venv   # Windows PowerShell
+> rm -rf .venv                 # macOS/Linux
+> python -m venv .venv         # recreate
+> pip install -e ".[dev]"      # reinstall project deps
+> ```
+
+#### Remove a Global Package
+
+```bash
+# Deactivate any venv first, then uninstall
+deactivate
+pip uninstall <package-name>
+```
+
+> **Tip:** Avoid installing packages globally. Use virtual environments for project work and `pipx` for standalone CLI tools (e.g., `pipx install ruff`). This keeps the global Python clean and avoids version conflicts.
+
 ---
 
 ## Pre-commit Hooks
