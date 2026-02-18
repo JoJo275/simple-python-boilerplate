@@ -3,6 +3,8 @@
 # =============================================================================
 # Warn-only "doctor" checks. Never blocks; exits 0.
 #
+# TODO: If you fork or adapt this template, feel free to update this file to your hearts content
+#
 # Fields:
 #   type      — Check type: "exists", "toml_has_path", "regex_present"
 #   path      — File or directory to check
@@ -48,6 +50,7 @@ level = "warn"
 category = "packaging"
 impact = "The src/ layout is the project's package structure. Without it, imports and builds will fail."
 link = "docs/adr/001-src-layout.md"
+fix = "mkdir -p src/simple_python_boilerplate"
 
 [[rule]]
 type = "exists"
@@ -57,6 +60,7 @@ level = "warn"
 category = "packaging"
 impact = "Package won't be importable without __init__.py; pip install and all imports will break."
 link = "docs/adr/001-src-layout.md"
+fix = "mkdir -p src/simple_python_boilerplate && touch src/simple_python_boilerplate/__init__.py"
 
 [[rule]]
 type = "exists"
@@ -87,6 +91,7 @@ level = "warn"
 category = "ci"
 impact = "GitHub Actions checks won't run. Branch protection may block merges if required checks are missing."
 link = "docs/adr/003-separate-workflow-files.md"
+fix = "mkdir -p .github/workflows"
 
 # Core workflows that branch protection likely requires
 [[rule]]
@@ -132,6 +137,8 @@ kind = "file"
 level = "info"
 category = "ci"
 impact = "No CODEOWNERS — PR review assignments won't be automatic. Less critical for solo projects."
+hint = "Create .github/CODEOWNERS with '* @your-github-username' to assign yourself as default reviewer."
+fix = "mkdir -p .github && echo '* @your-github-username' > .github/CODEOWNERS"
 
 
 # =============================================================================
@@ -146,6 +153,7 @@ level = "warn"
 category = "hooks"
 impact = "Local pre-commit hooks won't run; contributors will rely on CI (or nothing) for formatting/linting."
 link = "docs/adr/008-pre-commit-hooks.md"
+fix = "pre-commit sample-config > .pre-commit-config.yaml && pre-commit install"
 
 # Cross-check: ruff in pre-commit → [tool.ruff] in pyproject.toml
 [[rule]]
@@ -236,6 +244,7 @@ level = "warn"
 category = "testing"
 impact = "No tests directory — pytest won't discover any tests; CI test jobs will pass vacuously."
 link = "docs/adr/006-pytest-for-testing.md"
+fix = "mkdir -p tests && touch tests/__init__.py"
 
 [[rule]]
 type = "toml_has_path"
@@ -315,6 +324,8 @@ kind = "file"
 level = "warn"
 category = "git"
 impact = "No .gitignore — build artifacts, caches, venvs, and IDE files will be committed."
+hint = "Download the GitHub Python .gitignore template or create one manually."
+fix = "curl -sL https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore -o .gitignore"
 
 [[rule]]
 type = "exists"
@@ -323,6 +334,8 @@ kind = "file"
 level = "warn"
 category = "git"
 impact = "No .gitattributes — line endings won't be normalised; cross-platform contributors may see spurious diffs."
+hint = "Add '* text=auto' as a baseline for line ending normalisation."
+fix = "echo '* text=auto' > .gitattributes"
 
 
 # =============================================================================
@@ -338,6 +351,7 @@ category = "container"
 impact = "No .containerignore — build context will include .git, .venv, docs, tests, etc. Larger image, potential secret leaks."
 hint = "Add .containerignore to exclude non-essential files from the build context."
 link = "docs/adr/019-containerfile.md"
+fix = "printf '.git\n.venv\n__pycache__\n*.egg-info\ndist\nbuild\ntests\ndocs\n' > .containerignore"
 only_if.path = "Containerfile"
 only_if.regex = "(?s)."
 
@@ -350,6 +364,7 @@ category = "container"
 impact = "No .dockerignore — Docker ignores .containerignore. Docker users get an unfiltered build context."
 hint = "Add .dockerignore (mirror of .containerignore) for Docker compatibility."
 link = "docs/adr/019-containerfile.md"
+fix = "cp .containerignore .dockerignore"
 only_if.path = "Containerfile"
 only_if.regex = "(?s)."
 
@@ -365,6 +380,7 @@ kind = "dir"
 level = "info"
 category = "database"
 impact = "DB bootstrap/migrations/seeds assets may be missing; scripts/docs referencing db/ may break."
+fix = "mkdir -p db/migrations db/queries db/seeds"
 
 [[rule]]
 type = "regex_present"
