@@ -20,7 +20,30 @@
 #   explicitly with:  pre-commit run <hook-id> --hook-stage manual
 # =============================================================================
 
+# Require pre-commit ≥ 3.6.0 to avoid edge-case behaviour differences
+# across forks and CI runners.
+minimum_pre_commit_version: "3.6.0"
+
+default_language_version:
+  python: python3
+
 default_stages: [pre-commit]
+
+# ---------------------------------------------------------------------------
+# Top-level exclude — skip generated / cached directories globally so that
+# accidentally-tracked build artifacts never trigger hooks.
+# ---------------------------------------------------------------------------
+exclude: |
+  (?x)^(
+    \.venv/|
+    dist/|
+    build/|
+    site/|
+    \.mypy_cache/|
+    \.ruff_cache/|
+    \.pytest_cache/|
+    __pycache__/
+  )
 
 repos:
   # ===========================================================================
@@ -52,7 +75,12 @@ repos:
       - id: name-tests-test            # Enforce test_*.py naming in tests/
         args: ['--pytest-test-first']
         files: ^tests/
+      - id: check-executables-have-shebangs  # Executables must have shebangs
+      - id: check-shebang-scripts-are-executable  # Shebang scripts must be +x
+      - id: check-symlinks                # Check for broken symlinks
       - id: mixed-line-ending          # Normalize line endings (LF)
+        # LF is enforced repo-wide — paired with .gitattributes (eol=lf).
+        # Windows users get native CRLF on checkout; the repo always stores LF.
         args: ['--fix=lf']
 
   # ---------------------------------------------------------------------------
@@ -72,6 +100,10 @@ repos:
   # NOTE: If package code grows and commit times slow down, remove mypy from
   #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
   #       or rely on the type-check GitHub Actions workflow instead.
+  #
+  # Upgrade path: --ignore-missing-imports is convenient for a template but
+  # hides real issues.  Once your dependency stubs are in place, drop the flag
+  # and add specific overrides in pyproject.toml [tool.mypy] instead.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
@@ -131,19 +163,25 @@ repos:
         name: Block secrets / credentials patterns
         entry: "(?i)(api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)\\s*[:=]\\s*[\"'][^\\s\"']{8,}"
         language: pygrep
-        types: [text]
+        # Scope to files most likely to contain real credentials;
+        # reduces false positives from docs/examples.
+        files: \.(py|pyi|toml|ya?ml|json|env|ini|cfg|txt|md)$
         exclude: >-
           (?x)
           \.pre-commit-config\.yaml$|
           \.env\.example$|
           requirements.*\.txt$|
+          ^docs/|
           SECURITY\.md$
 
       - id: no-nul-bytes
         name: Block NUL bytes in text-like files
         entry: python scripts/precommit/check_nul_bytes.py
-        language: system
-        types: [file]
+        # Use language: python so pre-commit manages its own venv.
+        # language: system would break when `python` is not on PATH
+        # or when the user's venv is not activated.
+        language: python
+        types: [text]
         files: \.(py|pyi|toml|yaml|yml|md|rst|txt|json|ini|cfg|csv|ts|js|html|css|sh|ps1)$
 
 
