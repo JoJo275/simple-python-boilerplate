@@ -82,9 +82,9 @@ jobs:
         with:
           languages: python
           build-mode: none
-          # Override the default query suite for more thorough analysis:
-          # queries: security-extended
-          # queries: security-and-quality
+          # Override the default query suite for more thorough analysis.
+          # Use security-and-quality for even broader checks.
+          queries: security-extended
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6 # Finalize CodeQL database (v4.32.3)

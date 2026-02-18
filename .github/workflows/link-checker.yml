@@ -87,6 +87,6 @@ jobs:
             --exclude '^https://github\.com/.*/new/'
             '**/*.md'
             '**/*.html'
-          # Don't fail the workflow on broken links (advisory);
-          # change to true once you fix existing broken links.
-          fail: false
+          # Fail on PRs (catch regressions) but not on schedule
+          # (external link rot is advisory, not a blocker).
+          fail: ${{ github.event_name != 'schedule' }}

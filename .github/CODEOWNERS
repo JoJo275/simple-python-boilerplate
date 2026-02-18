@@ -13,3 +13,11 @@
 # Documentation
 *.md @JoJo275
 /docs/ @JoJo275
+
+# Security-sensitive paths (require explicit review)
+/.github/workflows/ @JoJo275
+/.github/dependabot.yml @JoJo275
+/.github/CODEOWNERS @JoJo275
+/.pre-commit-config.yaml @JoJo275
+/pyproject.toml @JoJo275
+/Containerfile @JoJo275

@@ -27,11 +27,15 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "scripts/**"
+      - "experiments/**"
       - "pyproject.toml"
   pull_request:
     branches: [main]
     paths:
       - "src/**"
+      - "scripts/**"
+      - "experiments/**"
       - "pyproject.toml"
   schedule:
     # Cron is a Unix time-scheduling syntax and the only way to
@@ -89,4 +93,4 @@ jobs:
         run: python -m pip install bandit[toml]
 
       - name: Run bandit
-        run: bandit -r src/ -c pyproject.toml
+        run: bandit -r src/ scripts/ experiments/ -c pyproject.toml

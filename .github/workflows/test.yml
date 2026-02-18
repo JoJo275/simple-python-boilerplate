@@ -20,6 +20,18 @@ concurrency:
 jobs:
   test:
     name: Test (Python ${{ matrix.python-version }})
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_TEST = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_TEST == 'true'
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -42,8 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install pytest
+          python -m pip install -e ".[test]"
 
       - name: Run tests
         run: pytest -v

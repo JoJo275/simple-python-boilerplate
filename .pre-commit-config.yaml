@@ -106,14 +106,14 @@ repos:
 
   # ---------------------------------------------------------------------------
   # Spellcheck (docs + comments)
-  # Already handled by spellcheck.yml and spellcheck-autofix.yml workflows.
-  # Uncomment to also catch typos at commit time.
+  # Catches typos at commit time for fast feedback.
+  # Also enforced in CI via spellcheck.yml.
   # ---------------------------------------------------------------------------
-  # - repo: https://github.com/codespell-project/codespell
-  #   rev: v2.4.1
-  #   hooks:
-  #     - id: codespell
-  #       args: [--skip, ".git,.venv,dist,build,__pycache__,.mypy_cache,.ruff_cache"]
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        args: [--skip, ".git,.venv,dist,build,__pycache__,.mypy_cache,.ruff_cache"]
 
   # ---------------------------------------------------------------------------
   # Local hooks (pre-commit stage)

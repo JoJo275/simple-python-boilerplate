@@ -30,6 +30,9 @@ on:
   # Allow running this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Deny all permissions by default; each job declares its own.
+permissions: {}
+
 jobs:
   # ── Job 1: Build ───────────────────────────────────────────
   # Produces sdist (.tar.gz) and wheel (.whl) in dist/,
@@ -50,6 +53,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write          # Needed for SLSA provenance attestation
+      attestations: write      # Needed for SLSA provenance attestation
 
     steps:
       - name: Checkout repository
@@ -77,6 +84,19 @@ jobs:
         with:
           name: dist
           path: dist/
+
+      # Generate SLSA build provenance attestation for the
+      # distribution artifacts. This cryptographically links the
+      # artifacts to this specific build, strengthening supply chain trust.
+      - name: Attest build provenance (sdist)
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: dist/*.tar.gz
+
+      - name: Attest build provenance (wheel)
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        with:
+          subject-path: dist/*.whl
 
   # ── Job 2: Publish ─────────────────────────────────────────
   # Downloads the artifacts produced by the build job and
