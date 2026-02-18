@@ -1,0 +1,72 @@
+# .repo-doctor.toml
+# Warn-only "doctor" checks. Never blocks; exits 0.
+
+# --- Existence checks (missing => consequence) ---
+
+[[rule]]
+type = "exists"
+path = "pyproject.toml"
+kind = "file"
+impact = "Python packaging/build and most Python tool configuration will no longer work as expected."
+
+[[rule]]
+type = "exists"
+path = ".github/workflows"
+kind = "dir"
+impact = "GitHub Actions checks won’t run. Branch protection may block merges if required checks are missing."
+
+[[rule]]
+type = "exists"
+path = ".pre-commit-config.yaml"
+kind = "file"
+impact = "Local pre-commit hooks won’t run; contributors will rely on CI (or nothing) for formatting/linting."
+
+# SQLite-ish assets (adjust to your real layout)
+[[rule]]
+type = "exists"
+path = "db"
+kind = "dir"
+impact = "DB bootstrap/migrations/seeds assets may be missing; scripts/docs referencing db/ may break."
+
+
+# --- Content/config presence checks ---
+
+# If you have ruff hooks, you usually want [tool.ruff] present.
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.ruff"
+impact = "Ruff is referenced by the repo (hooks/CI), but pyproject.toml does not define [tool.ruff]; ruff may behave unexpectedly or CI may fail."
+hint = "Add a [tool.ruff] section or remove the ruff hook/CI steps."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?m)^\\s*-\\s*id:\\s*ruff\\b"
+
+# If CI mentions mypy, you likely want config (or ensure CI passes flags).
+[[rule]]
+type = "toml_has_path"
+path = "pyproject.toml"
+toml_path = "tool.mypy"
+impact = "CI appears to reference mypy, but pyproject.toml lacks [tool.mypy]; CI may rely on CLI flags or may fail."
+hint = "Add [tool.mypy] or ensure CI calls mypy with explicit flags."
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bmypy\\b"
+
+# If CI/docs mention mkdocs, ensure mkdocs.yml exists.
+[[rule]]
+type = "exists"
+path = "mkdocs.yml"
+kind = "file"
+impact = "Docs tooling appears referenced, but mkdocs.yml is missing; docs build steps will fail or docs links will be stale."
+hint = "Restore mkdocs.yml or remove MkDocs-related CI steps/docs references."
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)\\bmkdocs\\b"
+
+# Example: if you ship a DB init script, ensure schema file is referenced (adjust names).
+[[rule]]
+type = "regex_present"
+path = "scripts"
+regex = "(?i)sqlite|db|schema\\.sql"
+impact = "No obvious DB bootstrap reference found in scripts/. If you intended SQLite bootstrap, scripts/docs may be incomplete."
+hint = "Ignore if you intentionally removed DB bootstrap; otherwise add/init scripts and update docs."
+only_if.path = "db"
+only_if.regex = "\\.sql\\b"
