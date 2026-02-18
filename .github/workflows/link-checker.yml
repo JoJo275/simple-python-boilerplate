@@ -1,0 +1,92 @@
+# ──────────────────────────────────────────────────────────────
+# Link Checker Workflow
+# ──────────────────────────────────────────────────────────────
+# Checks all Markdown and HTML files for broken links (internal
+# and external). Uses lychee, a fast async link checker written
+# in Rust.
+#
+# Triggers:
+#   - Push to main (when docs or markdown change)
+#   - Pull requests targeting main (when docs or markdown change)
+#   - Weekly schedule (catch external link rot)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_LINK_CHECKER = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+#   2. (Optional) Create a .lycheeignore file to exclude known
+#      false positives (e.g. localhost URLs, placeholder links).
+# ──────────────────────────────────────────────────────────────
+
+name: Link Checker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.html"
+      - "docs/**"
+      - ".lycheeignore"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.html"
+      - "docs/**"
+      - ".lycheeignore"
+  schedule:
+    - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  link-check:
+    name: Check links
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_LINK_CHECKER = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_LINK_CHECKER == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@82202e5e9c2f4ef1a55a3d02563e1cb6041e5332 # v2.4.1
+        with:
+          # Check all markdown and HTML files
+          args: >-
+            --verbose
+            --no-progress
+            --accept 200,204,301,302,429
+            --exclude-loopback
+            --exclude '^https://github\.com/.*/edit/'
+            --exclude '^https://github\.com/.*/new/'
+            '**/*.md'
+            '**/*.html'
+          # Don't fail the workflow on broken links (advisory);
+          # change to true once you fix existing broken links.
+          fail: false

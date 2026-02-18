@@ -29,6 +29,18 @@ permissions:
 jobs:
   update:
     name: Auto-update hooks
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_PRE_COMMIT_UPDATE = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_PRE_COMMIT_UPDATE == 'true'
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

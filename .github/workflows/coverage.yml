@@ -72,13 +72,13 @@ jobs:
           python-version: "3.12"
           cache: "pip"
 
-      # Install the package + test/coverage dependencies.
-      # pytest-cov is already in pyproject.toml dev dependencies.
+      # Install the package with test extras from pyproject.toml.
+      # This uses the [test] optional dependency group which includes
+      # pytest and pytest-cov as the single source of truth.
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
-          python -m pip install pytest pytest-cov
+          python -m pip install -e ".[test]"
 
       # Run tests with coverage. Configuration (source dirs,
       # branch coverage, exclusions) is read from pyproject.toml

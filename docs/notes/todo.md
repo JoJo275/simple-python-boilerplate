@@ -36,7 +36,7 @@ Things to explore, implement, or learn more about.
 - [ ] Learn about semantic versioning and automate version bumps
 - [ ] Study trusted publishing practices for PyPI to ensure secure releases
 - [ ] Set up GitHub Codespaces configuration for cloud-based development environments
-- [ ] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
+- [X] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
 - [ ] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. *From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences.*
 - [ ] Understand all programs within repo
 - [ ] Learn and build any more scripts and programs within this tempalte repo that may help.

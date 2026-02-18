@@ -6,6 +6,8 @@
 # and insecure subprocess calls.
 #
 # Triggers:
+#   - Push to main (catch issues as they land)
+#   - Pull requests targeting main
 #   - Nightly schedule (03:00 UTC; 11pm ET during DST / 10pm ET otherwise)
 #   - Manual dispatch
 #
@@ -21,6 +23,16 @@
 name: Bandit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
   schedule:
     # Cron is a Unix time-scheduling syntax and the only way to
     # define scheduled triggers in GitHub Actions. It uses five

@@ -1,0 +1,88 @@
+# ──────────────────────────────────────────────────────────────
+# Container Scan Workflow
+# ──────────────────────────────────────────────────────────────
+# Scans the container image for OS-level and language-level
+# vulnerabilities using Trivy. Runs after the container image
+# is built to catch issues in base images and installed packages.
+#
+# Triggers:
+#   - Push to main (scan the latest image)
+#   - Pull requests targeting main (scan before merge)
+#   - Weekly schedule (catch newly disclosed CVEs)
+#   - Manual dispatch via the GitHub Actions UI
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_CONTAINER_SCAN = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: Container Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 4 * * 1"  # Every Monday at 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write    # Upload SARIF to Security tab
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy:
+    name: Trivy vulnerability scan
+
+    # ── Repository guard ──────────────────────────────────────
+    # Prevents this workflow from running on forks or clones
+    # that haven't opted in.
+    #
+    #   Option A  – Edit the hardcoded slug below.
+    #   Option B  – Set vars.ENABLE_CONTAINER_SCAN = 'true'.
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_CONTAINER_SCAN == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      # Build the image locally for scanning (no push needed)
+      - name: Build container image
+        run: docker build -t scan-target:${{ github.sha }} -f Containerfile .
+
+      # Scan for HIGH and CRITICAL vulnerabilities.
+      # Results are uploaded to the Security tab as SARIF.
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947e7f87c36a0e1b706 # v0.31.0
+        with:
+          image-ref: scan-target:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          # Don't fail the build on vulnerabilities in base images
+          # that you don't control. Change to 1 for strict mode.
+          exit-code: 0
+
+      # Upload SARIF to GitHub Security tab → Code scanning alerts
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@ce28f5bb42b7a9f2c824e633a3f6ee835bab0761 # v3.28.13
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
