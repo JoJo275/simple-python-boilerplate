@@ -259,6 +259,8 @@ repos:
   # │                      │ install can be slow on some platforms.       │
   # │ markdownlint-cli2    │ Node-based; heavier dependency footprint.    │
   # │ gitleaks             │ Go binary; better suited for pre-push / CI.  │
+  # │ hadolint             │ Requires Docker; also covered in CI by       │
+  # │                      │ Trivy misconfig scanning.                    │
   # └──────────────────────┴──────────────────────────────────────────────┘
   # ---------------------------------------------------------------------------
 
@@ -293,6 +295,18 @@ repos:
     rev: v8.30.0
     hooks:
       - id: gitleaks
+        stages: [manual]
+
+  # ---------------------------------------------------------------------------
+  # hadolint — Dockerfile linter (Haskell binary via Docker)
+  # Checks Dockerfiles / Containerfiles for best-practice violations
+  # (e.g. running as root, unpinned base images, missing HEALTHCHECK).
+  # Requires Docker to be installed. Also covered in CI by Trivy misconfig.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
+    hooks:
+      - id: hadolint-docker
         stages: [manual]
 
 # =============================================================================

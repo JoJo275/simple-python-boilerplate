@@ -237,6 +237,19 @@ A **quality gate** is a checkpoint that code must pass before moving forward (e.
 | **Security scan** | No vulnerabilities | Bandit, pip-audit |
 | **Spell check** | No typos | codespell |
 
+> **codespell: report-only by default.** codespell does *not* auto-fix typos unless you pass `--write-changes` (or `-w`). Without that flag it reports the misspelling and a suggested fix, then exits non-zero — which blocks your commit. You have two options:
+>
+> 1. **Auto-fix:** Add `-w` to the hook args in `.pre-commit-config.yaml`:
+>    ```yaml
+>    - id: codespell
+>      args: [-w, --skip, ".git,.venv,dist,build,..."]
+>    ```
+>    codespell will rewrite the file in-place. The commit still fails (the file changed), but re-running `git add` + `git commit` picks up the fix.
+>
+> 2. **Manual fix:** Read the output, fix the typo yourself, then re-commit. This is safer when codespell's suggestion is wrong (it happens with domain-specific terms).
+>
+> **Tip:** If codespell flags a word that's correct (e.g., a variable name or technical term), add it to an ignore list: `args: [-L, "word1,word2", --skip, "..."]` or set `[tool.codespell]` in `pyproject.toml` with `ignore-words-list = "word1,word2"`.
+
 ### Enforcing Quality Gates
 
 1. **GitHub Branch Protection** — Require status checks to pass before merge
@@ -426,6 +439,75 @@ Git supports multiple hook points. Pre-commit can target different stages:
 
 To install hooks for non-default stages: `pre-commit install --hook-type commit-msg`
 
+#### Common Hooks by Stage
+
+**`pre-commit`** — Fast checks that run on every commit (the default stage):
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| `trailing-whitespace` | pre-commit/pre-commit-hooks | Strip trailing whitespace |
+| `end-of-file-fixer` | pre-commit/pre-commit-hooks | Ensure files end with a newline |
+| `check-yaml` | pre-commit/pre-commit-hooks | Validate YAML syntax |
+| `check-toml` | pre-commit/pre-commit-hooks | Validate TOML syntax |
+| `check-json` | pre-commit/pre-commit-hooks | Validate JSON syntax |
+| `check-ast` | pre-commit/pre-commit-hooks | Validate Python syntax |
+| `check-added-large-files` | pre-commit/pre-commit-hooks | Block oversized files |
+| `check-merge-conflict` | pre-commit/pre-commit-hooks | Detect conflict markers (`<<<<<<<`) |
+| `debug-statements` | pre-commit/pre-commit-hooks | Catch leftover `breakpoint()` / debugger imports |
+| `detect-private-key` | pre-commit/pre-commit-hooks | Block private key files |
+| `mixed-line-ending` | pre-commit/pre-commit-hooks | Normalize line endings |
+| `ruff` | astral-sh/ruff-pre-commit | Lint Python (replaces flake8, isort, pyupgrade) |
+| `ruff-format` | astral-sh/ruff-pre-commit | Format Python (replaces black) |
+| `mypy` | pre-commit/mirrors-mypy | Type check Python |
+| `bandit` | PyCQA/bandit | Security linting for Python |
+| `codespell` | codespell-project/codespell | Catch common typos in code and docs |
+| `validate-pyproject` | abravalheri/validate-pyproject | Validate pyproject.toml schema |
+| `actionlint` | rhysd/actionlint | Lint GitHub Actions workflows |
+| `check-github-workflows` | python-jsonschema/check-jsonschema | Validate workflow YAML against schema |
+
+**`commit-msg`** — Validate or modify the commit message after the user writes it:
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| `conventional-pre-commit` | compilerla/conventional-pre-commit | Enforce Conventional Commits format |
+| `commitizen` | commitizen-tools/commitizen | Validate commit message against commitizen rules |
+| `commitlint` | alessandrojcm/commitlint-pre-commit-hook | Lint commit messages (Node-based) |
+| `gitlint` | jorisroovers/gitlint | Configurable commit message linter |
+
+**`pre-push`** — Slower checks that run before pushing to remote:
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| `pytest` (local) | local | Run full test suite |
+| `gitleaks` | gitleaks/gitleaks | Secret detection across git history |
+| `trufflehog` | trufflesecurity/trufflehog | Deep secret scanning |
+| `mypy` | pre-commit/mirrors-mypy | Type check (if too slow for pre-commit) |
+| `bandit` | PyCQA/bandit | Security scan (if too slow for pre-commit) |
+
+**`prepare-commit-msg`** — Modify the commit message before the editor opens:
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| `commitizen` (cz) | commitizen-tools/commitizen | Interactive commit message prompts |
+| Custom template hook | local | Pre-fill commit message from a template |
+
+**`post-checkout` / `post-merge`** — Run setup tasks after branch changes:
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| Auto `pip install` | local | Re-install deps after switching branches |
+| Auto `npm install` | local | Re-install Node deps |
+| DB migration check | local | Warn if unapplied migrations exist |
+
+**`manual`** — Opt-in only, run explicitly with `pre-commit run <id> --hook-stage manual`:
+
+| Hook | Repo | What It Does |
+|------|------|--------------|
+| `typos` | crate-ci/typos | Rust-based spellchecker (stricter than codespell) |
+| `markdownlint-cli2` | DavidAnson/markdownlint-cli2 | Markdown linting (Node-based) |
+| `hadolint-docker` | hadolint/hadolint | Dockerfile/Containerfile linter |
+| `gitleaks` | gitleaks/gitleaks | Secret detection (when not on pre-push) |
+
 #### References
 
 - [Creating new hooks — pre-commit docs](https://pre-commit.com/#creating-new-hooks) — Official guide to authoring hooks
@@ -551,6 +633,19 @@ Admins can bypass, but it's logged. Use sparingly!
 | **Safety** | Dependency vulnerabilities | CI |
 | **Trivy** | Container scanning | CI (Docker builds) |
 | **Dependabot** | Auto-creates upgrade PRs | Scheduled |
+
+### What Is SARIF?
+
+**SARIF** (Static Analysis Results Interchange Format) is a standardized JSON format for the output of static analysis tools. It's an [OASIS standard](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) designed so that different tools (linters, security scanners, type checkers) can all produce results in the same shape.
+
+**Why it matters:**
+- **GitHub Security tab** — When a CI workflow uploads a `.sarif` file via `github/codeql-action/upload-sarif`, the findings appear as **Code scanning alerts** in the repository's Security tab. This gives a unified view of vulnerabilities across tools.
+- **Tool-agnostic** — Whether results come from Trivy, Grype, Bandit, CodeQL, or Scorecard, SARIF normalises them into one format.
+- **IDE integration** — VS Code extensions (e.g., SARIF Viewer) can display SARIF results inline, showing issues right where the code is.
+
+**Structure:** A SARIF file contains `runs`, each with a `tool` descriptor and an array of `results`. Each result has a `ruleId`, `message`, `level` (error/warning/note), and `locations` pointing to specific files and line numbers.
+
+**In this project:** The `scorecard.yml`, `container-scan.yml`, and `nightly-security.yml` workflows all produce SARIF output and upload it to GitHub's Security tab.
 
 ### pip-audit in CI
 

@@ -1,9 +1,22 @@
 # ──────────────────────────────────────────────────────────────
 # Container Scan Workflow
 # ──────────────────────────────────────────────────────────────
-# Scans the container image for OS-level and language-level
-# vulnerabilities using Trivy. Runs after the container image
-# is built to catch issues in base images and installed packages.
+# Multi-scanner container security pipeline using both Trivy
+# and Grype for complementary vulnerability coverage, plus
+# Trivy misconfig scanning for Dockerfile / IaC linting.
+#
+# Why two scanners?
+#   Trivy and Grype use different vulnerability databases and
+#   matching algorithms.  Running both gives overlapping but
+#   also complementary coverage — different false-positive
+#   profiles mean you catch more real issues.  Both produce
+#   SARIF so results appear in the GitHub Security tab.
+#
+# Jobs:
+#   1. build        – Builds the image once, exports as tarball
+#   2. trivy        – Trivy vulnerability scan (image)
+#   3. grype        – Grype vulnerability scan (image)
+#   4. trivy-misconfig – Trivy misconfig scan (Dockerfile / IaC)
 #
 # Triggers:
 #   - Push to main (scan the latest image)
@@ -40,15 +53,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  trivy:
-    name: Trivy vulnerability scan
+  # ── Build image once, share via artifact ────────────────────
+  build:
+    name: Build container image
 
     # ── Repository guard ──────────────────────────────────────
-    # Prevents this workflow from running on forks or clones
-    # that haven't opted in.
-    #
-    #   Option A  – Edit the hardcoded slug below.
-    #   Option B  – Set vars.ENABLE_CONTAINER_SCAN = 'true'.
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
@@ -63,9 +72,34 @@ jobs:
         with:
           persist-credentials: false
 
-      # Build the image locally for scanning (no push needed)
       - name: Build container image
         run: docker build -t scan-target:${{ github.sha }} -f Containerfile .
+
+      - name: Export image as tarball
+        run: docker save scan-target:${{ github.sha }} -o image.tar
+
+      - name: Upload image tarball
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: container-image
+          path: image.tar
+          retention-days: 1
+
+  # ── Trivy vulnerability scan ────────────────────────────────
+  trivy:
+    name: Trivy vulnerability scan
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download image tarball
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: container-image
+
+      - name: Load image
+        run: docker load -i image.tar
 
       # Scan for HIGH and CRITICAL vulnerabilities.
       # Results are uploaded to the Security tab as SARIF.
@@ -86,3 +120,72 @@ jobs:
         if: always()
         with:
           sarif_file: trivy-results.sarif
+          category: trivy-container
+
+  # ── Grype vulnerability scan ────────────────────────────────
+  # Grype uses a different vulnerability database than Trivy,
+  # giving complementary coverage. Particularly strong on
+  # language-level packages (pip, npm, gem, etc.).
+  grype:
+    name: Grype vulnerability scan
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Download image tarball
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: container-image
+
+      - name: Load image
+        run: docker load -i image.tar
+
+      - name: Run Grype vulnerability scanner
+        uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
+        id: grype
+        with:
+          image: scan-target:${{ github.sha }}
+          severity-cutoff: high
+          output-format: sarif
+          # Don't fail the build on vulnerabilities in base images
+          # that you don't control. Change to "true" for strict mode.
+          fail-build: "false"
+
+      - name: Upload Grype SARIF
+        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        if: always()
+        with:
+          sarif_file: ${{ steps.grype.outputs.sarif }}
+          category: grype-container
+
+  # ── Trivy misconfiguration scan (Dockerfile / IaC) ─────────
+  # Lints Containerfile/Dockerfile and any IaC files for
+  # security misconfigurations (e.g. running as root, missing
+  # HEALTHCHECK, pinned base image tags, etc.).
+  trivy-misconfig:
+    name: Dockerfile / IaC lint
+
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_CONTAINER_SCAN == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run Trivy misconfig scanner
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947e7f87c36a0e1b706 # v0.31.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: table
+          severity: HIGH,CRITICAL
+          # Set to 1 to fail on misconfigurations
+          exit-code: 0
