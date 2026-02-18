@@ -1,5 +1,9 @@
 # Code Owners
 # These users will be automatically requested for review on PRs
+#
+# TODO (template users):
+#   Replace @JoJo275 below with your own GitHub username or team
+#   (e.g. @myorg/backend-team). Remove sections you don't need.
 
 # Default owner for everything in the repo
 * @JoJo275
