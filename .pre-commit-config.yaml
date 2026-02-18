@@ -140,10 +140,10 @@ repos:
           SECURITY\.md$
 
       - id: no-nul-bytes
-        name: Block NUL bytes in text files
-        entry: '\x00'
-        language: pygrep
-        types: [text]
+        name: Block NUL bytes
+        entry: python scripts/check_nul_bytes.py
+        language: system
+        types_or: [text, binary]
 
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)  [DISABLED]
