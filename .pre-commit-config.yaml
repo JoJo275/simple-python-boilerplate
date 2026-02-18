@@ -140,10 +140,12 @@ repos:
           SECURITY\.md$
 
       - id: no-nul-bytes
-        name: Block NUL bytes
+        name: Block NUL bytes in text-like files
         entry: python scripts/check_nul_bytes.py
         language: system
-        types_or: [text, binary]
+        types: [file]
+        files: \.(py|pyi|toml|yaml|yml|md|rst|txt|json|ini|cfg|csv|ts|js|html|css|sh|ps1)$
+
 
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)  [DISABLED]

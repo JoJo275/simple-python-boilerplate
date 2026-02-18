@@ -18,12 +18,15 @@ import sys
 
 
 def check_file(path: str) -> bool:
-    """Return True if the file contains a NUL byte."""
     try:
         with open(path, "rb") as f:
-            return b"\x00" in f.read()
-    except OSError:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                if b"\x00" in chunk:
+                    return True
         return False
+    except OSError as e:
+        print(f"ERROR: could not read {path}: {e}", file=sys.stderr)
+        return True  # treat unreadable as failure
 
 
 def main() -> int:
