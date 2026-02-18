@@ -36,6 +36,7 @@ A Python boilerplate project using:
 ### General Guidance
 - **Prefer minimal diffs** — Avoid stylistic rewrites; Ruff already enforces formatting
 - **Don't churn** — Only suggest changes that add clear value
+- **Never install packages globally** — Always install into the active virtual environment (`.venv`) or a Hatch-managed environment. Never run bare `pip install <package>` outside a venv. Use `pip install -e ".[dev]"` for project dependencies, `hatch env create` for Hatch environments, or `pipx` for standalone CLI tools. If no venv is active, create or activate one first.
 
 ## Conventions
 
