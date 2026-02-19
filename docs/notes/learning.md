@@ -2155,6 +2155,277 @@ The framework:
 
 ---
 
+## Release Workflows
+
+How to get code from "PR merged" to "version published" — and the many tools that automate each step. There's no single right answer; the ecosystem has a lot of overlapping approaches. These notes capture what I've learned about the options.
+
+### The Release Lifecycle
+
+Every release workflow, regardless of tooling, follows roughly the same steps:
+
+1. **Open a PR** — propose changes, get review
+2. **Merge** — land the change on the default branch
+3. **Determine the next version** — based on commit messages, labels, or manual input
+4. **Update version metadata** — `pyproject.toml`, `__version__`, tags
+5. **Generate changelog** — from commits, PR titles, or conventional commits
+6. **Create a release** — GitHub Release, Git tag, or both
+7. **Publish artifacts** — PyPI, container registry, docs site, etc.
+
+The interesting question is: which of these steps are manual, which are automated, and which tools do the work?
+
+### Strategy 1: Fully Manual
+
+The simplest approach — you do everything by hand.
+
+```text
+merge PR → edit version in pyproject.toml → git tag → git push --tags → gh release create → twine upload
+```
+
+**When it makes sense:** Solo projects, early prototypes, learning how releases work.
+
+**Downsides:** Error-prone, easy to forget a step, version and tag can drift.
+
+### Strategy 2: Version Bump Tools (Semi-Automated)
+
+Use a tool to bump the version, tag, and commit — but you trigger it manually.
+
+#### Version Bumping Tools
+
+| Tool | How it works | Version source | Pros | Cons |
+|------|-------------|----------------|------|------|
+| **hatch version** | `hatch version minor` bumps in pyproject.toml | `[project] version` or `[tool.hatch.version]` | Integrated with Hatch, supports dynamic versioning | Requires Hatch |
+| **bump2version / bump-my-version** | Reads `.bumpversion.cfg` or `pyproject.toml`, updates version strings across multiple files | Any file with version strings | Multi-file support, regex-based find/replace | Extra config file (or `[tool.bumpversion]`), can be fiddly |
+| **tbump** | `tbump 1.2.3` updates version, commits, tags, pushes | `[tool.tbump]` in pyproject.toml | Single command does commit+tag+push, regex-based | Must pass the exact version (no `major`/`minor` keywords) |
+| **setuptools-scm** | Derives version from Git tags at build time — no version in source | Git tags | Zero maintenance, always matches Git | Harder to reason about, import-time overhead, needs `[tool.setuptools_scm]` |
+| **versioningit** | Like setuptools-scm but for other backends | Git tags + configurable format | Backend-agnostic, flexible format strings | More config than setuptools-scm |
+| **hatch-vcs** | Hatchling plugin that reads version from VCS (Git tags) | Git tags via `[tool.hatch.version]` | Integrates with Hatchling builds | Requires Hatch ecosystem |
+| **incremental** | Twisted project's versioning tool | `_version.py` file | Used by Twisted/large projects | Less popular outside that ecosystem |
+| **dunamai** | Library + CLI for dynamic versions from VCS | Git/Mercurial tags | Language-agnostic, composable with other tools | CLI-only or library — not a full release tool |
+| **poetry version** | `poetry version minor` | `[tool.poetry] version` | Integrated into Poetry workflow | Poetry-only |
+| **pdm bump** | `pdm bump minor` | `[project] version` | Integrated into PDM | PDM-only |
+
+#### Typical semi-automated workflow
+
+```bash
+# 1. Bump version (updates pyproject.toml, commits, tags)
+hatch version minor
+# or: bump-my-version bump minor
+# or: tbump 1.3.0
+
+# 2. Push tag to trigger CI
+git push origin main --tags
+
+# 3. CI handles the rest (build, publish, release notes)
+```
+
+### Strategy 3: Conventional Commits + Automated Release
+
+This is the "commit message is the API" approach. The version bump and changelog are **derived from commit messages** — no manual version decisions.
+
+#### How conventional commits drive releases
+
+```text
+feat: add user export endpoint    →  minor bump (0.2.0 → 0.3.0)
+fix: handle null email in signup  →  patch bump (0.3.0 → 0.3.1)
+feat!: redesign auth API          →  major bump (0.3.1 → 1.0.0)
+  (or: BREAKING CHANGE: in body)
+chore: update CI config           →  no release
+docs: fix typo in README          →  no release
+```
+
+#### Tools that consume conventional commits
+
+| Tool | Language | What it does | Outputs | Pros | Cons |
+|------|----------|-------------|---------|------|------|
+| **python-semantic-release** | Python | Parses commits, bumps version, updates changelog, creates GitHub Release, publishes to PyPI | Version bump, CHANGELOG.md, GitHub Release, PyPI publish | Full pipeline for Python, GitHub Actions friendly | Config can be complex, opinionated defaults |
+| **semantic-release** (JS) | Node.js | The original — parses commits, bumps, publishes, releases | Version bump, changelog, npm publish, GitHub Release | Massive plugin ecosystem, very mature | Node dependency in a Python project |
+| **release-please** (Google) | GitHub Action | Creates a "Release PR" that tracks pending changes; merging the PR triggers the release | Release PR, version bump, CHANGELOG.md, GitHub Release | No local tooling needed, PR-based review of release, monorepo support | Google-maintained (bus factor), opinionated PR flow |
+| **commitizen** | Python | Commit message prompting (`cz commit`), version bump, changelog generation | Guided commits, version bump, CHANGELOG.md | Interactive commit helper + release tool in one, Python native | Two jobs in one tool — some prefer separation |
+| **standard-version** | Node.js | Bump version, generate changelog from conventional commits, tag | Version bump, CHANGELOG.md, Git tag | Simple, focused | Deprecated in favour of release-please |
+| **cocogitto** | Rust | Validate conventional commits, bump version, generate changelog | Version bump, CHANGELOG.md, Git tag | Fast, strict validation, good CI integration | Rust binary, smaller community |
+| **git-cliff** | Rust | Highly configurable changelog generator (not a full release tool) | CHANGELOG.md | Extremely customisable templates, fast, any commit convention | Changelog only — doesn't bump versions or create releases |
+| **auto** (Intuit) | Node.js | Label-based releases — uses PR labels instead of commit messages | Version bump, changelog, GitHub Release, npm publish | PR-label approach is more accessible than commit conventions | Node dependency, label-driven (different paradigm) |
+| **changelogithub** | Node.js | Generate changelog from GitHub PR titles/commits | Changelog, GitHub Release body | Uses GitHub API, pretty output | Changelog only, Node dependency |
+
+### Strategy 4: Release PR Pattern (release-please Style)
+
+This is a higher-level pattern where the tool **opens a PR** that represents the next release, and **merging that PR** triggers the actual release.
+
+#### How it works
+
+```text
+1. Contributors merge feature PRs into main
+2. Bot watches main, accumulates changes, opens/updates a "Release PR"
+3. Release PR contains:
+   - Version bump in pyproject.toml (or package.json, etc.)
+   - Updated CHANGELOG.md with all changes since last release
+4. Maintainer reviews the Release PR
+5. Merging the Release PR triggers:
+   - Git tag creation
+   - GitHub Release creation
+   - CI publish workflow (PyPI, npm, etc.)
+```
+
+#### Tools supporting the Release PR pattern
+
+| Tool | How the Release PR works | Monorepo | Multi-language |
+|------|-------------------------|----------|----------------|
+| **release-please** | GitHub Action watches pushes to main, opens/updates a Release PR automatically | Yes (workspace plugins) | Yes (Python, Node, Java, Go, Rust, etc.) |
+| **changesets** | CLI generates "changeset" files in PRs; a bot opens a "Version Packages" PR that combines them | Yes (native) | Mainly JS/TS but adaptable |
+| **knope** | Rust-based, uses changeset files or conventional commits to generate a Release PR | Yes | Yes (any language) |
+
+### Strategy 5: Tag-Driven Releases (CI Does Everything)
+
+Push a Git tag → CI builds, publishes, releases. The simplest CI-driven approach.
+
+```yaml
+# .github/workflows/publish.yml
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@...
+      - run: python -m build
+      - uses: pypa/gh-action-pypi-publish@...
+```
+
+You manually (or via a bump tool) create the tag. CI handles the rest.
+
+### Changelog Generation — Deeper Dive
+
+Changelogs can be generated from multiple sources. The tools differ in what they consume and how customisable the output is.
+
+#### Changelog Source Material
+
+| Source | Tools that use it | Pros | Cons |
+|--------|------------------|------|------|
+| **Conventional commit messages** | python-semantic-release, commitizen, cocogitto, standard-version | Automated, structured, links to commits | Requires discipline from all contributors |
+| **PR titles / PR bodies** | release-please, auto, changelogithub | Easier for contributors (just write good PR titles) | Less granular than per-commit |
+| **PR labels** | auto (Intuit), release-drafter | Visual, easy to apply retroactively | Extra manual step (labelling), labels can be forgotten |
+| **Changeset files** | changesets, knope, towncrier | Each PR includes a human-written changelog fragment | Extra file per PR, merge conflicts possible |
+| **Git log (any format)** | git-cliff, gitmoji-changelog | Works with any commit format | Noisy unless commits are clean |
+| **Manual** | Keep a Changelog format | Full control, human-quality writing | Easy to forget, drifts from actual changes |
+
+#### Changelog Fragment / Towncrier Pattern
+
+Some projects use **changelog fragments** — small files added per-PR that are combined at release time.
+
+| Tool | Fragment format | How it works | Pros | Cons |
+|------|----------------|-------------|------|------|
+| **towncrier** | `changes/123.feature.md` | Each PR adds a fragment file; `towncrier build` combines them into CHANGELOG | Human-written entries, categorised | Extra file per change, merge conflicts on the directory |
+| **changesets** | `.changeset/cool-feature.md` | CLI generates a changeset file; bot combines on release | Interactive CLI, monorepo support | JS-ecosystem origin |
+| **knope** | `.changeset/*.md` | Similar to changesets but Rust-based | Cross-language, fast | Newer tool |
+| **scriv** | `changelog.d/*.md` | Fragment-based, configurable, Python-native | Flexible templates, Python-friendly | Smaller community |
+
+### PR Automation Tools
+
+Tools that help manage the PR lifecycle itself — auto-labelling, auto-merge, auto-assign, etc.
+
+| Tool | What it does | How it works |
+|------|-------------|-------------|
+| **release-drafter** | Drafts GitHub Release notes from PR labels; auto-labels PRs based on file paths | GitHub Action, reads `.github/release-drafter.yml` |
+| **auto-approve** | Auto-approves PRs from trusted bots (Dependabot, Renovate) | GitHub Action with conditions |
+| **mergify** | Auto-merge, priority queues, auto-label, CI retries | SaaS with `.mergify.yml` config |
+| **kodiak** | Auto-merge when checks pass and PR is approved | GitHub App with `.kodiak.toml` |
+| **bulldozer** | Auto-merge + auto-delete branch after merge | GitHub App by Palantir |
+| **probot-auto-merge** | Auto-merge based on labels and check status | GitHub App (Probot framework) |
+| **actions/labeler** | Auto-label PRs based on changed file paths | GitHub Action with `.github/labeler.yml` |
+| **action-automatic-releases** | Create GitHub Releases automatically on tag push | GitHub Action |
+| **pr-agent** (CodiumAI) | AI-powered PR review, auto-describe, auto-label | GitHub App or Action |
+| **danger-js / danger-python** | Programmable PR review rules (check PR size, missing tests, etc.) | CI step, reads `Dangerfile` |
+
+### Dependency Update Bots
+
+These open PRs to keep dependencies current — relevant because they feed into the release pipeline.
+
+| Tool | What it updates | How it works | Pros | Cons |
+|------|----------------|-------------|------|------|
+| **Dependabot** | pip, npm, GitHub Actions, Docker, Bundler, etc. | GitHub-native, `.github/dependabot.yml` | Zero setup, built into GitHub | Limited grouping, no lock file merging strategy |
+| **Renovate** | 50+ package managers | Self-hosted or Mend.io App, `renovate.json` | Extremely configurable, auto-merge rules, grouping, scheduling | Complex config, can be noisy |
+| **pyup** | Python (pip, pipenv, poetry) | GitHub App or CLI | Python-focused, safety DB integration | Smaller scope than Renovate |
+| **depfu** | npm, Yarn, Bundler | GitHub App | Clean PRs, grouped updates | Limited language support |
+
+### Putting It All Together — Example Workflows
+
+#### Minimal (solo project, tag-driven)
+
+```text
+1. Work on main
+2. hatch version patch → commits + tags
+3. git push --tags
+4. CI publishes to PyPI on tag push
+```
+
+**Tools:** Hatch, GitHub Actions, pypa/gh-action-pypi-publish
+
+#### Mid-size (team, conventional commits)
+
+```text
+1. Feature PR → conventional commit messages enforced by commitizen/pre-commit
+2. Merge PR to main
+3. python-semantic-release in CI:
+   - Parses new commits since last tag
+   - Bumps version in pyproject.toml
+   - Updates CHANGELOG.md
+   - Creates Git tag + GitHub Release
+   - Publishes to PyPI
+```
+
+**Tools:** commitizen (commit helper), python-semantic-release (CI), GitHub Actions
+
+#### Large / monorepo (Release PR pattern)
+
+```text
+1. Feature PRs merged to main
+2. release-please Action opens/updates a Release PR:
+   - Bumps version
+   - Updates CHANGELOG.md
+   - Lists all changes since last release
+3. Maintainer reviews and merges the Release PR
+4. Merge triggers: tag → GitHub Release → CI publish
+```
+
+**Tools:** release-please, GitHub Actions, pypa/gh-action-pypi-publish
+
+#### Fragment-based (human-written changelogs)
+
+```text
+1. Each feature PR includes a changelog fragment (changes/123.feature.md)
+2. At release time: towncrier build → combines fragments into CHANGELOG.md
+3. bump-my-version bump minor → updates version, commits, tags
+4. git push --tags → CI publishes
+```
+
+**Tools:** towncrier, bump-my-version, GitHub Actions
+
+### Version Numbering Schemes
+
+Not all projects use SemVer. Here are the common schemes and which tools support them.
+
+| Scheme | Format | When to use | Tools that support it |
+|--------|--------|------------|----------------------|
+| **SemVer** | `MAJOR.MINOR.PATCH` | Libraries, APIs, anything with a public contract | All of the above |
+| **CalVer** | `YYYY.MM.DD` or `YY.MM.MICRO` | Applications, data pipelines, things without API stability promises | bump-my-version, hatch-calver, commitizen (custom), setuptools-scm |
+| **PEP 440** | `1.2.3`, `1.2.3.dev4`, `1.2.3a1`, `1.2.3rc1` | Python packages (required for PyPI) | All Python tools enforce this |
+| **ZeroVer** | `0.x.y` forever | Projects that never commit to stability (half-joking) | Any tool — just never bump major |
+
+### What This Project Uses
+
+Currently this project doesn't have a full release pipeline — it's a template. But the pieces in place are:
+
+- **Conventional commits** via `.gitmessage.txt` + commitizen pre-commit hook
+- **Hatch for version bumping** (`hatch version`)
+- **GitHub Actions for CI** (test, lint, type-check)
+- **No automated changelog or publish** yet — that's a future enhancement
+
+The most natural next step would be adding `python-semantic-release` or `release-please` to the CI, but both are overkill until the project is actually publishing to PyPI.
+
+---
+
 ## Resources
 
 ### Python Packaging
@@ -2194,3 +2465,22 @@ The framework:
 - [pip-audit](https://github.com/pypa/pip-audit)
 - [Bandit](https://bandit.readthedocs.io/)
 - [OpenSSF Scorecard](https://securityscorecards.dev/)
+
+### Release & Versioning
+
+- [python-semantic-release](https://python-semantic-release.readthedocs.io/)
+- [release-please](https://github.com/googleapis/release-please)
+- [commitizen (Python)](https://commitizen-tools.github.io/commitizen/)
+- [conventional commits spec](https://www.conventionalcommits.org/)
+- [git-cliff](https://git-cliff.org/)
+- [towncrier](https://towncrier.readthedocs.io/)
+- [bump-my-version](https://github.com/callowayproject/bump-my-version)
+- [setuptools-scm](https://setuptools-scm.readthedocs.io/)
+- [hatch-vcs](https://github.com/ofek/hatch-vcs)
+- [changesets](https://github.com/changesets/changesets)
+- [auto (Intuit)](https://intuit.github.io/auto/)
+- [release-drafter](https://github.com/release-drafter/release-drafter)
+- [Keep a Changelog](https://keepachangelog.com/)
+- [SemVer spec](https://semver.org/)
+- [CalVer](https://calver.org/)
+- [PEP 440 – Version Identification](https://peps.python.org/pep-0440/)
