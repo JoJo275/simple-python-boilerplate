@@ -17,46 +17,69 @@ Manual checks are error-prone (easy to forget). CI-only checks provide late feed
 
 ## Decision
 
-Use the `pre-commit` framework to run checks automatically on commit:
+Use the `pre-commit` framework to run checks automatically at three git stages: `pre-commit` (every commit), `commit-msg` (message validation), and `pre-push` (slower/thorough checks before push). Opt-in `manual` hooks are available for heavier tools.
 
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
-    hooks:
-      - id: mypy
-```
+## Hook Inventory
 
-## Consequences
+### Stage: pre-commit (every `git commit`)
 
-### Positive
+| Hook | Source | What it does |
+|------|--------|-------------|
+| `trailing-whitespace` | pre-commit-hooks | Removes trailing whitespace |
+| `end-of-file-fixer` | pre-commit-hooks | Ensures files end with newline |
+| `check-yaml` | pre-commit-hooks | Validates YAML syntax |
+| `check-toml` | pre-commit-hooks | Validates TOML syntax |
+| `check-json` | pre-commit-hooks | Validates JSON syntax |
+| `check-ast` | pre-commit-hooks | Validates Python syntax (catches SyntaxError) |
+| `check-added-large-files` | pre-commit-hooks | Prevents files > 1 MB from being committed |
+| `check-merge-conflict` | pre-commit-hooks | Detects leftover merge conflict markers |
+| `check-case-conflict` | pre-commit-hooks | Detects files that would clash on case-insensitive filesystems |
+| `debug-statements` | pre-commit-hooks | Catches `import pdb` / `breakpoint()` left in code |
+| `detect-private-key` | pre-commit-hooks | Blocks private keys from being committed |
+| `fix-byte-order-marker` | pre-commit-hooks | Removes UTF-8 BOM (causes subtle cross-platform bugs) |
+| `name-tests-test` | pre-commit-hooks | Enforces `test_*.py` naming in `tests/` |
+| `check-executables-have-shebangs` | pre-commit-hooks | Executables must have shebangs |
+| `check-shebang-scripts-are-executable` | pre-commit-hooks | Shebang scripts must be `+x` |
+| `check-symlinks` | pre-commit-hooks | Detects broken symlinks |
+| `check-docstring-first` | pre-commit-hooks | Catches code placed before the module docstring |
+| `no-commit-to-branch` | pre-commit-hooks | Prevents direct commits to `main` / `master` |
+| `mixed-line-ending` | pre-commit-hooks | Normalises to LF (paired with `.gitattributes`) |
+| `ruff` | ruff-pre-commit | Lint with auto-fix (replaces flake8, isort, pyupgrade, autopep8) |
+| `ruff-format` | ruff-pre-commit | Format (replaces black) |
+| `mypy` | mirrors-mypy | Static type checking on `src/` |
+| `bandit` | PyCQA/bandit | Security linting (skips tests) |
+| `validate-pyproject` | validate-pyproject | Validates `pyproject.toml` against PEP 621 |
+| `typos` | crate-ci/typos | Spell checking (Rust-based, fast, broad detection) |
+| `actionlint` | rhysd/actionlint | Lints GitHub Actions workflow files |
+| `check-github-workflows` | check-jsonschema | Schema validation for `.github/workflows/` |
+| `check-github-actions` | check-jsonschema | Schema validation for action.yml files |
+| `check-dependabot` | check-jsonschema | Schema validation for `.github/dependabot.yml` |
+| `no-do-not-commit-marker` | local (pygrep) | Blocks `@@DO_NOT_COMMIT` `@@` markers |
+| `no-secrets-patterns` | local (pygrep) | Blocks hardcoded credentials / token patterns |
+| `no-nul-bytes` | local (python) | Blocks NUL bytes in text files |
+| `deptry` | local (system) | Detects unused, missing, and transitive dependencies |
 
-- **Automatic** — No manual step to forget
-- **Fast feedback** — Errors caught before commit, not after push
-- **Consistent** — Same checks for all developers
-- **Prevents bad commits** — Can't commit code that fails checks
-- **CI backup** — CI still runs checks for contributors who skip hooks
+### Stage: commit-msg (validates the commit message)
 
-### Negative
+| Hook | Source | What it does |
+|------|--------|-------------|
+| `commitizen` | commitizen-tools | Validates messages against Conventional Commits format |
 
-- **Setup required** — Developers must run `pre-commit install`
-- **Can be bypassed** — `git commit --no-verify` skips hooks
-- **Slower commits** — Adds time to commit process
-- **Initial friction** — May block commits until code is fixed
+### Stage: pre-push (slower checks before `git push`)
 
-### Mitigations
+| Hook | Source | What it does |
+|------|--------|-------------|
+| `tests` | local (system) | Runs full test suite via `hatch run test` |
+| `pip-audit` | pypa/pip-audit | Vulnerability scan against OSV / PyPI advisory DB |
+| `gitleaks` | gitleaks | Secret detection with 150+ curated rules + entropy analysis |
 
-- Document setup in CONTRIBUTING.md
-- Keep hooks fast (Ruff is very fast)
-- CI runs same checks as safety net
-- Allow `--no-verify` for WIP commits (CI will catch issues)
+### Stage: manual (opt-in, run on demand)
+
+| Hook | Source | Why opt-in |
+|------|--------|-----------|
+| `markdownlint-cli2` | DavidAnson | Node-based; heavier dependency footprint |
+| `hadolint-docker` | hadolint | Requires Docker; also covered by Trivy misconfig in CI |
+| `forbid-submodules` | pre-commit-hooks | Only needed if project policy forbids submodules |
 
 ## Alternatives Considered
 
@@ -78,17 +101,73 @@ Document commands and trust developers to run them.
 
 **Rejected because:** Easy to forget; inconsistent across team; bad commits reach CI.
 
+## Tool Selection Rationale
+
+### Chosen over alternatives
+
+| Tool chosen | Alternatives skipped | Why |
+|-------------|---------------------|-----|
+| **Ruff** (lint + format) | flake8, isort, pyupgrade, autopep8, black, prettier | Ruff subsumes all of these in a single Rust binary. Orders of magnitude faster. Also handles YAML/TOML/JSON validation via `check-yaml`/`check-toml`/`check-json`. |
+| **typos** (spellcheck) | codespell (as a hook) | typos is Rust-based, faster, and has broader detection. codespell remains as a CI safety net (`spellcheck.yml`) with its independently curated wordlist — the two overlap ~80 % but each catches things the other misses. |
+| **pip-audit** (vulnerability scan) | safety | pip-audit is the PyPA-maintained successor with OSV database support. safety's free tier has limitations and is no longer the recommended tool. |
+| **gitleaks** (secret detection) | trufflehog, git-secrets | gitleaks has 150+ curated rules with entropy detection, is a single Go binary, and is actively maintained. Complements the fast regex-based `no-secrets-patterns` pygrep hook. |
+| **deptry** (dependency hygiene) | — | No real alternative in the Python ecosystem. Detects unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. Runs as a local/system hook to access the project's installed packages. |
+| **actionlint** (workflow linting) | — | The only mature GHA workflow linter. Catches expression errors, unknown runner labels, and missing action inputs before they hit CI. |
+
+### Explicitly not adopted
+
+| Tool | Why skipped |
+|------|------------|
+| **prettier** | Ruff handles Python formatting; `check-yaml`, `check-toml`, `check-json` cover config files. Adding a Node.js dependency for marginal benefit is not worth it. |
+| **pyupgrade** | Ruff's `UP` rules include all pyupgrade checks. Running both is redundant. |
+| **autopep8** | Same as above — Ruff's formatter and linter cover all autopep8 fixes. |
+| **black** | `ruff-format` is a drop-in replacement, faster, and configured alongside the linter. |
+| **isort** | `ruff check` with isort rules (`I`) handles import sorting. |
+| **codespell** (as a hook) | typos is faster and broader. codespell runs in CI (`spellcheck.yml`) as a complementary safety net. |
+| **safety** | pip-audit is the maintained PyPA successor. safety's free tier scans an older database subset. |
+| **Husky** | Node.js-based git hooks. Adds a Node dependency to a Python project; pre-commit is Python-native. |
+
+## Consequences
+
+### Positive
+
+- **Automatic** — No manual step to forget
+- **Fast feedback** — Errors caught before commit, not after push
+- **Consistent** — Same checks for all developers
+- **Prevents bad commits** — Can't commit code that fails checks
+- **CI backup** — CI still runs checks for contributors who skip hooks
+- **Layered security** — Fast regex secrets check on commit, thorough gitleaks scan on push
+
+### Negative
+
+- **Setup required** — Developers must run `pre-commit install` (+ `--hook-type commit-msg` and `--hook-type pre-push`)
+- **Can be bypassed** — `git commit --no-verify` skips hooks
+- **Slower commits** — Adds time to commit process (mitigated: most hooks are sub-second)
+- **Initial friction** — May block commits until code is fixed
+- **deptry requires project venv** — Runs as local/system hook via `hatch run`; won't work in pre-commit's isolated env
+
+### Mitigations
+
+- Document setup in CONTRIBUTING.md
+- Keep hooks fast (Ruff and typos are Rust-based, sub-second)
+- Move slow hooks to `pre-push` stage (tests, pip-audit, gitleaks)
+- CI runs same checks as safety net
+- Allow `--no-verify` for WIP commits (CI will catch issues)
+
 ## Implementation
 
-- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — Pre-commit configuration with:
-  - `pre-commit-hooks` — General file checks (trailing whitespace, YAML/TOML validation, etc.)
-  - `ruff-pre-commit` — Linting and formatting
-  - `mirrors-mypy` — Type checking
-  - `bandit` — Security checks
+- [.pre-commit-config.yaml](../../.pre-commit-config.yaml) — Full hook configuration
+- [_typos.toml](../../_typos.toml) — typos spellchecker config (explicit pointer via `--config`)
+- [pyproject.toml](../../pyproject.toml) — `[tool.deptry]` and `[tool.bandit]` configuration; `pre-commit` and `deptry` in dev dependencies
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — Setup instructions for contributors
-- [pyproject.toml](../../pyproject.toml) — `pre-commit` listed in `[project.optional-dependencies.dev]`
 
 ## References
 
 - [pre-commit documentation](https://pre-commit.com/)
 - [pre-commit hooks directory](https://pre-commit.com/hooks.html)
+- [Ruff documentation](https://docs.astral.sh/ruff/)
+- [typos documentation](https://github.com/crate-ci/typos)
+- [deptry documentation](https://deptry.com/)
+- [pip-audit documentation](https://github.com/pypa/pip-audit)
+- [gitleaks documentation](https://github.com/gitleaks/gitleaks)
+- [actionlint documentation](https://github.com/rhysd/actionlint)

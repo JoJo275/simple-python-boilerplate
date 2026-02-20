@@ -18,7 +18,7 @@ Bandit is a purpose-built Python security linter that detects anti-patterns uniq
 | **Unsafe functions** | `eval()`, `exec()`, `yaml.load()` without safe loader |
 | **File handling** | Insecure temp file creation, path traversal risks |
 
-### Alternatives considered
+## Alternatives Considered
 
 | Option | Pros | Cons |
 |--------|------|------|

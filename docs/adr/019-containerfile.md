@@ -39,7 +39,7 @@ This produces a minimal final image with no build tooling, source code, or devel
 - **`--no-cache-dir`** — Prevents pip from storing downloaded packages in the image
 - **Pinned base image** — Uses `python:3.12-slim` for a specific, reproducible base
 
-### Alternatives considered
+## Alternatives Considered
 
 | Option | Pros | Cons |
 |--------|------|------|
