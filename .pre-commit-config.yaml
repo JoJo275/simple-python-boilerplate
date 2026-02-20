@@ -139,18 +139,16 @@ repos:
       - id: validate-pyproject
 
   # ---------------------------------------------------------------------------
-  # Spellcheck (docs + comments) — lightweight default
-  # codespell is fast and low-friction; good at catching common typos.
-  # For broader / auto-fixing spellcheck, see typos in the manual stage below.
-  # Also enforced in CI via spellcheck.yml.
+  # Spellcheck — typos (Rust-based, broader detection than codespell)
+  # Catches common and obscure typos with auto-fix support.
+  # codespell remains as a CI safety net (spellcheck.yml) with its
+  # independently curated wordlist — the two tools overlap ~80% but
+  # each catches things the other misses.
   # ---------------------------------------------------------------------------
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.43.5
     hooks:
-      - id: codespell
-        args: [--skip, ".git,.venv,dist,build,__pycache__,.mypy_cache,.ruff_cache"]
-        # Scope to text-like files to keep it focused and fast.
-        files: \.(py|pyi|toml|ya?ml|md|rst|txt|json|ini|cfg|sh|ps1)$
+      - id: typos
 
   # ---------------------------------------------------------------------------
   # Lint GitHub Actions workflows
@@ -186,7 +184,24 @@ repos:
 
       - id: no-secrets-patterns
         name: Block secrets / credentials patterns
-        entry: "(?i)(api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)\\s*[:=]\\s*[\"'][^\\s\"']{8,}"
+        # Two-part regex joined with |:
+        #   Part 1 — labelled secrets:  API_KEY = "value"  style patterns
+        #   Part 2 — known service token prefixes (high-confidence, low false-positive)
+        entry: >-
+          (?x)
+          (?i:api[_-]?key|api[_-]?secret|secret[_-]?key|access[_-]?token|
+          auth[_-]?token|private[_-]?key|client[_-]?secret|password|passwd)
+          \s*[:=]\s*["'][^\s"']{8,}
+          |
+          ghp_[A-Za-z0-9]{36}
+          |github_pat_[A-Za-z0-9]{22}_[A-Za-z0-9]{59}
+          |AKIA[0-9A-Z]{16}
+          |xox[bprs]-[0-9]{10,13}-
+          |sk-[A-Za-z0-9]{20,}
+          |npm_[A-Za-z0-9]{36}
+          |pypi-[A-Za-z0-9]{60,}
+          |glpat-[A-Za-z0-9\-]{20,}
+          |sq0[a-z]{3}-[A-Za-z0-9\-_]{22,}
         language: pygrep
         # Scope to files most likely to contain real credentials;
         # reduces false positives from docs/examples.
@@ -242,12 +257,17 @@ repos:
         always_run: true
         stages: [pre-push]
 
-  # Uncomment for stronger pre-push secret scanning (Go binary, fast):
-  # - repo: https://github.com/gitleaks/gitleaks
-  #   rev: v8.30.0
-  #   hooks:
-  #     - id: gitleaks
-  #       stages: [pre-push]
+  # ---------------------------------------------------------------------------
+  # gitleaks — Secret detection (Go binary)
+  # 150+ curated rules with entropy detection. Complements the fast
+  # no-secrets-patterns regex hook on pre-commit — this runs the
+  # thorough scan before code leaves your machine.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+        stages: [pre-push]
 
   # ===========================================================================
   # STAGE: manual — "strict mode" opt-in hooks
@@ -259,25 +279,15 @@ repos:
   # ┌──────────────────────┬──────────────────────────────────────────────┐
   # │ Hook                 │ Why it's opt-in                              │
   # ├──────────────────────┼──────────────────────────────────────────────┤
-  # │ typos                │ Rust binary; very fast once built, but first │
-  # │                      │ install can be slow on some platforms.       │
   # │ markdownlint-cli2    │ Node-based; heavier dependency footprint.    │
-  # │ gitleaks             │ Go binary; better suited for pre-push / CI.  │
   # │ hadolint             │ Requires Docker; also covered in CI by       │
   # │                      │ Trivy misconfig scanning.                    │
   # └──────────────────────┴──────────────────────────────────────────────┘
+  #
+  # Promoted to active stages:
+  #   typos      → pre-commit  (replaced codespell; codespell remains in CI)
+  #   gitleaks   → pre-push    (complements no-secrets-patterns regex hook)
   # ---------------------------------------------------------------------------
-
-  # ---------------------------------------------------------------------------
-  # typos — Rust-based spellchecker (broader detection, auto-fix support)
-  # Faster and stricter than codespell; may surface more false positives.
-  # Good "strict mode" upgrade once codespell wordlist feels too small.
-  # ---------------------------------------------------------------------------
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.43.5
-    hooks:
-      - id: typos
-        stages: [manual]
 
   # ---------------------------------------------------------------------------
   # markdownlint-cli2 — Markdown linting (Node-based)
@@ -288,17 +298,6 @@ repos:
     rev: v0.21.0
     hooks:
       - id: markdownlint-cli2
-        stages: [manual]
-
-  # ---------------------------------------------------------------------------
-  # gitleaks — Secret detection (Go binary)
-  # Stronger than regex patterns; scans git history too when run on full repo.
-  # Consider enabling on pre-push or in CI for full coverage.
-  # ---------------------------------------------------------------------------
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.0
-    hooks:
-      - id: gitleaks
         stages: [manual]
 
   # ---------------------------------------------------------------------------
