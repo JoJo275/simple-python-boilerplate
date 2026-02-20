@@ -34,7 +34,7 @@ Using both gives you a single `pyproject.toml` that can define:
 - **Version source/bumping rules** — via `[tool.hatch.version]`
 - **Dev/test/lint environments and scripts** (Hatch) — via `[tool.hatch.envs.*]`
 
-### Alternatives considered
+## Alternatives Considered
 
 | Option | Pros | Cons |
 |--------|------|------|

@@ -20,7 +20,7 @@ This template originally included `.github/README.md` to document GitHub-specifi
 
 GitHub treats `.github/README.md` as a **profile/landing README**, not as a directory-scoped README. This is consistent with how GitHub uses `.github/` for other special files (e.g., `FUNDING.yml`, `CODEOWNERS`, default community health files), but it is surprising because every other directory's `README.md` only renders when browsing *that* directory.
 
-### Alternatives considered
+## Alternatives Considered
 
 | Option | Outcome |
 |------|---------|

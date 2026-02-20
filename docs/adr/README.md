@@ -10,13 +10,18 @@ An ADR records a significant decision that affects the structure, non-functional
 
 ## Format
 
-Each ADR follows this structure:
+Each ADR follows the structure defined in [template.md](template.md):
 
 1. **Title** — Short descriptive name
 2. **Status** — Proposed, Accepted, Deprecated, Superseded
 3. **Context** — What is the issue or situation?
 4. **Decision** — What did we decide?
-5. **Consequences** — What are the results?
+5. **Alternatives Considered** — What else was evaluated and why was it rejected?
+6. **Consequences** — What are the results (positive, negative, mitigations)?
+7. **Implementation** — Links to the files that implement this decision
+8. **References** — External docs, specs, or related ADRs
+
+To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 
 ## Index
 
@@ -45,6 +50,7 @@ Each ADR follows this structure:
 | [021](021-automated-release-pipeline.md) | Automated release pipeline with release-please | Accepted |
 | [022](022-rebase-merge-strategy.md) | Rebase and merge strategy for pull requests | Accepted |
 | [023](023-branch-protection-rules.md) | Branch protection rules for main | Accepted |
+| [024](024-ci-gate-pattern.md) | CI gate pattern for branch protection | Accepted |
 
 ## Archive
 
