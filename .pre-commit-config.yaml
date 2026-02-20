@@ -230,16 +230,17 @@ repos:
   # Install: pre-commit install --hook-type pre-push
   # ===========================================================================
 
-  # Uncomment to run full test suite before pushing:
-  # - repo: local
-  #   hooks:
-  #     - id: tests
-  #       name: Run test suite
-  #       entry: hatch run test
-  #       language: system
-  #       pass_filenames: false
-  #       always_run: true
-  #       stages: [pre-push]
+  # Runs the full test suite before pushing. Catches test failures
+  # before opening a PR, since CI only runs on PRs targeting main.
+  - repo: local
+    hooks:
+      - id: tests
+        name: Run test suite
+        entry: hatch run test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
 
   # Uncomment for stronger pre-push secret scanning (Go binary, fast):
   # - repo: https://github.com/gitleaks/gitleaks

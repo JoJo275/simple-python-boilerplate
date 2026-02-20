@@ -16,6 +16,213 @@ Releases are **fully automated** via [release-please](https://github.com/googlea
 
 **No manual version bumping, tagging, or CHANGELOG editing required.**
 
+### Release Flow at a Glance
+
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e3a5f', 'primaryTextColor': '#e0e0e0', 'primaryBorderColor': '#5b9bd5', 'lineColor': '#5b9bd5', 'secondaryColor': '#162d4a', 'tertiaryColor': '#0d1f36', 'edgeLabelBackground': '#0d1f36', 'clusterBkg': '#162d4a', 'clusterBorder': '#5b9bd5'}}}%%
+flowchart TD
+    subgraph PR1[" "]
+        direction TB
+        PR1_title["🔵 PR #1 — Feature PR (you create)"]
+        PR1_title ~~~ A
+        A[Create feature branch] --> B[Make conventional commits]
+        B --> B_hook>"🔒 Hooks: Ruff, mypy, bandit, commitizen"]
+        B_hook --> C[Push branch to GitHub]
+        C --> D[Open PR targeting main]
+        D --> D_ci>"⚙️ CI: lint, test, typecheck, security"]
+        D_ci --> E[CI passes + review approved]
+        E --> F[Rebase and merge]
+    end
+
+    F --> G{release-please scans commits}
+    G -->|Non-releasable only| H[No Release PR]
+    G -->|Releasable commits found| I
+
+    subgraph PR2[" "]
+        direction TB
+        PR2_title["🟡 PR #2 — Release PR (release-please creates)"]
+        PR2_title ~~~ I
+        I[Release PR auto-created]
+        I --> J[Review / edit CHANGELOG]
+        J --> K[Merge Release PR]
+    end
+
+    K --> L[Tag + GitHub Release created]
+    L --> M[release.yml builds + publishes]
+
+    style PR1_title fill:none,stroke:none,color:#5b9bd5,font-weight:bold
+    style PR2_title fill:none,stroke:none,color:#e6a817,font-weight:bold
+    style B_hook fill:#1a3a4a,stroke:#5b9bd5,color:#8bb8d9
+    style D_ci fill:#1a3a4a,stroke:#5b9bd5,color:#8bb8d9
+    style G fill:#2a4a6b,stroke:#5b9bd5,color:#e0e0e0
+    style H fill:#2a2a2a,stroke:#666,color:#999
+    style L fill:#1a4a2a,stroke:#4caf50,color:#e0e0e0
+    style M fill:#1a4a2a,stroke:#4caf50,color:#e0e0e0
+```
+
+> **Pre-commit hooks** — see [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) for the full list of hooks that run on each commit (Ruff, mypy, bandit, commitizen, etc.).
+
+### Version Bump Rules
+
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e3a5f', 'primaryTextColor': '#e0e0e0', 'primaryBorderColor': '#5b9bd5', 'lineColor': '#5b9bd5', 'edgeLabelBackground': '#0d1f36', 'clusterBkg': '#162d4a', 'clusterBorder': '#5b9bd5'}}}%%
+flowchart LR
+    subgraph PRE[" "]
+        direction TB
+        PRE_title["Pre-1.0"]
+        PRE_title ~~~ FIX1
+        FIX1["fix: / perf:"] -->|Patch| V1["0.6.0 → 0.6.1"]
+        FEAT1["feat:"] -->|Minor| V2["0.6.0 → 0.7.0"]
+        BREAK1["BREAKING CHANGE"] -->|Minor ⚠️| V3["0.6.0 → 0.7.0"]
+        MANUAL["Reaching 1.0.0"] -->|Manual| V4["0.x → 1.0.0"]
+    end
+    subgraph POST[" "]
+        direction TB
+        POST_title["Post-1.0"]
+        POST_title ~~~ FIX2
+        FIX2["fix: / perf:"] -->|Patch| V5["1.2.0 → 1.2.1"]
+        FEAT2["feat:"] -->|Minor| V6["1.2.0 → 1.3.0"]
+        BREAK2["BREAKING CHANGE"] -->|Major| V7["1.2.0 → 2.0.0"]
+    end
+
+    style PRE_title fill:none,stroke:none,color:#5b9bd5,font-weight:bold
+    style POST_title fill:none,stroke:none,color:#5b9bd5,font-weight:bold
+    style BREAK1 fill:#4a3000,stroke:#e6a817,color:#e0e0e0
+    style V3 fill:#4a3000,stroke:#e6a817,color:#e0e0e0
+    style MANUAL fill:#3a1a2a,stroke:#d4577a,color:#e0e0e0
+    style V4 fill:#3a1a2a,stroke:#d4577a,color:#e0e0e0
+```
+
+> **Pre-1.0 note:** `bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means breaking changes bump **minor**, not major. Reaching 1.0.0 is a manual decision (edit the Release PR).
+
+---
+
+## Step-by-Step: Two Pull Requests
+
+In this repo (release-please), a release involves **two PRs** — one you create manually, one release-please creates automatically.
+
+### PR #1 — Your Feature PR
+
+This is the PR you create for your code changes.
+
+**1. Create a feature branch:**
+
+First, make sure your local `main` matches the remote (fast-forward only prevents accidental merge commits):
+
+```bash
+git switch main              # switch to the main branch
+git pull --ff-only           # update main (fast-forward only — no merge commits)
+```
+
+Then create a branch based on the remote tip — this removes any doubt about your base even if local `main` is stale:
+
+```bash
+git fetch origin                                # download latest commits from remote
+git switch -c feature/add-login origin/main     # create + switch to a new branch off remote main
+```
+
+**Common branch naming patterns:**
+
+| Prefix | Use for | Example |
+|--------|---------|---------|
+| `feature/` | New functionality | `feature/add-login` |
+| `fix/` | Bug fixes | `fix/null-byte-check` |
+| `chore/` | Maintenance, deps | `chore/update-ruff` |
+| `docs/` | Documentation | `docs/release-guide` |
+| `spike/` | Experimental / exploratory | `spike/try-fastapi` |
+
+> **For more branch prefixes** (including `wip/`, `hotfix/`, `release/`, and others), see the [Branch Prefixes table in learning.md](notes/learning.md#branch-prefixes).
+>
+> **Tip:** `wip/2026-02-20-scratch` is handy when you're not sure what you'll be working on. The date helps identify stale branches, and `scratch` signals it's a temporary playground.
+
+**Push the branch upstream** (sets tracking so future `git push` / `git pull` just work):
+
+```bash
+git push -u origin HEAD         # push branch + set upstream tracking
+```
+
+**Verify you're on the right branch:**
+
+```bash
+git branch --show-current       # print the current branch name
+# or for a compact status
+git status -sb                  # short status with branch info
+```
+
+> **Never push directly to main.** Branch protection requires a PR with passing checks and an approved review. (unless you haven't enabled it in your repo settings, recommended to enable it for safety. See more on why here: [ADR 023](adr/023-branch-protection-rules.md))
+
+**2. Make conventional commits:**
+
+```bash
+git commit -m "feat: add user authentication endpoint"
+git commit -m "test: add auth endpoint tests"
+git commit -m "docs: document auth API"
+```
+
+The commitizen pre-commit hook validates each commit message automatically. If a commit message is invalid, the commit is blocked.
+
+> **Why pre-commit hooks matter:** CI workflows only run when you open a PR targeting `main` — not on every push to a feature branch. Hooks are your **early feedback loop**, catching lint errors, type issues, security problems, and bad commit messages before code ever leaves your machine. Without hooks, you'd only discover these issues after opening a PR. See the [CONTRIBUTING guide](../CONTRIBUTING.md#quality-pipeline-overview) for the full quality pipeline.
+
+| Stage | When it runs | What it catches |
+|-------|-------------|-----------------|
+| **Pre-commit hooks** | Every `git commit` | Ruff lint/format, mypy types, bandit security, spellcheck, file checks |
+| **Commit-msg hook** | Every `git commit` | Conventional commit format (commitizen) |
+| **Pre-push hook** | Every `git push` | Test suite (pytest) — catches test failures before opening a PR |
+| **CI workflows** | PR opened/updated targeting `main` | Full matrix: lint, test (3.11–3.13), typecheck, security, coverage, spellcheck |
+| **PR-specific checks** | PR only | PR title format, dependency review, auto-labeling |
+
+> **Setup reminder:** All three hook stages must be installed for full local coverage:
+> ```bash
+> pre-commit install                          # pre-commit stage
+> pre-commit install --hook-type commit-msg    # commit-msg stage
+> pre-commit install --hook-type pre-push      # pre-push stage
+> ```
+
+**3. Push your branch and open a PR:**
+
+```bash
+git push                          # tracking already set in step 1
+```
+
+CI workflows (lint, test, typecheck, security) run automatically when you open a PR targeting `main`. See the [workflows README](../.github/workflows/README.md) for the full list of workflows and their triggers.
+
+> **When do CI workflows run?** Most workflows trigger on `pull_request` targeting `main`, meaning they run when you open or update a PR — not on every push to a feature branch. They also trigger on `push` to `main` itself (post-merge). A few workflows (PR title, labeler, dependency review) only run on pull requests. The release workflow only triggers on version tags. Check each workflow's `on:` trigger for specifics.
+
+**4. Format your feature PR:**
+
+| Element | Format | Example |
+|---------|--------|---------|
+| **PR title** | Conventional commit format | `feat: add user authentication` |
+| **PR body** | Free-form for human reviewers | Describe what, why, and any context |
+| **Commits** | Conventional commit messages | The commits are what matter for releases |
+
+> **Important:** With rebase+merge, individual **commit messages** drive the CHANGELOG — not the PR title or body. The `pr-title` workflow validates your title follows conventional format for consistency, but it's the commits that release-please reads. The PR body is purely for reviewers.
+
+**5. Merge:**
+
+Once CI passes and the PR is approved, a maintainer clicks **Rebase and merge**. GitHub automatically appends `(#PR)` to each commit subject.
+
+### PR #2 — The Release PR (Automated)
+
+After your commits land on `main`, release-please scans them on each push.
+
+- **If releasable commits exist** (`feat:`, `fix:`, `perf:`, `revert:`, or `BREAKING CHANGE`): release-please creates or updates a Release PR titled `chore(main): release X.Y.Z`
+- **If only non-releasable commits** (`docs:`, `chore:`, `ci:`, `test:`, etc.): nothing happens
+
+The Release PR contains auto-generated changes to:
+- **CHANGELOG.md** — new entries from commit messages
+- **`__init__.py`** — updated `__version__` fallback string
+- **`.release-please-manifest.json`** — version tracker
+
+**What you do with the Release PR:**
+
+1. **Review the CHANGELOG** — clean up redundant entries, reword for clarity
+2. **Edit if needed** — add context that commit messages didn't capture
+3. **Merge it** — release-please then creates a git tag + GitHub Release automatically
+4. The tag triggers `release.yml` which builds, publishes, and uploads artifacts
+
+> **You don't need to merge the Release PR immediately.** It accumulates entries as more releasable commits land on `main`. Merge it when you're ready to cut a release.
+
 ---
 
 ## How It Works

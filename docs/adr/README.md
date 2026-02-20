@@ -42,6 +42,9 @@ Each ADR follows this structure:
 | [018](018-bandit-for-security-linting.md) | Use Bandit for Python security linting | Accepted |
 | [019](019-containerfile.md) | Use Containerfile for OCI-compatible container builds | Accepted |
 | [020](020-mkdocs-documentation-stack.md) | Use MkDocs with Material theme for project documentation | Accepted |
+| [021](021-automated-release-pipeline.md) | Automated release pipeline with release-please | Accepted |
+| [022](022-rebase-merge-strategy.md) | Rebase and merge strategy for pull requests | Accepted |
+| [023](023-branch-protection-rules.md) | Branch protection rules for main | Accepted |
 
 ## Archive
 

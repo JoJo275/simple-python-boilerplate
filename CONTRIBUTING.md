@@ -198,10 +198,12 @@ After approval and merge, additional automation runs:
 
 | Workflow | What it does |
 |----------|-------------|
-| **changelog** | Auto-generates CHANGELOG.md from conventional commits and opens a PR |
+| **release-please** | Scans new commits on `main`, creates a Release PR with CHANGELOG + version bump |
 | **release** | Builds and publishes the package when a version tag (`v*.*.*`) is pushed |
 
 This is why commit message format matters — the changelog is generated directly from your commit messages.
+
+For the full release workflow (including how the two PRs work), see [Releasing](docs/releasing.md).
 
 ---
 
