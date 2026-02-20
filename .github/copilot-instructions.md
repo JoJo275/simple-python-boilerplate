@@ -132,6 +132,34 @@ exists in the project. Key templates:
 - **Seed** → `db/seeds/001_example_seed.sql`
 - **Script** → review `scripts/` for naming and shebang conventions
 
+### Keep Related Files in Sync
+
+When updating a file, check whether other files reference or depend on what
+changed and update them too. Examples:
+
+- Adding a workflow → update the workflow table in this file and `docs/workflows.md`
+- Adding a pre-commit hook → update ADR 008's hook inventory and this file's hook table
+- Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
+- Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
+- Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
+
+Don't let documentation drift from reality.
+
+### Keep Copilot Instructions Current
+
+If a change to the project affects how Copilot should understand or work with
+the codebase, update this file (`copilot-instructions.md`) as part of the same
+change. Examples worth capturing:
+
+- New tool added or removed (update "How This Project Works" section)
+- New workflow or hook (update the relevant table)
+- New convention or pattern adopted (add to "Conventions")
+- New ADR created (add to the ADR table)
+- New template or example file (add to "Check Templates" list)
+
+The goal is to keep this file as a reliable, up-to-date briefing so Copilot
+doesn't have to rediscover project structure from scratch each session.
+
 ### Provide Feedback and Pushback
 
 Don't just comply with every request. Push back or offer alternatives when:
