@@ -1,0 +1,163 @@
+# ──────────────────────────────────────────────────────────────
+# CI Gate — single "all-green" status check
+# ──────────────────────────────────────────────────────────────
+# This is a lightweight fan-in workflow.  It does NOT replace or
+# absorb your individual workflow files — every workflow keeps its
+# own triggers, permissions, and independent logic.
+#
+# What it does:
+#   After your PR check workflows finish, this job inspects the
+#   GitHub Checks API to verify that every required check passed.
+#   It reports a single "CI / gate" status.
+#
+# Why:
+#   In branch protection you set ONE required check ("gate")
+#   instead of listing every workflow individually.  Adding or
+#   removing a workflow then only requires editing the list below
+#   — no branch-protection settings changes needed.
+#
+# Setup:
+#   1. Edit REQUIRED_CHECKS below to match your job names.
+#   2. In Settings → Branches → main → "Require status checks":
+#        • Add:   "gate"  (from this workflow)
+#        • Remove the individual workflow check names
+#
+# TODO (template users):
+#   1. Enable the repository guard (pick ONE):
+#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#                   your actual repo slug (e.g. 'myorg/myproject').
+#        Option B – Set a repository variable (no YAML edits needed):
+#                     vars.ENABLE_CI_GATE = 'true'
+#                   (Settings → Secrets and variables → Actions → Variables)
+# ──────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  # Also run on push to main so the status is always present
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read          # Read check-run results for the commit
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+
+    # ── Repository guard ──────────────────────────────────────
+    if: >-
+      ${{
+        github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_CI_GATE == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Wait for required checks
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # Run simple scripts using the GitHub API (v7.0.1)
+        with:
+          # -----------------------------------------------------------------
+          # REQUIRED_CHECKS: list the job *names* that must pass.
+          # These are the `jobs.<key>.name:` values (or the key itself when
+          # name: is absent) from your other workflow files.
+          #
+          # Path-filtered workflows (bandit, link-checker) are intentionally
+          # excluded — they may not run on every PR so requiring them would
+          # block unrelated changes.
+          # -----------------------------------------------------------------
+          script: |
+            const REQUIRED_CHECKS = [
+              // Core quality
+              'Ruff (lint & format)',    // lint-format.yml → lint
+              'type-check',              // type-check.yml → type-check
+              'spellcheck',              // spellcheck.yml → spellcheck
+              'coverage',                // coverage.yml → coverage
+
+              // Tests — one entry per matrix leg
+              'Test (Python 3.11)',      // test.yml → test
+              'Test (Python 3.12)',
+              'Test (Python 3.13)',
+
+              // Security
+              'pip-audit',               // security-audit.yml → pip-audit
+              'review',                  // dependency-review.yml → review
+
+              // PR hygiene
+              'lint-title',              // pr-title.yml → lint-title
+              'lint-commits',            // commit-lint.yml → lint-commits
+            ];
+
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const sha   = context.payload.pull_request?.head?.sha
+                       || context.sha;
+
+            core.info(`Waiting for checks on ${sha}`);
+
+            // Poll until all required checks have a conclusion or timeout
+            const MAX_ATTEMPTS = 60;    // 60 × 30s = 30 min ceiling
+            const POLL_SECONDS = 30;
+
+            for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+              const { data: { check_runs } } =
+                await github.rest.checks.listForRef({
+                  owner, repo, ref: sha, per_page: 100,
+                });
+
+              const results = new Map();
+              for (const run of check_runs) {
+                // Use the latest result if a check was re-run
+                if (!results.has(run.name) ||
+                    new Date(run.completed_at) >
+                    new Date(results.get(run.name).completed_at)) {
+                  results.set(run.name, run);
+                }
+              }
+
+              let allDone   = true;
+              let allPassed = true;
+              const summary = [];
+
+              for (const name of REQUIRED_CHECKS) {
+                const run = results.get(name);
+                if (!run || run.status !== 'completed') {
+                  allDone = false;
+                  summary.push(`⏳ ${name}: pending`);
+                } else if (run.conclusion === 'success' ||
+                           run.conclusion === 'skipped') {
+                  summary.push(`✅ ${name}: ${run.conclusion}`);
+                } else {
+                  allPassed = false;
+                  summary.push(`❌ ${name}: ${run.conclusion}`);
+                }
+              }
+
+              core.info(`── Attempt ${attempt}/${MAX_ATTEMPTS} ──`);
+              for (const line of summary) core.info(line);
+
+              if (allDone) {
+                if (allPassed) {
+                  core.info('\nAll required checks passed.');
+                  return;
+                }
+                core.setFailed(
+                  'One or more required checks failed — see summary above.'
+                );
+                return;
+              }
+
+              core.info(`\nSome checks still running, retrying in ${POLL_SECONDS}s…`);
+              await new Promise(r => setTimeout(r, POLL_SECONDS * 1000));
+            }
+
+            core.setFailed('Timed out waiting for required checks.');

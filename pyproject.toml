@@ -91,6 +91,7 @@ dev = [
     "pre-commit",  # Git hooks for automated checks (v4.5.1)
     "bandit",  # Security linter (v1.9.3)
     "commitizen",  # Conventional commit helper + validator (v4.4.1)
+    "deptry",  # Dependency hygiene — unused, missing, transitive deps (v0.22.0)
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
 extras = [
@@ -340,6 +341,21 @@ strict = true  # Enable all strict type checking options
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
 skips = ["B101"]  # Skip assert warnings (asserts are fine outside production code)
+
+# -- deptry (dependency hygiene) --
+# Only scans src/ for imports.  Dev/test/docs/extras groups are CLI tools —
+# they're not imported in source code, so we tell deptry they're dev deps.
+[tool.deptry]
+extend_exclude = ["scripts", "experiments", "docs", "site"]
+# Tell deptry which [project.optional-dependencies] groups are dev/tool deps
+# so it doesn't flag them as DEP002 ("defined but not used in src/").
+pep621_dev_dependency_groups = ["test", "dev", "extras", "docs"]
+# DEP004: the dev group references "simple-python-boilerplate[test]" (self),
+# which makes deptry think self-imports are "dev dependency used in src/".
+ignore = ["DEP004"]
+# Suppress "Assuming the corresponding module name" warnings for packages
+# whose module name doesn't match the PyPI distribution name.
+package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings" }
 
 # -- Black (formatter) - if not using Ruff format --
 # [tool.black]
