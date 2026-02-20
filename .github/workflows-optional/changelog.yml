@@ -1,6 +1,18 @@
 # ──────────────────────────────────────────────────────────────
 # Changelog Workflow
 # ──────────────────────────────────────────────────────────────
+# ⚠️  NOT USED IN THE DEFAULT CONFIGURATION.
+#
+# This repo uses release-please for changelog generation (see
+# release-please.yml), which bundles CHANGELOG updates inside
+# the Release PR automatically.
+#
+# This file is included as an OPTIONAL ALTERNATIVE for template
+# users who prefer git-cliff's standalone changelog generation.
+# To use it, enable the repository guard below and remove (or
+# disable) the changelog section of release-please if desired.
+# ──────────────────────────────────────────────────────────────
+#
 # Auto-generates a changelog from conventional commit messages
 # and opens a PR with the updated CHANGELOG.md.
 #
