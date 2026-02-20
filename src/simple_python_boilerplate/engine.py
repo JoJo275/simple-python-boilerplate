@@ -58,7 +58,7 @@ def get_version_info() -> VersionInfo:
     except PackageNotFoundError:
         from simple_python_boilerplate import __version__
 
-        pkg_version = f"{__version__} (editable/dev install)"
+        pkg_version = __version__
 
     py_ver = sys.version_info
     return {

@@ -1,3 +1,17 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════╗
+  ║  This PR description is for HUMAN REVIEWERS.                 ║
+  ║                                                              ║
+  ║  Release automation (release-please) reads individual        ║
+  ║  commit messages on main — not this description.             ║
+  ║  Write commits with conventional format (feat:, fix:, etc.)  ║
+  ║  and include (#PR) or (#issue) references in each commit.    ║
+  ║                                                              ║
+  ║  This template captures: WHY you made changes, HOW to test   ║
+  ║  them, and WHAT reviewers should focus on.                   ║
+  ╚══════════════════════════════════════════════════════════════╝
+-->
+
 ## Description
 
 Brief description of the changes in this PR.

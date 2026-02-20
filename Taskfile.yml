@@ -121,9 +121,10 @@ tasks:
 
   # ── Pre-commit ─────────────────────────────────────────────
   pre-commit:install:
-    desc: Install pre-commit hooks
+    desc: Install pre-commit hooks (includes commit-msg for commitizen)
     cmds:
       - hatch run pre-commit install
+      - hatch run pre-commit install --hook-type commit-msg
 
   pre-commit:run:
     desc: Run pre-commit on all files
@@ -161,6 +162,23 @@ tasks:
     desc: Run the application
     cmds:
       - hatch run spb {{.CLI_ARGS}}
+
+  # ── Commit & Release ───────────────────────────────────────
+  commit:
+    desc: Interactive conventional commit (commitizen)
+    cmds:
+      - hatch run cz commit {{.CLI_ARGS}}
+
+  commit:check:
+    desc: Validate commit messages in a range (default HEAD)
+    cmds:
+      - hatch run cz check --rev-range {{.CLI_ARGS | default "HEAD~1..HEAD"}}
+
+  release:tag:
+    desc: "Create initial version tag (usage: task release:tag -- v0.1.0)"
+    cmds:
+      - git tag -a {{.CLI_ARGS}} -m "Release {{.CLI_ARGS}}"
+      - cmd: echo "Tag {{.CLI_ARGS}} created. Push with git push origin {{.CLI_ARGS}}"
 
   # ── Targeted Testing ───────────────────────────────────────
   test:unit:

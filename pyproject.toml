@@ -3,7 +3,7 @@
 # ============================================================================
 # PEP 517/518 configuration - tells pip HOW to build your package
 [build-system]
-requires = ["hatchling"]                # Build backend (downloaded automatically)
+requires = ["hatchling", "hatch-vcs"]   # Build backend + VCS version plugin
 build-backend = "hatchling.build"       # Hatchling builds the package
 
 # ============================================================================
@@ -11,7 +11,7 @@ build-backend = "hatchling.build"       # Hatchling builds the package
 # ============================================================================
 [project]
 name = "simple-python-boilerplate"
-version = "0.1.0"
+dynamic = ["version"]                   # Version derived from git tags via hatch-vcs
 description = "Simple Python boilerplate using src/ layout"
 readme = "README.md"                    # Relative to pyproject.toml → root README.md
 requires-python = ">=3.11"
@@ -90,6 +90,7 @@ dev = [
     "mypy",  # Static type checker (v1.19.1)
     "pre-commit",  # Git hooks for automated checks (v4.5.1)
     "bandit",  # Security linter (v1.9.3)
+    "commitizen",  # Conventional commit helper + validator (v4.4.1)
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
 extras = [
@@ -222,9 +223,17 @@ cov = "pytest --cov=simple_python_boilerplate --cov-report=term-missing {args}"
 #   wheel: python -m zipfile -l dist/*.whl
 #   sdist: tar -tf dist/*.tar.gz
 
-# Dynamic versioning (alternative to manual version in [project])
-# [tool.hatch.version]
-# source = "vcs"  # Derive version from git tags (requires hatch-vcs plugin)
+# ── Version from git tags (hatch-vcs) ─────────────────────────
+# Version is derived from the latest git tag matching "v*".
+# At build time, hatch-vcs reads the tag and generates _version.py.
+# release-please creates these tags automatically on release.
+# Fallback is used when building outside a git repo (e.g., sdist).
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.0.0+unknown"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/simple_python_boilerplate/_version.py"
 
 # ============================================================================
 # TOOL CONFIGURATIONS
@@ -326,7 +335,7 @@ strict = true  # Enable all strict type checking options
 # OTHER TOOL CONFIGURATIONS (uncomment as needed)
 # ============================================================================
 
-# runtime configuartion for your package (e.g., logging, feature flags)
+# runtime configuration for your package (e.g., logging, feature flags)
 # -- Bandit (security linter) --
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
@@ -349,13 +358,15 @@ skips = ["B101"]  # Skip assert warnings (asserts are fine outside production co
 # reportMissingImports = true
 # reportMissingTypeStubs = false
 
-# -- Semantic Release (automated versioning) --
-# [tool.semantic_release]
-# version_variable = "src/simple_python_boilerplate/__init__.py:__version__"
-# branch = "main"
-# upload_to_pypi = false
-# upload_to_release = true
-# build_command = "pip install build && python -m build"
+# -- Commitizen (commit conventions + validation) --
+# Used locally via `cz commit` and as a pre-commit hook for commit-msg validation.
+# Version bumping and changelog are handled by release-please, not commitizen.
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "scm"                # Read version from git tags (matches hatch-vcs)
+tag_format = "v$version"                # Tags created by release-please: v1.2.3
+update_changelog_on_bump = false        # release-please manages CHANGELOG.md
+major_version_zero = true               # Allow breaking changes without major bump while < 1.0
 
 # ============================================================================
 # NOTES FOR BOILERPLATE USERS

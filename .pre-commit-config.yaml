@@ -211,16 +211,19 @@ repos:
 
 
   # ===========================================================================
-  # STAGE: commit-msg  (validates the commit message)  [DISABLED]
+  # STAGE: commit-msg  (validates the commit message)
   # Install: pre-commit install --hook-type commit-msg
   # ===========================================================================
 
-  - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v4.0.0
+  # Commitizen validates commit messages against Conventional Commits format.
+  # Also provides `cz commit` for interactive commit creation.
+  # With rebase+merge, every commit message matters — this ensures
+  # well-formed messages that feed into release-please's CHANGELOG.
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.4.1
     hooks:
-      - id: conventional-pre-commit
-        stages: [manual]  # Change to [commit-msg] to enable
-        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+      - id: commitizen
+        stages: [commit-msg]
 
   # ===========================================================================
   # STAGE: pre-push  (runs on `git push` — good for slower checks)

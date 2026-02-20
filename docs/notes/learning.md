@@ -2415,14 +2415,533 @@ Not all projects use SemVer. Here are the common schemes and which tools support
 
 ### What This Project Uses
 
-Currently this project doesn't have a full release pipeline — it's a template. But the pieces in place are:
+This project uses a fully automated release pipeline:
 
-- **Conventional commits** via `.gitmessage.txt` + commitizen pre-commit hook
-- **Hatch for version bumping** (`hatch version`)
-- **GitHub Actions for CI** (test, lint, type-check)
-- **No automated changelog or publish** yet — that's a future enhancement
+- **Conventional commits** validated by commitizen (pre-commit hook + CI)
+- **release-please** for automated Release PRs, CHANGELOG, tags, and GitHub Releases
+- **hatch-vcs** for deriving package version from git tags at build time
+- **Rebase+merge** strategy for linear history with fine-grained CHANGELOG entries
+- **GitHub Actions** for build, publish, SBOM generation on tag push
 
-The most natural next step would be adding `python-semantic-release` or `release-please` to the CI, but both are overkill until the project is actually publishing to PyPI.
+See [ADR 021](../adr/021-automated-release-pipeline.md) and [releasing.md](../releasing.md) for the full workflow.
+
+---
+
+## Merge Strategies for Integrating into Main
+
+When changes from a feature branch need to get into `main`, there are several strategies. Each produces a different commit history shape, affects traceability, and has implications for tools like `git bisect`, changelog generation, and `git log` readability.
+
+### Direct Push to Main (No Branch, No PR)
+
+The simplest approach: commit directly on `main` and push.
+
+```
+main:  A ─ B ─ C ─ D
+                     ↑ your commits land here
+```
+
+- **History:** Linear
+- **When to use:** Solo projects, trivial changes, CI-only repos
+- **Pros:** No overhead, no branches to manage
+- **Cons:** No review, no CI checks before landing, no PR record, dangerous for teams
+- **Who uses this:** Very small projects, personal repos, config-only repos
+
+### Merge Commit (GitHub Default)
+
+Creates a special commit with **two parents** — one from main, one from the branch tip. Preserves the branch topology.
+
+```
+main:    A ─ B ─ ─ ─ ─ ─ M
+              \         /
+feature:       C ─ D ─ E
+```
+
+Where `M` is the merge commit with parents `B` and `E`.
+
+- **History:** Non-linear (graph shape, "railroad tracks" in `git log --graph`)
+- **Original SHAs:** Preserved — the branch commits keep their hashes
+- **Merge event:** Visible — the merge commit marks exactly where the branch was integrated
+- **Pros:**
+  - Full history preserved with branch context
+  - Easy to revert an entire feature: `git revert -m 1 <merge-commit>`
+  - Original SHAs intact — links to branch commits never break
+  - `git log --merges` shows all integration points
+- **Cons:**
+  - Cluttered history with merge commits between every PR
+  - Hard to `git bisect` when merge commits are involved
+  - `git log` without `--graph` is confusing (interleaved commits from multiple branches)
+  - Non-linear history is harder for tools to parse
+
+### Squash and Merge
+
+Takes all commits from the feature branch and **squashes** them into a **single commit** on main. The PR title typically becomes the commit message.
+
+```
+feature:  C ─ D ─ E    (3 commits)
+                ↓ squash
+main:     A ─ B ─ S    (1 commit, S = squashed C+D+E)
+```
+
+- **History:** Linear (one commit per PR)
+- **Original SHAs:** Lost — all branch commits are discarded, replaced by one new commit
+- **Merge event:** No — just a single commit, no visual merge point
+- **Pros:**
+  - Clean, linear history — one commit per logical change
+  - PR title becomes the commit message — only enforce PR title format
+  - Easy to `git bisect` (each commit is one PR's worth of change)
+  - Good for messy branches with WIP/fixup commits
+- **Cons:**
+  - **Loses individual commit detail** — can't go back to specific changes within a PR
+  - Author attribution may be lost (shows merger, not individual committers via co-authored-by)
+  - Can't cherry-pick individual changes from a squashed PR
+  - Large PRs become one giant commit — hard to review in `git log`
+
+### Rebase and Merge (What This Project Uses)
+
+Takes each commit from the feature branch and **replays** them one at a time on top of main's tip. Produces a linear history where every commit is preserved.
+
+```
+feature:  C ─ D ─ E           (on top of B)
+                  ↓ rebase onto main's tip
+main:     A ─ B ─ C' ─ D' ─ E'  (C', D', E' are replayed copies)
+```
+
+The `'` marks indicate new SHAs — the commits are re-hashed because their parent changed.
+
+- **History:** Linear (every commit preserved)
+- **Original SHAs:** Changed — rebased commits get new hashes
+- **Merge event:** No — no visual merge point in the graph
+- **Pros:**
+  - **Linear AND detailed** — best of both worlds
+  - Individual commits preserved — can navigate to specific changes
+  - Easy to `git bisect` — each commit is atomic and testable
+  - Clean `git log` — no merge commit noise
+  - Commit authors preserved — individual attribution maintained
+  - Fine-grained CHANGELOG — tools can generate one entry per commit
+- **Cons:**
+  - **Original SHAs change** — links to branch commits break after rebase
+  - **No merge graph** — can't see where a PR started/ended in `git log --graph`
+  - Requires commit message discipline — every commit message matters
+  - Force-push needed to update branch after rebase: `git push --force-with-lease`
+  - Contributors must understand rebase workflow
+
+### Comparison Summary
+
+| | Merge Commit | Squash+Merge | Rebase+Merge | Direct Push |
+|---|---|---|---|---|
+| History shape | Graph | Linear | Linear | Linear |
+| Commits on main per PR | All + merge | 1 | All | All |
+| Original SHAs | Kept | Lost | Changed | Kept |
+| Revert entire PR | Easy (`revert -m 1`) | Easy (one commit) | Hard (revert each commit) | N/A |
+| `git bisect` | Awkward with merges | Good (coarse) | Good (fine) | Good |
+| CHANGELOG granularity | Per commit | Per PR | Per commit | Per commit |
+| Commit message enforcement | Per commit | PR title only | Per commit | Per commit |
+| Merge event visible | Yes | No | No | N/A |
+
+### Mental Model for Rebase+Merge
+
+Think of rebase as **transplanting** your branch. Your commits are "picked up" from their original base and "replanted" on top of main's latest. The content is the same but the commit IDs change because the parent changed.
+
+The **PR is the integration record** (review comments, approvals, design discussion). The **commit history is the technical audit trail** (what changed, in what order). Together they provide full traceability even without merge commits.
+
+### Branching off Someone Else's Branch (The "Stacked Branch" Problem)
+
+A common scenario: Alice creates `feature-a` off `main`. Bob needs Alice's work, so he branches `feature-b` off `feature-a`. Alice's branch eventually gets merged into `main`. Now Bob's branch has problems.
+
+```
+main:       A ─ B ─ ─ ─ ─ ─ ─ ─ ─ (Alice's work arrives here somehow)
+                 \
+feature-a:        C ─ D ─ E         (Alice's branch)
+                          \
+feature-b:                 F ─ G    (Bob's branch, based on Alice's)
+```
+
+The **severity of the problem depends on the merge strategy** used to integrate Alice's branch into main.
+
+#### With Merge Commits
+
+When `feature-a` is merged into main with a merge commit:
+
+```
+main:       A ─ B ─ ─ ─ ─ ─ M      (M = merge commit, parents: B and E)
+                 \         /
+feature-a:        C ─ D ─ E
+                          \
+feature-b:                 F ─ G
+```
+
+**Problem:** Mild. Commits C, D, E still exist with their **original SHAs**. Bob's branch is based on E, which is still reachable from main (through the merge). When Bob opens a PR for `feature-b`, git sees that C, D, E are already in main (via M), so the PR diff only shows F and G. **This usually works fine.**
+
+**Potential issue:** If Bob rebases `feature-b` onto `main`, git may get confused about which commits are already applied. The merge commit's two-parent structure can cause unexpected conflicts during rebase.
+
+**Solution:**
+```bash
+# Bob rebases onto main, skipping Alice's already-merged commits
+git checkout feature-b
+git rebase --onto main feature-a    # "move F,G from feature-a base to main base"
+```
+
+The `--onto` flag says: "take the commits that are on `feature-b` but NOT on `feature-a`, and replay them on top of `main`."
+
+#### With Squash+Merge
+
+When `feature-a` is squash-merged into main:
+
+```
+main:       A ─ B ─ S              (S = squashed C+D+E into one commit, NEW SHA)
+                 \
+feature-a:        C ─ D ─ E        (these commits are now abandoned)
+                          \
+feature-b:                 F ─ G   (still based on E, which is NOT on main)
+```
+
+**Problem:** Serious. The squash created a **brand-new commit S** with a different SHA than C, D, or E. Git does NOT know that S contains the same changes as C+D+E. From git's perspective, commits C, D, E are **not on main** — only S is. So when Bob tries to rebase or merge `feature-b` onto main:
+
+1. Git tries to replay C, D, E, F, G on top of S
+2. C, D, E conflict with S (same changes, different commits)
+3. Bob has to manually resolve conflicts for work that's already merged
+
+This is the **most dangerous** strategy for stacked branches.
+
+**Solutions:**
+
+```bash
+# Option 1: rebase --onto (skip Alice's commits entirely)
+git checkout feature-b
+git rebase --onto main feature-a
+# This says: "replay only F,G (not C,D,E) onto main"
+
+# Option 2: Interactive rebase — drop Alice's commits manually
+git checkout feature-b
+git rebase -i main
+# In the editor, DELETE the lines for commits C, D, E
+# Keep only F and G
+```
+
+**Prevention:** When you know squash+merge is the strategy, avoid branching off other people's branches. Instead, wait for their PR to be merged, then branch off `main`.
+
+#### With Rebase+Merge
+
+When `feature-a` is rebase-merged into main:
+
+```
+main:       A ─ B ─ C' ─ D' ─ E'    (C', D', E' = rebased copies, NEW SHAs)
+                 \
+feature-a:        C ─ D ─ E          (original SHAs, now orphaned)
+                          \
+feature-b:                 F ─ G     (based on E, not E')
+```
+
+**Problem:** Moderate. Similar to squash but less severe. The commits C', D', E' on main have **different SHAs** than the originals C, D, E. Git doesn't know they're the same changes. When Bob rebases `feature-b` onto main, git will try to replay C, D, E, F, G and conflict on the duplicated commits.
+
+However, git is often **smarter about this than with squash** because the individual commit patches are identical (same diff, same message). Git's `rebase` command has a built-in mechanism (`--reapply-cherry-picks=false`, which is the default) that can detect "this patch is already applied" and skip it automatically. So sometimes it **just works** — but not always, especially if there were conflict resolutions during the original rebase.
+
+**Solutions:**
+
+```bash
+# Option 1: rebase --onto (most reliable)
+git checkout feature-b
+git rebase --onto main feature-a
+# Replays only F,G onto main, skipping C,D,E entirely
+
+# Option 2: Plain rebase (often works due to patch-id detection)
+git checkout feature-b
+git rebase main
+# Git may auto-skip C,D,E if it detects matching patches
+# But if there were conflicts in the original rebase, this may fail
+
+# Option 3: If plain rebase gives conflicts, abort and use --onto
+git rebase --abort
+git rebase --onto main feature-a
+```
+
+#### Summary: Stacked Branch Risk by Strategy
+
+| Strategy | Risk level | Why | Best fix |
+|----------|-----------|-----|----------|
+| **Merge commit** | Low | Original SHAs preserved, git knows they're on main | `git rebase --onto main feature-a` if needed |
+| **Squash+merge** | High | All original commits replaced with one new SHA, git can't detect duplicates | `git rebase --onto main feature-a` (mandatory) |
+| **Rebase+merge** | Medium | New SHAs but identical patches — git can often auto-detect | `git rebase main` (try first), fall back to `--onto` |
+
+#### The Universal Fix: `git rebase --onto`
+
+No matter the merge strategy, `git rebase --onto` is the universal fix for stacked branches:
+
+```bash
+git rebase --onto <new-base> <old-base> [<branch>]
+```
+
+Read it as: "Take commits that are on `<branch>` but NOT on `<old-base>`, and replay them onto `<new-base>`."
+
+```bash
+# The pattern is always:
+git checkout feature-b
+git rebase --onto main feature-a
+
+# Which means:
+# "Take commits on feature-b that aren't on feature-a (= F, G)
+#  and replay them onto main"
+```
+
+**Tip:** If you've already deleted the `feature-a` branch and can't reference it, you can use the SHA of the commit where `feature-b` diverged:
+
+```bash
+# Find where feature-b branched off feature-a
+git log --oneline feature-b
+# Identify commit E (last of Alice's commits)
+git rebase --onto main <SHA-of-E> feature-b
+```
+
+#### Prevention Strategies
+
+1. **Don't stack** unless necessary — wait for the base PR to merge, then branch off `main`
+2. **Communicate** — if you must stack, tell the base branch author so they don't force-push or rebase without warning
+3. **Use `--onto` proactively** — as soon as the base branch is merged, immediately rebase your branch with `--onto main`
+4. **Keep stacked branches small** — the fewer commits, the easier to resolve conflicts
+5. **Consider draft PRs** — open your stacked PR as draft, noting it depends on the base PR
+
+---
+
+## Git Tags
+
+### What Are Tags?
+
+Tags are **named pointers to specific commits** in git. They're like bookmarks — a human-readable label permanently attached to a point in history.
+
+```
+main:  A ─ B ─ C ─ D ─ E ─ F
+                   ↑           ↑
+                v0.1.0      v1.0.0
+```
+
+Tags don't move. Unlike branches (which advance with each new commit), a tag stays put.
+
+### Types of Tags
+
+| Type | Command | What it stores | Use case |
+|------|---------|---------------|----------|
+| **Lightweight** | `git tag v1.0.0` | Just a pointer to a commit (like a branch that never moves) | Quick labels, local markers |
+| **Annotated** | `git tag -a v1.0.0 -m "Release 1.0.0"` | Full git object: tagger name, email, date, message, optional GPG signature | Releases (preferred for public tags) |
+
+### Where Do Tags Live?
+
+| Location | Path | How to see |
+|----------|------|-----------|
+| **Local** | `.git/refs/tags/` (one file per tag, containing the SHA) | `git tag` or `git tag -l "v1.*"` |
+| **Remote** | `refs/tags/` on the remote server | `git ls-remote --tags origin` |
+
+**Important:** Tags are **NOT pushed by default.** You must explicitly push them:
+
+```bash
+git push origin v1.0.0          # Push a specific tag
+git push origin --tags          # Push ALL local tags
+```
+
+### Common Tag Operations
+
+```bash
+# List all tags
+git tag
+
+# List tags matching a pattern
+git tag -l "v1.*"
+
+# Create a lightweight tag
+git tag v1.0.0
+
+# Create an annotated tag (preferred for releases)
+git tag -a v1.0.0 -m "Release 1.0.0"
+
+# Tag a specific commit (not HEAD)
+git tag -a v1.0.0 abc1234 -m "Release 1.0.0"
+
+# Show tag details
+git show v1.0.0
+
+# Delete a local tag
+git tag -d v1.0.0
+
+# Delete a remote tag
+git push origin :refs/tags/v1.0.0
+# or
+git push origin --delete v1.0.0
+
+# See what commit a tag points to
+git rev-parse v1.0.0
+```
+
+### How Tags Are Used in This Project
+
+- **release-please** creates annotated tags (e.g., `v1.2.0`) when the Release PR is merged
+- **hatch-vcs** reads the latest tag to derive the Python package version at build time
+- **release.yml** triggers on `push: tags: v*.*.*` — building and publishing on tag creation
+- **Convention:** Tags use the `v` prefix (e.g., `v1.0.0`) per SemVer convention
+
+### Tags vs Branches
+
+| | Tags | Branches |
+|---|---|---|
+| Moves? | No — fixed to one commit | Yes — advances with each new commit |
+| Purpose | Mark a point in time (release, milestone) | Track ongoing work |
+| Storage | `.git/refs/tags/` | `.git/refs/heads/` |
+| Auto-pushed? | No — must explicitly push | Yes — with `git push` |
+
+---
+
+## Commit Traceability and PR Linkage
+
+With rebase+merge, individual commits lose their branch context — there's no merge commit to mark where a PR started and ended. This raises the question: **how do you trace a commit back to the PR and discussion that produced it?**
+
+### Option A: Let GitHub Handle It Automatically (Recommended)
+
+GitHub's rebase+merge automatically appends `(#PR)` to each commit's subject line when you merge via the web UI. No configuration needed.
+
+**The flow:**
+
+1. You write locally: `feat: add user authentication`
+2. You push your branch and open PR #42
+3. When you click "Rebase and merge" on GitHub, each commit becomes: `feat: add user authentication (#42)`
+4. release-please reads commits on `main` and generates CHANGELOG entries with the `(#42)` link
+5. In the rendered CHANGELOG on GitHub, `#42` is automatically a clickable link to the PR
+
+**What the CHANGELOG looks like:**
+
+```markdown
+### Features
+
+* add user authentication (#42)
+* add login CLI command (#42)
+* add password hashing utility (#43)
+```
+
+Each `(#42)` links to the full PR with review comments, approvals, and design discussion.
+
+**Why this works well:**
+- Zero friction — you don't think about it locally, the linkage just appears on `main`
+- Commitizen already accepts the `(#PR)` suffix — the commit-msg hook won't reject these
+- The PR number is always correct (GitHub appends it, not a human)
+- Works with every PR, no exceptions
+
+**Important:** This only happens when you merge **via the GitHub UI** (or API). If you push directly to `main` or use `git rebase` locally and push, there's no PR to reference.
+
+### Option B: Require Issue References in Commit Messages
+
+If you want commits to reference an **issue** (not just the PR), you can enforce a pattern in the commit body. This is useful when you want traceability to requirements/tickets, not just PRs.
+
+**Example commit with issue reference:**
+
+```
+feat: add user authentication
+
+Refs: #15
+```
+
+Or using GitHub's closing keywords:
+
+```
+fix: correct token expiration calculation
+
+Fixes #28
+```
+
+**How to enforce this with commitizen:**
+
+You can customize the commitizen schema in `pyproject.toml` to require a footer. However, commitizen's built-in `cz_conventional_commits` schema prompts for an optional footer during `cz commit` — it just doesn't **require** it.
+
+To strictly enforce issue references, you'd need a custom commitizen plugin or a CI check:
+
+```yaml
+# In commit-lint.yml — add a step after the cz check:
+- name: Check for issue references
+  run: |
+    # Check that every feat/fix commit has a "Refs:" or "Fixes" footer
+    git log --format="%H %s%n%b---" origin/${{ github.base_ref }}..HEAD | \
+    awk '
+      /^[a-f0-9]+ (feat|fix)/ { needs_ref=1; sha=$1; subject=$0 }
+      /Refs:|Fixes|Closes|Resolves/ { needs_ref=0 }
+      /^---$/ { if (needs_ref) print "Missing issue ref: " subject; needs_ref=0 }
+    '
+```
+
+**Trade-offs:**
+- More friction — developers must know the issue number before committing
+- Not all commits map neatly to one issue
+- PR linkage (Option A) is already automatic and often sufficient
+- Useful for projects with strict requirements traceability (e.g., regulated industries)
+
+### Combining Both Options
+
+You can use both: GitHub auto-appends `(#PR)` and you optionally include `Refs: #issue` in the body. The commit on `main` would look like:
+
+```
+feat: add user authentication (#42)
+
+Refs: #15
+```
+
+This gives three layers of traceability:
+1. **Commit message** — what changed and why
+2. **`(#42)`** — links to the PR (review, discussion, approval)
+3. **`Refs: #15`** — links to the issue (requirements, user story, bug report)
+
+### Configuring GitHub's Auto-Append Behavior
+
+GitHub's `(#PR)` append behavior is controlled at the repository level:
+
+**Settings → General → Pull Requests → "Pull Request default commit message"**
+
+For each merge strategy, you can choose what GitHub puts in the default commit message:
+- **Default message** — uses the commit message as-is, appends `(#PR)`
+- **Pull request title** — uses the PR title as the commit subject
+- **Pull request title and description** — uses the PR title and body
+
+For rebase+merge specifically, GitHub preserves each individual commit message and appends `(#PR)` to the subject line. This behavior is built-in for rebase+merge and cannot be disabled — the `(#PR)` is always appended.
+
+---
+
+## Programming Jargon
+
+Common programming and development terminology, including informal terms you'll encounter in open-source projects, code reviews, and technical discussions.
+
+### General Development Jargon
+
+| Term | Meaning | Example usage |
+|------|---------|--------------|
+| **Landing** / **Landing a branch** | Getting your changes merged into the main branch. "Landed" = "merged and now on main." | "I landed my feature branch" = "my PR was merged" |
+| **Landing on main** | Same as above — emphasizes that the changes arrived at their destination. | "Once this lands on main, we can release" |
+| **Ship it** | Approve and merge/deploy. Implies confidence that it's ready. | "LGTM, ship it" (in a PR review) |
+| **LGTM** | "Looks Good To Me" — approval shorthand in code reviews. | Comment on a PR: "LGTM" |
+| **Nit** | A nitpick — minor style or preference feedback, not a blocker. | "nit: prefer `snake_case` here" |
+| **Bikeshedding** | Spending disproportionate time on trivial decisions (color of the bikeshed). | "Let's not bikeshed the variable name — either is fine" |
+| **Yak shaving** | A series of nested tasks you must complete before doing the original task. | "I needed to fix the linter to fix the import to fix the test to add the feature" |
+| **Rubber ducking** | Explaining a problem out loud (even to an inanimate object) to understand it better. | "I rubber-ducked it and realized the bug was in the loop" |
+| **Dogfooding** | Using your own product internally before releasing to users. | "We're dogfooding the new API before v2 launch" |
+| **Greenfield** | A brand-new project with no existing code or constraints. | "This is a greenfield project — no legacy to worry about" |
+| **Brownfield** | Working within an existing codebase with established patterns and constraints. | "It's a brownfield project — we have to work around the existing schema" |
+| **Tech debt** | Shortcuts or suboptimal code that works now but will cost more to maintain later. | "We're accruing tech debt by skipping tests" |
+| **Foot gun** | A feature or API that makes it easy to accidentally cause problems. | "`eval()` is a foot gun — too easy to introduce security vulnerabilities" |
+| **Escape hatch** | A way to bypass normal rules or abstractions when you need to. | "`--no-verify` is the escape hatch for pre-commit hooks" |
+| **Happy path** | The expected, error-free flow through code. | "The happy path works, but we need to handle edge cases" |
+| **Sad path** | Error or failure scenarios. | "What happens on the sad path — when the API is down?" |
+| **Blast radius** | How much is affected if something goes wrong. | "The blast radius of this change is small — only affects the CLI" |
+| **Upstream** / **Downstream** | Upstream = the original source you forked from or depend on. Downstream = consumers of your code. | "We need to submit the fix upstream" |
+| **Vendoring** | Copying a dependency's source code directly into your project instead of installing it. | "We vendored the library to avoid the pip dependency" |
+| **Shim** | A thin adapter layer that translates between two interfaces. | "We added a shim to support both the old and new API" |
+| **Tombstone** | Code or data that's been logically deleted but physically retained (marked as dead). | "The method is a tombstone — it exists but is never called" |
+
+### Git-Specific Jargon
+
+| Term | Meaning | Example usage |
+|------|---------|--------------|
+| **Trunk** | The main development branch (`main` or `master`). From "trunk-based development." | "We develop on trunk — no long-lived feature branches" |
+| **HEAD** | The current commit your working directory is on. Usually the tip of a branch. | "HEAD is at abc1234" |
+| **Detached HEAD** | When HEAD points to a specific commit, not a branch. Commits here aren't on any branch. | "git checkout v1.0.0 puts you in detached HEAD state" |
+| **Fast-forward** | When a branch can be moved forward without creating a merge commit (no divergence). | "Pull with `--ff-only` to ensure a clean fast-forward" |
+| **Force-push** | Overwriting remote history. Dangerous on shared branches, normal after rebase. | "After rebasing, force-push with `--force-with-lease`" |
+| **Cherry-pick** | Applying a single commit from one branch onto another. | "Cherry-pick the hotfix onto the release branch" |
+| **Stash** | Temporarily shelving uncommitted changes. | "Stash your changes, switch branches, then pop them back" |
+| **Reflog** | Git's safety net — a log of every HEAD position change, even after resets or rebases. | "I lost my commit but found it in `git reflog`" |
+| **Porcelain** vs **Plumbing** | Porcelain = user-friendly git commands (`git log`). Plumbing = low-level internals (`git cat-file`). | "For scripts, use plumbing commands — they have stable output" |
 
 ---
 

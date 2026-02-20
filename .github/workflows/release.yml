@@ -4,9 +4,19 @@
 # Builds Python distribution artifacts (sdist + wheel) and
 # optionally publishes them to PyPI.
 #
-# Triggers:
-#   - Pushing a semver tag like v1.2.3
+# Triggered by:
+#   - Version tags created by release-please (e.g., v1.2.3)
 #   - Manual dispatch via the GitHub Actions UI
+#
+# Flow:
+#   release-please merges Release PR
+#   → creates git tag v1.2.3 + GitHub Release
+#   → this workflow triggers on the tag
+#   → builds artifacts, publishes to PyPI (if enabled),
+#     generates SBOMs, uploads assets to the GitHub Release
+#
+# hatch-vcs reads the git tag to set the package version
+# at build time — no manual version bumping needed.
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
@@ -62,6 +72,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
         with:
+          fetch-depth: 0               # Full history needed for hatch-vcs to derive version from tag
           persist-credentials: false
 
       - name: Set up Python
@@ -131,14 +142,15 @@ jobs:
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # Upload Python distribution packages to PyPI (v1.13.0)
 
       # Fail with a helpful message when the secret is missing.
-      # If you want this step to skip without failing the workflow,
-      # replace "exit 1" with "exit 0".
+      # Using exit 0 so release workflow succeeds even without PyPI publishing.
+      # Change to "exit 1" when you're ready to enforce PyPI publishing.
       - name: Missing token instructions
         if: ${{ env.PUBLISH_TOKEN == '' }}
         run: |
-          echo "Missing secret: PUBLISH_TOKEN"
-          echo "Add it in Settings → Secrets and variables → Actions → Secrets"
-          exit 1
+          echo "::notice::Skipping PyPI publish — PUBLISH_TOKEN secret is not set."
+          echo "When you're ready to publish to PyPI, add the secret in:"
+          echo "  Settings → Secrets and variables → Actions → Secrets"
+          exit 0
 
   # ── Job 3: Generate SBOMs ──────────────────────────────────
   # Generates SPDX (primary) and CycloneDX SBOMs for the
@@ -194,19 +206,17 @@ jobs:
             sbom-spdx.json
             sbom-cyclonedx.json
 
-  # ── Job 4: GitHub Release ──────────────────────────────────
-  # Creates a GitHub Release on the Releases page and attaches
-  # the built distribution artifacts (sdist + wheel) along
-  # with SPDX and CycloneDX SBOMs.
-  # Runs after build and sbom succeed but independently of
-  # publish — so a GitHub Release is created even if PyPI
-  # publishing is not configured.
-  github-release:
-    name: Create GitHub Release
+  # ── Job 4: Upload Release Assets ────────────────────────────
+  # Uploads the built distribution artifacts and SBOMs to the
+  # GitHub Release that was already created by release-please.
+  # If running via manual dispatch (no release-please), creates
+  # a new release instead.
+  upload-assets:
+    name: Upload release assets
     needs: [build, sbom]       # Needs both dist and SBOM artifacts
     runs-on: ubuntu-latest
     permissions:
-      contents: write          # Required to create releases and upload assets
+      contents: write          # Required to upload release assets
 
     steps:
       # Retrieve the dist/ artifacts uploaded by the build job
@@ -223,17 +233,26 @@ jobs:
           name: sbom
           path: sbom/
 
-      # Create a GitHub Release using the tag name and attach
-      # all files in dist/ (*.tar.gz, *.whl) and sbom/
-      # (*.spdx.json, *.cdx.json) as release assets.
-      # --generate-notes auto-generates release notes from
-      # commits and PRs since the last tag.
-      - name: Create release with artifacts
+      # Upload artifacts to the existing GitHub Release (created by release-please).
+      # If the release doesn't exist yet (manual dispatch), create it.
+      - name: Upload assets to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
-            --generate-notes \
-            dist/* \
-            sbom/*
+          TAG="${{ github.ref_name }}"
+          # Check if release already exists (created by release-please)
+          if gh release view "$TAG" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+            echo "Release $TAG exists — uploading assets"
+            gh release upload "$TAG" \
+              dist/* \
+              sbom/* \
+              --repo "${{ github.repository }}" \
+              --clobber
+          else
+            echo "Release $TAG not found — creating with assets"
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              dist/* \
+              sbom/*
+          fi

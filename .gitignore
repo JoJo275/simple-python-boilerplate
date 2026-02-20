@@ -11,6 +11,9 @@ __pycache__/
 # Build system markers
 .Python
 
+# Auto-generated version file (hatch-vcs)
+src/simple_python_boilerplate/_version.py
+
 # Common build output directories
 build/
 dist/
