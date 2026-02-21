@@ -203,10 +203,15 @@ debugging sessions, or multi-step tasks), provide a brief recap that covers:
 
 1. **What changed** — files created, modified, or deleted
 2. **Why** — the motivation or problem being solved
-3. **What to watch for** — any follow-up steps, known issues, or things
+3. **Impact** — how the changes benefit the project (e.g., reduced
+   complexity, improved safety, better DX) *and* any downsides or
+   trade-offs introduced (e.g., added maintenance burden, increased
+   build time, new dependency). Be honest about both sides so the user
+   can judge the net effect.
+4. **What to watch for** — any follow-up steps, known issues, or things
    that need manual verification (e.g., "run pre-commit to verify",
    "update branch protection to add the new check")
-4. **Decisions made** — any trade-offs or choices worth remembering
+5. **Decisions made** — any trade-offs or choices worth remembering
 
 Skip the recap for trivial single-file edits or quick Q&A.
 
