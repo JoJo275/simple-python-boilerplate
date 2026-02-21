@@ -55,7 +55,24 @@ Things to explore, implement, or learn more about.
 - [ ] signed tags?
 - [ ] add in sql CI?
 - [ ] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
-- [ ]
+- [ ] Add more detailed documentation for each workflow and how to customize it for different project needs.
+- [ ] Add more detailed documentation for how to set up and use the template for new projects
+- [ ] Add more detailed documentation for how to maintain and update projects created from the template, including how to pull in updates from the template itself if using something like `cruft`.
+- [ ] Add more detailed documentation for how to use the containerized development environment, including how to build and run the container, and how to use it for development and testing.
+- [ ] Add more detailed documentation for how to manage dependencies, including best practices for using `pyproject.toml` vs `requirements.txt`, and how to use tools like `pip-tools` for dependency management.
+- [ ] Add more detailed documentation for how to handle versioning and releases, including best practices for semantic versioning and how to automate version bumps and releases to PyPI.
+- [ ] Add more detailed documentation for how to write and run tests, including how to use `pytest` markers for categorizing tests (e.g., slow, integration) and how to run specific subsets of tests in CI or locally.
+- [ ] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
+- [ ] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
+- [ ] Add more detailed documentation for how to use GitHub Actions workflows, including how to enable/disable optional workflows, how to customize them for different project needs, and how to troubleshoot common issues with workflows.
+- [ ] Add entire repo each file check
+- [ ] Final file check: taskfile.yml
+- [ ] Final file check: LICENSE
+- [ ] Final file check: README.md
+- [ ] Final file check: SECURITY.md
+- [ ] Final file check: pyproject.toml
+- [ ] Final file check: .github/workflows/ci-gate.yml
+- [ ] Final file check: .github/workflows/test.yml
 
 ## Questions to Answer
 
