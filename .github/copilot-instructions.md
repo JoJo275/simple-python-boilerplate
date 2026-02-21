@@ -20,6 +20,16 @@ A Python boilerplate/template project using src/ layout, Hatch for
 environment/build management, and extensive CI/CD. The single source of truth
 for almost all tool configuration is `pyproject.toml`.
 
+### Domain / Business Context
+
+<!-- TODO (template users): Describe what your application DOES in 2-3
+     sentences. Copilot is far more useful when it knows the domain.
+     Examples:
+       "A payment processing API that integrates with Stripe and handles
+        subscription lifecycle management."
+       "A CLI tool for analysing genomics data from FASTQ files."
+     Delete this comment block and replace with your description. -->
+
 ### Build & Environment — Hatch
 
 - **Build backend:** Hatchling (`hatchling.build`) with `hatch-vcs` for git-tag versioning.
@@ -42,52 +52,34 @@ pre-commit install --hook-type commit-msg        # commit-msg stage
 pre-commit install --hook-type pre-push          # pre-push stage
 ```
 
-| Stage | Hooks |
-|-------|-------|
-| **pre-commit** | trailing-whitespace, end-of-file-fixer, check-yaml/toml/json/ast, check-added-large-files, check-merge-conflict, check-case-conflict, debug-statements, detect-private-key, fix-byte-order-marker, name-tests-test, check-executables-have-shebangs, check-shebang-scripts-are-executable, check-symlinks, check-docstring-first, no-commit-to-branch (main/master), mixed-line-ending (LF), ruff (lint+fix), ruff-format, mypy, bandit, validate-pyproject, typos, actionlint, check-github-workflows, check-github-actions, check-dependabot, no-do-not-commit-marker, no-secrets-patterns, no-nul-bytes, deptry |
-| **commit-msg** | commitizen (Conventional Commits validation) |
-| **pre-push** | pytest test suite, pip-audit, gitleaks |
-| **manual** | markdownlint-cli2, hadolint-docker |
+| Stage | Key hooks | Count |
+|-------|-----------|-------|
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | ~30 |
+| **commit-msg** | commitizen (Conventional Commits) | 1 |
+| **pre-push** | pytest, pip-audit, gitleaks | 3 |
+| **manual** | markdownlint-cli2, hadolint-docker | 2 |
 
-- Config: `.pre-commit-config.yaml` (354 lines, heavily commented)
-- Typos config: `_typos.toml`
-- Minimum version: `3.6.0`
+Full hook inventory: [ADR 008](docs/adr/008-pre-commit-hooks.md) |
+Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows (24 files)
 
-All workflows live in `.github/workflows/`, use SHA-pinned actions, and follow
-the repository guard pattern (`vars.ENABLE_*`).
+24 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](docs/adr/004-pin-action-shas.md))
+with repository guard pattern ([ADR 011](docs/adr/011-repository-guard-pattern.md)).
+Full table: `docs/workflows.md`.
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `test.yml` | PR / push | Pytest matrix (3.11–3.13) |
-| `lint-format.yml` | PR / push | Ruff lint + format check |
-| `type-check.yml` | PR / push | mypy strict mode |
-| `coverage.yml` | PR / push | Coverage report |
-| `commit-lint.yml` | PR | Conventional commit message validation |
-| `pr-title.yml` | PR | PR title follows conventional format |
-| `ci-gate.yml` | PR / push | Fan-in gate — single required check for branch protection |
-| `bandit.yml` | PR (path-filtered) | Security linting on Python files |
-| `link-checker.yml` | PR (path-filtered) | Broken link detection in Markdown |
-| `spellcheck.yml` | PR / push | Codespell spell checking |
-| `spellcheck-autofix.yml` | PR | Auto-fix spelling mistakes |
-| `dependency-review.yml` | PR | License + vulnerability check on new deps |
-| `security-audit.yml` | PR / push | pip-audit vulnerability scan |
-| `nightly-security.yml` | schedule | Nightly security scan |
-| `codeql.yml` | PR / schedule | GitHub CodeQL analysis |
-| `scorecard.yml` | schedule | OpenSSF Scorecard |
-| `container-build.yml` | PR / push | Build container image from Containerfile |
-| `container-scan.yml` | PR / push | Trivy scan of container image |
-| `release-please.yml` | push to main | Creates release PRs + changelogs |
-| `release.yml` | release published | Build + publish artifacts |
-| `sbom.yml` | release | Generate SBOM |
-| `pre-commit-update.yml` | schedule | Auto-update pre-commit hooks |
-| `labeler.yml` | PR | Auto-label PRs based on paths |
-| `stale.yml` | schedule | Close stale issues/PRs |
+**Categories at a glance:**
 
-**Branch protection** only requires the `gate` check from `ci-gate.yml`. Path-filtered
-workflows (bandit, link-checker) are excluded from required checks because they
-don't run on every PR — see ADR 024.
+- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck
+- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy container scan, nightly scan, OpenSSF Scorecard
+- **PR hygiene:** commit-lint, pr-title, labeler, spellcheck-autofix
+- **Release:** release-please → release → SBOM
+- **Container:** container-build, container-scan
+- **Maintenance:** pre-commit-update, stale
+- **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](docs/adr/024-ci-gate-pattern.md))
+
+Path-filtered workflows (bandit, link-checker) are excluded from required
+checks because they don't run on every PR.
 
 ### Task Runner — Taskfile
 
@@ -159,8 +151,8 @@ exists in the project. Key templates:
 When updating a file, check whether other files reference or depend on what
 changed and update them too. Examples:
 
-- Adding a workflow → update the workflow table in this file and `docs/workflows.md`
-- Adding a pre-commit hook → update ADR 008's hook inventory and this file's hook table
+- Adding a workflow → update `docs/workflows.md` and the categories list in this file
+- Adding a pre-commit hook → update ADR 008's hook inventory and the hook table in this file
 - Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
 - Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
 - Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
@@ -313,32 +305,20 @@ For deeper context beyond what's in this file, consult these docs:
 These are the canonical references for *why* things are the way they are.
 This file summarises *what* to do; those files explain the reasoning.
 
+Key ADRs that most affect day-to-day work:
+
 | ADR | Decision |
 |-----|----------|
 | 001 | src/ layout for package structure |
 | 002 | pyproject.toml for all configuration |
-| 003 | Separate GitHub Actions workflow files |
-| 004 | Pin GitHub Actions to commit SHAs |
 | 005 | Ruff for linting and formatting |
-| 006 | pytest for testing |
-| 007 | mypy for type checking |
 | 008 | Pre-commit hooks (full inventory) |
 | 009 | Conventional commits |
-| 010 | Dependabot for dependency updates |
 | 011 | Repository guard pattern |
-| 012 | Multi-layer security scanning |
-| 013 | SBOM / bill of materials |
-| 014 | No template engine |
-| 015 | No .github directory README |
 | 016 | Hatchling and Hatch |
-| 017 | Task runner (Taskfile) |
-| 018 | Bandit for security linting |
-| 019 | Containerfile |
-| 020 | MkDocs documentation stack |
-| 021 | Automated release pipeline |
-| 022 | Rebase merge strategy |
-| 023 | Branch protection rules |
 | 024 | CI gate pattern |
+
+Full index (24 ADRs): `docs/adr/README.md`
 
 ## Common Issues to Catch
 
