@@ -2945,6 +2945,171 @@ Common programming and development terminology, including informal terms you'll 
 
 ---
 
+## GitHub Copilot Instructions File
+
+### What is `.github/copilot-instructions.md`?
+
+A Markdown file that GitHub Copilot reads **on every interaction** when
+working in a repository. It acts as a persistent briefing — project
+conventions, tool choices, file layout, review priorities, and things to
+ignore. Copilot treats its contents as soft rules: it follows them by
+default but the user can override with explicit instructions.
+
+The file lives at `.github/copilot-instructions.md` (this is the
+convention that VS Code / GitHub Copilot looks for automatically).
+
+### Why It Matters
+
+Without this file, Copilot starts every conversation from scratch — it has
+to rediscover your project structure, conventions, and tooling by reading
+source files. With it, Copilot arrives pre-briefed and:
+
+- Generates code that matches your conventions (imports, naming, type hints)
+- Knows which tools to run and how (Hatch, pytest, Ruff, mypy)
+- Avoids suggesting patterns you've already decided against
+- Keeps documentation, workflows, and config in sync
+- Understands your project layout without exploring every directory
+
+Think of it like onboarding documentation, but for your AI pair programmer.
+
+### How Big Should It Be?
+
+This is the most important practical question. Copilot loads the entire
+file into its context window on every interaction. That context window is
+shared with: your current file, open files, conversation history, and any
+files Copilot reads during the session. A bloated instructions file crowds
+out the actual code Copilot needs to reason about.
+
+| Range | Verdict | Notes |
+|-------|---------|-------|
+| **< 100 lines** | Too thin | Likely missing key conventions. Copilot will guess at things you'd rather it know. |
+| **100–300 lines** | Good starting point | Covers project overview, conventions, review priorities, and key files. Good for small-to-medium projects. |
+| **300–500 lines** | Sweet spot for complex projects | Room for workflow tables, commit format, tool inventories, and architecture pointers. This boilerplate sits here (~350 lines). |
+| **500–800 lines** | Caution zone | Still workable if every section pulls its weight. Audit quarterly — remove anything that duplicates what's in dedicated docs. |
+| **800+ lines** | Diminishing returns | Context window pressure becomes real. Copilot may miss instructions buried in the noise. Split detail into referenced docs. |
+
+**Rule of thumb:** If you can't skim the whole file in 2 minutes, it's
+too long. Prefer linking out to detailed docs (ADRs, architecture.md,
+tool-decisions.md) rather than inlining everything.
+
+### Recommended Layout
+
+A well-structured instructions file follows this general pattern:
+
+```markdown
+# Copilot Instructions
+
+Guidelines for GitHub Copilot when working in this repository.
+
+<!-- TODO (template users): Customise this file for your project. -->
+
+---
+
+## How This Project Works          ← What the project IS
+### Overview                        (1-2 paragraphs)
+### Build & Environment             (how to build/run)
+### Key Configuration Files         (table of important files)
+### CI/CD                           (workflow summary if relevant)
+
+## Working Style                   ← How Copilot should BEHAVE
+### Keep Related Files in Sync      (cross-reference rules)
+### Leave TODOs for Template Users  (if template repo)
+### Provide Feedback and Pushback   (don't be a yes-machine)
+### Session Recap                   (end-of-session summary format)
+
+## Review Priorities               ← What to WATCH FOR
+### High Priority                   (type hints, tests, security)
+### Medium Priority                 (docstrings, error handling)
+### Low Priority                    (comments, style)
+### General Guidance                (minimal diffs, don't churn)
+
+## Conventions                     ← Project RULES
+### Language                        (imports, naming, style)
+### Project Structure               (where things go)
+### Git & PRs                       (commit format, branch rules)
+
+## Ignore / Don't Flag             ← What to SKIP
+                                    (disabled rules, generated files)
+
+## Architecture & Design Refs      ← Where to find DEPTH
+                                    (links to ADRs, architecture.md, etc.)
+
+## Common Issues to Catch          ← Known PITFALLS
+                                    (src/ layout, mutable defaults, etc.)
+```
+
+**Key principles:**
+
+1. **Lead with context** — "How This Project Works" goes first because
+   Copilot needs to understand the project before it can follow rules.
+
+2. **Behaviour before rules** — "Working Style" (how to act) before
+   "Conventions" (what to enforce). Copilot's collaboration style
+   matters more than import order.
+
+3. **Reference, don't duplicate** — Link to `architecture.md`,
+   `tool-decisions.md`, and ADRs for detailed reasoning. Keep this file
+   as a summary layer.
+
+4. **End with escape hatches** — "Ignore / Don't Flag" and "Common Issues"
+   are quick-reference sections that prevent false positives.
+
+### What to Include vs. Link Out
+
+The goal is **fast orientation**, not exhaustive documentation.
+
+| Include in instructions file | Link out to separate docs |
+|------------------------------|--------------------------|
+| Project overview (2-3 sentences) | Full architecture (architecture.md) |
+| Tool names and how to run them | Tool comparison reasoning (tool-decisions.md) |
+| Convention summary (1-2 lines each) | Detailed ADRs (docs/adr/) |
+| Workflow table (name + trigger + purpose) | Individual workflow files |
+| Commit message format | Full contributing guide |
+| What to ignore (disabled rules) | Ruff/mypy full config (pyproject.toml) |
+
+### Maintenance
+
+The instructions file is only useful if it's accurate. Stale instructions
+are worse than no instructions — they actively mislead Copilot.
+
+**Keep it current by treating it like code:**
+
+- Update it in the same PR that changes what it describes
+- Include it in review checklists ("does this change affect copilot-instructions?")
+- Consider adding a Copilot meta-instruction: "If a change affects how
+  Copilot should work, update this file as part of the same change"
+  (this boilerplate does exactly this)
+
+**Signs it needs a trim:**
+
+- Sections that repeat what's in other docs verbatim
+- Tool details for tools you removed months ago
+- Rules that Ruff/mypy already enforce automatically
+- Overly detailed workflow descriptions (the YAML is the source of truth)
+
+### This Project's Instructions File
+
+This boilerplate's `.github/copilot-instructions.md` is ~350 lines and
+covers:
+
+| Section | Purpose | ~Lines |
+|---------|---------|--------|
+| How This Project Works | Build, hooks, workflows, config | ~130 |
+| Working Style | TODOs, sync, pushback, recaps | ~70 |
+| Review Priorities | What to check at high/med/low priority | ~30 |
+| Conventions | Python, project structure, git, CI | ~50 |
+| Ignore / Don't Flag | Disabled rules, generated files | ~10 |
+| Architecture & Design Refs | Links to deep docs + ADR table | ~40 |
+| Common Issues | Known pitfalls | ~10 |
+
+It sits comfortably in the 300–500 sweet spot for a project of this
+complexity. The heaviest section is "How This Project Works" — which is
+justifiable because this project has 24 workflows, 30+ pre-commit hooks,
+and multiple environments. For simpler projects, that section could be
+much shorter.
+
+---
+
 ## Resources
 
 ### Python Packaging
