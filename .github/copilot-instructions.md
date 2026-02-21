@@ -142,6 +142,14 @@ changed and update them too. Examples:
 - Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
 - Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
 - Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
+- Making an architectural or tooling choice → update `docs/design/architecture.md`
+  and/or `docs/design/tool-decisions.md` to reflect the current state
+- Making a *significant* decision (new pattern, new tool category, new
+  convention) → propose creating an ADR in `docs/adr/`. Use the template at
+  `docs/adr/template.md`. Not every change needs an ADR — reserve them for
+  decisions that are hard to reverse, affect multiple parts of the project, or
+  would be useful context for future contributors. When an ADR is created,
+  update `docs/adr/README.md` index and the ADR table in this file.
 
 Don't let documentation drift from reality.
 
