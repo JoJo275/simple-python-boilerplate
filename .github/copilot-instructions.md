@@ -22,13 +22,19 @@ for almost all tool configuration is `pyproject.toml`.
 
 ### Domain / Business Context
 
-<!-- TODO (template users): Describe what your application DOES in 2-3
-     sentences. Copilot is far more useful when it knows the domain.
+This is a **template repository** — there is no application logic. The
+"product" is the project structure, CI/CD pipelines, tooling conventions,
+and documentation scaffolding. Everything under `src/` is placeholder code
+that template users replace with their own implementation.
+
+<!-- TODO (template users): Replace the paragraph above with 2-3 sentences
+     describing what YOUR application does. Copilot is far more useful when
+     it knows the domain.
      Examples:
        "A payment processing API that integrates with Stripe and handles
         subscription lifecycle management."
        "A CLI tool for analysing genomics data from FASTQ files."
-     Delete this comment block and replace with your description. -->
+     Delete this comment block after replacing. -->
 
 ### Build & Environment — Hatch
 
@@ -62,11 +68,13 @@ pre-commit install --hook-type pre-push          # pre-push stage
 Full hook inventory: [ADR 008](docs/adr/008-pre-commit-hooks.md) |
 Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
-### GitHub Actions Workflows (24 files)
+### GitHub Actions Workflows
 
-24 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](docs/adr/004-pin-action-shas.md))
-with repository guard pattern ([ADR 011](docs/adr/011-repository-guard-pattern.md)).
-Full table: `docs/workflows.md`.
+~24 workflow files in `.github/workflows/`, all SHA-pinned
+([ADR 004](docs/adr/004-pin-action-shas.md)) with repository guard pattern
+([ADR 011](docs/adr/011-repository-guard-pattern.md)).
+**Canonical inventory:** `docs/workflows.md` — that file is authoritative;
+the summary below is for quick orientation only.
 
 **Categories at a glance:**
 
@@ -75,7 +83,7 @@ Full table: `docs/workflows.md`.
 - **PR hygiene:** commit-lint, pr-title, labeler, spellcheck-autofix
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
-- **Maintenance:** pre-commit-update, stale
+- **Maintenance:** pre-commit-update, stale, link-checker
 - **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](docs/adr/024-ci-gate-pattern.md))
 
 Path-filtered workflows (bandit, link-checker) are excluded from required
@@ -94,6 +102,22 @@ list available tasks. Key ones:
 - `task commit` — interactive conventional commit via commitizen
 - `task deps:versions` / `task deps:upgrade` — dependency management
 - `task actions:versions` — show SHA-pinned action versions
+
+### Scripts
+
+Utility scripts live in `scripts/`. They are standalone tools, not part of
+the installed package.
+
+| Script | Purpose |
+|--------|--------|
+| `repo_doctor.py` | Health checker: reads rules from `repo_doctor.d/*.toml`, reports missing files/config/content. Supports `--fix`. |
+| `dep_versions.py` | Dependency version manager: shows installed/latest versions, updates inline comments in `pyproject.toml` + `requirements*.txt`. |
+| `workflow_versions.py` | GitHub Actions version manager: shows SHA-pinned action versions, updates `# vX.Y.Z` comments via GitHub API. |
+| `apply_labels.py` | Applies GitHub labels (baseline or extended set) to a repo using `gh` CLI. Supports `--dry-run`. |
+| `check_nul_bytes.py` | Pre-commit hook that fails if any staged file contains NUL bytes. |
+
+Run scripts directly (`python scripts/repo_doctor.py`) or via Taskfile
+shortcuts where available.
 
 ### Documentation
 
@@ -184,17 +208,21 @@ doesn't have to rediscover project structure from scratch each session.
 
 ### Provide Feedback and Pushback
 
-Don't just comply with every request. Push back or offer alternatives when:
+Don't just comply with every request. Push back when something is wrong,
+overcomplicated, or conflicts with how this project works. Specifically:
 
 - A request would introduce unnecessary complexity or tech debt
 - There's a simpler, more idiomatic approach available
 - A change conflicts with existing project conventions or ADRs
 - A dependency is being added when a stdlib solution would suffice
 - A proposed pattern doesn't scale or has known pitfalls
+- Code or documentation is misleading, vague, or sugarcoated
 
-Frame pushback constructively: explain *why*, suggest an alternative, and let
-the user decide. Being a yes-machine is less useful than being a thoughtful
-collaborator.
+Be direct: state the problem, explain why it matters, suggest an
+alternative. Don't hedge with "you might consider" or "it could
+potentially be beneficial" — say what the issue is and what to do
+about it. Let the user make the final call, but don't soften the
+assessment to be polite.
 
 ### Session Recap
 
@@ -212,6 +240,10 @@ debugging sessions, or multi-step tasks), provide a brief recap that covers:
    that need manual verification (e.g., "run pre-commit to verify",
    "update branch protection to add the new check")
 5. **Decisions made** — any trade-offs or choices worth remembering
+6. **Recommendations** — improvements, refactors, or follow-up work
+   noticed during the session, even if unrelated to the current task.
+   Include brief rationale and rough priority (do-soon vs. nice-to-have).
+   Don't bury observations — if something is wrong, say so plainly.
 
 Skip the recap for trivial single-file edits or quick Q&A.
 
@@ -225,6 +257,18 @@ have been resolved long ago. Don't silently sweep things under the rug.
 Raise them at end of session (in the recap's "What to watch for") or
 inline if they're urgent. Keep each flag brief: what's wrong, why it
 matters, and a suggested next step.
+
+### Tone
+
+Be direct and factual. Don't pad responses with filler praise ("Great
+question!", "This is a really well-structured project!") or hedge
+assessments to sound diplomatic. If something is broken, say it's broken.
+If a design choice has downsides, name them. The user wants accurate
+information, not reassurance.
+
+This applies to documentation too — don't write marketing copy in docs,
+READMEs, or comments. State what something does, what its limitations are,
+and move on.
 
 ## Review Priorities
 
@@ -321,6 +365,10 @@ For deeper context beyond what's in this file, consult these docs:
 These are the canonical references for *why* things are the way they are.
 This file summarises *what* to do; those files explain the reasoning.
 
+**When numbers in this file conflict with those docs, those docs win.**
+This file is a quick-reference summary that can go stale; the docs above
+are maintained as the source of truth.
+
 Key ADRs that most affect day-to-day work:
 
 | ADR | Decision |
@@ -334,7 +382,7 @@ Key ADRs that most affect day-to-day work:
 | 016 | Hatchling and Hatch |
 | 024 | CI gate pattern |
 
-Full index (24 ADRs): `docs/adr/README.md`
+Full index: `docs/adr/README.md`
 
 ## Common Issues to Catch
 
@@ -343,3 +391,19 @@ Full index (24 ADRs): `docs/adr/README.md`
 3. **Mutable default arguments** — `def func(items=[])` is a bug
 4. **Bare except clauses** — Should catch specific exceptions
 5. **Unused imports/variables** — Ruff catches these, but flag if missed
+6. **Hatch env stale after dependency removal** — After removing a dependency from `pyproject.toml`, run `hatch env remove default` then re-create. Hatch doesn't auto-uninstall removed packages; the old package silently remains.
+7. **Installing packages outside a venv** — Never run bare `pip install <package>`. Always use a Hatch env, `.venv`, or `pipx`. This is easy to forget and causes global pollution.
+8. **CI gate check name drift** — If you rename a workflow job's `name:` field, the CI gate will silently stop finding it and timeout. Always update `REQUIRED_CHECKS` in `ci-gate.yml` when renaming job display names.
+
+## Known Limitations / Tech Debt
+
+Acknowledged gaps that don't need to be rediscovered each session:
+
+| Area | Issue | Notes |
+|------|-------|-------|
+| **CI** | No `docs-build.yml` workflow | MkDocs is configured but there's no CI step running `mkdocs build --strict` to catch broken docs. Listed as "not yet implemented" in `docs/design/architecture.md`. |
+| **CI** | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing). |
+| **Docs** | `docs/workflows.md` can drift | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast. |
+| **Template** | Placeholder source code | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely. |
+
+<!-- Add new entries here as they're discovered. Remove entries when resolved. -->
