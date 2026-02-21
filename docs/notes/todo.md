@@ -53,6 +53,8 @@ Things to explore, implement, or learn more about.
 - [ ] Populate containerfile with finished product at the end of production pipeline to ensure it always reflects the current state of the project and can be used for consistent development and testing environments. *This would involve updating the `Containerfile` to include all necessary dependencies, tools, and configurations that are required for development and testing. By keeping the `Containerfile` up to date with the finished product, it would ensure that anyone who uses it to create a containerized environment will have everything they need to work on the project without additional setup steps.*
 - [ ] Test whole repo against all CI in strict mode. --final stress test--
 - [ ] signed tags?
+- [ ] add in sql CI?
+- [ ] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
 - [ ]
 
 ## Questions to Answer
