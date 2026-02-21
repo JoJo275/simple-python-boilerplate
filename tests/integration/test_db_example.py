@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def test_db(tmp_path: Path) -> sqlite3.Connection:

@@ -75,6 +75,10 @@ jobs:
       # Install the package with test extras from pyproject.toml.
       # This uses the [test] optional dependency group which includes
       # pytest and pytest-cov as the single source of truth.
+      #
+      # TODO (template users): For large projects, consider caching the
+      # installed virtualenv to skip pip install on cache hits. See:
+      # actions/cache with a key based on hashFiles('pyproject.toml').
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

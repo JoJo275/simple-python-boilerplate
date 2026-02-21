@@ -245,10 +245,10 @@ version-file = "src/simple_python_boilerplate/_version.py"
 testpaths = ["tests"]
 addopts = "-q"  # Quiet output
 # addopts = "-v --cov=simple_python_boilerplate --cov-report=term-missing"
-# markers = [
-#     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-#     "integration: marks tests as integration tests",
-# ]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
 
 # -- Coverage --
 [tool.coverage.run]
@@ -257,7 +257,9 @@ branch = true
 # omit = ["*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]
-# fail_under = 80  # Fail if coverage drops below 80%
+# TODO (template users): Set your coverage floor. 80% is a reasonable
+# starting point — raise it as your test suite matures.
+fail_under = 80
 show_missing = true
 exclude_lines = [
     "pragma: no cover",

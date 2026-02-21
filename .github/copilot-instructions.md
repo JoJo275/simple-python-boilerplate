@@ -215,6 +215,17 @@ debugging sessions, or multi-step tasks), provide a brief recap that covers:
 
 Skip the recap for trivial single-file edits or quick Q&A.
 
+### Surface Issues
+
+During any session, proactively surface issues, risks, or anomalies
+noticed — even when they're not directly related to the current task.
+Examples: stale docs that contradict reality, a config that silently
+does nothing, a pattern that will break at scale, a TODO that should
+have been resolved long ago. Don't silently sweep things under the rug.
+Raise them at end of session (in the recap's "What to watch for") or
+inline if they're urgent. Keep each flag brief: what's wrong, why it
+matters, and a suggested next step.
+
 ## Review Priorities
 
 ### High Priority

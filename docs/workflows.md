@@ -12,7 +12,7 @@ These workflows run automatically on push/PR to `main`.
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **Test** | [test.yml](../.github/workflows/test.yml) | push, PR, manual | Run pytest across Python 3.11, 3.12, 3.13 |
+| **Test** | [test.yml](../.github/workflows/test.yml) | push, PR, manual | Run pytest across Python 3.11, 3.12, 3.13 (excludes `@pytest.mark.integration`) |
 | **Lint + Format** | [lint-format.yml](../.github/workflows/lint-format.yml) | push, PR, manual | Ruff linting and format checks |
 | **Spellcheck** | [spellcheck.yml](../.github/workflows/spellcheck.yml) | push, PR, manual | Check for typos with codespell |
 | **Release** | [release.yml](../.github/workflows/release.yml) | tag push (`v*.*.*`) | Build distribution artifacts + SBOMs |
