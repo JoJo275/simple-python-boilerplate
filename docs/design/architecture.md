@@ -2,6 +2,9 @@
 
 ## Overview
 
+<!-- TODO (template users): Replace this overview with your application's
+     purpose, key responsibilities, and high-level design philosophy. -->
+
 A Python CLI application using `src/` layout ([ADR 001](../adr/001-src-layout.md)),
 built with Hatchling ([ADR 016](../adr/016-hatchling-and-hatch.md)), and
 managed with Hatch for environments and task execution. All tool configuration
@@ -12,13 +15,17 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 
 ## High-Level Architecture
 
+<!-- TODO (template users): Update this diagram to reflect your actual
+     architecture — add/remove layers, services, databases, or external
+     integrations as needed. -->
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                       Application                            │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────┐   ┌────────────┐   ┌──────────────┐          │
-│  │  main.py   │──▶│   cli.py   │──▶│  engine.py   │          │
+│  │  main.py   │──▶│   cli.py   │──▶│  engine.py   │         │
 │  │  (entry    │   │  (argparse │   │  (core logic │          │
 │  │   points)  │   │   parsing) │   │   TypedDicts)│          │
 │  └────────────┘   └────────────┘   └──────┬───────┘          │
@@ -55,6 +62,9 @@ The key design principle: `engine.py` has **no knowledge** of how it's
 invoked. CLI, API, tests, or scripts can all call into it directly.
 
 ## Directory Structure
+
+<!-- TODO (template users): Update to reflect your actual package structure
+     after renaming and adding modules. -->
 
 ```
 src/simple_python_boilerplate/
@@ -98,6 +108,8 @@ docs/
 
 ## Entry Points
 
+<!-- TODO (template users): Update with your actual CLI commands. -->
+
 Configured in `pyproject.toml` under `[project.scripts]`:
 
 | Command | Function | Description |
@@ -107,6 +119,8 @@ Configured in `pyproject.toml` under `[project.scripts]`:
 | `spb-doctor` | `main:doctor` | Diagnose environment (venv, tools, config files) |
 
 ## Data Flow
+
+<!-- TODO (template users): Document your actual data flows. -->
 
 ### CLI command
 
@@ -214,6 +228,8 @@ Key architectural decisions are documented in [ADRs](../adr/):
 Tool-level trade-off notes live in [tool-decisions.md](tool-decisions.md).
 
 ## External Dependencies
+
+<!-- TODO (template users): List your runtime dependencies here. -->
 
 | Dependency | Purpose | Source |
 |------------|---------|--------|

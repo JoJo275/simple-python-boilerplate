@@ -2,6 +2,14 @@
 
 Guidelines for GitHub Copilot when working in this repository.
 
+<!-- TODO (template users): This file is tailored to the boilerplate's
+     conventions.  After forking, update it to match YOUR project:
+     - Replace project-specific names, entry points, and paths
+     - Add your own conventions, review priorities, and ignore rules
+     - Remove sections that don't apply to your project
+     - Add any domain-specific context that helps Copilot assist you
+     Copilot reads this file on every interaction, so keep it accurate. -->
+
 ---
 
 ## How This Project Works
@@ -119,6 +127,20 @@ list available tasks. Key ones:
 ---
 
 ## Working Style
+
+### Leave TODOs for Template Users
+
+This is a **template repository**. When adding new files or features that
+template users will need to customise, include clear `TODO (template users):`
+comments explaining what to change. Examples:
+
+- Workflow files → TODO to enable the repository guard
+- Config files → TODO to replace placeholder values
+- Source files → TODO to replace example logic with real implementation
+- Documentation → TODO to update project-specific details
+
+TODOs should be actionable and specific — not just "fill this in" but
+"Replace `YOURNAME/YOURTEMPLATE` with your actual repo slug".
 
 ### Check Templates Before Creating Files
 
@@ -278,10 +300,18 @@ Issues/Refs: #<issue number if applicable, otherwise omit>
 - **Generated files** — `*.egg-info/`, `__pycache__/`, `.venv/`
 - **Types in tests** — Be less strict; don't require full annotations for mocks, fixtures, or test helpers. Don't require annotations for pytest fixtures unless they clarify intent.
 
-## Architecture Decisions
+## Architecture & Design References
 
-Key decisions are documented in `docs/adr/` (template: `docs/adr/template.md`).
-Tool-level trade-off notes live in `docs/design/tool-decisions.md`.
+For deeper context beyond what's in this file, consult these docs:
+
+- **`docs/design/architecture.md`** — System overview, module responsibilities,
+  data flows, CI/CD architecture, and what's not yet implemented
+- **`docs/design/tool-decisions.md`** — Detailed tool comparison notes: what
+  was chosen, what was skipped, and why (pre-commit hooks, workflows, Python tooling)
+- **`docs/adr/`** — Architecture Decision Records (template: `docs/adr/template.md`)
+
+These are the canonical references for *why* things are the way they are.
+This file summarises *what* to do; those files explain the reasoning.
 
 | ADR | Decision |
 |-----|----------|
