@@ -22,6 +22,14 @@
 #        • Add:   "gate"  (from this workflow)
 #        • Remove the individual workflow check names
 #
+# Adding / removing a required check:
+#   To REQUIRE a new workflow: add its job name string to the
+#   REQUIRED_CHECKS array in the script below.
+#   To STOP requiring a workflow: delete (or comment out) its
+#   entry from REQUIRED_CHECKS. That's it — no branch-protection
+#   changes needed. The workflow itself keeps running; it just
+#   won't block the gate anymore.
+#
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
 #        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
@@ -92,6 +100,9 @@ jobs:
               'pip-audit',               // security-audit.yml → pip-audit
               'review',                  // dependency-review.yml → review
 
+              // Container (build only — scans are non-blocking by design)
+              'Build container image',   // container-build.yml → build
+
               // PR hygiene
               'lint-title',              // pr-title.yml → lint-title
               'lint-commits',            // commit-lint.yml → lint-commits
@@ -105,8 +116,8 @@ jobs:
             core.info(`Waiting for checks on ${sha}`);
 
             // Poll until all required checks have a conclusion or timeout
-            const MAX_ATTEMPTS = 60;    // 60 × 30s = 30 min ceiling
-            const POLL_SECONDS = 30;
+            const MAX_ATTEMPTS = 120;   // 120 × 15s = 30 min ceiling
+            const POLL_SECONDS = 15;    // Lower = faster feedback, more API calls
 
             for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
               const { data: { check_runs } } =
