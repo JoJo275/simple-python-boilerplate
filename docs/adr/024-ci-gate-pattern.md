@@ -37,16 +37,17 @@ Workflows that **always run on every PR** are listed as required:
 | Check name | Workflow |
 |-----------|----------|
 | `Ruff (lint & format)` | lint-format.yml |
-| `type-check` | type-check.yml |
-| `spellcheck` | spellcheck.yml |
-| `coverage` | coverage.yml |
+| `mypy (strict)` | type-check.yml |
+| `Spell check (codespell)` | spellcheck.yml |
+| `Test + upload coverage` | coverage.yml |
 | `Test (Python 3.11)` | test.yml |
 | `Test (Python 3.12)` | test.yml |
 | `Test (Python 3.13)` | test.yml |
 | `pip-audit` | security-audit.yml |
-| `review` | dependency-review.yml |
-| `lint-title` | pr-title.yml |
-| `lint-commits` | commit-lint.yml |
+| `Scan dependencies` | dependency-review.yml |
+| `Build container image` | container-build.yml |
+| `Conventional commit check` | pr-title.yml |
+| `Validate commit messages` | commit-lint.yml |
 
 ### What stays outside the gate
 
@@ -84,8 +85,8 @@ The fan-in gate preserves full independence of every workflow file while central
 
 ### Negative
 
-- **Polling delay** — The gate polls every 30 seconds; adds ~30 s of latency after the last check finishes
-- **API rate limits** — Each poll is one Checks API call; 60 polls × 30 s = 30 min ceiling.  Well within GitHub's 1,000 requests/hour limit for `GITHUB_TOKEN`.
+- **Polling delay** — The gate polls every 15 seconds; adds ~15 s of latency after the last check finishes
+- **API rate limits** — Each poll is one Checks API call; 120 polls × 15 s = 30 min ceiling.  Well within GitHub's 1,000 requests/hour limit for `GITHUB_TOKEN`.
 - **Name coupling** — `REQUIRED_CHECKS` references job *display names*, which can drift if someone renames a job's `name:` field without updating the gate.  Mitigated by code review and the fact that the gate will fail loudly (timeout) if a name is wrong.
 - **Doesn't enforce path-filtered checks** — bandit and link-checker failures are advisory, not blocking.  Acceptable because they also run on push to `main` and on schedules.
 
