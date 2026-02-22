@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **24 workflow files** in `.github/workflows/`. All workflows
+This project has **25 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page.
 
 ---
@@ -63,6 +63,7 @@ follow the conventions described at the bottom of this page.
 | **Pre-commit Update** | [pre-commit-update.yml](../.github/workflows/pre-commit-update.yml) | weekly, manual | `Auto-update hooks` | Runs `pre-commit autoupdate` and opens a PR |
 | **Stale** | [stale.yml](../.github/workflows/stale.yml) | daily, manual | `Close stale issues & PRs` | Marks and closes inactive issues/PRs |
 | **Link Checker** | [link-checker.yml](../.github/workflows/link-checker.yml) | push (path-filtered), PR (path-filtered), weekly, manual | `Check links` | Checks Markdown/HTML for broken links using lychee |
+| **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target | `Auto-approve & merge` | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes |
 
 ### Gate
 

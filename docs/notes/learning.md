@@ -1854,7 +1854,7 @@ If you have comments documenting current versions (like `"ruff",  # v0.9.1`), th
 
 Before diving into specific shells (bash, zsh, etc.), it helps to understand
 the foundational concepts: what Unix is, what a terminal is, and how shells
-fit into the picture. These three things are often confused or used
+fit into the picture. These three thingAuto-approve + auto-merge minor/patch Dependabot PRs once CI passes.s are often confused or used
 interchangeably, but they're distinct layers.
 
 ### What is Unix?
@@ -1902,19 +1902,98 @@ Unix (AT&T Bell Labs, 1969)
 
 #### POSIX — The Compatibility Standard
 
-**POSIX** (Portable Operating System Interface) is an IEEE standard that
-defines a common API for Unix-like systems. When someone says a script is
-"POSIX-compliant," they mean it uses only features guaranteed to work across
-all conforming systems.
+**POSIX** (Portable Operating System Interface) is a family of standards
+published by IEEE (specifically IEEE 1003) and formalised by ISO/IEC. The
+name was suggested by Richard Stallman in the late 1980s.
 
-| What POSIX defines | Examples |
-|--------------------|----------|
-| Shell language | `sh` syntax, builtins, control flow |
-| Core utilities | `ls`, `cp`, `mv`, `grep`, `sed`, `awk`, `find`, `sort` |
-| C library API | `open()`, `read()`, `fork()`, `exec()`, `pipe()` |
-| File system semantics | Path resolution, permissions, symlinks |
-| Environment variables | `PATH`, `HOME`, `USER`, `SHELL` |
-| Process model | PIDs, signals, exit codes, job control |
+**The problem POSIX solves:** In the 1980s, Unix had fragmented into many
+commercial variants — AT&T System V, BSD, Sun's SunOS, HP-UX, IBM's AIX.
+Each had slightly different system calls, utility flags, shell syntax, and
+file layouts. Code written for one often broke on another. POSIX was created
+to define a *common baseline* so that software written to the standard would
+work on any conforming system.
+
+In plain terms: POSIX is a written specification that says "if you call
+yourself a Unix-like operating system, you must support *at least* these
+system calls, these shell features, these command-line utilities, and these
+behaviors." It's a contract between OS vendors and software developers.
+
+##### What POSIX Actually Defines
+
+| Area | What the standard specifies | Examples |
+|------|----------------------------|----------|
+| **Shell language** | Syntax, builtins, control flow, variable expansion, quoting rules | `sh` grammar, `if`/`for`/`while`/`case`, `$VAR`, `$(cmd)` |
+| **Core utilities** | Required commands and their flags/behavior | `ls`, `cp`, `mv`, `rm`, `grep`, `sed`, `awk`, `find`, `sort`, `test`, `chmod`, `mkdir` |
+| **C library API** | System call wrappers and standard functions | `open()`, `read()`, `write()`, `close()`, `fork()`, `exec()`, `pipe()`, `malloc()` |
+| **File system** | Path resolution, permissions, symlinks, directory structure | `/`, `/dev`, `/tmp`, permission bits (rwx), `.` and `..` |
+| **Environment variables** | Required variables and how they work | `PATH`, `HOME`, `USER`, `SHELL`, `TERM`, `LANG` |
+| **Process model** | How processes are created and managed | PIDs, parent/child, signals (`SIGINT`, `SIGTERM`, `SIGKILL`), exit codes, job control |
+| **Regular expressions** | Two flavors: Basic (BRE) and Extended (ERE) | BRE for `grep`, ERE for `grep -E` / `egrep` |
+| **I/O model** | File descriptors, stdin/stdout/stderr, pipes, redirection | fd 0/1/2, `|`, `>`, `<`, `2>&1` |
+| **Threading** | POSIX threads (pthreads) API | `pthread_create()`, `pthread_join()`, mutexes, condition variables |
+
+##### Who Is and Isn't POSIX-Compliant
+
+| System | POSIX status | Notes |
+|--------|-------------|-------|
+| **macOS** | Certified POSIX-compliant | Apple pays for the certification. macOS is *officially* Unix. |
+| **Solaris / illumos** | Certified | Commercial Unix from Sun/Oracle |
+| **Linux** | Mostly compliant, not certified | Follows POSIX closely but distros don't pay for certification. In practice, nearly everything works. |
+| **FreeBSD / OpenBSD** | Mostly compliant, not certified | BSD heritage, very close to the standard |
+| **Windows** | Not POSIX-compliant | Has compatibility layers: WSL (full Linux kernel), Cygwin, MSYS2/Git Bash |
+| **Alpine Linux** | POSIX via musl libc | Uses `musl` instead of `glibc`, which is stricter — scripts relying on glibc quirks may break |
+
+##### POSIX in Practice — What It Means for You
+
+**When writing shell scripts:**
+
+```bash
+#!/bin/sh
+# POSIX-compliant — works everywhere
+if [ -f "config.toml" ]; then
+    echo "Config found"
+fi
+
+# NOT POSIX — uses bash-specific [[ ]] syntax
+# if [[ -f "config.toml" ]]; then
+```
+
+**Common POSIX vs bash differences that bite people:**
+
+| Feature | POSIX `sh` | `bash` |
+|---------|-----------|--------|
+| Test syntax | `[ -f file ]` | `[[ -f file ]]` (extended, safer) |
+| Arrays | Not available | `arr=(a b c)`, `${arr[@]}` |
+| String replace | Not available | `${var//old/new}` |
+| Process substitution | Not available | `<(command)`, `>(command)` |
+| Brace expansion | Not available | `{1..10}`, `{a,b,c}` |
+| `source` command | `. file` (dot-space) | `source file` (or `. file`) |
+| `function` keyword | `myfunc() { ... }` | `function myfunc() { ... }` (also) |
+| `echo` flags | Behavior varies | `-e`, `-n` (but still inconsistent) |
+| `local` variables | Not standardised | `local var=value` |
+
+**The practical rule:** Use `#!/bin/sh` and POSIX-only syntax for:
+- Git hooks (contributors may use any OS)
+- Docker `RUN` commands (Alpine only has `sh`)
+- CI scripts that might run on minimal images
+- Makefiles (Make defaults to `/bin/sh`)
+
+Use `#!/bin/bash` when you need arrays, `[[ ]]`, string manipulation, or
+other bash features — and you know bash is available (most Linux distros,
+macOS pre-Catalina, CI runners with `bash` specified).
+
+##### Why "POSIX-Compliant" Keeps Coming Up
+
+You'll hear "POSIX" in several contexts:
+
+| Context | What they mean |
+|---------|----------------|
+| "Write POSIX-compliant scripts" | Use `#!/bin/sh` syntax only — no bashisms |
+| "POSIX filesystem semantics" | Forward slashes, case-sensitivity, permission bits |
+| "POSIX signals" | `SIGINT` (Ctrl+C), `SIGTERM` (graceful stop), `SIGKILL` (force stop) |
+| "POSIX threads" (pthreads) | The standard threading API for C/C++ |
+| "POSIX regular expressions" | BRE and ERE — the regex flavors `grep` and `sed` use |
+| "POSIX line endings" | `LF` (`\n`), as opposed to Windows `CRLF` (`\r\n`) |
 
 **Why it matters for this project:** CI runners, Docker containers, and
 contributor machines may run different Unix-like systems. Writing
@@ -2106,6 +2185,338 @@ must run *inside* the shell process (not in a child) because they modify the
 shell's own state. `cd` changes the shell's working directory — if it ran as
 a child process, only the child would change directories, and the parent shell
 would be unaffected.
+
+---
+
+## Raw SQL vs ORMs in Python
+
+When people say "raw SQL" they mean writing SQL statements directly as
+strings in your code, as opposed to using an abstraction layer that generates
+SQL for you. Both approaches talk to the same database — the difference is
+*who writes the SQL*: you, or a library.
+
+### What "Raw SQL" Actually Means
+
+**Raw SQL** = you write the SQL yourself as a literal string, send it to the
+database, and handle the results.
+
+```python
+import sqlite3
+
+# This is raw SQL — you wrote the SELECT statement yourself
+conn = sqlite3.connect("app.sqlite3")
+cursor = conn.execute(
+    "SELECT id, name, email FROM users WHERE active = ? ORDER BY name",
+    (True,)
+)
+for row in cursor:
+    print(row[0], row[1], row[2])  # access by index — no named attributes
+conn.close()
+```
+
+**ORM (Object-Relational Mapper)** = a library translates Python
+objects/method calls into SQL behind the scenes.
+
+```python
+from sqlalchemy.orm import Session
+from models import User
+
+# This is ORM — SQLAlchemy generates the SQL for you
+with Session() as session:
+    users = (
+        session.query(User)
+        .filter(User.active == True)
+        .order_by(User.name)
+        .all()
+    )
+    for user in users:
+        print(user.id, user.name, user.email)  # named attributes on objects
+```
+
+Both produce the same `SELECT id, name, email FROM users WHERE active = 1
+ORDER BY name` query. The ORM just writes it for you.
+
+### The Spectrum: It's Not Binary
+
+It's not just "raw SQL" vs "full ORM" — there's a spectrum:
+
+| Level | Approach | Library Examples | You Write SQL? |
+|-------|---------|-----------------|----------------|
+| **1. Raw SQL** | Strings + database driver | `sqlite3`, `psycopg2`, `mysql-connector` | Yes — full SQL |
+| **2. SQL builder / query builder** | Python objects that compose SQL pieces | `pypika`, `sqlbuilder` | Partially — Python API, SQL output |
+| **3. Core SQL toolkit** | Expression language that maps closely to SQL | SQLAlchemy Core, `databases` | Sort of — SQL-like Python expressions |
+| **4. Lightweight ORM** | Thin models, minimal magic | Peewee, PonyORM, SQLModel | No — but you see the SQL shape |
+| **5. Full ORM** | Models, relationships, identity map, unit of work | SQLAlchemy ORM, Django ORM, Tortoise | No — heavily abstracted |
+
+Many experienced developers land at levels 2–3: they want composable queries
+without the overhead and complexity of a full ORM.
+
+### Why Many Python Projects Use ORMs Instead of Raw SQL
+
+You're right that SQL is powerful and useful — it absolutely is. SQL has been
+around since the 1970s, is standardised (like POSIX for databases), and is
+the most widely used language for data. The reason many Python projects reach
+for ORMs isn't that SQL is bad — it's about managing complexity at scale:
+
+**1. Boilerplate and repetition**
+
+CRUD operations (Create, Read, Update, Delete) are repetitive in raw SQL.
+For every table you need INSERT, SELECT, UPDATE, DELETE statements, parameterized
+correctly, with result-set parsing. ORMs generate all of this from a model
+definition.
+
+```python
+# Raw SQL: 4 separate statements to write and maintain per table
+INSERT_USER = "INSERT INTO users (name, email) VALUES (?, ?)"
+SELECT_USER = "SELECT id, name, email FROM users WHERE id = ?"
+UPDATE_USER = "UPDATE users SET name = ?, email = ? WHERE id = ?"
+DELETE_USER = "DELETE FROM users WHERE id = ?"
+
+# ORM: one model definition handles all CRUD
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True)
+```
+
+**2. SQL injection risk**
+
+Raw SQL makes it easy to accidentally interpolate user input into queries
+(especially for beginners). ORMs parameterize automatically.
+
+```python
+# DANGEROUS — SQL injection vulnerability
+cursor.execute(f"SELECT * FROM users WHERE name = '{user_input}'")
+# If user_input = "'; DROP TABLE users; --"  ...goodbye data
+
+# SAFE — parameterized query (raw SQL done properly)
+cursor.execute("SELECT * FROM users WHERE name = ?", (user_input,))
+
+# SAFE — ORM handles parameterization
+session.query(User).filter(User.name == user_input).all()
+```
+
+**3. Schema ↔ code synchronization**
+
+With raw SQL, your database schema and your Python code are two separate
+things that can drift apart. If you add a column to the database, nothing in
+your Python code knows about it until you manually update your queries. ORMs
+keep the schema definition *in* the Python code, often with migration tools
+that auto-detect changes.
+
+**4. Relationships and lazy loading**
+
+Navigating relationships between tables ("get this user's orders, then each
+order's items") requires joins or multiple queries in raw SQL. ORMs let you
+traverse relationships like Python attributes:
+
+```python
+# Raw SQL: manual join
+cursor.execute("""
+    SELECT u.name, o.total, i.product_name
+    FROM users u
+    JOIN orders o ON o.user_id = u.id
+    JOIN order_items i ON i.order_id = o.id
+    WHERE u.id = ?
+""", (user_id,))
+
+# ORM: traverse like Python objects
+user = session.get(User, user_id)
+for order in user.orders:           # lazy-loads orders
+    for item in order.items:        # lazy-loads items
+        print(item.product_name)
+```
+
+**5. Database portability**
+
+Raw SQL is often dialect-specific. PostgreSQL, MySQL, and SQLite have
+different syntax for things like auto-increment, string functions, date
+handling, and `UPSERT`. ORMs abstract these differences — switch your
+connection string and (mostly) the same code works on a different database.
+
+**6. Web framework integration**
+
+The biggest Python web frameworks ship with ORMs built in or strongly
+recommended:
+- **Django** → Django ORM (built in, tightly integrated)
+- **Flask** → SQLAlchemy (via Flask-SQLAlchemy)
+- **FastAPI** → SQLAlchemy or SQLModel
+
+Since most Python web tutorials start with these frameworks, new developers
+learn ORMs first and may never write raw SQL in Python.
+
+### When Raw SQL Is the Better Choice
+
+Despite the above, there are solid reasons to use raw SQL:
+
+| Scenario | Why raw SQL wins |
+|----------|------------------|
+| **Complex queries** | Multi-table joins, window functions, CTEs, recursive queries — ORMs struggle with these or produce inefficient SQL |
+| **Performance-critical paths** | You know exactly what query runs, no ORM overhead or N+1 surprises |
+| **Reporting / analytics** | Aggregations, GROUP BY, HAVING — often cleaner in SQL |
+| **Database-specific features** | Full-text search, JSON operators, PostGIS, SQLite FTS5 — ORMs may not expose these |
+| **Simple scripts** | A 50-line script doesn't need an ORM setup |
+| **Learning** | Understanding SQL directly makes you a better developer, even if you later use an ORM |
+| **Existing schema** | Working with a database you didn't design — raw SQL adapts easier than mapping an ORM |
+| **Data migrations** | Schema changes, backfills, one-off fixes — raw SQL is the right tool |
+
+### The ORM Drawbacks People Don't Mention Upfront
+
+| Problem | What happens |
+|---------|-------------|
+| **N+1 queries** | ORM lazy-loads related objects one at a time — 100 users with orders = 101 queries instead of 1 join |
+| **Opaque SQL** | Hard to see what SQL the ORM generates; performance debugging requires logging SQL output |
+| **Migration complexity** | ORM migration tools (Alembic, Django migrations) can generate incorrect or inefficient migrations |
+| **Learning the ORM ≠ learning SQL** | ORMs have their own API, quirks, and mental model — you're learning *the ORM*, not *databases* |
+| **Abstraction leaks** | Eventually you hit something the ORM can't do and drop to raw SQL anyway |
+| **Heavyweight** | SQLAlchemy is ~45k lines of code. For a script that runs 3 queries, that's a lot of machinery |
+
+### What This Project Does
+
+This template uses the `db/` directory with raw SQL files:
+- `db/schema.sql` — full schema definition
+- `db/migrations/` — incremental changes as numbered `.sql` files
+- `db/seeds/` — test/dev data
+- `db/queries/` — reusable query snippets
+
+This is the **raw SQL** approach. The template doesn't include an ORM because:
+1. It's a *template* — template users choose their own data layer
+2. Not every Python project needs a database at all
+3. Raw `.sql` files are database-agnostic in structure (even if the SQL
+   dialect varies)
+4. It keeps the template dependency-free for database concerns
+
+If you add a database to a project based on this template, you'd choose:
+- **Raw SQL** (`sqlite3` / `psycopg2`) for simple cases or when you want full control
+- **SQLAlchemy Core** for composable queries without full ORM overhead
+- **SQLAlchemy ORM** / **Django ORM** for web apps with lots of CRUD
+- **SQLModel** for FastAPI projects (combines SQLAlchemy + Pydantic)
+
+### Python Database Libraries at a Glance
+
+| Library | Type | Database | When to use |
+|---------|------|----------|-------------|
+| **sqlite3** | Raw SQL (stdlib) | SQLite | Scripts, prototypes, single-user apps, testing |
+| **psycopg2** / **psycopg3** | Raw SQL driver | PostgreSQL | Direct Postgres access, performance-critical |
+| **mysql-connector** / **PyMySQL** | Raw SQL driver | MySQL/MariaDB | Direct MySQL access |
+| **SQLAlchemy Core** | SQL toolkit | Any (via dialects) | Composable queries, multi-DB support |
+| **SQLAlchemy ORM** | Full ORM | Any (via dialects) | Web apps, complex domain models |
+| **Django ORM** | Full ORM (Django only) | PostgreSQL, MySQL, SQLite | Django projects |
+| **Peewee** | Lightweight ORM | SQLite, PostgreSQL, MySQL | Small projects, scripts |
+| **SQLModel** | ORM + validation | Any (SQLAlchemy backend) | FastAPI projects |
+| **Tortoise ORM** | Async ORM | PostgreSQL, MySQL, SQLite | Async web apps |
+| **databases** | Async raw SQL | PostgreSQL, MySQL, SQLite | Async apps with raw queries |
+
+### The Pragmatic Take
+
+SQL itself is one of the most valuable skills you can learn as a developer.
+It's been around for 50 years and isn't going anywhere. The question isn't
+"raw SQL vs ORM" — it's *where in the spectrum do you want to operate for
+this particular project*.
+
+Many experienced developers:
+1. **Learn SQL properly first** — understand SELECT, JOIN, GROUP BY, window
+   functions, indexing, query plans
+2. **Use an ORM/toolkit for application code** — reduces boilerplate, handles
+   the boring CRUD
+3. **Drop to raw SQL when needed** — complex reports, performance-sensitive
+   queries, migrations, data fixes
+
+The worst outcome is learning only the ORM and not understanding what it
+generates. If you can write the SQL yourself, you can evaluate whether the
+ORM is doing something sensible. If you can't, you're flying blind.
+
+### Setting Up SQL CI and Hooks
+
+If you add real SQL to a project using this template, you'll want automated
+checks to catch issues early. The exact setup depends on which approach you
+choose (raw SQL, ORM, or somewhere in between).
+
+#### Option 1: Raw SQL Files (what this template's `db/` directory supports)
+
+If you keep schema, migrations, and queries as `.sql` files:
+
+| Check | Tool | Where to run | What it catches |
+|-------|------|--------------|-----------------|
+| **Syntax validation** | `sqlite3 :memory: < db/schema.sql` | CI workflow, pre-commit hook | Malformed SQL that won't parse |
+| **Lint + format** | [SQLFluff](https://sqlfluff.com/) | CI workflow, pre-commit hook | Style violations, anti-patterns, inconsistent formatting |
+| **Migration order** | Custom script (`scripts/`) | CI workflow | Duplicate or out-of-order migration numbers |
+| **Migration apply** | Apply migrations sequentially to empty DB | CI workflow | Migrations that fail, conflict, or don't compose |
+| **Seed data** | Apply seeds after schema | CI workflow | Seeds that violate constraints |
+
+**Pre-commit hook example (SQLFluff):**
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.3.1  # check for latest
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, sqlite]  # or postgres, mysql, etc.
+        files: \.sql$
+      - id: sqlfluff-fix
+        args: [--dialect, sqlite]
+        files: \.sql$
+```
+
+**CI workflow example (schema validation):**
+
+```yaml
+# .github/workflows/sql-check.yml
+name: SQL Check
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@...
+      - name: Validate schema
+        run: sqlite3 :memory: < db/schema.sql
+      - name: Apply migrations in order
+        run: |
+          sqlite3 :memory: < db/schema.sql
+          for f in db/migrations/*.sql; do
+            echo "Applying $f"
+            sqlite3 :memory: < "$f" || exit 1
+          done
+```
+
+#### Option 2: ORM (SQLAlchemy, Django ORM, etc.)
+
+If you use an ORM, SQL validation happens differently:
+
+| Check | Tool | What it catches |
+|-------|------|-----------------|
+| **Model validation** | pytest + ORM setup | Models that don't map to valid schema |
+| **Migration generation** | `alembic check` / `python manage.py makemigrations --check` | Missing migrations |
+| **Migration apply** | `alembic upgrade head` against a test DB | Migrations that fail |
+| **Integration tests** | pytest with a test database | Queries that fail at runtime |
+
+ORMs handle SQL generation, so you lint Python code (Ruff, mypy) rather than
+SQL files. But you should still test that migrations apply cleanly and that
+your models match the actual database.
+
+#### Option 3: Hybrid (ORM + raw SQL for complex queries)
+
+Many projects use an ORM for CRUD and drop to raw SQL for complex queries,
+reports, or performance-critical paths. In that case, combine both approaches:
+- Lint `.sql` files with SQLFluff
+- Test ORM models and migrations with pytest
+- Integration tests that exercise both code paths
+
+#### What to Start With
+
+For a new project using this template:
+1. **Immediately:** Add a `task db:check` shortcut that runs
+   `sqlite3 :memory: < db/schema.sql` — zero dependencies, instant sanity check
+2. **When you have real SQL files:** Add SQLFluff as a pre-commit hook
+3. **When you have migrations:** Add a CI job that applies them sequentially
+4. **When you have data access code:** Add integration tests with a test database
+
+The key principle: validate the SQL layer the same way you validate Python
+code. If it can break, it should have a check.
 
 ---
 
