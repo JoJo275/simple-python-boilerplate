@@ -43,7 +43,7 @@ concurrency:
 
 jobs:
   lint-title:
-    name: Conventional commit check
+    name: Conventional commit check    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

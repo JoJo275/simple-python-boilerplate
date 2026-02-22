@@ -39,7 +39,7 @@ concurrency:
 
 jobs:
   dependency-review:
-    name: Scan dependencies
+    name: Scan dependencies    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

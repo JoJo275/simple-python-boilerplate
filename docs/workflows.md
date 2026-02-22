@@ -77,6 +77,13 @@ follow the conventions described at the bottom of this page.
 The CI gate ([ADR 024](adr/024-ci-gate-pattern.md)) polls for these job
 display names. Branch protection only requires `gate` — not individual checks.
 
+Each required workflow's `name:` line is tagged with `# ci-gate: required`.
+Grep for that marker to audit which workflows are coupled to the gate:
+
+```bash
+grep -r 'ci-gate: required' .github/workflows/
+```
+
 | Check name | Workflow |
 |-----------|----------|
 | `Ruff (lint & format)` | lint-format.yml |
@@ -140,6 +147,7 @@ All workflows in this project follow these patterns:
 5. Add minimal required permissions
 6. Include concurrency and timeout settings
 7. If the workflow should block PRs, add its job `name:` to `REQUIRED_CHECKS` in `ci-gate.yml`
+   and tag the `name:` line with `# ci-gate: required`
 8. Update this file and `copilot-instructions.md`
 
 ---

@@ -79,6 +79,10 @@ jobs:
           # These are the `jobs.<key>.name:` values (or the key itself when
           # name: is absent) from your other workflow files.
           #
+          # Each required workflow's name: line is tagged with
+          # `# ci-gate: required` — grep for that marker to audit
+          # which workflows are coupled to this gate.
+          #
           # Path-filtered workflows (bandit, link-checker) are intentionally
           # excluded — they may not run on every PR so requiring them would
           # block unrelated changes.

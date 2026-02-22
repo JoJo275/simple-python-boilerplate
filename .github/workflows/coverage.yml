@@ -44,7 +44,7 @@ concurrency:
 
 jobs:
   coverage:
-    name: Test + upload coverage
+    name: Test + upload coverage    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

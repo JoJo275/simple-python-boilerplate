@@ -53,7 +53,7 @@ concurrency:
 
 jobs:
   pip-audit:
-    name: pip-audit
+    name: pip-audit    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

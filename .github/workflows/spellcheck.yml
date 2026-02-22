@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   spellcheck:
-    name: Spell check (codespell)
+    name: Spell check (codespell)    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

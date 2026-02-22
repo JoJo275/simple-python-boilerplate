@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   type-check:
-    name: mypy (strict)
+    name: mypy (strict)    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones

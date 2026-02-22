@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   lint:
-    name: Ruff (lint & format)
+    name: Ruff (lint & format)    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones
