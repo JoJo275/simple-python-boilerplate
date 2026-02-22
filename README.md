@@ -1,431 +1,146 @@
 # simple-python-boilerplate
 
-> Status: In development, not yet ready for production use. This repository is a work in progress as I learn about Python packaging, testing, and best practices. It is intended as a learning reference and reusable starting point for small Python projects.
+A modern Python project template with `src/` layout, automated CI/CD, and batteries-included tooling.
 
-A minimal, modern Python boilerplate using a `src/` layout, `pyproject.toml`, and `pytest`.
-
-> A living repository containing structure based on my learning path. Cut down, this is one template based on one mindset. May update as I learn more.
-
-**This repository is intended as:**
-
-- A learning reference
-- A reusable starting point for small Python projects
-- A correct baseline for Python packaging and testing
-
-even though this has python in the title of the repo, you can use this repo for non-python projects as well by simply removing the python specific parts.
-
-Edit, delete, and adapt anything and everything as needed for your own projects!
-
-There are some notes to myself and throughout the repo to remind me of certain things and why they are done a particular way (still learning a lot). Feel free to remove those notes as you see fit.
-
-A lot of the populating data in this repo (files, docs, etc) is set up with real content that relates to this repo which serve as examples and references for future use.
-
-Most of the workflows and automation are disabled by default to avoid confusion and allow you to enable and adapt them as needed for your own projects.
-
-The core python development workflow that was left enabled by default:
-
-Workflows included in this template:
+<!-- TODO (template users): Replace badges with your own repo URLs -->
+<!-- [![CI](https://github.com/YOURNAME/YOURREPO/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/YOURNAME/YOURREPO/actions/workflows/ci-gate.yml) -->
+<!-- [![codecov](https://codecov.io/gh/YOURNAME/YOURREPO/branch/main/graph/badge.svg)](https://codecov.io/gh/YOURNAME/YOURREPO) -->
+<!-- [![License](https://img.shields.io/github/license/YOURNAME/YOURREPO)](LICENSE) -->
+<!-- [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/) -->
 
 ---
 
-features:
+## What's Included
 
-- `src/` layout for package source code
-- `pytest` for testing
+| Category | Tools |
+|----------|-------|
+| **Build** | Hatchling + hatch-vcs (version from git tags) |
+| **Environments** | Hatch (virtualenv management, test matrix) |
+| **Linting** | Ruff (lint + format), mypy (strict), bandit (security) |
+| **Testing** | pytest, pytest-cov, Python 3.11-3.13 matrix |
+| **Pre-commit** | 34+ hooks across 3 stages (commit, commit-msg, push) |
+| **CI/CD** | 26 GitHub Actions workflows, SHA-pinned |
+| **Docs** | MkDocs Material + mkdocstrings, auto-deploy to GitHub Pages |
+| **Release** | release-please -> automated changelog + versioning |
+| **Security** | CodeQL, pip-audit, Trivy, dependency-review, gitleaks |
+| **Container** | Multi-stage Containerfile with scan |
 
-## Using This Template
+## Quick Start
 
-See [Using This Template](docs/USING_THIS_TEMPLATE.md) for a step-by-step guide to setting up your own project from this template.
-
----
-
-## Table of Contents
-
-- [Using This Template](#using-this-template)
-- [Repository Layout](#repository-layout)
-- [Requirements](#requirements)
-- [Setup (Development)](#setup-development)
-- [Running Tests](#running-tests)
-- [Versioning](#versioning)
-- [Quick Reference](#quick-reference)
-- [Where Should Python Come From?](#where-should-python-come-from)
-- [Notes](#notes)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
-
----
-
-## Repository Layout
-
-| Directory | Purpose |
-|-----------|---------|
-| `src/` | Package source code |
-| `tests/` | Test suite (unit + integration) |
-| `docs/` | Documentation |
-| `.github/` | GitHub Actions, templates, Dependabot |
-| `scripts/` | Developer utility scripts |
-| `db/` | Database schema, migrations, seeds |
-| `labels/` | GitHub label definitions |
-
-| File | Purpose |
-|------|---------|
-| `pyproject.toml` | Project metadata, dependencies, tool config |
-| `CONTRIBUTING.md` | How to contribute |
-| `CHANGELOG.md` | Version history |
-| `LICENSE` | Apache-2.0 license |
-
-For the full annotated tree with "what breaks if removed" details, see [docs/repo-layout.md](docs/repo-layout.md).
-
-### Why `src/` layout?
-
-The `src/` layout prevents accidental imports from the working directory and ensures your code is imported the same way users and CI will import it. This surfaces packaging issues early instead of hiding them.
-
----
-
-## Requirements
+### Prerequisites
 
 - Python **3.11+**
-- `pip`
+- [Hatch](https://hatch.pypa.io/) (`pipx install hatch`)
+- [Task](https://taskfile.dev/) (optional, for convenience commands)
 
----
+### Setup
 
-## Setup (Development)
+```bash
+# Clone and enter the project
+git clone https://github.com/YOURNAME/YOURREPO.git
+cd YOURREPO
 
-### 1. Create and activate a virtual environment
+# Enter the dev environment (installs everything automatically)
+hatch shell
+
+# Install all git hooks
+task pre-commit:install
+```
+
+### Daily Workflow
+
+```bash
+task test              # Run tests
+task test:cov          # Run tests with coverage
+task test:matrix       # Run across Python 3.11-3.13
+task lint              # Check linting issues
+task lint:fix          # Auto-fix linting issues
+task fmt               # Apply formatting
+task typecheck         # Run mypy
+task check             # All quality gates at once
+task docs:serve        # Live-reload docs at localhost:8000
+task docs:build        # Build docs (strict mode)
+task security          # Run bandit security linter
+```
+
+> No Task installed? Use `hatch run <command>` directly (e.g., `hatch run test`).
+
+### Alternative: pip
 
 ```bash
 python -m venv .venv
-```
-
-**Windows (PowerShell):**
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-**macOS / Linux:**
-
-```bash
-source .venv/bin/activate
-```
-
-### 2. Install the project in editable mode
-
-```bash
-python -m pip install -e .
-```
-
-### Why is editable install required?
-
-This project uses a `src/` layout. Python will not automatically find packages inside `src/` unless:
-
-- The project is installed, **or**
-- `src/` is manually added to `PYTHONPATH`
-
-Editable install (`-e`) links your source directory into Python's environment so that:
-
-- Imports work correctly
-- `pytest` can find your package
-- Code changes are reflected immediately without reinstalling
-
-This is the recommended workflow for development.
-
----
-
-## Running Tests
-
-```bash
+.venv\Scripts\Activate.ps1   # Windows
+# source .venv/bin/activate  # macOS/Linux
+pip install -e ".[dev]"
 pytest
 ```
 
-If tests fail with `ModuleNotFoundError`, ensure you ran:
+## Project Structure
+
+```
+src/simple_python_boilerplate/   # Package source (src/ layout)
+tests/unit/                      # Unit tests
+tests/integration/               # Integration tests
+docs/                            # MkDocs documentation
+scripts/                         # Developer utility scripts
+.github/workflows/               # 26 CI/CD workflows
+db/                              # Database schema, migrations, seeds
+```
+
+See [docs/repo-layout.md](docs/repo-layout.md) for the full annotated tree.
+
+## CLI Entry Points
 
 ```bash
-python -m pip install -e .
+spb              # Main CLI command
+spb-version      # Print version info
+spb-doctor       # Diagnose environment issues
 ```
 
----
+## CI/CD Pipeline
 
-## Versioning
+Every push and PR triggers automated checks:
 
-The package exposes a version string in:
+- **Quality:** Ruff lint/format, mypy strict, codespell, test matrix (3.11-3.13), coverage
+- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy, gitleaks
+- **PR:** title validation, auto-labeler, spellcheck autofix
+- **Release:** release-please changelog, SBOM generation
+- **Gate:** Single `ci-gate` check for branch protection ([ADR 024](docs/adr/024-ci-gate-pattern.md))
 
-```python
-simple_python_boilerplate.__version__
-```
+All actions are SHA-pinned ([ADR 004](docs/adr/004-pin-action-shas.md)) with repository guards ([ADR 011](docs/adr/011-repository-guard-pattern.md)).
 
-The version is defined in code and should match the version declared in `pyproject.toml`.
+See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 
----
+## Utility Scripts
 
-## Quick Reference
+| Script | Purpose |
+|--------|---------|
+| `scripts/repo_doctor.py` | Health checker with `--fix` support |
+| `scripts/dep_versions.py` | Show/update dependency versions |
+| `scripts/workflow_versions.py` | Show/update SHA-pinned action versions |
+| `scripts/apply_labels.py` | Apply GitHub labels (`--set baseline\|extended`) |
 
-### Per-Repository Workflow
+## Using This Template
 
-```bash
-# 1. Create virtual environment
-python -m venv .venv
+See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-step setup guide.
 
-# 2. Activate it (Windows PowerShell)
-.\.venv\Scripts\Activate.ps1
+**Quick checklist:**
 
-# 3. Install project in editable mode
-python -m pip install -e .
-
-python -m pip install -e ".[dev]"
-python -m pytest
-```
-
-### Verify Your Environment
-
-```powershell
-# Check which venv is active
-echo $env:VIRTUAL_ENV
-
-# Check Python executable path
-python -c "import sys; print(sys.executable)"
-```
-
-### Deactivate Environment
-
-```bash
-deactivate
-```
-
----
-
-## Where Should Python Come From?
-
-For most developers on Windows, the most predictable options are:
-
-| Source | Notes |
-|--------|-------|
-| [python.org](https://www.python.org/downloads/) | Standard, widely documented, easy PATH behavior |
-| `winget install Python.Python.3.12` | Easy updates via Windows package manager |
-| Conda / Miniconda | Useful for heavy scientific/native dependencies, but adds its own environment system |
-
-> **Recommendation:** If your priority is "stable and unsurprising for packaging + venv," the python.org installer (or winget) is usually the simplest.
-
----
-
-## Notes
-
-- The distribution name (`simple-python-boilerplate`) may contain hyphens.
-- The import package name (`simple_python_boilerplate`) must use underscores.
-- `__init__.py` is intentionally included for clarity and tooling compatibility.
-- This repo is intentionally small and explicit—it favors correctness and clarity over convenience or abstraction.
-
----
+1. Click "Use this template" on GitHub
+2. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
+3. Update `pyproject.toml` (name, description, URLs, author)
+4. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
+5. Delete placeholder code in `src/` and `tests/`
+6. Enable repository guards via repository variables (see [ADR 011](docs/adr/011-repository-guard-pattern.md))
+7. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
 
 ## Documentation
 
-### Documentation Index
-
-| Directory | README | Description |
-|-----------|--------|-------------|
-| [docs/development/](docs/development/) | [README](docs/development/README.md) | Developer guides and workflows |
-| [docs/adr/](docs/adr/) | [README](docs/adr/README.md) | Architecture Decision Records |
-| [docs/notes/](docs/notes/) | [README](docs/notes/README.md) | Personal learning notes |
-
-### Developer Guides
-
-For developer tooling details, see [docs/development/](docs/development/):
-
-- [dev-setup.md](docs/development/dev-setup.md) — Environment setup
-- [development.md](docs/development/development.md) — Daily workflows
-- [pull-requests.md](docs/development/pull-requests.md) — PR guidelines
-- [developer-commands.md](docs/development/developer-commands.md) — Quick command reference
-
-### Architecture Decision Records
-
-Key decisions about this project's structure are documented in [docs/adr/](docs/adr/):
-
-- [ADR 001: src/ layout](docs/adr/001-src-layout.md) — Why packages live in `src/`
-- [ADR 002: pyproject.toml](docs/adr/002-pyproject-toml.md) — Single config file approach
-- [ADR 003: Separate workflows](docs/adr/003-separate-workflow-files.md) — CI organization
-- [ADR 004: Pin action SHAs](docs/adr/004-pin-action-shas.md) — Security hardening
-
-### Learning Notes
-
-Personal notes and learnings captured in [docs/notes/](docs/notes/):
-
-- [learning.md](docs/notes/learning.md) — Key concepts and gotchas
-- [tool-comparison.md](docs/notes/tool-comparison.md) — Choosing between similar tools
-- [todo.md](docs/notes/todo.md) — Ideas and things to explore
-
----
-
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-For information on issue labels and triage process, see [docs/labels.md](docs/labels.md).
-
----
-
-## Code of Conduct
-
-We are committed to a welcoming and inclusive community. Please see our [Code of Conduct](CODE_OF_CONDUCT.md).
-
----
+- **Live docs:** `task docs:serve` at [localhost:8000](http://127.0.0.1:8000)
+- **Architecture decisions:** [docs/adr/](docs/adr/)
+- **Developer guides:** [docs/development/](docs/development/)
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
 
-This project is licensed under the Apache License 2.0 to allow unrestricted use, modification, and commercial distribution while providing explicit patent protection and legal clarity for users and contributors.
-
-Apache License 2.0. See the [LICENSE](LICENSE) file for details.
-
----
-
-Questions, ideas, and open-ended discussion may be handled via GitHub Discussions if enabled in the future. For now, please use Issues for bugs or concrete proposals.
-
-or
-
-...
-
-How to use this repository
-
-1. Click "Use this template" on GitHub
-2. Rename the package directory
-3. Update pyproject.toml name and description
-4. To enable the Sponsor button, edit `.github/FUNDING.yml` and uncomment your platform(s)
-
-Scope: Many parts if not all can be adapted and changed as needed for a myriad of very valid reasons. This is simply one way to do it that I have found useful and educational.
-
-If you do not want any templates, dependabot configs, or other files, please delete them as needed.
-
-If you have any questions on how to do something or why something is done a certain way, please post in the disucssion.
-
-stuff I may add in the future
-
-- docker config
-- more github actions/workflows/configs
-- more testing examples (integration, e2e, etc)
-- more ci/cd examples
-- deployment configuration
-- style/linting configuration
-
-## Future Improvements
-
-This repository is intentionally minimal while I learn and solidify concepts.
-
-Potential additions in the future:
-
-- Continuous Integration (GitHub Actions)
-- Docker support for reproducible environments
-- Automated release and deployment workflows
-- docker config
-- more github actions/workflows/configs
-- more testing examples (integration, e2e, etc)
-- more ci/cd examples
-- deployment configuration
-- style/linting configuration
-- SLSA workflows for supply chain security
-
-These may be added once I have covered the relevant concepts.
-
-[Developer note]
-*Developer notes are formatted like this.*
-
-## Templates
-
-This repository includes two bug report templates:
-
-- `bug_report.md` – Markdown-based (default, flexible)
-- `bug_report.yml.disabled` – GitHub Issue Form (structured, enforced)
-
-Choose one:
-1. Keep the template you prefer
-2. Delete or rename the other
-
-Remember to create the corrosponding labels for each issue in your repo for whatever issue templates you choose to use.
-[issues -> labels -> new label]
-
-## Getting Help
-
-- Questions → Discussions
-- Bugs → Issues (confirmed defects only)
-- Security → Security Policy
-
-## Issues Tab on GitHub
-
-Asside from the issue templates, there is also a set of labels to help categorize issues. Feel free to copy these labels as you see fit.
-
-## Optional GitHub Setup
-
-### Install recommended labels
-GitHub labels are repository metadata and do not copy when creating a repo from a template.
-
-- Baseline set: good for most repos
-- Extended set: for larger projects
-
-See: `docs/labels.md`
-
-Prereqs:
-- Install GitHub CLI (`gh`) and authenticate: `gh auth login`
-
-Run:
-- `./scripts/apply-labels.sh baseline`
-- `./scripts/apply-labels.sh extended`
-
-Windows note:
-- Run via WSL, or run the Python script directly:
-  - `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
-
-## Common commands
-
-This project defines convenience scripts in `pyproject.toml`.
-See the scripts section there for the current list and descriptions.
-
-## development
-
-pointer to pyproject script
-
-## setup
-
-quick reference for setting up .venv which you already have in this file
-
-links to dev-setup.md, development.md, contributing.md, and other docs as needed.
-- dev-setup.md = “setup steps”
-- development.md = “ongoing dev workflow”
-
-## What you should do in your boilerplate
-- Keep your main docs and workflow centered on: `python -m pip install -e ".[dev]"`.
-- Add Option A wrapper files if you want to satisfy the “requirements.txt expected” crowd **without creating drift**.
-- Avoid shipping a pinned `requirements.txt` in a template repo unless the repo’s purpose is specifically “this exact pinned environment.”
-> what should people delete or change in this file when they use this boilerplate for their own projects
-- Update project name and description in `pyproject.toml`.
-- ...
-
-## Security policy
-
-### Reporting a vulnerability
-Please report security issues privately. Do **not** open a public GitHub issue.
-
-- Preferred: GitHub Security Advisories (Security → “Report a vulnerability”)
-- Or email: <security-contact@example.com>
-
-### Bug bounty
-We do **not** operate a bug bounty program and do not offer monetary rewards at this time.
-
-### Supported versions
-State what versions/branches receive security fixes (or “latest only”).
-
-
-“Security” section linking to SECURITY.md
-
-## Adoption checklist
-
-* short and simple checklist of adopting specific files over other and how to set them up. This also includes editing files to add your own project name, description, etc. Pointer to docs/using-this-repo.md for more details.
-
-pick security.md with the bounty program or the one without it.
-
-“Copy desired templates into .github/ISSUE_TEMPLATE/ to enable.”
-
-“Prefer Issue Forms; legacy Markdown templates are optional/for reference.”
-
-## CLI entry points
-
-spb -
+Apache License 2.0 - see [LICENSE](LICENSE).

@@ -43,8 +43,11 @@ Thank you for your interest in contributing to this project! This document expla
 # Enter the dev environment (installs all dependencies automatically)
 hatch shell
 
-# Install pre-commit git hooks (one-time, required)
-pre-commit install
+# Install all pre-commit git hooks (one-time, required)
+# Or use the Taskfile shortcut: task pre-commit:install
+pre-commit install                              # pre-commit stage
+pre-commit install --hook-type commit-msg        # commit-msg stage (conventional commits)
+pre-commit install --hook-type pre-push          # pre-push stage (pytest, pip-audit, gitleaks)
 ```
 
 ### Option B: Using pip
@@ -61,11 +64,14 @@ source .venv/bin/activate
 # Install with dev dependencies
 python -m pip install -e ".[dev]"
 
-# Install pre-commit git hooks (one-time, required)
-pre-commit install
+# Install all pre-commit git hooks (one-time, required)
+# Or use the Taskfile shortcut: task pre-commit:install
+pre-commit install                              # pre-commit stage
+pre-commit install --hook-type commit-msg        # commit-msg stage (conventional commits)
+pre-commit install --hook-type pre-push          # pre-push stage (pytest, pip-audit, gitleaks)
 ```
 
-> **Note:** `pre-commit install` must be run once per clone. It registers git hooks that run automatically before each commit.
+> **Note:** All three `pre-commit install` commands must be run once per clone. They register git hooks that run automatically at each stage (commit, commit-msg, push).
 
 ---
 

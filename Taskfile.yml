@@ -132,10 +132,11 @@ tasks:
 
   # ── Pre-commit ─────────────────────────────────────────────
   pre-commit:install:
-    desc: Install pre-commit hooks (includes commit-msg for commitizen)
+    desc: Install all pre-commit hooks (pre-commit, commit-msg, pre-push)
     cmds:
       - hatch run pre-commit install
       - hatch run pre-commit install --hook-type commit-msg
+      - hatch run pre-commit install --hook-type pre-push
 
   pre-commit:run:
     desc: Run pre-commit on all files

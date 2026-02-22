@@ -40,7 +40,7 @@ updates:
       timezone: "America/New_York"
     commit-message:
       prefix: "chore"
-      include: "deps"
+      include: "scope"
     labels:
       - "dependencies"
       - "python"
@@ -62,6 +62,22 @@ updates:
       # Keep major updates separate (breaking changes)
 
   # Keep pre-commit hooks up to date
-  - package-ecosystem: "github-actions"
+  # NOTE: Dependabot does not support .pre-commit-config.yaml natively.
+  # Use the pre-commit-update workflow or `pre-commit autoupdate` instead.
+
+  # Keep container base images up to date (Containerfile)
+  - package-ecosystem: "docker"
     directory: "/"
-    # ... this does NOT cover .pre-commit-config.yaml
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 5
+    rebase-strategy: "disabled"
