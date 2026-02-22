@@ -12,6 +12,7 @@ Utility scripts for development and maintenance.
 | [dep_versions.py](dep_versions.py) | Show/update dependency versions in pyproject.toml and requirements files |
 | [repo_doctor.py](repo_doctor.py) | Warn-only repo health checker driven by `.repo-doctor.toml` rules |
 | [workflow_versions.py](workflow_versions.py) | Show/update version comments on SHA-pinned GitHub Actions |
+| [customize.py](customize.py) | Interactive project customization — replaces boilerplate placeholders |
 | [precommit/](precommit/) | Custom pre-commit hook scripts |
 | [sql/](sql/) | SQL scripts for database operations |
 
@@ -27,6 +28,10 @@ Utility scripts for development and maintenance.
 ```bash
 # Run a Python script
 python scripts/apply_labels.py
+
+# Customize the template for your project
+python scripts/customize.py
+python scripts/customize.py --dry-run
 
 # Run repo health checks
 python scripts/repo_doctor.py

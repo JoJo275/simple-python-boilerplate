@@ -7,9 +7,16 @@ Implement any of these changes at your discretion — this is just a guide to he
 ## Quick Start
 
 1. **Clone or use as template** on GitHub
-2. **Find and replace** all placeholders (see below)
-3. **Delete what you don't need**
-4. **Customize** the remaining files
+2. **Run the customization script** — it handles placeholders, package
+   renaming, license selection, and optional directory stripping:
+
+   ```bash
+   python scripts/customize.py          # interactive
+   python scripts/customize.py --dry-run # preview changes first
+   ```
+
+   Or do it manually: find-and-replace all placeholders (see below),
+   delete what you don't need, and customize the remaining files.
 
 ---
 
