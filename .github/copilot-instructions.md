@@ -117,6 +117,7 @@ the installed package.
 | `apply_labels.py` | Applies GitHub labels (baseline or extended set) to a repo using `gh` CLI. Supports `--dry-run`. |
 | `check_nul_bytes.py` | Pre-commit hook (`scripts/precommit/`) that fails if any staged file contains NUL bytes. |
 | `check_todos.py` | Scans for `TODO (template users)` comments and reports uncustomized items. Exits non-zero if any remain. |
+| `customize.py` | Interactive project customization: replaces placeholders, renames package dir, swaps license, strips optional dirs. Supports `--dry-run` and `--non-interactive`. |
 | `env_doctor.py` | Quick environment health check: Python version, venv, editable install, hooks, dev tools. Supports `--strict`. |
 | `changelog_check.py` | Verifies CHANGELOG.md version headings match git tags. Detects drift from release-please. |
 
