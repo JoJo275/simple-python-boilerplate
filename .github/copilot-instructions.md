@@ -70,7 +70,7 @@ Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows
 
-~25 workflow files in `.github/workflows/`, all SHA-pinned
+~26 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](docs/adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](docs/adr/011-repository-guard-pattern.md)).
 **Canonical inventory:** `docs/workflows.md` — that file is authoritative;
@@ -81,6 +81,7 @@ the summary below is for quick orientation only.
 - **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck
 - **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy container scan, nightly scan, OpenSSF Scorecard
 - **PR hygiene:** commit-lint, pr-title, labeler, spellcheck-autofix
+- **Documentation:** docs-deploy (MkDocs build + GitHub Pages deployment)
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
 - **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot
@@ -416,7 +417,7 @@ Acknowledged gaps that don't need to be rediscovered each session:
 
 | Area | Issue | Notes |
 |------|-------|-------|
-| **CI** | No `docs-build.yml` workflow | MkDocs is configured but there's no CI step running `mkdocs build --strict` to catch broken docs. Listed as "not yet implemented" in `docs/design/architecture.md`. |
+
 | **CI** | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing). |
 | **Docs** | `docs/workflows.md` can drift | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast. |
 | **Template** | Placeholder source code | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely. |

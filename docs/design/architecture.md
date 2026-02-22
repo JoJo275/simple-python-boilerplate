@@ -246,7 +246,7 @@ Dev/test dependencies are listed in `pyproject.toml`
 - **`sql/`** — Empty package, no application queries yet
 - **`db/schema.sql`** — Placeholder schema, no tables defined
 - **Integration tests** — directory exists but tests are pending
-- **Docs deployment** — MkDocs is configured but not deployed to GitHub Pages
+
 
 ## Related Documentation
 
