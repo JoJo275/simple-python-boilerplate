@@ -118,8 +118,9 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 | `scripts/repo_doctor.py` | Health checker with `--fix` support |
 | `scripts/dep_versions.py` | Show/update dependency versions |
 | `scripts/workflow_versions.py` | Show/update SHA-pinned action versions |
-| `scripts/apply_labels.py` | Apply GitHub labels (`--set baseline\|extended`) |
-
+| `scripts/apply_labels.py` | Apply GitHub labels (`--set baseline\|extended`) || `scripts/check_todos.py` | Scan for `TODO (template users)` comments |
+| `scripts/env_doctor.py` | Quick environment health check |
+| `scripts/changelog_check.py` | Verify CHANGELOG.md matches git tags |
 ## Using This Template
 
 See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-step setup guide.

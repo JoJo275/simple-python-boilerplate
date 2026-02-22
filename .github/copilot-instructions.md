@@ -116,6 +116,9 @@ the installed package.
 | `workflow_versions.py` | GitHub Actions version manager: shows SHA-pinned action versions, updates `# vX.Y.Z` comments via GitHub API. |
 | `apply_labels.py` | Applies GitHub labels (baseline or extended set) to a repo using `gh` CLI. Supports `--dry-run`. |
 | `check_nul_bytes.py` | Pre-commit hook (`scripts/precommit/`) that fails if any staged file contains NUL bytes. |
+| `check_todos.py` | Scans for `TODO (template users)` comments and reports uncustomized items. Exits non-zero if any remain. |
+| `env_doctor.py` | Quick environment health check: Python version, venv, editable install, hooks, dev tools. Supports `--strict`. |
+| `changelog_check.py` | Verifies CHANGELOG.md version headings match git tags. Detects drift from release-please. |
 
 Run scripts directly (`python scripts/repo_doctor.py`) or via Taskfile
 shortcuts where available.
