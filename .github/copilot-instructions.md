@@ -60,7 +60,7 @@ pre-commit install --hook-type pre-push          # pre-push stage
 
 | Stage | Key hooks | Count |
 |-------|-----------|-------|
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | ~30 |
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | ~34 |
 | **commit-msg** | commitizen (Conventional Commits) | 1 |
 | **pre-push** | pytest, pip-audit, gitleaks | 3 |
 | **manual** | markdownlint-cli2, hadolint-docker | 2 |
@@ -114,7 +114,7 @@ the installed package.
 | `dep_versions.py` | Dependency version manager: shows installed/latest versions, updates inline comments in `pyproject.toml` + `requirements*.txt`. |
 | `workflow_versions.py` | GitHub Actions version manager: shows SHA-pinned action versions, updates `# vX.Y.Z` comments via GitHub API. |
 | `apply_labels.py` | Applies GitHub labels (baseline or extended set) to a repo using `gh` CLI. Supports `--dry-run`. |
-| `check_nul_bytes.py` | Pre-commit hook that fails if any staged file contains NUL bytes. |
+| `check_nul_bytes.py` | Pre-commit hook (`scripts/precommit/`) that fails if any staged file contains NUL bytes. |
 
 Run scripts directly (`python scripts/repo_doctor.py`) or via Taskfile
 shortcuts where available.
@@ -257,6 +257,21 @@ have been resolved long ago. Don't silently sweep things under the rug.
 Raise them at end of session (in the recap's "What to watch for") or
 inline if they're urgent. Keep each flag brief: what's wrong, why it
 matters, and a suggested next step.
+
+### Verify Before Finishing
+
+Before concluding a task, verify the changes actually work:
+
+- **Code changes** — run the relevant tests (`task test`) or at minimum
+  check for syntax/type errors
+- **Workflow changes** — run `actionlint` against modified files
+- **Config changes** — run `validate-pyproject` or the relevant validator
+- **Hook changes** — run `pre-commit run <hook-id> --all-files` for
+  modified hooks
+- **Documentation changes** — check that links resolve and markup renders
+
+Don't declare something done based on "it looks right." If a
+verification step is available, run it.
 
 ### Tone
 

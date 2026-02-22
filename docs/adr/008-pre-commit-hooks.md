@@ -31,22 +31,24 @@ Use the `pre-commit` framework to run checks automatically at three git stages: 
 | `check-toml` | pre-commit-hooks | Validates TOML syntax |
 | `check-json` | pre-commit-hooks | Validates JSON syntax |
 | `check-ast` | pre-commit-hooks | Validates Python syntax (catches SyntaxError) |
-| `check-added-large-files` | pre-commit-hooks | Prevents files > 1 MB from being committed |
+| `check-added-large-files` | pre-commit-hooks | Prevents files > 500 KB from being committed |
 | `check-merge-conflict` | pre-commit-hooks | Detects leftover merge conflict markers |
 | `check-case-conflict` | pre-commit-hooks | Detects files that would clash on case-insensitive filesystems |
 | `debug-statements` | pre-commit-hooks | Catches `import pdb` / `breakpoint()` left in code |
 | `detect-private-key` | pre-commit-hooks | Blocks private keys from being committed |
 | `fix-byte-order-marker` | pre-commit-hooks | Removes UTF-8 BOM (causes subtle cross-platform bugs) |
-| `name-tests-test` | pre-commit-hooks | Enforces `test_*.py` naming in `tests/` |
+| `name-tests-test` | pre-commit-hooks | Enforces `test_*.py` naming in `tests/` and `experiments/` |
 | `check-executables-have-shebangs` | pre-commit-hooks | Executables must have shebangs |
 | `check-shebang-scripts-are-executable` | pre-commit-hooks | Shebang scripts must be `+x` |
 | `check-symlinks` | pre-commit-hooks | Detects broken symlinks |
+| `destroyed-symlinks` | pre-commit-hooks | Detects symlinks replaced by regular files (e.g. after merge) |
+| `check-vcs-permalinks` | pre-commit-hooks | Catches GitHub URLs pointing to branches instead of commit SHAs |
 | `check-docstring-first` | pre-commit-hooks | Catches code placed before the module docstring |
 | `no-commit-to-branch` | pre-commit-hooks | Prevents direct commits to `main` / `master` |
 | `mixed-line-ending` | pre-commit-hooks | Normalises to LF (paired with `.gitattributes`) |
 | `ruff` | ruff-pre-commit | Lint with auto-fix (replaces flake8, isort, pyupgrade, autopep8) |
 | `ruff-format` | ruff-pre-commit | Format (replaces black) |
-| `mypy` | mirrors-mypy | Static type checking on `src/` |
+| `mypy` | mirrors-mypy | Static type checking on `src/` (strict mode — matches CI) |
 | `bandit` | PyCQA/bandit | Security linting (skips tests) |
 | `validate-pyproject` | validate-pyproject | Validates `pyproject.toml` against PEP 621 |
 | `typos` | crate-ci/typos | Spell checking (Rust-based, fast, broad detection) |
@@ -55,7 +57,7 @@ Use the `pre-commit` framework to run checks automatically at three git stages: 
 | `check-github-actions` | check-jsonschema | Schema validation for action.yml files |
 | `check-dependabot` | check-jsonschema | Schema validation for `.github/dependabot.yml` |
 | `no-do-not-commit-marker` | local (pygrep) | Blocks `@@DO_NOT_COMMIT` `@@` markers |
-| `no-secrets-patterns` | local (pygrep) | Blocks hardcoded credentials / token patterns |
+| `no-secrets-patterns` | local (pygrep) | Blocks hardcoded credentials / token patterns (py, toml, yaml, json, env, ini, cfg, txt, md, sh, ps1, Containerfile, Dockerfile) |
 | `no-nul-bytes` | local (python) | Blocks NUL bytes in text files |
 | `deptry` | local (system) | Detects unused, missing, and transitive dependencies |
 

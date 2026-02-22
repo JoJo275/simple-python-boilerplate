@@ -81,7 +81,11 @@ Each required workflow's `name:` line is tagged with `# ci-gate: required`.
 Grep for that marker to audit which workflows are coupled to the gate:
 
 ```bash
+# Unix / Git Bash
 grep -r 'ci-gate: required' .github/workflows/
+
+# PowerShell
+Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 ```
 
 | Check name | Workflow |
