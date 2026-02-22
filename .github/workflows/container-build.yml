@@ -42,7 +42,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build container image
+    name: Build container image    # ci-gate: required
 
     # ── Repository guard ──────────────────────────────────────
     # Prevents this workflow from running on forks or clones
