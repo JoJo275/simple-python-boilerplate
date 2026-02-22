@@ -819,6 +819,13 @@ See: [ADR 015](../adr/015-no-github-directory-readme.md)
 
 4. **pytest needs the package installed** — Or it won't find your modules
 
+5. **Shebang + executable bit on Windows** — When creating a new script with a
+   shebang (`#!/usr/bin/env python3`), Windows doesn't have `chmod +x`. Git
+   tracks the executable permission though, so you need
+   `git add --chmod=+x scripts/your_script.py` to set it. Once committed, anyone
+   who clones or uses the template gets the bit automatically — it's a one-time
+   thing per new script file on the authoring side only.
+
 ---
 
 ## Research: Other Template Repos
