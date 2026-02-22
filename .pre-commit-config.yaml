@@ -66,18 +66,20 @@ repos:
       - id: check-json                 # Validate JSON syntax
       - id: check-ast                  # Validate Python syntax (catches SyntaxError)
       - id: check-added-large-files    # Prevent giant files from being committed
-        args: ['--maxkb=1000']
+        args: ['--maxkb=500']
       - id: check-merge-conflict       # Check for merge conflict markers
       - id: check-case-conflict        # Check for files that would conflict on case-insensitive fs
       - id: debug-statements           # Check for debugger imports and py37+ breakpoint()
       - id: detect-private-key         # Detect private keys
       - id: fix-byte-order-marker      # Remove UTF-8 BOM (causes subtle bugs on Linux/CI)
-      - id: name-tests-test            # Enforce test_*.py naming in tests/
+      - id: name-tests-test            # Enforce test_*.py naming in tests/ and experiments/
         args: ['--pytest-test-first']
-        files: ^tests/
+        files: ^(tests|experiments)/
       - id: check-executables-have-shebangs  # Executables must have shebangs
       - id: check-shebang-scripts-are-executable  # Shebang scripts must be +x
       - id: check-symlinks                # Check for broken symlinks
+      - id: destroyed-symlinks            # Detect symlinks replaced by regular files (e.g. after merge)
+      - id: check-vcs-permalinks          # Catch GitHub URLs pointing to branches instead of commit SHAs
       - id: forbid-submodules           # Block git submodules
         stages: [manual]               # Disabled — enable if your project forbids submodules
       - id: check-docstring-first       # Catches code before the module docstring
@@ -101,20 +103,20 @@ repos:
       - id: ruff-format
 
   # ---------------------------------------------------------------------------
-  # Type checking with mypy
+  # Type checking with mypy (strict mode — matches type-check.yml CI workflow)
   # NOTE: If package code grows and commit times slow down, remove mypy from
   #       the pre-commit stage. You can move it to pre-push (stages: [pre-push])
   #       or rely on the type-check GitHub Actions workflow instead.
   #
-  # Upgrade path: --ignore-missing-imports is convenient for a template but
-  # hides real issues.  Once your dependency stubs are in place, drop the flag
-  # and add specific overrides in pyproject.toml [tool.mypy] instead.
+  # This hook intentionally uses the same strict config as the CI workflow
+  # (type-check.yml) so that a commit passing locally will also pass CI.
+  # If you change mypy settings here, update pyproject.toml [tool.mypy] and
+  # the CI workflow to match.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
     hooks:
       - id: mypy
-        args: [--ignore-missing-imports]
         # Only check src/ to avoid issues with untyped test files
         files: ^src/
 
@@ -210,7 +212,8 @@ repos:
         language: pygrep
         # Scope to files most likely to contain real credentials;
         # reduces false positives from docs/examples.
-        files: \.(py|pyi|toml|ya?ml|json|env|ini|cfg|txt|md)$
+        # Includes shell scripts & container files — common secret leak vectors.
+        files: \.(py|pyi|toml|ya?ml|json|env|ini|cfg|txt|md|sh|ps1)$|Containerfile$|Dockerfile$
         exclude: >-
           (?x)
           \.pre-commit-config\.yaml$|
