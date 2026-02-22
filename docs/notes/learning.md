@@ -1850,6 +1850,265 @@ If you have comments documenting current versions (like `"ruff",  # v0.9.1`), th
 
 ---
 
+## Unix, Terminals, and Shells
+
+Before diving into specific shells (bash, zsh, etc.), it helps to understand
+the foundational concepts: what Unix is, what a terminal is, and how shells
+fit into the picture. These three things are often confused or used
+interchangeably, but they're distinct layers.
+
+### What is Unix?
+
+**Unix** is a family of operating systems that originated at AT&T Bell Labs
+in 1969 (Ken Thompson, Dennis Ritchie). It introduced ideas that underpin
+nearly every modern OS:
+
+- **Everything is a file** — devices, sockets, pipes, and actual files are
+  all accessed through the same interface (`open`, `read`, `write`, `close`)
+- **Small, composable tools** — programs that do one thing well and combine
+  via pipes (`grep`, `sort`, `awk`, `sed`, `cut`, `wc`)
+- **Plain text as a universal interface** — configuration, data, and
+  inter-process communication default to human-readable text
+- **Multi-user, multi-tasking** — designed from day one for multiple users
+  running multiple programs simultaneously
+- **Hierarchical file system** — a single root `/` with directories branching
+  below it (no drive letters)
+- **Permissions model** — owner/group/others with read/write/execute bits
+
+#### The Unix Family Tree
+
+```
+Unix (AT&T Bell Labs, 1969)
+ ├── BSD (Berkeley, 1977)
+ │    ├── FreeBSD
+ │    ├── OpenBSD
+ │    ├── NetBSD
+ │    └── macOS / Darwin (Apple, 2001) ← macOS is certified Unix
+ ├── System V (AT&T, 1983)
+ │    ├── Solaris (Sun/Oracle)
+ │    ├── HP-UX
+ │    └── AIX (IBM)
+ └── Linux (Linus Torvalds, 1991) ← "Unix-like", not certified Unix
+      ├── Debian → Ubuntu, Mint
+      ├── Red Hat → Fedora, CentOS, RHEL
+      ├── Arch → Manjaro
+      ├── Alpine (used in Docker)
+      └── Android (Linux kernel)
+```
+
+> **Key distinction:** Linux is *Unix-like* (implements the same concepts and
+> mostly follows POSIX standards) but is not descended from AT&T Unix code.
+> macOS *is* certified Unix (POSIX-compliant, descended from BSD).
+
+#### POSIX — The Compatibility Standard
+
+**POSIX** (Portable Operating System Interface) is an IEEE standard that
+defines a common API for Unix-like systems. When someone says a script is
+"POSIX-compliant," they mean it uses only features guaranteed to work across
+all conforming systems.
+
+| What POSIX defines | Examples |
+|--------------------|----------|
+| Shell language | `sh` syntax, builtins, control flow |
+| Core utilities | `ls`, `cp`, `mv`, `grep`, `sed`, `awk`, `find`, `sort` |
+| C library API | `open()`, `read()`, `fork()`, `exec()`, `pipe()` |
+| File system semantics | Path resolution, permissions, symlinks |
+| Environment variables | `PATH`, `HOME`, `USER`, `SHELL` |
+| Process model | PIDs, signals, exit codes, job control |
+
+**Why it matters for this project:** CI runners, Docker containers, and
+contributor machines may run different Unix-like systems. Writing
+POSIX-compliant scripts (`#!/bin/sh`) maximises portability. Bash-specific
+scripts (`#!/bin/bash`) are fine when you know bash is available.
+
+#### Why Unix Matters for Python Development
+
+Even if you develop on Windows, Unix concepts show up everywhere:
+
+| Where | Unix concept |
+|-------|-------------|
+| **Git** | Built on Unix tools — `diff`, `patch`, file permissions, symlinks, line endings (LF vs CRLF) |
+| **CI/CD** | GitHub Actions runners are Ubuntu Linux by default |
+| **Docker** | Container images are Linux (Alpine, Debian, Ubuntu) |
+| **pip / venv** | Virtual environments use Unix-style directory layouts (`bin/`, not `Scripts/` on Linux/macOS) |
+| **Shebangs** | `#!/usr/bin/env python3` — a Unix convention for executable scripts |
+| **File paths** | Forward slashes `/`, case-sensitive names, no drive letters |
+| **Package managers** | `apt`, `brew`, `pacman` — all Unix-native tools |
+| **SSH** | Key-based auth to GitHub, servers — a Unix tool (`openssh`) |
+| **Permissions** | `chmod +x script.sh` — Unix file permission model |
+| **Signals** | `Ctrl+C` sends `SIGINT`, `kill -9` sends `SIGKILL` — Unix process signals |
+
+#### Unix vs Windows — Key Differences
+
+| Concept | Unix / Linux / macOS | Windows |
+|---------|---------------------|---------|
+| Path separator | `/` (forward slash) | `\` (backslash) |
+| Root | `/` | `C:\` (drive letters) |
+| Case sensitivity | Case-sensitive (`File.txt` ≠ `file.txt`) | Case-insensitive (usually) |
+| Line endings | `LF` (`\n`) | `CRLF` (`\r\n`) |
+| Executable marker | File permission bit (`chmod +x`) | File extension (`.exe`, `.bat`, `.ps1`) |
+| Shell | `sh`, `bash`, `zsh` | `cmd.exe`, PowerShell |
+| Package manager | `apt`, `brew`, `pacman` | `winget`, `choco`, `scoop` |
+| Hidden files | Prefix with `.` (`.gitignore`) | File attribute flag |
+| Process model | `fork()` + `exec()` | `CreateProcess()` |
+| Filesystem | ext4, APFS, ZFS | NTFS |
+| User model | Root (`uid 0`) + normal users | Administrator + normal users |
+
+### What is a Terminal?
+
+A **terminal** (or **terminal emulator**) is a program that provides a
+text-based window where you type commands and see output. That's it — it's
+the *window*, not the thing interpreting your commands.
+
+#### Historical Context
+
+```
+1960s–70s: Physical terminals (hardware devices with a screen and keyboard)
+           └── VT100, VT220, Teletype (TTY)
+                └── Connected to a mainframe/minicomputer via serial cable
+
+1980s–now: Terminal emulators (software that mimics a physical terminal)
+           └── xterm, GNOME Terminal, iTerm2, Windows Terminal, VS Code terminal
+                └── Connected to a shell process via a pseudo-terminal (PTY)
+```
+
+The word "TTY" (teletypewriter) persists in Unix — `tty` is a command,
+`/dev/tty` is a device file, and terminal-related APIs use the term throughout.
+
+#### Terminal vs Shell vs Command Line
+
+These three terms are often used interchangeably, but they're different layers:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Terminal Emulator (the window)                      │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  Shell (the interpreter)                       │  │
+│  │  ┌─────────────────────────────────────────┐  │  │
+│  │  │  Commands / Programs (what you run)      │  │  │
+│  │  │  e.g., git, python, ls, ruff, pytest     │  │  │
+│  │  └─────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+| Layer | What it is | Examples | Analogy |
+|-------|-----------|----------|---------|
+| **Terminal** | The window / display surface | Windows Terminal, iTerm2, VS Code integrated terminal, GNOME Terminal | A TV screen |
+| **Shell** | The command interpreter that runs inside the terminal | bash, zsh, PowerShell, fish, sh | The channel you're watching |
+| **Command** | The program the shell runs | `git commit`, `python main.py`, `ls -la` | The show on the channel |
+
+**Key insight:** You can run *any* shell inside *any* terminal. The terminal
+doesn't care — it just sends keystrokes to the shell and displays characters
+back. You can open Windows Terminal and run bash (via WSL), or open iTerm2 on
+macOS and run PowerShell.
+
+#### Common Terminal Emulators
+
+| Terminal | Platform | Key Features |
+|----------|----------|-------------|
+| **Windows Terminal** | Windows | Tabs, GPU-accelerated, profiles for cmd/PowerShell/WSL |
+| **VS Code Integrated Terminal** | Cross-platform | Built into editor, multiple shells, split panes |
+| **iTerm2** | macOS | Split panes, hotkey window, search, profiles |
+| **GNOME Terminal** | Linux (GNOME) | Default on Ubuntu/Fedora GNOME, tabs, profiles |
+| **Alacritty** | Cross-platform | GPU-accelerated, minimal, config-file driven (TOML) |
+| **WezTerm** | Cross-platform | GPU-accelerated, Lua config, multiplexer built in |
+| **kitty** | Linux / macOS | GPU-accelerated, image display, extensible |
+| **Konsole** | Linux (KDE) | KDE default, tabs, profiles, bookmarks |
+| **cmd.exe** | Windows | Legacy Windows shell host — not really a modern terminal |
+
+#### The VS Code Integrated Terminal
+
+The VS Code terminal is a full terminal emulator embedded in the editor. It
+runs a real shell process (bash, zsh, PowerShell, cmd) — it's not a
+simplified or sandboxed version.
+
+| Feature | Details |
+|---------|---------|
+| Default shell | Inherits system default (PowerShell on Windows, bash/zsh on Linux/macOS) |
+| Switch shells | `Terminal: Select Default Profile` command or dropdown in terminal panel |
+| Multiple terminals | Create new ones with `+`, name them, colour-code them |
+| Split terminals | Run side-by-side in the same panel |
+| Linked to workspace | Working directory defaults to the workspace root |
+| Environment | Inherits VS Code's environment variables + activated venv |
+| Tasks | Can run registered tasks (`Terminal > Run Task`) |
+
+**Practical tip:** When VS Code activates a Python virtual environment, it
+modifies the terminal's `PATH` so `python` and `pip` resolve to the venv's
+copies. This is why you see the `(.venv)` prefix in the prompt — that's the
+shell indicating the venv is active, not the terminal doing it.
+
+### What is a Shell? (Conceptual Overview)
+
+A **shell** is a program that:
+1. Displays a prompt
+2. Reads a line of input (a command)
+3. Parses the command
+4. Executes the command (by forking a child process or running a builtin)
+5. Displays the output
+6. Goes back to step 1
+
+That loop is called a **REPL** (Read-Eval-Print Loop) — the same concept as
+Python's interactive interpreter (`>>>` prompt).
+
+#### What the Shell Actually Does
+
+Beyond running commands, the shell handles:
+
+| Responsibility | What it does | Example |
+|---------------|-------------|---------|
+| **Variable expansion** | Replaces `$VAR` with its value | `echo $HOME` → `/home/user` |
+| **Glob expansion** | Expands wildcards into matching filenames | `ls *.py` → `ls main.py utils.py` |
+| **Pipes** | Connects stdout of one command to stdin of the next | `cat log.txt \| grep ERROR \| wc -l` |
+| **Redirection** | Sends output to a file or reads input from a file | `echo "hello" > out.txt` |
+| **Job control** | Runs processes in background, foreground, suspend | `sleep 100 &`, `fg`, `Ctrl+Z` |
+| **Environment** | Maintains environment variables passed to child processes | `export PATH="$PATH:/usr/local/bin"` |
+| **Scripting** | Conditionals, loops, functions — it's a programming language | `if [ -f .env ]; then source .env; fi` |
+| **History** | Remembers previous commands (arrow keys, `Ctrl+R` search) | `history`, `!!` (rerun last command) |
+| **Tab completion** | Completes filenames, commands, arguments | Type `git com` + Tab → `git commit` |
+| **Signal handling** | Catches `Ctrl+C` (SIGINT), `Ctrl+D` (EOF), etc. | `trap 'cleanup' EXIT` |
+
+#### Interactive vs Non-Interactive Shells
+
+| Mode | When | Config loaded | Use case |
+|------|------|--------------|----------|
+| **Interactive login** | SSH, first terminal after boot | `.bash_profile` (or `.zprofile`) then `.bashrc` | User's main session |
+| **Interactive non-login** | Open a new terminal tab | `.bashrc` (or `.zshrc`) | Daily use |
+| **Non-interactive** | Running a script (`bash script.sh`) | Usually none (or `BASH_ENV` if set) | Automation, CI, cron |
+
+**Why this matters:** If you set an alias in `.bashrc` but your CI script runs
+non-interactively, that alias won't exist. Environment setup for scripts
+should go in the script itself or be passed explicitly.
+
+#### How the Shell Runs a Command
+
+When you type `python main.py` and press Enter, here's what happens:
+
+```
+1. Shell reads the line: "python main.py"
+2. Shell parses it: command="python", args=["main.py"]
+3. Shell searches $PATH for "python" executable
+   → Finds /usr/bin/python (or .venv/bin/python if venv active)
+4. Shell calls fork() → creates a child process
+5. Child process calls exec("python", ["main.py"])
+   → Child process is replaced by the Python interpreter
+6. Python runs main.py
+7. Python exits with exit code (0 = success, non-zero = error)
+8. Shell receives the exit code → stores in $?
+9. Shell prints the next prompt
+```
+
+This `fork + exec` model is fundamental to Unix. Every command you run
+(except shell builtins like `cd`, `echo`, `export`) goes through this cycle.
+
+**Builtins are special:** Commands like `cd`, `export`, `source`, and `alias`
+must run *inside* the shell process (not in a child) because they modify the
+shell's own state. `cd` changes the shell's working directory — if it ran as
+a child process, only the child would change directories, and the parent shell
+would be unaffected.
+
+---
+
 ## Shells: sh, bash, zsh, and Others
 
 Shells are command-line interpreters — programs that read your commands and execute them. They matter for git hooks, scripts, CI pipelines, and daily terminal use. Each shell is a superset or variant of the one before it.
