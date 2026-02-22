@@ -51,12 +51,13 @@ dependencies = [
 ]
 
 # Project URLs - shown on PyPI sidebar
+# TODO (template users): Replace YOURNAME/YOURREPO with your actual GitHub username/repo.
 [project.urls]
-# Homepage = "https://github.com/username/simple-python-boilerplate"
-# Repository = "https://github.com/username/simple-python-boilerplate"
-# Documentation = "https://simple-python-boilerplate.readthedocs.io"
-# Changelog = "https://github.com/username/simple-python-boilerplate/blob/main/CHANGELOG.md"
-# "Bug Tracker" = "https://github.com/username/simple-python-boilerplate/issues"
+Homepage = "https://github.com/YOURNAME/YOURREPO"
+Repository = "https://github.com/YOURNAME/YOURREPO"
+Documentation = "https://YOURNAME.github.io/YOURREPO/"
+Changelog = "https://github.com/YOURNAME/YOURREPO/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/YOURNAME/YOURREPO/issues"
 
 # CLI entry point - run with: spb
 [project.scripts]
@@ -245,6 +246,11 @@ version-file = "src/simple_python_boilerplate/_version.py"
 testpaths = ["tests"]
 addopts = "-q"  # Quiet output
 # addopts = "-v --cov=simple_python_boilerplate --cov-report=term-missing"
+strict_markers = true   # Fail on unknown markers (catches typos)
+strict_config = true    # Fail on unknown config keys
+filterwarnings = [
+    "error::DeprecationWarning",  # Surface deprecations as errors early
+]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
@@ -255,6 +261,13 @@ markers = [
 source = ["src"]
 branch = true
 # omit = ["*/tests/*", "*/__pycache__/*"]
+
+# Map coverage paths so CI (site-packages) and local (src/) merge correctly
+[tool.coverage.paths]
+source = [
+    "src/simple_python_boilerplate",
+    "*/simple_python_boilerplate",
+]
 
 [tool.coverage.report]
 # TODO (template users): Set your coverage floor. 80% is a reasonable
@@ -272,11 +285,25 @@ exclude_lines = [
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-# src = ["src", "tests"]  # Mark these as first-party for import sorting
+src = ["src", "tests"]  # Mark these as first-party for import sorting
 # exclude = [".venv", "build", "dist"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "D", "T20"]  # E=errors, F=pyflakes, I=imports, UP=pyupgrade, D=pydocstyle, T20=flake8-print (no print/pprint)
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # Pyflakes
+    "I",    # isort (import sorting)
+    "UP",   # pyupgrade (modernize syntax)
+    "D",    # pydocstyle (docstring conventions)
+    "T20",  # flake8-print (no print/pprint)
+    "B",    # flake8-bugbear (common bugs and design problems)
+    "C4",   # flake8-comprehensions (better list/dict/set comprehensions)
+    "SIM",  # flake8-simplify (simplifiable constructs)
+    "PTH",  # flake8-use-pathlib (prefer pathlib over os.path)
+    "PERF", # Perflint (performance anti-patterns)
+    "RUF",  # Ruff-specific rules
+]
 ignore = [
     "E501",   # Ignore line length limit
     "D100",   # Missing docstring in public module
@@ -284,7 +311,7 @@ ignore = [
     "D203",   # Conflicts with D211 (no-blank-line-before-class)
     "D213",   # Conflicts with D212 (multi-line-summary-second-line)
 ]
-# Extended rule sets to consider:
+# Extended rule sets to consider (can be noisy — enable selectively):
 # select = [
 #     "E",      # pycodestyle errors
 #     "W",      # pycodestyle warnings
@@ -292,16 +319,17 @@ ignore = [
 #     "I",      # isort (import sorting)
 #     "UP",     # pyupgrade (modernize syntax)
 #     "D",      # pydocstyle (docstring conventions)
-#     "B",      # flake8-bugbear (common bugs)
-#     "C4",     # flake8-comprehensions
-#     "SIM",    # flake8-simplify
-#     "ARG",    # flake8-unused-arguments
-#     "PTH",    # flake8-use-pathlib
-#     "ERA",    # eradicate (commented-out code)
-#     "PL",     # Pylint
+#     "T20",    # flake8-print (no print/pprint)
+#     "B",      # flake8-bugbear (common bugs and design problems)
+#     "C4",     # flake8-comprehensions (better list/dict/set comprehensions)
+#     "SIM",    # flake8-simplify (simplifiable constructs)
+#     "PTH",    # flake8-use-pathlib (prefer pathlib over os.path)
+#     "PERF",   # Perflint (performance anti-patterns)
 #     "RUF",    # Ruff-specific rules
+#     "ARG",    # flake8-unused-arguments (noisy with callback-style APIs)
+#     "ERA",    # eradicate (commented-out code — may flag code examples in docstrings)
+#     "PL",     # Pylint (broad set — enable sub-categories: PLR, PLE, PLC, PLW)
 # ]
-# ignore = ["E501"]  # Ignore specific rules
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # Enforce Google-style docstrings

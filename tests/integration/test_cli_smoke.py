@@ -11,6 +11,10 @@ import sys
 
 import pytest
 
+# Mark all tests in this module as integration tests.
+# Skip with: pytest -m "not integration"
+pytestmark = pytest.mark.integration
+
 # ── Entry point smoke tests ──────────────────────────────────
 
 
