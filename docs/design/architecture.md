@@ -245,7 +245,6 @@ Dev/test dependencies are listed in `pyproject.toml`
 - **`api.py`** — HTTP/REST interface is a placeholder (`NotImplementedError`)
 - **`sql/`** — Empty package, no application queries yet
 - **`db/schema.sql`** — Placeholder schema, no tables defined
-- **Integration tests** — directory exists but tests are pending
 
 
 ## Related Documentation

@@ -54,7 +54,7 @@ follow the conventions described at the bottom of this page.
 
 | Workflow | File | Triggers | Job name(s) | Purpose |
 |----------|------|----------|-------------|---------|
-| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main), PR, manual | `Build docs`, `Deploy to GitHub Pages` | Builds MkDocs site (strict) and deploys to GitHub Pages on push to main |
+| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main, path-filtered), PR (path-filtered), manual | `Build docs`, `Deploy to GitHub Pages` | Builds MkDocs site (strict) and deploys to GitHub Pages on push to main |
 
 ### Container
 
@@ -113,6 +113,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 **Excluded from gate** (path-filtered — don't run on every PR):
 
 - `bandit.yml` — only runs on `src/**`, `scripts/**`, `experiments/**`, `pyproject.toml` changes
+- `docs-deploy.yml` — only runs on `docs/**`, `mkdocs.yml`, `src/**/*.py`, `pyproject.toml` changes
 - `link-checker.yml` — only runs on `**/*.md`, `**/*.html`, `docs/**` changes
 
 These still report status when they run and also run on push to main + schedules.

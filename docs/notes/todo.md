@@ -75,6 +75,8 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: .github/workflows/test.yml
 - [ ] Add more detailed design document outlining the architecture and design decisions of the project, including explanations of the file structure, dependency management, testing strategy, CI/CD setup, and any other relevant design choices. This could be added to the `docs/design/` directory as a new markdown file (e.g., `design.md`) that provides an overview of the project's design and architecture for users who want to understand the rationale behind the structure and configurations included in the template.
 - [ ] Add resources to learn about dependencies, versioning, packaging, and other relevant topics in the `docs/notes/` directory as a new markdown file (e.g., `resources.md`) that provides links to articles, tutorials, and documentation for users who want to learn more about these topics and how they relate to the project template.
+- [ ] Anymore scripts?
+- [ ]
 
 ## Questions to Answer
 
