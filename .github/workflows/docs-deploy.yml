@@ -31,8 +31,20 @@ name: Docs
 on:
   push:
     branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**/*.py"
+      - "pyproject.toml"
+      - ".github/workflows/docs-deploy.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "src/**/*.py"
+      - "pyproject.toml"
+      - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages.

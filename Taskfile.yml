@@ -102,6 +102,17 @@ tasks:
     desc: Run bandit security linter
     cmds:
       - hatch run bandit -r src/ {{.CLI_ARGS}}
+  # ── Documentation ──────────────────────────────────────────
+  docs:serve:
+    desc: Serve documentation with live-reload
+    cmds:
+      - hatch run docs:serve {{.CLI_ARGS}}
+
+  docs:build:
+    desc: Build documentation (strict mode)
+    cmds:
+      - hatch run docs:build {{.CLI_ARGS}}
+
   # ── Quality Gates ──────────────────────────────────────────
   check:
     desc: Run all quality checks (lint, format, typecheck, test)
