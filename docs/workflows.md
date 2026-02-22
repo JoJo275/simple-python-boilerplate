@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **25 workflow files** in `.github/workflows/`. All workflows
+This project has **26 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page.
 
 ---
@@ -49,6 +49,12 @@ follow the conventions described at the bottom of this page.
 | **Release Please** | [release-please.yml](../.github/workflows/release-please.yml) | push (main) | `Create or update Release PR` | Automates version bump, changelog, and git tags |
 | **Release** | [release.yml](../.github/workflows/release.yml) | tag push (`v*`), manual | `Build distribution`, `Generate release SBOMs`, `Upload release assets` | Builds sdist + wheel, optionally publishes to PyPI |
 | **SBOM** | [sbom.yml](../.github/workflows/sbom.yml) | push, PR, weekly, manual | `Generate SBOMs` | Generates SPDX + CycloneDX SBOMs |
+
+### Documentation
+
+| Workflow | File | Triggers | Job name(s) | Purpose |
+|----------|------|----------|-------------|---------|
+| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main), PR, manual | `Build docs`, `Deploy to GitHub Pages` | Builds MkDocs site (strict) and deploys to GitHub Pages on push to main |
 
 ### Container
 
