@@ -1,0 +1,96 @@
+# ──────────────────────────────────────────────────────────────
+# PR Labeler Configuration
+# ──────────────────────────────────────────────────────────────
+# Maps file-change patterns to labels applied automatically by
+# the labeler workflow (.github/workflows/labeler.yml).
+#
+# Syntax reference: https://github.com/actions/labeler
+#
+# TODO (template users): Adjust these patterns to match your
+# project structure. Remove labels/sections you don't use.
+# ──────────────────────────────────────────────────────────────
+
+# ── Area labels ───────────────────────────────────────────────
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "mkdocs.yml"
+          - "**/*.md"
+
+github_actions:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actions/**"
+          - ".github/labeler.yml"
+          - ".github/dependabot.yml"
+          - "Taskfile.yml"
+          - ".pre-commit-config.yaml"
+
+"area: tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "mkdocs.yml"
+
+"area: packaging":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "requirements*.txt"
+          - "Containerfile"
+          - "release-please-config.json"
+
+"area: cli":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/simple_python_boilerplate/cli.py"
+          - "src/simple_python_boilerplate/main.py"
+
+# ── Type labels ───────────────────────────────────────────────
+
+"type: build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "Containerfile"
+          - "requirements*.txt"
+
+"type: test":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+      - all-globs-to-all-files:
+          - "!src/**"
+          - "!docs/**"
+
+"type: security":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "SECURITY.md"
+          - ".github/workflows/nightly-security.yml"
+          - ".github/workflows/security-audit.yml"
+          - ".github/workflows/codeql.yml"
+          - ".github/workflows/container-scan.yml"
+
+# ── Dependency label ──────────────────────────────────────────
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "requirements*.txt"
+          - ".github/dependabot.yml"
