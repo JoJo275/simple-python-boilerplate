@@ -54,7 +54,7 @@ Things to explore, implement, or learn more about.
 - [ ] Test whole repo against all CI in strict mode. --final stress test--
 - [ ] signed tags?
 - [ ] add in sql CI?
-- [ ] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
+- [X] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
 - [ ] Add more detailed documentation for each workflow and how to customize it for different project needs.
 - [ ] Add more detailed documentation for how to set up and use the template for new projects
 - [ ] Add more detailed documentation for how to maintain and update projects created from the template, including how to pull in updates from the template itself if using something like `cruft`.
