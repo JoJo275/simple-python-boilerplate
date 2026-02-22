@@ -36,6 +36,23 @@ sqlite3 var/app.sqlite3 < db/schema.sql
 sqlite3 var/app.sqlite3 < db/seeds/001_example_seed.sql
 ```
 
+## CI & Quality Checks for SQL
+
+<!-- TODO (template users): Enable these when you add real SQL to your project -->
+
+Once you add real SQL to your project, consider adding automated checks:
+
+| Check | Tool | How |
+|-------|------|-----|
+| **Schema validation** | `sqlite3` | `sqlite3 :memory: < db/schema.sql` in CI |
+| **SQL lint + format** | [SQLFluff](https://sqlfluff.com/) | Pre-commit hook + CI workflow |
+| **Migration apply test** | sqlite3 or your DB | Apply all migrations sequentially in CI |
+| **Seed data test** | sqlite3 or your DB | Apply seeds after schema to check constraints |
+
+If using an ORM instead of raw SQL files, lint Python code (Ruff, mypy) and
+test migrations with pytest. See [learning notes on SQL CI](../docs/notes/learning.md#setting-up-sql-ci-and-hooks)
+for detailed examples.
+
 ## Related
 
 - [var/](../var/) — Runtime database files (gitignored)

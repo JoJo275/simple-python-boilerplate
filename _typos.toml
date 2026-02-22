@@ -33,6 +33,8 @@ extend-exclude = [
 [default.extend-words]
 # Example:
 # aci = "aci"
+BRE = "BRE"    # POSIX Basic Regular Expressions — not a typo
+ERE = "ERE"    # POSIX Extended Regular Expressions — not a typo
 
 # -----------------------------------------------------------------------------
 # Per-identifier overrides  (code identifiers → allow)
