@@ -2,11 +2,12 @@
 
 A modern Python project template with `src/` layout, automated CI/CD, and batteries-included tooling.
 
-<!-- TODO (template users): Replace badges with your own repo URLs -->
-<!-- [![CI](https://github.com/YOURNAME/YOURREPO/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/YOURNAME/YOURREPO/actions/workflows/ci-gate.yml) -->
-<!-- [![codecov](https://codecov.io/gh/YOURNAME/YOURREPO/branch/main/graph/badge.svg)](https://codecov.io/gh/YOURNAME/YOURREPO) -->
-<!-- [![License](https://img.shields.io/github/license/YOURNAME/YOURREPO)](LICENSE) -->
-<!-- [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/) -->
+<!-- TODO (template users): Replace 'JoJo275/simple-python-boilerplate' with your repo slug -->
+[![CI](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml)
+[![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg)](https://codecov.io/gh/JoJo275/simple-python-boilerplate)
+[![License](https://img.shields.io/github/license/JoJo275/simple-python-boilerplate)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 ---
 

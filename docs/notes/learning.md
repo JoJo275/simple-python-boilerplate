@@ -330,6 +330,130 @@ Example: When adopting type checking, start with a soft gate (`continue-on-error
 
 ---
 
+## Containers — Production vs Development vs Orchestration
+
+This project has three container-related files that serve completely different purposes.
+Understanding the distinction is important.
+
+### The Big Picture
+
+```
+                    ┌─────────────────────────┐
+                    │   Docker / Podman       │  ← The engine that runs everything
+                    │   (container runtime)   │
+                    └───────────┬─────────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            │                   │                   │
+            ▼                   ▼                   ▼
+    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+    │ Containerfile │   │ devcontainer  │   │ docker-compose│
+    │ (production)  │   │ (development) │   │ (orchestration)│
+    └───────────────┘   └───────────────┘   └───────────────┘
+```
+
+### Comparison Table
+
+| Aspect | Containerfile | Dev Container | Docker Compose |
+|--------|---------------|---------------|----------------|
+| **Location** | `Containerfile` (repo root) | `.devcontainer/` | `docker-compose.yml` |
+| **Purpose** | Build production image | Development environment | Run/orchestrate containers |
+| **Contains** | Minimal app only (~150MB) | Full dev tools (~1GB+) | References other images |
+| **User** | Run the application | Write code interactively | Manage multi-service setups |
+| **When to use** | CI/CD, deployment | Daily development | Local testing, multi-container |
+
+### 1. Containerfile (Production)
+
+A recipe for building a minimal **production** container image. Contains only your
+installed application — no dev tools, no tests, no source code.
+
+**How to use:**
+```bash
+# Build the image
+docker build -t simple-python-boilerplate -f Containerfile .
+
+# Run your application
+docker run --rm simple-python-boilerplate
+```
+
+**Key features:**
+- Multi-stage build (builder stage + runtime stage)
+- Non-root user for security
+- Pinned base image digest for reproducibility
+- OCI-compliant (works with Docker, Podman, etc.)
+
+### 2. Dev Container (Development)
+
+A VS Code feature that runs your entire development environment inside a container.
+Everything is pre-configured: Python, Node.js, pre-commit hooks, extensions.
+
+**How to use:**
+1. Install Docker Desktop (or Podman)
+2. Install VS Code extension: "Dev Containers"
+3. Open repo in VS Code
+4. Click "Reopen in Container" (or Cmd/Ctrl+Shift+P → `Dev Containers: Reopen in Container`)
+
+Alternatively, use GitHub Codespaces — the config works there automatically.
+
+**Key features:**
+- Zero-setup onboarding for new contributors
+- Consistent environment across machines
+- All extensions and settings pre-configured
+- Works with GitHub Codespaces
+
+### 3. Docker Compose (Orchestration)
+
+A declarative way to build/run containers with all options specified in a file.
+Useful for local testing and multi-service setups (app + database, etc.).
+
+**How to use:**
+```bash
+# Build and run
+docker compose up --build
+
+# Run in background
+docker compose up -d --build
+
+# Stop
+docker compose down
+
+# View logs
+docker compose logs -f
+```
+
+**Key features:**
+- Version-controlled run configuration
+- Easy to add services (database, cache, etc.)
+- Simpler than remembering `docker run` flags
+
+### When to Use Which
+
+| Scenario | Use |
+|----------|-----|
+| "I want to deploy this app" | Containerfile → build image → push to registry |
+| "I want to develop this project" | Dev Container → VS Code "Reopen in Container" |
+| "I want to test the production build locally" | Docker Compose → `docker compose up --build` |
+| "I want to run app + database together" | Docker Compose with multiple services |
+| "I'm a new contributor, how do I start?" | Dev Container or Codespaces |
+
+### Docker vs Podman
+
+Both are container runtimes that can execute all three configurations above:
+
+| Aspect | Docker | Podman |
+|--------|--------|--------|
+| **Architecture** | Client-server (daemon) | Daemonless |
+| **Root required** | Historically yes | Rootless by default |
+| **Compatibility** | Industry standard | Docker CLI-compatible |
+| **License** | Docker Desktop requires license for enterprises | Fully open source |
+
+For most purposes, they're interchangeable. This project uses "Containerfile" (Podman's
+preferred name) instead of "Dockerfile" but both tools understand both names.
+
+See: [ADR 025](../adr/025-container-strategy.md)
+
+---
+
 ## Virtual Environments
 
 ### Quick Setup

@@ -4,7 +4,7 @@ Things to explore, implement, or learn more about.
 
 ## To Implement
 
-- [ ] Add code coverage reporting to CI
+- [X] Add code coverage reporting to CI
 - [X] Set up documentation with MkDocs
 
 ## To Learn
@@ -17,9 +17,9 @@ Things to explore, implement, or learn more about.
 ## Ideas for Later
 
 - [X] Add Docker support for containerized development
-- [ ] Create VS Code devcontainer configuration
-- [ ] Add Makefile or taskfile for common commands
-- [ ] Explore Nox/Tox for multi-environment testing
+- [X] Create VS Code devcontainer configuration
+- [X] Add Makefile or taskfile for common commands
+- [X] Explore Nox/Tox for multi-environment testing
 - [ ] Set up GitHub Codespaces configuration
 - [X] Implement Sphinx/MkDocs documentation generation (learn what this even is).
 *From what I've read so far this is like a static website generator for documentation, similar to Jekyll but for docs specifically.*
