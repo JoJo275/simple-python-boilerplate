@@ -3,11 +3,12 @@
 A modern Python project template with `src/` layout, automated CI/CD, and batteries-included tooling.
 
 <!-- TODO (template users): Replace 'JoJo275/simple-python-boilerplate' with your repo slug -->
-[![CI](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml)
-[![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg)](https://codecov.io/gh/JoJo275/simple-python-boilerplate)
+[![CI](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml/badge.svg?branch=main)](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/github/license/JoJo275/simple-python-boilerplate)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
-[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+<!-- Uncomment after setting up Codecov (free for public repos): -->
+<!-- [![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/JoJo275/simple-python-boilerplate) -->
 
 ---
 
