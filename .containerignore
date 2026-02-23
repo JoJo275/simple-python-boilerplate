@@ -45,7 +45,6 @@ coverage.xml
 docs/
 *.md
 !README.md
-LICENSE
 
 # Database & runtime data
 db/
