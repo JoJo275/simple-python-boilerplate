@@ -94,7 +94,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.1
+    rev: v0.15.2
     hooks:
       # Linter
       - id: ruff
@@ -151,7 +151,7 @@ repos:
   # each catches things the other misses.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/crate-ci/typos
-    rev: v1.43.5
+    rev: v1
     hooks:
       - id: typos
         args: [--config, _typos.toml]
@@ -258,7 +258,7 @@ repos:
   # With rebase+merge, every commit message matters — this ensures
   # well-formed messages that feed into release-please's CHANGELOG.
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.4.1
+    rev: v4.13.8
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -286,7 +286,7 @@ repos:
   # detection before code leaves your machine.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.7.3
+    rev: v2.10.0
     hooks:
       - id: pip-audit
         stages: [pre-push]
