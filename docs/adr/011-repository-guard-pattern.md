@@ -22,22 +22,28 @@ Options considered:
 
 ## Decision
 
-Use a repository guard pattern in all optional workflows. Each workflow job includes an `if:` condition that checks one of two opt-in methods:
+Use a repository guard pattern in all optional workflows. Each workflow job includes an `if:` condition that checks one of three opt-in methods:
 
 ```yaml
 if: >-
   ${{
     github.repository == 'YOURNAME/YOURTEMPLATE'
+    || vars.ENABLE_WORKFLOWS == 'true'
     || vars.ENABLE_<WORKFLOW_NAME> == 'true'
   }}
 ```
 
-### Two ways to opt in
+### Three ways to opt in
 
 | Method | How | Best for |
 |--------|-----|----------|
-| **Option A** | Replace `YOURNAME/YOURTEMPLATE` with your repo slug in the YAML | Simple, permanent |
-| **Option B** | Set `vars.ENABLE_<WORKFLOW>` repository variable to `'true'` | No YAML edits needed; toggleable |
+| **Option A** | Replace `YOURNAME/YOURTEMPLATE` with your repo slug in the YAML (or run `scripts/customize.py`) | Simple, permanent |
+| **Option B** | Set `vars.ENABLE_WORKFLOWS = 'true'` repository variable | Enable **all** workflows at once with no YAML edits |
+| **Option C** | Set `vars.ENABLE_<WORKFLOW> = 'true'` repository variable | Granular control over individual workflows |
+
+Options B and C can be combined — `ENABLE_WORKFLOWS` activates everything,
+then individual `ENABLE_<WORKFLOW>` variables can be used if only some
+workflows are desired (without the global variable).
 
 ## Consequences
 

@@ -55,6 +55,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_COVERAGE == 'true'
       }}
     runs-on: ubuntu-latest

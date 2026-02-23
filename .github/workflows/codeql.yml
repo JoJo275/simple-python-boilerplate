@@ -66,6 +66,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CODEQL == 'true'
       }}
     runs-on: ubuntu-latest

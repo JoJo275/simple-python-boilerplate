@@ -39,6 +39,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_PRE_COMMIT_UPDATE == 'true'
       }}
     runs-on: ubuntu-latest

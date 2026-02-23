@@ -61,6 +61,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_SECURITY_AUDIT == 'true'
       }}
     runs-on: ubuntu-latest
