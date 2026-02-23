@@ -101,12 +101,12 @@ jobs:
       # distribution artifacts. This cryptographically links the
       # artifacts to this specific build, strengthening supply chain trust.
       - name: Attest build provenance (sdist)
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: dist/*.tar.gz
 
       - name: Attest build provenance (wheel)
-        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
         with:
           subject-path: dist/*.whl
 
