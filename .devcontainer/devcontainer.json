@@ -1,0 +1,88 @@
+// =============================================================================
+// Dev Container Configuration
+// =============================================================================
+// Provides a consistent, pre-configured development environment for VS Code.
+//
+// Usage:
+//   1. Install the "Dev Containers" extension in VS Code
+//   2. Open the command palette (Ctrl+Shift+P / Cmd+Shift+P)
+//   3. Run "Dev Containers: Reopen in Container"
+//
+// Or use GitHub Codespaces — this config works automatically there.
+//
+// This is for DEVELOPMENT. The Containerfile at the repo root is for
+// PRODUCTION — it builds a minimal runtime image without dev tools.
+//
+// See: https://containers.dev/implementors/json_reference/
+// =============================================================================
+{
+  "name": "simple-python-boilerplate",
+
+  // Use the official Python dev container image (includes pip, venv, git, etc.)
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+
+  // Additional tools installed via dev container features
+  // See: https://containers.dev/features
+  "features": {
+    // Node.js — required for some pre-commit hooks (e.g., markdownlint, prettier)
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    // Task runner — for running Taskfile.yml commands
+    "ghcr.io/devcontainers-extra/features/go-task:1": {}
+  },
+
+  // Run after container creation (first time only)
+  "postCreateCommand": "pip install -e '.[dev,test,docs]' && pre-commit install --install-hooks && pre-commit install --hook-type commit-msg && pre-commit install --hook-type pre-push",
+
+  // VS Code customizations
+  "customizations": {
+    "vscode": {
+      // Extensions to install in the container
+      "extensions": [
+        // Python
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+
+        // TOML/YAML/Markdown
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+
+        // Git
+        "eamodio.gitlens",
+        "mhutchie.git-graph",
+
+        // General
+        "streetsidesoftware.code-spell-checker",
+        "EditorConfig.EditorConfig"
+      ],
+
+      // Settings for the container environment
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.terminal.activateEnvironment": false,
+
+        // Ruff (linting + formatting)
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  // Forward ports (uncomment if your app runs a server)
+  // "forwardPorts": [8000],
+
+  // Run as non-root user (matches the vscode user in the base image)
+  "remoteUser": "vscode"
+}
