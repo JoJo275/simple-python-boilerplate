@@ -43,6 +43,7 @@ coverage.xml
 # Documentation & notes
 docs/
 *.md
+!README.md
 LICENSE
 
 # Database & runtime data

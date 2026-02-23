@@ -19,7 +19,7 @@ on:
     #   │ │ │ │ │
     #   * * * * *
     #
-    # Because cron is fixed to UTC, local time shifts with DST:
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
     #   09:00 UTC = 04:00 EST (Nov–Mar) / 05:00 EDT (Mar–Nov)
     - cron: "0 9 * * 1" # Monday 09:00 UTC
 
