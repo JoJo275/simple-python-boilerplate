@@ -35,6 +35,7 @@ extend-exclude = [
 # aci = "aci"
 BRE = "BRE"    # POSIX Basic Regular Expressions — not a typo
 ERE = "ERE"    # POSIX Extended Regular Expressions — not a typo
+certifi = "certifi"  # Python package for Mozilla CA certificates
 
 # -----------------------------------------------------------------------------
 # Per-identifier overrides  (code identifiers → allow)
