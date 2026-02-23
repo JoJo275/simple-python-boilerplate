@@ -1,6 +1,7 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
 <!-- Suggested branch rename: feat/template-scaffolding-and-ci-hardening -->
+<!-- Suggested labels: -->
 
 ## Description
 
