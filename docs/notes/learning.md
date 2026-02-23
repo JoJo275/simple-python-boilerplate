@@ -662,6 +662,192 @@ Speed up workflows by caching pip:
 | `codecov/codecov-action` | Upload coverage |
 | `pypa/gh-action-pypi-publish` | Publish to PyPI |
 
+### How to Configure Workflow YAML Files
+
+#### Where to learn
+
+The authoritative reference is [GitHub Actions documentation](https://docs.github.com/en/actions).
+Key pages:
+
+| Topic | URL |
+|-------|-----|
+| Workflow syntax | `docs.github.com/en/actions/reference/workflow-syntax-for-github-actions` |
+| Events that trigger workflows | `docs.github.com/en/actions/reference/events-that-trigger-workflows` |
+| Contexts & expressions | `docs.github.com/en/actions/learn-github-actions/contexts` |
+| Permissions | `docs.github.com/en/actions/security-guides/automatic-token-authentication` |
+| Encrypted secrets | `docs.github.com/en/actions/security-guides/encrypted-secrets` |
+| Variables | `docs.github.com/en/actions/learn-github-actions/variables` |
+
+Each action's own repo README documents its inputs/outputs (e.g., `actions/checkout`, `peter-evans/create-pull-request`).
+
+#### YAML structure at a glance
+
+A workflow file lives in `.github/workflows/` and has four main sections:
+
+```yaml
+name: Human-readable name          # Shows in the Actions tab
+
+on:                                 # 1. TRIGGERS — when does this run?
+  push: ...
+  pull_request: ...
+  schedule: ...
+  workflow_dispatch: ...
+
+permissions:                        # 2. PERMISSIONS — least-privilege GITHUB_TOKEN scope
+  contents: read
+
+jobs:                               # 3. JOBS — what to run (each gets its own runner)
+  my-job:
+    runs-on: ubuntu-latest
+    if: <condition>                  # 4. GUARDS — should this job run at all?
+    steps:
+      - uses: owner/action@sha      # Use a published action
+      - run: echo "shell command"    # Run a shell command
+```
+
+#### Triggers (`on:`)
+
+| Trigger | When it fires | Notes |
+|---------|--------------|-------|
+| `push` | Code pushed to matching branches | Can filter by `branches:` and `paths:` |
+| `pull_request` | PR opened/synced against matching branches | Uses the **PR head branch's** workflow file |
+| `schedule` | Cron expression (UTC) | **Only runs from default branch** (usually `main`) |
+| `workflow_dispatch` | Manual "Run workflow" button | Uses the workflow file from the **selected branch** |
+| `workflow_run` | After another workflow completes | Useful for chaining workflows |
+
+**Key gotcha:** `schedule:` always uses the workflow file on `main`. If you
+change a cron schedule on a branch, it won't take effect until merged.
+`workflow_dispatch` does use the selected branch's file, so you can test
+workflow changes via the manual trigger before merging.
+
+#### Permissions (least privilege)
+
+Always declare the minimum permissions needed. GitHub's default `GITHUB_TOKEN`
+has broad access; narrowing it limits blast radius if a dependency is compromised.
+
+```yaml
+permissions:
+  contents: read              # Read repo contents (most workflows)
+  pull-requests: write        # Create/comment on PRs
+  security-events: write      # Upload SARIF to Security tab
+  issues: write               # Comment on / close issues
+  id-token: write             # OIDC token (OpenSSF Scorecard, cloud auth)
+```
+
+**Repo-level setting:** Some permissions also require a repo setting toggle.
+Example: "Allow GitHub Actions to create and approve pull requests" must be
+enabled at **Settings → Actions → General → Workflow permissions** for any
+workflow that creates PRs (like `pre-commit-update.yml`).
+
+#### Guards / Conditionals (`if:`)
+
+Control whether a job runs using expressions:
+
+```yaml
+jobs:
+  deploy:
+    # Only run on the main repo, not forks
+    if: github.repository == 'myorg/myrepo'
+
+  auto-merge:
+    # Only run for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+```
+
+This project uses a repository guard pattern (see [ADR 011](../adr/011-repository-guard-pattern.md))
+to prevent workflows from running on forks that haven't opted in. Template users
+can opt in by replacing the slug, setting `vars.ENABLE_WORKFLOWS`, or setting
+per-workflow variables.
+
+#### Repository Variables vs Secrets
+
+| Feature | Variables (`vars.*`) | Secrets (`secrets.*`) |
+|---------|---------------------|----------------------|
+| Visible in logs | Yes | Masked (never printed) |
+| Use case | Feature flags, config | API keys, tokens |
+| Set at | Settings → Variables | Settings → Secrets |
+| Access in YAML | `${{ vars.MY_VAR }}` | `${{ secrets.MY_SECRET }}` |
+| Case-sensitive values | Yes (`'true'` ≠ `'True'`) | N/A |
+
+**Gotcha:** Variable comparisons are case-sensitive. `vars.ENABLE_FOO == 'true'`
+will not match if the variable is set to `'True'` or `'TRUE'`.
+
+#### Scheduled Workflows (cron)
+
+Cron uses five fields, all in **UTC**:
+
+```
+┌─── minute (0–59)
+│ ┌─── hour (0–23)
+│ │ ┌─── day of month (1–31)
+│ │ │ ┌─── month (1–12)
+│ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+│ │ │ │ │
+* * * * *
+```
+
+Examples:
+- `"0 3 * * *"` — daily at 03:00 UTC
+- `"0 9 * * 1"` — every Monday at 09:00 UTC
+- `"0 13 * * 1"` — every Monday at 13:00 UTC
+
+Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time).
+For US Eastern: 03:00 UTC = 22:00 EST (Nov–Mar) / 23:00 EDT (Mar–Nov).
+
+**Important:** Scheduled workflows only run on the default branch. Changing a
+cron schedule on a feature branch has no effect until merged.
+
+#### SHA-Pinning Actions
+
+Always pin actions to full commit SHAs, not tags:
+
+```yaml
+# BAD — tag can be moved to point at malicious code
+uses: actions/checkout@v4
+
+# GOOD — immutable commit reference
+uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+```
+
+The version comment (`# v4.2.2`) is just for humans — GitHub resolves the SHA.
+If an action maintainer force-pushes or deletes the commit, the SHA becomes
+invalid and the workflow will fail at "Set up job" with an error like:
+*"An action could not be found at the URI"*.
+
+To find the correct SHA for a release:
+1. Go to the action's GitHub releases page
+2. Click the tag → click the commit hash
+3. Copy the **full 40-character SHA** from the URL
+
+#### Common Mistakes I've Hit
+
+1. **`.dockerignore` excluding build-required files** — Hatchling needs
+   `README.md` and `LICENSE` during `python -m build`. If your container
+   ignore file excludes `*.md` or `LICENSE`, the container build fails
+   silently during the wheel step. Fix: add `!README.md` after `*.md` and
+   remove `LICENSE` from the exclusion list.
+
+2. **Invalid action SHAs** — A pinned SHA that doesn't exist (typo,
+   truncated, or force-pushed upstream) causes an immediate failure at
+   "Set up job". Always verify the SHA exists on the action's releases page.
+
+3. **Repo setting not enabled** — Workflows with `pull-requests: write` or
+   that create PRs also need the repo-level "Allow GitHub Actions to create
+   and approve pull requests" setting enabled. The workflow permissions in
+   YAML are necessary but not sufficient.
+
+4. **Schedule changes on branches** — Editing a cron schedule on a feature
+   branch does nothing. Scheduled workflows always run from `main`.
+
+5. **Variable case sensitivity** — `vars.ENABLE_FOO == 'true'` won't match
+   `'True'`. Always use lowercase `'true'` as the convention.
+
+6. **Path-filtered workflows and required checks** — If a workflow only runs
+   on certain file paths (e.g., `paths: ["src/**"]`), it won't run on PRs
+   that don't touch those paths. If that workflow is a required check, the
+   PR will hang forever waiting. Solution: exclude path-filtered workflows
+   from required checks, or use a CI gate pattern.
+
 ---
 
 ## Branch Protection
