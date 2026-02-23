@@ -65,6 +65,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CI_GATE == 'true'
       }}
     runs-on: ubuntu-latest

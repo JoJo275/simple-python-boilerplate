@@ -41,6 +41,7 @@ jobs:
     if: >-
       ${{
         github.repository == 'YOURNAME/YOURTEMPLATE'
+        || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_TYPE_CHECK == 'true'
       }}
     runs-on: ubuntu-latest
