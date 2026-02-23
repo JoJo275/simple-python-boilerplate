@@ -16,16 +16,16 @@ Things to explore, implement, or learn more about.
 
 ## Ideas for Later
 
-- [ ] Add Docker support for containerized development
+- [X] Add Docker support for containerized development
 - [ ] Create VS Code devcontainer configuration
 - [ ] Add Makefile or taskfile for common commands
 - [ ] Explore Nox/Tox for multi-environment testing
 - [ ] Set up GitHub Codespaces configuration
-- [ ] Implement Sphinx/MkDocs documentation generation (learn what this even is).
+- [X] Implement Sphinx/MkDocs documentation generation (learn what this even is).
 *From what I've read so far this is like a static website generator for documentation, similar to Jekyll but for docs specifically.*
 - [ ] Add more ADRs for architectural decisions
 - [ ] Add more detailed development workflow docs
-- [ ] Explore additional static analysis tools (e.g., Bandit for security)
+- [X] Explore additional static analysis tools (e.g., Bandit for security)
 - [ ] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
 - [ ] Create example scripts or notebooks demonstrating package usage
 - [ ] Set up continuous deployment to PyPI on new releases
@@ -75,8 +75,9 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: .github/workflows/test.yml
 - [ ] Add more detailed design document outlining the architecture and design decisions of the project, including explanations of the file structure, dependency management, testing strategy, CI/CD setup, and any other relevant design choices. This could be added to the `docs/design/` directory as a new markdown file (e.g., `design.md`) that provides an overview of the project's design and architecture for users who want to understand the rationale behind the structure and configurations included in the template.
 - [ ] Add resources to learn about dependencies, versioning, packaging, and other relevant topics in the `docs/notes/` directory as a new markdown file (e.g., `resources.md`) that provides links to articles, tutorials, and documentation for users who want to learn more about these topics and how they relate to the project template.
-- [ ] Anymore scripts?
+- [X] Anymore scripts?
 - [ ] Use and config scripts to liking.
+- [ ] Finish a decent amount of todo and finish project for the time being, then add more todos and ideas as they come up in the future. This way I can focus on finishing the project and then iteratively improving it over time rather than getting stuck in an endless loop of planning and adding more todos without making progress on the actual implementation.
 - [ ]
 
 ## Questions to Answer
