@@ -5,7 +5,7 @@ Things to explore, implement, or learn more about.
 ## To Implement
 
 - [ ] Add code coverage reporting to CI
-- [ ] Set up documentation with MkDocs
+- [X] Set up documentation with MkDocs
 
 ## To Learn
 
