@@ -40,6 +40,20 @@ on:
       - "docs/**"
       - ".lycheeignore"
   schedule:
+    # Cron is a Unix time-scheduling syntax and the only way to
+    # define scheduled triggers in GitHub Actions. It uses five
+    # fields (all in UTC):
+    #
+    #   ┌─── minute (0–59)
+    #   │ ┌─── hour (0–23)
+    #   │ │ ┌─── day of month (1–31)
+    #   │ │ │ ┌─── month (1–12)
+    #   │ │ │ │ ┌─── day of week (0=Sun … 6=Sat)
+    #   │ │ │ │ │
+    #   * * * * *
+    #
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
+    #   09:00 UTC = 04:00 EST (Nov–Mar) / 05:00 EDT (Mar–Nov)
     - cron: "0 9 * * 1"  # Every Monday at 09:00 UTC
   workflow_dispatch:
 
