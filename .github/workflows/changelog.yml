@@ -66,7 +66,7 @@ jobs:
       # Generate (or update) CHANGELOG.md from conventional commits.
       # git-cliff groups commits by type: feat, fix, docs, refactor, etc.
       - name: Generate changelog
-        uses: orhun/git-cliff-action@e16f179f0be49ecdfe63753837f20b9531642772 # Generate changelog based on your Git history (v4.7.0)
+        uses: orhun/git-cliff-action@c93ef52f3d0ddcdcc9bd5447d98d458a11cd4f72 # Generate changelog based on your Git history (v4.7.0)
         with:
           config: cliff.toml  # Optional config; remove if using defaults
           args: --verbose
