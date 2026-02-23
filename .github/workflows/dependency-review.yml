@@ -74,7 +74,7 @@ jobs:
       #
       # See: https://github.com/actions/dependency-review-action
       - name: Review dependencies
-        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # Prevent the introduction of dependencies with… (v4.8.2)
+        uses: actions/dependency-review-action@05fe4576374b728f0c523d6a13d64c25081e0803 # Prevent the introduction of dependencies with… (v4.8.2)
         with:
           fail-on-severity: moderate
           # deny-licenses: GPL-3.0, AGPL-3.0

@@ -79,7 +79,7 @@ jobs:
           persist-credentials: false
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@9e907b5e64f6b83e7804b09294d44122997950d6 # Set up CodeQL (v4.32.3)
+        uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e # Set up CodeQL (v4.32.3)
         with:
           languages: python
           build-mode: none
@@ -88,6 +88,6 @@ jobs:
           queries: security-extended
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@9e907b5e64f6b83e7804b09294d44122997950d6 # Finalize CodeQL database (v4.32.3)
+        uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e # Finalize CodeQL database (v4.32.3)
         with:
           category: "/language:python"
