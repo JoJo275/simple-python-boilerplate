@@ -1177,6 +1177,108 @@ See: [ADR 015](../adr/015-no-github-directory-readme.md)
 
 ---
 
+## README Badges
+
+Badges are small status images in your README that show project health at a glance.
+They're generated dynamically by external services and rendered as inline images.
+
+### Common Badge Types
+
+| Badge | What it shows | Service |
+|-------|---------------|---------|
+| CI Status | Whether tests/checks pass | GitHub Actions |
+| Coverage | Test coverage percentage | Codecov, Coveralls |
+| License | Project license | Shields.io |
+| Python Version | Supported versions | Shields.io |
+| Code Style | Formatter/linter used | Shields.io |
+| Downloads | PyPI download count | PyPI, pepy.tech |
+| Version | Latest release | GitHub, PyPI |
+
+### How Badges Work
+
+1. You add a Markdown image link: `[![alt](image-url)](click-url)`
+2. The image URL points to a service that returns a dynamically-generated SVG
+3. GitHub renders the SVG inline in your README
+4. The click URL takes users to the full details
+
+### Badge Anatomy
+
+```markdown
+[![CI](https://github.com/OWNER/REPO/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci-gate.yml)
+ │    │                                                                        │
+ │    └── Image URL (returns SVG)                                              └── Click URL (where badge links to)
+ └── Alt text (shown if image fails)
+```
+
+### GitHub Actions Badge
+
+```markdown
+[![CI](https://github.com/OWNER/REPO/actions/workflows/WORKFLOW.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/WORKFLOW.yml)
+```
+
+Shows: passing/failing based on most recent workflow run on default branch.
+
+**Gotcha:** Won't show anything until the workflow has run at least once on main.
+
+### Codecov Badge
+
+```markdown
+[![Coverage](https://codecov.io/gh/OWNER/REPO/branch/main/graph/badge.svg)](https://codecov.io/gh/OWNER/REPO)
+```
+
+Shows: Coverage percentage from latest upload.
+
+**Gotcha:** Requires Codecov account and at least one coverage upload.
+
+### Shields.io (Static/Dynamic Badges)
+
+Shields.io generates badges for almost anything:
+
+```markdown
+<!-- Static badge (hardcoded values) -->
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
+
+<!-- Dynamic badge (fetches from GitHub API) -->
+[![License](https://img.shields.io/github/license/OWNER/REPO)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/OWNER/REPO)](https://github.com/OWNER/REPO)
+[![Issues](https://img.shields.io/github/issues/OWNER/REPO)](https://github.com/OWNER/REPO/issues)
+```
+
+### Badge Best Practices
+
+1. **Keep it minimal** — 3-6 badges max. Too many creates visual noise.
+2. **Put important ones first** — CI status, coverage, then others.
+3. **Use consistent styling** — Shields.io has style options (`?style=flat-square`).
+4. **Test before committing** — Paste URLs in browser to verify they work.
+5. **Check on both light/dark themes** — Some badges look bad on dark mode.
+
+### Troubleshooting
+
+| Problem | Cause | Fix |
+|---------|-------|-----|
+| Badge shows "no status" | Workflow never ran | Push to main to trigger workflow |
+| Badge shows old data | Caching | Add `?cache=no` or wait ~5 min |
+| Coverage badge broken | No Codecov setup | Sign up at codecov.io, add token |
+| Badge looks pixelated | Using PNG | Use SVG URL instead |
+| Badge 404 | Wrong URL | Check owner/repo spelling and case |
+
+### Codecov Setup
+
+Codecov is **free for public repos** and has a free tier for private repos.
+
+**Sign up:**
+1. Go to [codecov.io](https://codecov.io)
+2. Click "Sign up" → "Sign up with GitHub"
+3. Authorize Codecov to access your repos
+4. Add your repo from the dashboard
+
+**For public repos:** Works automatically after first coverage upload.
+
+**For private repos:** Copy the `CODECOV_TOKEN` from Codecov dashboard and add it
+as a repository secret in GitHub (Settings → Secrets → Actions → New secret).
+
+---
+
 ## Things I Keep Forgetting
 
 1. **Import name ≠ package name** — `simple-python-boilerplate` (hyphen) installs, but you `import simple_python_boilerplate` (underscore)
