@@ -88,8 +88,13 @@ jobs:
       # Run tests with coverage. Configuration (source dirs,
       # branch coverage, exclusions) is read from pyproject.toml
       # under [tool.coverage.run] and [tool.coverage.report].
+      #
+      # NOTE: This runs ALL tests (no -m filter) to get accurate
+      # coverage numbers. The test workflow (test.yml) excludes
+      # integration tests for faster feedback. Coverage needs
+      # the full picture, so we include everything here.
       - name: Run tests with coverage
-        run: pytest --cov=simple_python_boilerplate --cov-report=xml --cov-report=term-missing
+        run: pytest --cov=simple_python_boilerplate --cov-report=xml --cov-report=html --cov-report=term-missing
 
       # Upload the coverage report to Codecov.
       # For private repos, set the CODECOV_TOKEN secret.

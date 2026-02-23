@@ -65,5 +65,9 @@ jobs:
       # @pytest.mark.integration) are excluded from the PR matrix
       # to keep feedback fast. They can be run separately or
       # included by removing the -m filter.
+      #
+      # NOTE: The coverage workflow (coverage.yml) runs ALL tests
+      # including integration tests to get accurate coverage numbers.
+      # This workflow prioritizes fast feedback over completeness.
       - name: Run tests
         run: pytest -v -m "not integration"
