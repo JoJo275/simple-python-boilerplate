@@ -11,7 +11,7 @@
 # Triggers:
 #   - Push to main
 #   - Pull requests targeting main
-#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST / 8am ET otherwise)
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST (Daylight Saving Time) / 8am ET otherwise)
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):

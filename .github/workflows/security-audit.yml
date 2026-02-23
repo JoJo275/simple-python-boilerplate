@@ -7,7 +7,7 @@
 # Triggers:
 #   - Push to main
 #   - Pull requests targeting main
-#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST / 8am ET otherwise)
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST (Daylight Saving Time) / 8am ET otherwise)
 #   - Manual dispatch
 #
 # TODO (template users):
@@ -39,7 +39,7 @@ on:
     #   │ │ │ │ │
     #   * * * * *
     #
-    # Because cron is fixed to UTC, local time shifts with DST:
+    # Because cron is fixed to UTC, local time shifts with DST (Daylight Saving Time):
     #   13:00 UTC = 08:00 EST (Nov–Mar) / 09:00 EDT (Mar–Nov)
     - cron: "0 13 * * 1" # Monday 13:00 UTC
   workflow_dispatch:

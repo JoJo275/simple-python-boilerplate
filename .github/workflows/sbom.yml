@@ -18,7 +18,7 @@
 # Triggers:
 #   - Push to main
 #   - Pull requests targeting main
-#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST)
+#   - Weekly schedule (Monday 13:00 UTC; 9am ET during DST (Daylight Saving Time))
 #   - Manual dispatch
 #
 # TODO (template users):

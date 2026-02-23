@@ -8,7 +8,7 @@
 # Triggers:
 #   - Push to main (catch issues as they land)
 #   - Pull requests targeting main
-#   - Nightly schedule (03:00 UTC; 11pm ET during DST / 10pm ET otherwise)
+#   - Nightly schedule (03:00 UTC; 11pm ET during DST (Daylight Saving Time) / 10pm ET otherwise)
 #   - Manual dispatch
 #
 # TODO (template users):
