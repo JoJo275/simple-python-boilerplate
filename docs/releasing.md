@@ -196,6 +196,8 @@ CI workflows (lint, test, typecheck, security) run automatically when you open a
 | **PR body** | Free-form for human reviewers | Describe what, why, and any context |
 | **Commits** | Conventional commit messages | The commits are what matter for releases |
 
+> **Tip:** The repo includes a [PR template](../.github/PULL_REQUEST_TEMPLATE.md) that pre-fills the body with a structured checklist when you open a PR on GitHub.
+
 > **Important:** With rebase+merge, individual **commit messages** drive the CHANGELOG — not the PR title or body. The `pr-title` workflow validates your title follows conventional format for consistency, but it's the commits that release-please reads. The PR body is purely for reviewers.
 
 **5. Merge:**
