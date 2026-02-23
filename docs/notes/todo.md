@@ -26,16 +26,14 @@ Things to explore, implement, or learn more about.
 - [ ] Add more ADRs for architectural decisions
 - [ ] Add more detailed development workflow docs
 - [X] Explore additional static analysis tools (e.g., Bandit for security)
-- [ ] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
-- [ ] Create example scripts or notebooks demonstrating package usage
+- [X] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
 - [ ] Set up continuous deployment to PyPI on new releases
 - [ ] Add support for multiple Python versions in CI
-- [ ] Implement a changelog generation tool (e.g., `towncrier`)
-- [ ] Add more comprehensive test coverage and edge cases
-- [ ] Explore using `pip-tools` for managing dependencies with `requirements.txt`
-- [ ] Learn about semantic versioning and automate version bumps
+- [X] Implement a changelog generation tool (e.g., `towncrier`)
+- [X] Add more comprehensive test coverage and edge cases
+- [X] Explore using `pip-tools` for managing dependencies with `requirements.txt`
+- [X] Learn about semantic versioning and automate version bumps
 - [ ] Study trusted publishing practices for PyPI to ensure secure releases
-- [ ] Set up GitHub Codespaces configuration for cloud-based development environments
 - [X] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
 - [ ] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. *From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences.*
 - [ ] Understand all programs within repo
