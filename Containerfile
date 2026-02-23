@@ -33,7 +33,7 @@ FROM ${PYTHON_BASE} AS builder
 WORKDIR /build
 
 # Install build tool first (layer cached independently of source changes)
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md LICENSE ./
 RUN python -m pip install --no-cache-dir build
 
 # Copy source and build the wheel
