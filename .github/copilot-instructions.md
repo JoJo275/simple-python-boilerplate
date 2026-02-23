@@ -274,6 +274,10 @@ Before concluding a task, verify the changes actually work:
 - **Hook changes** — run `pre-commit run <hook-id> --all-files` for
   modified hooks
 - **Documentation changes** — check that links resolve and markup renders
+- **SHA-pinned actions** — when updating a SHA-pinned GitHub Action,
+  verify the commit SHA actually exists on the upstream repo's releases
+  page before committing. A wrong or truncated SHA will silently break
+  every workflow that references it.
 
 Don't declare something done based on "it looks right." If a
 verification step is available, run it.
