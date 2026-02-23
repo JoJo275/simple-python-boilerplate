@@ -10,7 +10,7 @@ Things to explore, implement, or learn more about.
 ## To Learn
 
 - [ ] Understand `py.typed` marker for PEP 561
-- [ ] Learn about `pip-tools` for dependency pinning
+- [X] Learn about `pip-tools` for dependency pinning
 - [ ] Investigate semantic versioning automation
 - [ ] Study trusted publishing to PyPI
 

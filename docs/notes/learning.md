@@ -41,6 +41,64 @@ These two names kept confusing me. The key distinction:
 
 See: [ADR 016](../adr/016-hatchling-and-hatch.md)
 
+### Lockfiles and Transitive Dependencies — pip-tools vs uv vs Poetry
+
+**The problem:** When you declare `requests>=2.28` in `pyproject.toml`, pip resolves it to *some* version at install time, along with transitive deps like `urllib3`, `certifi`, etc. Different machines at different times can end up with different versions — "works on my machine" bugs.
+
+**The solution:** A lockfile pins *every* dependency (direct + transitive) to exact versions+hashes, ensuring reproducible environments.
+
+#### The Three Main Approaches
+
+| Tool | Lockfile | How it works | Best for |
+|------|----------|--------------|----------|
+| **pip-tools** | `requirements.txt` (generated) | `pip-compile` reads your loose deps and outputs pinned `requirements.txt`. `pip-sync` installs exactly what's in the file. | Existing pip-based workflows, minimal learning curve |
+| **uv** | `uv.lock` | Rust-based, drop-in pip replacement. `uv lock` generates lockfile, `uv sync` installs from it. 10-100x faster than pip. | Speed-critical workflows, modern replacement for pip+venv |
+| **Poetry** | `poetry.lock` | Full project manager. `poetry install` reads `pyproject.toml`, generates/uses `poetry.lock`. Also handles builds and publishing. | All-in-one solution, teams wanting integrated tooling |
+
+#### How They Compare
+
+| Aspect | pip-tools | uv | Poetry |
+|--------|-----------|-----|--------|
+| **Speed** | Slow (pip resolver) | Blazing fast (Rust) | Moderate |
+| **Config file** | `pyproject.toml` or `requirements.in` | `pyproject.toml` | `pyproject.toml` (but `[tool.poetry]`, not PEP 621) |
+| **Learning curve** | Minimal — familiar pip workflow | Low — pip-compatible commands | Moderate — own CLI and concepts |
+| **Hatch compatibility** | Works alongside (but awkward) | Can replace Hatch entirely | Replaces Hatch (different philosophy) |
+| **Maturity** | Very mature | Newer but rapidly adopted | Mature, large community |
+
+#### Why This Project Uses Hatch (Without Lockfiles)
+
+Hatch doesn't have native lockfile support — it re-resolves dependencies on each `hatch env create`. This is fine for:
+
+- **Template projects** — users will replace deps anyway
+- **Libraries** — consumers control their own dep versions
+- **Development** — fast iteration matters more than reproducibility
+
+If you need lockfiles for **deployed applications** where reproducibility is critical, consider:
+
+1. **Switch to uv** — fastest, modern, has `uv.lock`
+2. **Use Poetry** — mature, well-documented, has `poetry.lock`
+3. **Bolt pip-tools onto Hatch** — possible but awkward (Hatch fights you)
+
+The hybrid approach (Hatch for dev, pip-compile for deploy) adds complexity — usually cleaner to pick one tool that handles both.
+
+#### pip-tools Workflow (If You Did Use It)
+
+```bash
+# 1. Create requirements.in with loose constraints
+echo "requests>=2.28" > requirements.in
+
+# 2. Compile to pinned requirements.txt
+pip-compile requirements.in --output-file=requirements.txt
+
+# 3. Install exactly those versions
+pip-sync requirements.txt
+
+# 4. Update when needed
+pip-compile --upgrade requirements.in
+```
+
+The lockfile becomes the source of truth — commit it, use it in CI and production.
+
 ### Python Tool Landscape
 
 There are a lot of overlapping tools in the Python ecosystem. This table groups them by purpose.
