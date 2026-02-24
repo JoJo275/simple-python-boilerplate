@@ -204,9 +204,8 @@ Add the following to your `.gitignore`:
 
 ### Optional Steps
 
-- [ ] Add CI/CD workflows (`.github/workflows/`)
-- [ ] Set up pre-commit hooks (`pre-commit install`)
-- [ ] Configure code coverage reporting
+- [ ] Set up pre-commit hooks (see [Pre-commit Hooks](#pre-commit-hooks) above)
+- [ ] Configure code coverage reporting (Codecov, see [coverage.yml](../.github/workflows/coverage.yml))
 - [ ] Add project-specific documentation
 - [ ] Set up GitHub Pages for docs
 
@@ -214,63 +213,90 @@ Add the following to your `.gitignore`:
 
 ## CI/CD Workflows Included
 
-This template ships with **26 GitHub Actions workflows** in `.github/workflows/`.
-All are SHA-pinned and disabled by default via repository guards — enable them
-by setting a repository variable or updating the repo slug
+This template ships with **26 GitHub Actions workflows** in `.github/workflows/`
+covering quality, security, PR hygiene, releases, docs, containers, and
+maintenance. All are SHA-pinned to commit SHAs
+([ADR 004](adr/004-pin-action-shas.md)) and disabled by default via repository
+guards — enable them by setting a repository variable or updating the repo slug
 ([ADR 011](adr/011-repository-guard-pattern.md)).
 
-See [workflows.md](workflows.md) for the full inventory with triggers and job names.
+A single **CI Gate** workflow aggregates all required checks into one
+branch-protection status, so you never need to list individual workflows in
+GitHub settings ([ADR 024](adr/024-ci-gate-pattern.md)).
 
-### Quality
+For the full list of every workflow with triggers, job names, and descriptions,
+see the [workflows README](../.github/workflows/README.md) or
+[workflows.md](workflows.md).
 
-| Workflow | What it does |
-|----------|--------------|
-| **Test** | pytest across Python 3.11–3.13 |
-| **Lint + Format** | Ruff lint and format checks |
-| **Type Check** | mypy strict mode |
-| **Coverage** | pytest-cov with Codecov upload |
-| **Spellcheck** | codespell in CI |
-| **Spellcheck Autofix** | Weekly PR to auto-fix typos |
+## Pre-commit Hooks
 
-### Security
+[Pre-commit hooks](https://pre-commit.com/) are scripts that run automatically
+at specific points in the Git workflow — before a commit is created, before a
+push, etc. They catch problems (lint errors, type issues, security concerns,
+bad commit messages) **before** code leaves your machine, so you don't discover
+them later in CI.
 
-| Workflow | What it does |
-|----------|--------------|
-| **Security Audit** | pip-audit against OSV/PyPI databases |
-| **Bandit** | Static security analysis (path-filtered) |
-| **Dependency Review** | Flags vulnerable new deps on PRs |
-| **CodeQL** | GitHub semantic analysis |
-| **Container Scan** | Trivy + Grype multi-scanner |
-| **Nightly Security** | Consolidated daily sweep |
-| **OpenSSF Scorecard** | Supply-chain security scoring |
+This template includes **34+ hooks** across three Git stages:
 
-### PR Hygiene
+| Stage | When it runs | Examples |
+|-------|-------------|----------|
+| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |
+| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format |
+| **pre-push** | Every `git push` | pytest, pip-audit, gitleaks |
 
-| Workflow | What it does |
-|----------|--------------|
-| **PR Title** | Enforces conventional commit format |
-| **Commit Lint** | Validates all PR commits |
-| **Labeler** | Auto-labels PRs by changed paths |
+All hooks are configured in [`.pre-commit-config.yaml`](../.pre-commit-config.yaml).
+See [ADR 008](adr/008-pre-commit-hooks.md) for the full hook inventory and
+reasoning behind each choice.
 
-### Release
+To install all three hook stages:
 
-| Workflow | What it does |
-|----------|--------------|
-| **Release Please** | Auto version bump + changelog |
-| **Release** | Build sdist/wheel, optional PyPI publish |
-| **SBOM** | SPDX + CycloneDX bill of materials |
+```bash
+pre-commit install                              # pre-commit stage
+pre-commit install --hook-type commit-msg        # commit-msg stage
+pre-commit install --hook-type pre-push          # pre-push stage
+```
 
-### Documentation, Container, Maintenance & Gate
+> **New to pre-commit?** Think of hooks as automated code reviewers. Instead of
+> remembering to run the linter, formatter, and tests manually before pushing,
+> hooks run them for you. If a check fails, the commit or push is blocked with
+> an explanation of what went wrong.
 
-| Workflow | What it does |
-|----------|--------------|
-| **Docs Deploy** | MkDocs build + GitHub Pages deploy |
-| **Container Build** | OCI image build, push to ghcr.io |
-| **Pre-commit Update** | Weekly hook version update PR |
-| **Stale** | Auto-close inactive issues/PRs |
-| **Link Checker** | Broken link detection (lychee) |
-| **Auto-merge Dependabot** | Auto-merge minor/patch dep updates |
-| **CI Gate** | Single required check for branch protection |
+## File Templates
+
+The [`docs/templates/`](templates/) directory contains **reusable file templates**
+you can copy and adapt for your project:
+
+| Template | Purpose |
+|----------|---------|
+| `SECURITY_no_bounty.md` | Standard security policy (most projects) |
+| `SECURITY_with_bounty.md` | Security policy with bug bounty program |
+| `BUG_BOUNTY.md` | Standalone bug bounty policy |
+| `pull-request-draft.md` | PR description template |
+
+Copy what you need, then delete the `docs/templates/` directory to keep your
+repo clean.
+
+## Command Workflows
+
+This project has **three layers** for running developer commands:
+raw Python tools (pytest, ruff, mypy), Hatch (managed environments),
+and a Task runner (short aliases). Each layer is optional — use
+whichever fits your preference.
+
+See [command-workflows.md](development/command-workflows.md) for a
+detailed breakdown of how `task test` → `hatch run test` → `pytest`
+flows through each layer, and guidance on which layer to use.
+
+---
+
+## Repo Tooling Reference
+
+Not sure what a tool does? See [tooling.md](tooling.md) for a one-line
+explanation of every tool in this repo (Hatch, Ruff, mypy, pytest, pre-commit,
+MkDocs, etc.) with links to their official docs.
+
+For deeper reasoning on *why* each tool was chosen over alternatives, see
+[tool-decisions.md](design/tool-decisions.md).
 
 ---
 
