@@ -60,10 +60,10 @@ pre-commit install --hook-type pre-push          # pre-push stage
 
 | Stage | Key hooks | Count |
 |-------|-----------|-------|
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | ~34 |
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | 35 |
 | **commit-msg** | commitizen (Conventional Commits) | 1 |
 | **pre-push** | pytest, pip-audit, gitleaks | 3 |
-| **manual** | markdownlint-cli2, hadolint-docker | 2 |
+| **manual** | markdownlint-cli2, hadolint-docker, forbid-submodules | 3 |
 
 Full hook inventory: [ADR 008](docs/adr/008-pre-commit-hooks.md) |
 Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
