@@ -289,6 +289,72 @@ See [command-workflows.md](development/command-workflows.md) for a
 detailed breakdown of how `task test` → `hatch run test` → `pytest`
 flows through each layer, and guidance on which layer to use.
 
+## Containers
+
+This template includes three container-related files, each serving a
+different purpose ([ADR 025](adr/025-container-strategy.md)):
+
+| File | Purpose | When to use |
+|------|---------|-------------|
+| [`Containerfile`](../Containerfile) | **Production image** — multi-stage build that produces a minimal runtime image (~150 MB) with only your installed package. No dev tools. | `docker build -f Containerfile .` or `podman build -f Containerfile .` |
+| [`docker-compose.yml`](../docker-compose.yml) | **Orchestration** — convenience wrapper to build and run the production container locally. Also the place to add multi-service setups (app + database, etc.). | `docker compose up --build` |
+| [`.devcontainer/`](../.devcontainer/) | **Development environment** — VS Code Dev Container / GitHub Codespaces config. Includes Python, Node.js, Task runner, all dev deps, and pre-commit hooks. | Open repo in VS Code → "Reopen in Container" |
+
+> **Why is `docker-compose.yml` in the repo root, not `.devcontainer/`?**
+> Compose orchestrates the *production* Containerfile — it’s for building and
+> running your app, not for the dev environment. The `.devcontainer/` directory
+> is specifically for VS Code Dev Container configuration. Keeping them
+> separate avoids conflating production and development concerns.
+
+If you don’t need containers, delete `Containerfile`, `docker-compose.yml`,
+and `.devcontainer/`. If you only want production containers, delete
+`.devcontainer/`. If you only want the dev container, delete the other two.
+
+## Documentation Stack
+
+This template includes a ready-to-use documentation site powered by
+[MkDocs](https://www.mkdocs.org/) with the
+[Material](https://squidfunk.github.io/mkdocs-material/) theme and
+[mkdocstrings](https://mkdocstrings.github.io/) for auto-generated API docs
+from Python docstrings ([ADR 020](adr/020-mkdocs-documentation-stack.md)).
+
+**Key files:**
+
+| File / Directory | Purpose |
+|------------------|---------|
+| `mkdocs.yml` | Site configuration (theme, nav, plugins) |
+| `docs/mkdocs/` | Markdown source files for the built site |
+| `docs/` (this directory) | Project docs that aren’t part of the MkDocs site |
+| `site/` | Built HTML output (gitignored in production, committed here for reference) |
+
+**Quick start:**
+
+```bash
+# Serve locally with live reload (http://localhost:8000)
+hatch run docs:serve
+# or
+task docs:serve
+
+# Build the site (strict mode — fails on warnings)
+hatch run docs:build
+# or
+task docs:build
+```
+
+**To customize for your project:**
+
+1. Update `mkdocs.yml` — change `site_name`, `site_url`, `repo_url`
+2. Edit pages in `docs/mkdocs/` — add your own guides, tutorials, API docs
+3. Update the `nav:` section in `mkdocs.yml` to reflect your page structure
+4. (Optional) Enable GitHub Pages deployment via the `docs-deploy.yml` workflow
+
+The CI workflow [`docs-deploy.yml`](../.github/workflows/docs-deploy.yml)
+automatically builds the site on push to `main` and deploys to GitHub Pages
+(path-filtered to docs/source changes only).
+
+If you don’t need a documentation site, delete `mkdocs.yml`, `docs/mkdocs/`,
+and `site/`.
+
 ---
 
 ## Repo Tooling Reference
@@ -310,18 +376,12 @@ These aren't included in the template but are worth evaluating for your project:
 |------|----------|-------------|
 | **[SQLAlchemy](https://www.sqlalchemy.org/)** | ORM / Database | Need a relational DB with Python models |
 | **[Alembic](https://alembic.sqlalchemy.org/)** | DB Migrations | Managing schema changes over time (pairs with SQLAlchemy) |
-| **[Sphinx](https://www.sphinx-doc.org/)** | Documentation | Generated API docs or a documentation site |
-| **[MkDocs](https://www.mkdocs.org/)** | Documentation | Markdown-based docs site (simpler than Sphinx) |
+| **[Sphinx](https://www.sphinx-doc.org/)** | Documentation | Alternative to MkDocs — richer API doc generation from docstrings |
 | **[FastAPI](https://fastapi.tiangolo.com/)** | Web Framework | Building an API (async, OpenAPI docs built-in) |
 | **[Flask](https://flask.palletsprojects.com/)** | Web Framework | Lightweight web apps and APIs |
-| **[CircleCI](https://circleci.com/)** | CI/CD | Alternative to GitHub Actions |
 | **[Celery](https://docs.celeryq.dev/)** | Task Queue | Background / async job processing |
-| **[Docker](https://www.docker.com/)** | Containerization | Reproducible builds and deployments |
-| **[Podman](https://podman.io/)** | Containerization | Daemonless alternative to Docker |
 | **[Sentry](https://sentry.io/)** | Error Tracking | Production error monitoring |
 | **[HTTPX](https://www.python-httpx.org/)** | HTTP Client | Modern async-capable HTTP client (alternative to requests) |
-| **[Nox](https://nox.thea.codes/)** | Task Runner | Multi-environment testing and automation |
-| **[Tox](https://tox.wiki/)** | Task Runner | Test across multiple Python versions |
 
 ---
 
