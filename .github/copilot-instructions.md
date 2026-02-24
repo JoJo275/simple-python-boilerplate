@@ -405,6 +405,7 @@ Key ADRs that most affect day-to-day work:
 | 011 | Repository guard pattern |
 | 016 | Hatchling and Hatch |
 | 024 | CI gate pattern |
+| 026 | No pip-tools for dependency management |
 
 Full index: `docs/adr/README.md`
 

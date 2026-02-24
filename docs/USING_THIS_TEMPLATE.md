@@ -212,6 +212,68 @@ Add the following to your `.gitignore`:
 
 ---
 
+## CI/CD Workflows Included
+
+This template ships with **26 GitHub Actions workflows** in `.github/workflows/`.
+All are SHA-pinned and disabled by default via repository guards — enable them
+by setting a repository variable or updating the repo slug
+([ADR 011](adr/011-repository-guard-pattern.md)).
+
+See [workflows.md](workflows.md) for the full inventory with triggers and job names.
+
+### Quality
+
+| Workflow | What it does |
+|----------|--------------|
+| **Test** | pytest across Python 3.11–3.13 |
+| **Lint + Format** | Ruff lint and format checks |
+| **Type Check** | mypy strict mode |
+| **Coverage** | pytest-cov with Codecov upload |
+| **Spellcheck** | codespell in CI |
+| **Spellcheck Autofix** | Weekly PR to auto-fix typos |
+
+### Security
+
+| Workflow | What it does |
+|----------|--------------|
+| **Security Audit** | pip-audit against OSV/PyPI databases |
+| **Bandit** | Static security analysis (path-filtered) |
+| **Dependency Review** | Flags vulnerable new deps on PRs |
+| **CodeQL** | GitHub semantic analysis |
+| **Container Scan** | Trivy + Grype multi-scanner |
+| **Nightly Security** | Consolidated daily sweep |
+| **OpenSSF Scorecard** | Supply-chain security scoring |
+
+### PR Hygiene
+
+| Workflow | What it does |
+|----------|--------------|
+| **PR Title** | Enforces conventional commit format |
+| **Commit Lint** | Validates all PR commits |
+| **Labeler** | Auto-labels PRs by changed paths |
+
+### Release
+
+| Workflow | What it does |
+|----------|--------------|
+| **Release Please** | Auto version bump + changelog |
+| **Release** | Build sdist/wheel, optional PyPI publish |
+| **SBOM** | SPDX + CycloneDX bill of materials |
+
+### Documentation, Container, Maintenance & Gate
+
+| Workflow | What it does |
+|----------|--------------|
+| **Docs Deploy** | MkDocs build + GitHub Pages deploy |
+| **Container Build** | OCI image build, push to ghcr.io |
+| **Pre-commit Update** | Weekly hook version update PR |
+| **Stale** | Auto-close inactive issues/PRs |
+| **Link Checker** | Broken link detection (lychee) |
+| **Auto-merge Dependabot** | Auto-merge minor/patch dep updates |
+| **CI Gate** | Single required check for branch protection |
+
+---
+
 ## Optional Tools to Consider
 
 These aren't included in the template but are worth evaluating for your project:

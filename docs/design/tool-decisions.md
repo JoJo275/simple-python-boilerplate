@@ -146,4 +146,4 @@ pattern.
 | **Poetry** | Excellent tool but uses a non-standard `[tool.poetry]` config. Hatchling uses standard PEP 621 metadata. |
 | **setuptools** | Works but requires more boilerplate. Hatchling auto-discovers `src/` layout with zero config. |
 | **Pyright** | Valid alternative to mypy. mypy was chosen for broader community adoption and better error messages for gradual typing. Pyright is available via Pylance in VS Code for real-time feedback. |
-| **pip-tools** | `pip-compile` is useful for pinning, but Hatch environments + `pyproject.toml` extras handle dependency management for this project's needs. |
+| **pip-tools** | `pip-compile` is useful for pinning, but Hatch environments + `pyproject.toml` extras handle dependency management for this project's needs. See [ADR 026](../adr/026-no-pip-tools.md) for detailed rationale. |
