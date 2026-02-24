@@ -52,6 +52,7 @@ To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 | [023](023-branch-protection-rules.md) | Branch protection rules for main | Accepted |
 | [024](024-ci-gate-pattern.md) | CI gate pattern for branch protection | Accepted |
 | [025](025-container-strategy.md) | Container strategy — production, development, orchestration | Accepted |
+| [026](026-no-pip-tools.md) | Do not use pip-tools for dependency management | Accepted |
 
 ## Archive
 

@@ -16,16 +16,16 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 
 | Category | Tools |
 |----------|-------|
-| **Build** | Hatchling + hatch-vcs (version from git tags) |
-| **Environments** | Hatch (virtualenv management, test matrix) |
-| **Linting** | Ruff (lint + format), mypy (strict), bandit (security) |
-| **Testing** | pytest, pytest-cov, Python 3.11-3.13 matrix |
-| **Pre-commit** | 34+ hooks across 3 stages (commit, commit-msg, push) |
-| **CI/CD** | 26 GitHub Actions workflows, SHA-pinned |
-| **Docs** | MkDocs Material + mkdocstrings, auto-deploy to GitHub Pages |
-| **Release** | release-please -> automated changelog + versioning |
-| **Security** | CodeQL, pip-audit, Trivy, dependency-review, gitleaks |
-| **Container** | Multi-stage Containerfile with scan |
+| [**Build**](docs/adr/016-hatchling-and-hatch.md) | Hatchling + hatch-vcs (version from git tags) |
+| [**Environments**](docs/adr/016-hatchling-and-hatch.md) | Hatch (virtualenv management, test matrix) |
+| [**Linting**](docs/adr/005-ruff-for-linting-formatting.md) | Ruff (lint + format), mypy (strict), bandit (security) |
+| [**Testing**](docs/adr/006-pytest-for-testing.md) | pytest, pytest-cov, Python 3.11-3.13 matrix |
+| [**Pre-commit**](docs/adr/008-pre-commit-hooks.md) | 34+ hooks across 3 stages (commit, commit-msg, push) |
+| [**CI/CD**](docs/workflows.md) | 26 GitHub Actions workflows, SHA-pinned |
+| [**Docs**](docs/adr/020-mkdocs-documentation-stack.md) | MkDocs Material + mkdocstrings, auto-deploy to GitHub Pages |
+| [**Release**](docs/adr/021-automated-release-pipeline.md) | release-please -> automated changelog + versioning |
+| [**Security**](docs/adr/012-multi-layer-security-scanning.md) | CodeQL, pip-audit, Trivy, dependency-review, gitleaks |
+| [**Container**](docs/adr/025-container-strategy.md) | Multi-stage Containerfile with scan |
 
 ## Quick Start
 
