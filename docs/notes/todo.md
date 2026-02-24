@@ -52,7 +52,7 @@ Things to explore, implement, or learn more about.
 - [ ] Test whole repo against all CI in strict mode. --final stress test--
 - [X] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
 - [X] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
-- [ ] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
+- [X] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
 - [X] Add more detailed documentation for how to use GitHub Actions workflows, including how to enable/disable optional workflows, how to customize them for different project needs, and how to troubleshoot common issues with workflows.
 - [ ] Add entire repo each file check
 - [ ] Final file check: taskfile.yml
