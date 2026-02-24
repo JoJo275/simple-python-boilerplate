@@ -24,6 +24,37 @@ Completed items from [todo.md](todo.md), preserved for reference.
 
 ### Completed
 
+- [X] Add code coverage reporting to CI
+- [X] Set up documentation with MkDocs
+- [X] Understand `py.typed` marker for PEP 561
+- [X] Learn about `pip-tools` for dependency pinning
+- [X] Investigate semantic versioning automation
+- [X] Study trusted publishing to PyPI
+- [X] Add Docker support for containerized development
+- [X] Create VS Code devcontainer configuration
+- [X] Add Makefile or taskfile for common commands
+- [X] Explore Nox/Tox for multi-environment testing
+- [X] Implement Sphinx/MkDocs documentation generation (learn what this even is).
+- [X] Explore additional static analysis tools (e.g., Bandit for security)
+- [X] Add detailed README.md with badges, usage, etc.   *Although I do have a README.md already, it could be more detailed regarding usage instructions, examples, and badges for build status, coverage, etc.*
+- [X] Implement a changelog generation tool (e.g., `towncrier`)
+- [X] Add more comprehensive test coverage and edge cases
+- [X] Explore using `pip-tools` for managing dependencies with `requirements.txt`
+- [X] Learn about semantic versioning and automate version bumps
+- [X] Implement Sphinx or MkDocs for documentation generation to create a static site for project docs
+- [X] Research best practices for managing `requirements.txt` vs just using `pyproject.toml` dependencies. *From what I've read, `pyproject.toml` is becoming the standard for specifying project metadata and dependencies in Python projects. However, some developers still prefer to use `requirements.txt` for managing dependencies, especially for virtual environments. I should research the pros and cons of each approach and decide which one makes the most sense for this project based on factors like ease of use, compatibility with tools, and team preferences.*
+- [X] Learn and build any more scripts and programs within this template repo that may help.
+- [X] Add a script that changes the project name, package name, author name, and other relevant info in all necessary files to make it easier to set up a new project from this template. *This could be a Python script that uses regex or string replacement to update the relevant fields in `README.md`, `pyproject.toml`, `LICENSE`, and `SECURITY.md` based on user input. It would save time and reduce the chance of missing any necessary changes when setting up a new project from this template.*
+- [X] Add automated releases
+- [X] Clarify what workflows this repo has after implementing them in the description of repo and README.md: Core python development workflow with many optional workflows for things like documentation, releases, etc. that are disabled by default to avoid confusion and allow users to enable and adapt them as needed for their own projects. *This would involve updating the README.md and possibly the repository description to clearly outline what workflows are included in the template, which ones are enabled by default, and how users can enable or customize additional workflows based on their needs. This would help users understand the capabilities of the template and how to best utilize it for their projects.*
+- [X] create a scripts enable all workflows and another to disable all optional workflows (otherwise explain how to enable each one-by-one). *This could be done with a simple shell script that renames workflow files to enable or disable them. For example, a script to enable all workflows could remove the underscore prefix from all workflow files in the `.github/workflows/` directory, while a script to disable all optional workflows could add an underscore prefix to those files. This would provide a convenient way for users to quickly enable or disable all optional workflows without having to manually rename each file.*
+- [X] template auto-fill information for users: integrate cookiecutter + cruft for easier project setup and maintenance. *This would involve creating a `cookiecutter` template based on this repository, which users can use to quickly set up new projects with the same structure and configurations. Additionally, integrating `cruft` would allow users to easily keep their projects up to date with changes made to the template over time. This would streamline the process of starting new projects and maintaining them as the template evolves.*
+- [X] Choosing a license for template users: use cookiecutter with license/ directory to allow users to choose a license when setting up a new project. *This would involve creating a `cookiecutter` template that includes a `license/` directory with various license options (e.g., MIT, Apache 2.0, GPL). When users run the `cookiecutter` command to set up a new project, they could be prompted to choose a license from the available options, and the chosen license file would be included in their new project. This would make it easier for users to select and include an appropriate license for their projects.*
+- [X] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
+- [X] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
+- [X] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
+- [X] Add more detailed documentation for how to use GitHub Actions workflows, including how to enable/disable optional workflows, how to customize them for different project needs, and how to troubleshoot common issues with workflows.
+- [X] Anymore scripts?
 - [X] docs stack: (1) presentation = (Theme: Material for MKDocs), (2) API reference (API reference: mkdocstrings + Python handler), (3) publishing (Markdown power-ups: pymdown-extensions), and optionally (4) versioning (Publishing: GitHub Pages via mkdocs gh-deploy or Read the Docs (RTD)).
 - [X] add in docstring style enforcement with a tool like `pydocstyle` to ensure consistent and comprehensive documentation with ruff in pyproject.toml. *This would involve adding `pydocstyle` to the list of dependencies in `pyproject.toml` and configuring it to enforce a specific docstring style (e.g., Google, NumPy, or reStructuredText). This would help ensure that all functions, classes, and modules in the project have consistent and comprehensive docstrings, improving code readability and maintainability.*
 - [X] Add in bandit for security linting and checks. *This would involve adding `bandit` to the list of dependencies in `pyproject.toml` and configuring it to run as part of the CI workflow. Bandit would analyze the code for common security issues and vulnerabilities, helping to improve the security posture of projects that use this template.*
