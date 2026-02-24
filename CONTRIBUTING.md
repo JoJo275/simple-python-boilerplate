@@ -8,6 +8,7 @@ Thank you for your interest in contributing to this project! This document expla
 
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
+- [Command Reference](#command-reference)
 - [Quality Pipeline Overview](#quality-pipeline-overview)
 - [Stage 1: Writing Code (Editor)](#stage-1-writing-code-editor)
 - [Stage 2: Pre-commit Hooks (Local)](#stage-2-pre-commit-hooks-local)
@@ -72,6 +73,68 @@ pre-commit install --hook-type pre-push          # pre-push stage (pytest, pip-a
 ```
 
 > **Note:** All three `pre-commit install` commands must be run once per clone. They register git hooks that run automatically at each stage (commit, commit-msg, push).
+
+---
+
+## Command Reference
+
+This project uses a layered command system: **Task** (convenience) → **Hatch** (environment) → **Tool** (execution).
+
+### Quick Reference
+
+| Task | Command | What it does |
+|------|---------|-------------|
+| Run tests | `task test` | pytest (unit tests only) |
+| Tests + coverage | `task test:cov` | pytest with coverage report |
+| Test matrix | `task test:matrix` | pytest across Python 3.11-3.13 |
+| Lint | `task lint` | ruff check (report issues) |
+| Lint + fix | `task lint:fix` | ruff check with auto-fix |
+| Format | `task fmt` | ruff format |
+| Type check | `task typecheck` | mypy strict mode |
+| All checks | `task check` | lint + typecheck + test |
+| Security | `task security` | bandit security scan |
+| Docs serve | `task docs:serve` | Local docs at localhost:8000 |
+| Docs build | `task docs:build` | Build docs (strict mode) |
+| Pre-commit | `task pre-commit:run` | Run all hooks manually |
+| Commit | `task commit` | Interactive conventional commit |
+
+### Without Task Installed
+
+If you don't have Task, use Hatch directly:
+
+```bash
+hatch run test              # Instead of: task test
+hatch run lint              # Instead of: task lint
+hatch run fmt               # Instead of: task fmt
+hatch run typecheck         # Instead of: task typecheck
+hatch run docs:serve        # Instead of: task docs:serve
+```
+
+### Direct Tool Execution
+
+If you're already in an activated environment (`hatch shell` or `.venv`):
+
+```bash
+pytest                      # Run tests directly
+ruff check src/ tests/      # Lint directly
+ruff format src/ tests/     # Format directly
+mypy src/                   # Type check directly
+```
+
+### How Commands Layer Together
+
+```
+task test
+  └→ hatch run test
+       └→ pytest
+            └→ Python
+```
+
+- **Task** (`Taskfile.yml`) — Human-friendly names, command chaining
+- **Hatch** (`pyproject.toml`) — Manages virtualenv, runs commands inside it
+- **Tool** — The actual linter/tester/formatter
+
+For a deeper explanation, see [docs/notes/learning.md](docs/notes/learning.md) ("Command Workflow" section).
 
 ---
 
