@@ -231,6 +231,17 @@ After pushing, go to your repository on GitHub and create a pull request:
 > **When does release-please run?** The `release-please.yml` workflow triggers on every push to `main` — i.e., every time a PR is merged. It scans the new commits: if any are releasable (`feat:`, `fix:`, `perf:`, `revert:`, or `BREAKING CHANGE`), it creates or updates a Release PR. Non-releasable commits (`docs:`, `chore:`, `ci:`, `test:`) are ignored. You merge the Release PR when you're ready to cut a release — it accumulates entries over time.
 >
 > **Release-please PR already open while you're on a feature branch?** Ignore it. Finish your feature branch, open your PR, merge it to `main`. Release-please will automatically re-run and update its Release PR to include your new commits. You don't need to pull release-please changes into your branch — the Release PR only touches `CHANGELOG.md`, `__init__.py`, and `.release-please-manifest.json`, which don't conflict with normal feature work.
+>
+> **Want to merge the release-please PR first?** If you want to ship a release of your previous work before continuing, you can merge the release-please PR into `main` while still working on your feature branch. To pull those changes into your branch afterward, use `fetch` + `rebase` — **not** `git pull`. A plain `git pull` only pulls from your current branch's upstream (e.g., `origin/feature/xyz`), not from `main`:
+>
+> ```bash
+> # After merging the release-please PR on GitHub:
+> git fetch origin              # download latest main (includes version bump)
+> git rebase origin/main        # replay your branch commits on top of updated main
+> git push --force-with-lease   # update your remote branch (rebase rewrites history)
+> ```
+>
+> Conflicts are unlikely since release-please only touches `CHANGELOG.md`, `__init__.py`, and `.release-please-manifest.json`. If they occur, they're trivial to resolve.
 
 **5. Monitor CI checks and fix failures:**
 
