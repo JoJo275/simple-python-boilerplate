@@ -23,12 +23,20 @@
 #        • Remove the individual workflow check names
 #
 # Adding / removing a required check:
-#   To REQUIRE a new workflow: add its job name string to the
-#   REQUIRED_CHECKS array in the script below.
+#   To REQUIRE a new workflow: add its job name string to
+#   ALWAYS_REQUIRED (runs on both push + PR) or PR_ONLY_REQUIRED
+#   (runs only on pull_request) in the script below.
 #   To STOP requiring a workflow: delete (or comment out) its
-#   entry from REQUIRED_CHECKS. That's it — no branch-protection
+#   entry from the relevant array. That's it — no branch-protection
 #   changes needed. The workflow itself keeps running; it just
 #   won't block the gate anymore.
+#
+# Why two lists?
+#   Some workflows (dependency-review, pr-title, commit-lint) only
+#   trigger on pull_request events — they never run on push to main.
+#   If the gate required them on push, it would poll forever and
+#   time out, making the CI badge show "failing" even though all
+#   real checks passed.
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
@@ -89,7 +97,8 @@ jobs:
           # block unrelated changes.
           # -----------------------------------------------------------------
           script: |
-            const REQUIRED_CHECKS = [
+            // Checks required on EVERY trigger (push + PR)
+            const ALWAYS_REQUIRED = [
               // Core quality
               'Ruff (lint & format)',      // lint-format.yml → lint
               'mypy (strict)',             // type-check.yml → type-check
@@ -103,15 +112,29 @@ jobs:
 
               // Security
               'pip-audit',                 // security-audit.yml → audit
-              'Scan dependencies',         // dependency-review.yml → dependency-review
 
               // Container (build only — scans are non-blocking by design)
               'Build container image',     // container-build.yml → build
+            ];
 
-              // PR hygiene
+            // Checks required only on pull_request events.
+            // These workflows don't trigger on push to main, so
+            // requiring them on push would cause a permanent timeout.
+            const PR_ONLY_REQUIRED = [
+              'Scan dependencies',         // dependency-review.yml → dependency-review
               'Conventional commit check', // pr-title.yml → lint-title
               'Validate commit messages',  // commit-lint.yml → lint-commits
             ];
+
+            const isPR = !!context.payload.pull_request;
+            const REQUIRED_CHECKS = isPR
+              ? [...ALWAYS_REQUIRED, ...PR_ONLY_REQUIRED]
+              : ALWAYS_REQUIRED;
+
+            if (!isPR) {
+              core.info('Push event detected — skipping PR-only checks: ' +
+                PR_ONLY_REQUIRED.join(', '));
+            }
 
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
