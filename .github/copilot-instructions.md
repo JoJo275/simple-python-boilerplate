@@ -65,14 +65,14 @@ pre-commit install --hook-type pre-push          # pre-push stage
 | **pre-push** | pytest, pip-audit, gitleaks | 3 |
 | **manual** | markdownlint-cli2, hadolint-docker, forbid-submodules | 3 |
 
-Full hook inventory: [ADR 008](docs/adr/008-pre-commit-hooks.md) |
+Full hook inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md) |
 Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows
 
 ~26 workflow files in `.github/workflows/`, all SHA-pinned
-([ADR 004](docs/adr/004-pin-action-shas.md)) with repository guard pattern
-([ADR 011](docs/adr/011-repository-guard-pattern.md)).
+([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
+([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
 **Canonical inventory:** `docs/workflows.md` — that file is authoritative;
 the summary below is for quick orientation only.
 
@@ -85,7 +85,7 @@ the summary below is for quick orientation only.
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
 - **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot
-- **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](docs/adr/024-ci-gate-pattern.md))
+- **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](../docs/adr/024-ci-gate-pattern.md))
 
 Path-filtered workflows (bandit, link-checker) are excluded from required
 checks because they don't run on every PR.

@@ -102,6 +102,6 @@ Sphinx-based tool with MyST Markdown support.
 ## References
 
 - [MkDocs documentation](https://www.mkdocs.org/)
-- [Material for MkDocs](https://squidfund.github.io/mkdocs-material/)
+- [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
 - [mkdocstrings](https://mkdocstrings.github.io/)
 - [PyMdown Extensions](https://facelessuser.github.io/pymdown-extensions/)

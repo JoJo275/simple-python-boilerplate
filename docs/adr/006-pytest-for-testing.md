@@ -76,7 +76,7 @@ Embed tests in docstrings.
 
 - [pyproject.toml](../../pyproject.toml) — `[tool.pytest.ini_options]` section
 - [tests/](../../tests/) — Test directory
-- [tests/unit_test.py](../../tests/unit_test.py) — Example test file
+- [tests/unit/test_example.py](../../tests/unit/test_example.py) — Example test file
 - [.github/workflows/test.yml](../../.github/workflows/test.yml) — CI test execution
 
 ## References

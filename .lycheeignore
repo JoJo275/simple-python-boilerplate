@@ -1,0 +1,44 @@
+# Lychee Link Checker Ignore File
+# https://lychee.cli.rs/
+
+# ──────────────────────────────────────────────────────────────
+# Template placeholder URLs (not real links)
+# ──────────────────────────────────────────────────────────────
+# These appear in template files and get replaced during
+# project customization.
+
+# GitHub placeholder URLs for template users
+https://github\.com/\[OWNER\]/\[REPO\]
+https://github\.com/YOURNAME/YOURREPO
+https://YOURNAME\.github\.io/YOURREPO
+
+# Example URLs in documentation templates
+https://github\.com/example.*
+
+# ──────────────────────────────────────────────────────────────
+# Template placeholder file paths
+# ──────────────────────────────────────────────────────────────
+# These are example paths in template.md that aren't real files.
+
+file://.*path/to/file
+file://.*path/to/other-file
+file://.*docs/adr/NNN-related\.md
+file://.*docs/adr/XXX-name\.md
+
+# ──────────────────────────────────────────────────────────────
+# External URLs with intermittent availability
+# ──────────────────────────────────────────────────────────────
+# These are valid URLs but sometimes fail in CI due to
+# certificate issues, rate limiting, or temporary outages.
+
+# Conventional commits - sometimes has certificate issues in CI
+https://www\.conventionalcommits\.org
+
+# Taskfile.dev - occasionally has certificate issues
+https://taskfile\.dev
+
+# Scientific Python - occasionally unavailable
+https://learn\.scientific-python\.org
+
+# GitHub CLI - manual/installation path sometimes 404s
+https://cli\.github\.com/manual/installation

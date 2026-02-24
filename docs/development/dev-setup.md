@@ -183,7 +183,7 @@ python -m pip freeze
 python -m pip show simple-python-boilerplate
 ```
 
-> Lots of other useful commands from installs are in [pyproject.toml](../pyproject.toml).
+> Lots of other useful commands from installs are in [pyproject.toml](../../pyproject.toml).
 
 ## Project Structure
 
@@ -263,5 +263,5 @@ python -m pip install --upgrade pip
 ## Next Steps
 
 - Read the [Development Guide](development.md) for developer tools and workflows
-- Check [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines
-- Review [pyproject.toml](../pyproject.toml) for all configuration options
+- Check [CONTRIBUTING.md](../../CONTRIBUTING.md) for contribution guidelines
+- Review [pyproject.toml](../../pyproject.toml) for all configuration options
