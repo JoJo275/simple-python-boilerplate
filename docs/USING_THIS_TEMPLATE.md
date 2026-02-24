@@ -377,11 +377,17 @@ These aren't included in the template but are worth evaluating for your project:
 | **[SQLAlchemy](https://www.sqlalchemy.org/)** | ORM / Database | Need a relational DB with Python models |
 | **[Alembic](https://alembic.sqlalchemy.org/)** | DB Migrations | Managing schema changes over time (pairs with SQLAlchemy) |
 | **[Sphinx](https://www.sphinx-doc.org/)** | Documentation | Alternative to MkDocs — richer API doc generation from docstrings |
+| **[MkDocs](https://www.mkdocs.org/)** | Documentation | Markdown-based docs site (simpler than Sphinx) |
 | **[FastAPI](https://fastapi.tiangolo.com/)** | Web Framework | Building an API (async, OpenAPI docs built-in) |
 | **[Flask](https://flask.palletsprojects.com/)** | Web Framework | Lightweight web apps and APIs |
+| **[CircleCI](https://circleci.com/)** | CI/CD | Alternative to GitHub Actions |
 | **[Celery](https://docs.celeryq.dev/)** | Task Queue | Background / async job processing |
+| **[Docker](https://www.docker.com/)** | Containerization | Reproducible builds and deployments |
+| **[Podman](https://podman.io/)** | Containerization | Daemonless alternative to Docker |
 | **[Sentry](https://sentry.io/)** | Error Tracking | Production error monitoring |
 | **[HTTPX](https://www.python-httpx.org/)** | HTTP Client | Modern async-capable HTTP client (alternative to requests) |
+| **[Nox](https://nox.thea.codes/)** | Task Runner | Multi-environment testing and automation |
+| **[Tox](https://tox.wiki/)** | Task Runner | Test across multiple Python versions |
 
 ---
 
