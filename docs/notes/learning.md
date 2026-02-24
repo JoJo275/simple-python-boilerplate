@@ -265,6 +265,35 @@ Separate files > one giant file:
 - Each gets its own permissions
 - Failures are isolated
 
+### Secrets vs Variables
+
+GitHub Actions has two ways to store configuration values:
+
+| Aspect | Secrets | Variables |
+|--------|---------|-----------|
+| **Visibility** | Hidden forever after creation | Visible to anyone with repo access |
+| **In logs** | Auto-masked if printed (`***`) | Printed in plain text |
+| **Storage** | Encrypted at rest | Plain text |
+| **Access** | `${{ secrets.NAME }}` | `${{ vars.NAME }}` |
+| **Use for** | Tokens, passwords, API keys | Feature flags, non-sensitive config |
+
+**Rule of thumb:** If it's a token, key, or credential — use **Secrets**. If it's a
+simple on/off flag or display value — use **Variables**.
+
+**Example uses in this project:**
+
+| Value | Type | Why |
+|-------|------|-----|
+| `CODECOV_TOKEN` | Secret | Authenticates coverage uploads — leak = account compromise |
+| `ENABLE_WORKFLOWS` | Variable | Just a feature flag — no security impact |
+| `NPM_TOKEN` | Secret | Publish access to npm registry |
+
+**Setting them:**
+
+1. Repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **Secrets** tab or **Variables** tab
+3. Click **New repository secret** or **New repository variable**
+
 ---
 
 ## Static Analysis Tools
@@ -544,6 +573,107 @@ pip uninstall <package-name>
 ```
 
 > **Tip:** Avoid installing packages globally. Use virtual environments for project work and `pipx` for standalone CLI tools (e.g., `pipx install ruff`). This keeps the global Python clean and avoids version conflicts.
+
+---
+
+## Command Workflow — How Tools Layer Together
+
+Understanding how commands flow through the tooling stack helps when debugging
+issues or customizing workflows.
+
+### The Hierarchy
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  YOU (developer)                                                            │
+│  ↓                                                                          │
+│  task test         ← Task runner (Taskfile.yml) — human-friendly wrapper    │
+│  ↓                                                                          │
+│  hatch run test    ← Hatch — manages virtualenv + runs command inside it    │
+│  ↓                                                                          │
+│  pytest            ← Actual tool — runs in the Hatch-managed environment    │
+│  ↓                                                                          │
+│  Python            ← Interpreter — executes the test code                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Three Ways to Run the Same Thing
+
+| Command | What happens |
+|---------|--------------|
+| `task test` | Taskfile finds `test:` task → runs `hatch run test` |
+| `hatch run test` | Hatch activates `default` env → runs `pytest` |
+| `pytest` | Direct call — only works if you're already in a venv with deps installed |
+
+All three ultimately run pytest. The layers add convenience:
+
+- **Task** — Memorable names, can chain commands, no Hatch knowledge needed
+- **Hatch** — Ensures correct virtualenv, handles Python version matrix
+- **Direct** — Fast, but requires manual env management
+
+### Where Each Layer Is Configured
+
+| Layer | Config file | What it defines |
+|-------|-------------|-----------------|
+| **Task** | `Taskfile.yml` | Task names, descriptions, which `hatch run` commands to call |
+| **Hatch envs** | `pyproject.toml` `[tool.hatch.envs.*]` | Environment names, features, Python versions |
+| **Hatch scripts** | `pyproject.toml` `[tool.hatch.envs.*.scripts]` | Script names → actual CLI commands |
+| **Tools** | `pyproject.toml` `[tool.*]` | Tool-specific config (pytest, ruff, mypy, coverage) |
+
+### Example: Tracing `task lint`
+
+```
+task lint
+  └→ Taskfile.yml defines: cmds: ["hatch run lint"]
+      └→ pyproject.toml [tool.hatch.envs.default.scripts] defines: lint = "ruff check src/ tests/"
+          └→ ruff check src/ tests/
+              └→ ruff reads [tool.ruff] from pyproject.toml
+```
+
+### When CI Skips Taskfile
+
+GitHub Actions workflows call `hatch run` directly, not `task`. Why?
+
+1. **Fewer dependencies** — No need to install Task binary in CI
+2. **Explicit** — YAML shows exactly what runs, no indirection
+3. **Standard** — Other projects can copy workflow without Taskfile adoption
+
+```yaml
+# CI workflow
+- run: hatch run test    # Direct, not `task test`
+```
+
+### Direct Execution (Skip All Layers)
+
+If you're in the venv already, you can call tools directly:
+
+```bash
+# After: hatch shell  OR  source .venv/bin/activate
+pytest                  # No hatch/task wrapper
+ruff check src/
+mypy src/
+```
+
+This is faster for quick checks but bypasses Hatch's environment guarantees.
+
+### Debugging Tips
+
+| Problem | Check |
+|---------|-------|
+| "Command not found" | Are you in a venv? Run `hatch shell` or activate manually |
+| "Task not found" | Is Task installed? `task --version` or use `hatch run` directly |
+| "hatch run X fails" | Does the script exist in `[tool.hatch.envs.default.scripts]`? |
+| "Works locally, fails in CI" | CI uses `hatch run`, not `task`. Check if they match. |
+
+### Why Not Just Use Make?
+
+This project uses Taskfile instead of Make because:
+
+- **Cross-platform** — Works identically on Windows, no `make` installation needed
+- **YAML > Makefile syntax** — No tab-sensitivity issues
+- **Built-in help** — `task` lists all tasks with descriptions
+
+See: [ADR 017](../adr/017-task-runner.md)
 
 ---
 
