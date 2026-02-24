@@ -214,6 +214,8 @@ After pushing, go to your repository on GitHub and create a pull request:
     - **How to Test** — steps and commands so reviewers can verify your changes
     - **Checklist** — confirm you've run tests, updated docs, etc.
 
+    > **Tip:** Copilot can help draft your PR description. When filling in the PR body on GitHub, click the **Copilot** sparkle icon in the description editor to generate a summary from your commits and diff. You can then edit the output to add context Copilot can't infer (motivation, testing notes, related issues). This is especially useful for large PRs where summarizing changes manually is tedious.
+
 5. **Add labels** — In the right sidebar, click **Labels** and apply relevant ones (e.g., `enhancement`, `bug`, `documentation`). The `labeler` workflow also auto-applies labels based on changed file paths, but manual labels help with filtering and triage.
 
 6. **(Optional) Request a Copilot review** — In the **Reviewers** sidebar, select **Copilot** to get an AI-powered code review. Copilot will post inline suggestions on your PR. This is optional but useful for catching issues before human review.
@@ -224,7 +226,11 @@ After pushing, go to your repository on GitHub and create a pull request:
 
 > **Important:** With rebase+merge, individual **commit messages** drive the CHANGELOG — not the PR title or body. The `pr-title` workflow validates your title follows conventional format for consistency, but it's the commits that release-please reads. The PR body is purely for reviewers.
 
-> **When do CI workflows run?** Most workflows trigger on `pull_request` targeting `main`, meaning they run when you open or update a PR — not on every push to a feature branch. They also trigger on `push` to `main` itself (post-merge). A few workflows (PR title, labeler, dependency review) only run on pull requests. The release workflow only triggers on version tags. Check each workflow's `on:` trigger for specifics. See the [workflows README](../.github/workflows/README.md) for the full list.
+> **When do CI workflows run?** Most workflows trigger on `pull_request` targeting `main`, meaning they run when you open or update a PR — not on every push to a feature branch. They also trigger on `push` to `main` itself (post-merge). A few workflows (PR title, labeler, dependency review) only run on pull requests. The `release.yml` build/publish workflow only triggers on **version tags** (e.g., `v1.2.0`) — these tags are created by release-please after you merge its Release PR, not by your feature PR. Check each workflow's `on:` trigger for specifics. See the [workflows README](../.github/workflows/README.md) for the full list.
+>
+> **When does release-please run?** The `release-please.yml` workflow triggers on every push to `main` — i.e., every time a PR is merged. It scans the new commits: if any are releasable (`feat:`, `fix:`, `perf:`, `revert:`, or `BREAKING CHANGE`), it creates or updates a Release PR. Non-releasable commits (`docs:`, `chore:`, `ci:`, `test:`) are ignored. You merge the Release PR when you're ready to cut a release — it accumulates entries over time.
+>
+> **Release-please PR already open while you're on a feature branch?** Ignore it. Finish your feature branch, open your PR, merge it to `main`. Release-please will automatically re-run and update its Release PR to include your new commits. You don't need to pull release-please changes into your branch — the Release PR only touches `CHANGELOG.md`, `__init__.py`, and `.release-please-manifest.json`, which don't conflict with normal feature work.
 
 **5. Monitor CI checks and fix failures:**
 
