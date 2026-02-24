@@ -12,7 +12,7 @@ Usage::
 
     python scripts/bootstrap.py
     python scripts/bootstrap.py --skip-hooks
-    python scripts/bootstrap.py --skip-test-matrix  # Skip test.py3.x envs
+    python scripts/bootstrap.py --skip-test-matrix  # Skip test.py3.x (3.11, 3.12, 3.13) envs
 """
 
 from __future__ import annotations
