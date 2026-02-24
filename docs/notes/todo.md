@@ -69,6 +69,7 @@ Things to explore, implement, or learn more about.
 - [ ] Use and config scripts to liking.
 - [ ] Finish a decent amount of todo and finish project for the time being, then add more todos and ideas as they come up in the future. This way I can focus on finishing the project and then iteratively improving it over time rather than getting stuck in an endless loop of planning and adding more todos without making progress on the actual implementation.
 - [ ] Make sure each docs has the proper information and relevant links to resources and other docs that may help.
+- [ ] Make sure relevant commands are organized for end-users.
 - [ ]
 
 ## Questions to Answer
