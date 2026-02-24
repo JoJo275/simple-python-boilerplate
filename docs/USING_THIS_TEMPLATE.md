@@ -341,6 +341,12 @@ hatch run docs:build
 task docs:build
 ```
 
+**Docstring format:** mkdocstrings is configured to parse **Google-style**
+docstrings (`docstring_style: google` in `mkdocs.yml`). Ruff's pydocstyle
+rules enforce the same convention (`convention = "google"` in
+`pyproject.toml`). If you prefer NumPy or Sphinx style, update both settings
+so the linter and the doc renderer stay in sync.
+
 **To customize for your project:**
 
 1. Update `mkdocs.yml` — change `site_name`, `site_url`, `repo_url`
