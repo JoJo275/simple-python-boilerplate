@@ -13,7 +13,29 @@ This project follows [Semantic Versioning](https://semver.org/) (SemVer):
 | **MAJOR** (X.0.0) | Breaking changes to public API | `1.0.0` → `2.0.0` |
 | **MINOR** (0.X.0) | New features, backward compatible | `1.0.0` → `1.1.0` |
 | **PATCH** (0.0.X) | Bug fixes, backward compatible | `1.0.0` → `1.0.1` |
+Version bumps are **determined automatically** by [release-please](https://github.com/googleapis/release-please) from conventional commit prefixes — no manual version decisions needed.
 
+### How the Version Is Derived
+
+The package version comes from **git tags** via [hatch-vcs](https://github.com/ofek/hatch-vcs) at build time:
+
+- `pyproject.toml` declares `dynamic = ["version"]` — there is no static version field
+- hatch-vcs reads the latest git tag (e.g., `v1.2.0`) and generates `_version.py`
+- Dev builds between releases get PEP 440 versions like `0.1.1.dev3+gabcdef`
+- The `__init__.py` fallback is updated by release-please for human readability
+
+### Pre-1.0 Versioning
+
+`bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means:
+
+| Commit type | Version bump | Example |
+|------------|--------------|--------|
+| `fix:` / `perf:` | Patch | `0.6.0` → `0.6.1` |
+| `feat:` | Minor | `0.6.0` → `0.7.0` |
+| `BREAKING CHANGE` | Minor (not major) | `0.6.0` → `0.7.0` |
+
+Reaching `1.0.0` is a **manual decision** — edit the Release PR to set the version.
+After `1.0.0`, breaking changes bump major as expected by SemVer.
 ### Pre-release Versions
 
 | Suffix | Meaning | Stability |
@@ -36,12 +58,29 @@ This project does **not** follow a fixed release schedule. Releases are made whe
 
 ## What Triggers a Release
 
-| Trigger | Version Bump | Notes |
-|---------|--------------|-------|
-| Security fix | PATCH or higher | Released ASAP |
-| Bug fix | PATCH | Batched unless critical |
-| New feature | MINOR | After testing and documentation |
-| Breaking change | MAJOR | Planned, documented, migration guide provided |
+release-please scans conventional commits on `main` and creates (or updates) a
+Release PR when it finds **releasable** commit types:
+
+| Commit Prefix | Version Bump | Appears in CHANGELOG |
+|---------------|--------------|---------------------|
+| `fix:` | Patch | Yes |
+| `perf:` | Patch | Yes |
+| `feat:` | Minor | Yes |
+| `BREAKING CHANGE` | Major (minor pre-1.0) | Yes |
+| `revert:` | Patch | Yes |
+| `docs:`, `chore:`, `refactor:`, `test:`, `ci:`, `style:`, `build:` | — | Hidden (no release on their own) |
+
+Hidden types are grouped under the releasable commits if releasable types exist in the same batch.
+A push consisting only of hidden types (e.g., `docs:` or `chore:`) will **not** create a Release PR.
+
+### When Releases Happen
+
+| Situation | Action |
+|-----------|--------|
+| Security fix | Merge fix → merge Release PR ASAP |
+| Bug fix | Merge fix → merge Release PR (batched unless critical) |
+| New feature | Merge feature → merge Release PR after testing and docs |
+| Breaking change | Planned, documented, migration guide provided |
 
 ---
 
@@ -101,15 +140,18 @@ def old_function():
 
 ## Release Process
 
-See [releasing.md](releasing.md) for the step-by-step release process.
+Releases are **fully automated** via [release-please](https://github.com/googleapis/release-please).
+See [releasing.md](releasing.md) for the step-by-step guide.
 
 ### Summary
 
-1. Update CHANGELOG.md
-2. Bump version in pyproject.toml
-3. Commit with `chore: release vX.Y.Z`
-4. Tag with `vX.Y.Z`
-5. Push tag (triggers release workflow)
+1. Conventional commits land on `main` (via rebase+merge)
+2. release-please creates a **Release PR** with version bump + CHANGELOG update
+3. Review and (optionally edit) the Release PR, then merge it
+4. release-please creates a **git tag** and **GitHub Release**
+5. The tag triggers [`release.yml`](../.github/workflows/release.yml) which builds, publishes, and attaches artifacts
+
+**No manual version bumping, tagging, or CHANGELOG editing required.**
 
 ---
 
@@ -117,4 +159,8 @@ See [releasing.md](releasing.md) for the step-by-step release process.
 
 - [Releasing](releasing.md) — Step-by-step release instructions
 - [CHANGELOG.md](../CHANGELOG.md) — Version history
+- [ADR 021](adr/021-automated-release-pipeline.md) — Decision record for the release pipeline
+- [release-please-config.json](../release-please-config.json) — release-please configuration
+- [release-please docs](https://github.com/googleapis/release-please)
+- [hatch-vcs docs](https://github.com/ofek/hatch-vcs)
 - [Semantic Versioning](https://semver.org/)
