@@ -66,7 +66,7 @@ Overview of all GitHub Actions workflows in this repository.
 
 Most workflows include a **repository guard** that prevents them from running on forks or clones that haven't opted in. Each workflow supports two activation methods:
 
-- **Option A** — Replace `YOURNAME/YOURTEMPLATE` in the `if:` condition with your repo slug.
+- **Option A** — Replace `YOURNAME/YOURREPO` in the `if:` condition with your repo slug.
 - **Option B** — Set a repository variable (e.g. `vars.ENABLE_TEST = 'true'`) in Settings → Secrets and variables → Actions → Variables.
 
 | Workflow | Variable |

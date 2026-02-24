@@ -107,21 +107,16 @@ list available tasks. Key ones:
 ### Scripts
 
 Utility scripts live in `scripts/`. They are standalone tools, not part of
-the installed package.
+the installed package. See [`scripts/README.md`](../scripts/README.md) for the
+full inventory.
 
-| Script | Purpose |
-|--------|--------|
-| `repo_doctor.py` | Health checker: reads rules from `repo_doctor.d/*.toml`, reports missing files/config/content. Supports `--fix`. |
-| `dep_versions.py` | Dependency version manager: shows installed/latest versions, updates inline comments in `pyproject.toml` + `requirements*.txt`. |
-| `workflow_versions.py` | GitHub Actions version manager: shows SHA-pinned action versions, updates `# vX.Y.Z` comments via GitHub API. |
-| `apply_labels.py` | Applies GitHub labels (baseline or extended set) to a repo using `gh` CLI. Supports `--dry-run`. |
-| `check_nul_bytes.py` | Pre-commit hook (`scripts/precommit/`) that fails if any staged file contains NUL bytes. |
-| `check_todos.py` | Scans for `TODO (template users)` comments and reports uncustomized items. Exits non-zero if any remain. |
-| `customize.py` | Interactive project customization: replaces placeholders, renames package dir, swaps license, strips optional dirs. Supports `--dry-run` and `--non-interactive`. |
-| `env_doctor.py` | Quick environment health check: Python version, venv, editable install, hooks, dev tools. Supports `--strict`. |
-| `changelog_check.py` | Verifies CHANGELOG.md version headings match git tags. Detects drift from release-please. |
+Key scripts:
+- `bootstrap.py` — One-command setup for fresh clones
+- `customize.py` — Interactive project customization (use `--enable-workflows OWNER/REPO` for quick workflow enablement)
+- `clean.py` — Remove build artifacts/caches
+- `doctor.py` — Diagnostics bundle for bug reports
 
-Run scripts directly (`python scripts/repo_doctor.py`) or via Taskfile
+Run scripts directly (`python scripts/bootstrap.py`) or via Taskfile
 shortcuts where available.
 
 ### Documentation
@@ -161,7 +156,7 @@ comments explaining what to change. Examples:
 - Documentation → TODO to update project-specific details
 
 TODOs should be actionable and specific — not just "fill this in" but
-"Replace `YOURNAME/YOURTEMPLATE` with your actual repo slug".
+"Replace `YOURNAME/YOURREPO` with your actual repo slug".
 
 ### Check Templates Before Creating Files
 
@@ -173,7 +168,7 @@ exists in the project. Key templates:
   repository guard pattern, SHA-pinned actions, and naming conventions
 - **Migration** → `db/migrations/001_example_migration.sql`
 - **Seed** → `db/seeds/001_example_seed.sql`
-- **Script** → review `scripts/` for naming and shebang conventions
+- **Script** → review `scripts/` for naming and shebang conventions. **Important:** After creating a script with a shebang (`#!/usr/bin/env python3`), mark it executable: `git add --chmod=+x scripts/my_script.py`
 
 ### Keep Related Files in Sync
 
@@ -319,7 +314,8 @@ and move on.
 ### General Guidance
 - **Prefer minimal diffs** — Avoid stylistic rewrites; Ruff already enforces formatting
 - **Don't churn** — Only suggest changes that add clear value
-- **Never install packages globally** — Always install into the active virtual environment (`.venv`) or a Hatch-managed environment. Never run bare `pip install <package>` outside a venv. Use `pip install -e ".[dev]"` for project dependencies, `hatch env create` for Hatch environments, or `pipx` for standalone CLI tools. If no venv is active, create or activate one first.
+- **Use Hatch for virtual environments** — Prefer `hatch shell` to enter the dev environment rather than creating manual `.venv` directories. Hatch manages environments automatically and keeps them in sync with `pyproject.toml`. Don't create `.venv` or `.venv-1` directories manually; use `hatch env create` if you need to explicitly create an environment.
+- **Never install packages globally** — Always install into a Hatch-managed environment. Never run bare `pip install <package>` outside a venv. Use `hatch run <cmd>` or `hatch shell` for project work, or `pipx` for standalone CLI tools.
 
 ## Conventions
 
@@ -419,6 +415,7 @@ Full index: `docs/adr/README.md`
 6. **Hatch env stale after dependency removal** — After removing a dependency from `pyproject.toml`, run `hatch env remove default` then re-create. Hatch doesn't auto-uninstall removed packages; the old package silently remains.
 7. **Installing packages outside a venv** — Never run bare `pip install <package>`. Always use a Hatch env, `.venv`, or `pipx`. This is easy to forget and causes global pollution.
 8. **CI gate check name drift** — If you rename a workflow job's `name:` field, the CI gate will silently stop finding it and timeout. Always update `REQUIRED_CHECKS` in `ci-gate.yml` when renaming job display names.
+9. **Scripts with shebangs must be executable** — If you add a shebang (`#!/usr/bin/env python3`) to a script, mark it executable in git: `git add --chmod=+x scripts/my_script.py`. The pre-commit hook `check-shebang-scripts-are-executable` will fail otherwise.
 
 ## Known Limitations / Tech Debt
 

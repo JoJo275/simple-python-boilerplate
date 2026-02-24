@@ -78,15 +78,18 @@ src/simple_python_boilerplate/
 │   ├── __init__.py
 │   └── example_query.sql
 └── dev_tools/           # Repo maintenance utilities
-    ├── __init__.py
-    └── clean.py         # TODO archiver (spb-clean --todo)
+    └── __init__.py
 
 scripts/                 # Standalone scripts (not part of package)
 ├── apply_labels.py      # GitHub label management
+├── archive_todos.py     # Archive completed TODO items
+├── bootstrap.py         # One-command setup for fresh clones
+├── clean.py             # Remove build artifacts and caches
 ├── dep_versions.py      # Dependency version reporting
+├── doctor.py            # Diagnostics bundle for bug reports
+├── env_doctor.py        # Environment health check
 ├── repo_doctor.py       # Repository health checks
-├── workflow_versions.py # SHA-pinned action version reporting
-└── check_nul_bytes.py   # NUL byte detection
+└── workflow_versions.py # SHA-pinned action version reporting
 
 db/                      # Database files (not embedded in package)
 ├── schema.sql           # Current schema definition

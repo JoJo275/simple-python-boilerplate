@@ -152,7 +152,7 @@ fmt = "ruff format {args: src/ tests/}"
 fmt-check = "ruff format --check {args: src/ tests/}"
 typecheck = "mypy {args: src/}"
 check = ["lint", "fmt-check", "typecheck", "test"]
-clean = "python -m simple_python_boilerplate.dev_tools.clean {args}"
+archive-todos = "python scripts/archive_todos.py {args}"
 
 # ── Docs environment — build and serve documentation ──────────
 # Usage:

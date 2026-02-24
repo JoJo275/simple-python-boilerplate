@@ -137,7 +137,7 @@ All workflows in this project follow these patterns:
 | Convention | Detail |
 |-----------|--------|
 | **SHA-pinned actions** | Full commit SHAs with human-readable version comments ([ADR 004](adr/004-pin-action-shas.md)) |
-| **Repository guard** | Workflows are disabled by default via `YOURNAME/YOURTEMPLATE` slug check; enable with repo slug or `vars.ENABLE_*` variable ([ADR 011](adr/011-repository-guard-pattern.md)) |
+| **Repository guard** | Workflows are disabled by default via `YOURNAME/YOURREPO` slug check; enable with repo slug or `vars.ENABLE_*` variable ([ADR 011](adr/011-repository-guard-pattern.md)) |
 | **Concurrency control** | `cancel-in-progress: true` per workflow + ref |
 | **Timeout limits** | `timeout-minutes` set on every job |
 | **Minimal permissions** | `permissions: contents: read` (least privilege) |

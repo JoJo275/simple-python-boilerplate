@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Clean utility for repository maintenance tasks.
+"""Archive completed TODO items from docs/notes/todo.md.
 
-Usage:
-    spb-clean --todo     Archive completed TODO items
+Moves checked items (- [x]) from todo.md to archive.md, organized by month.
+This is a dev utility for personal note management, not distributed with
+the package.
 
-Or if running as a script:
-    python -m simple_python_boilerplate.dev_tools.clean --todo
+Usage::
+
+    python scripts/archive_todos.py
+    python scripts/archive_todos.py --dry-run
+    task clean:todo
 """
+
+from __future__ import annotations
 
 import argparse
 import re
@@ -14,26 +20,20 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-
-def get_repo_root() -> Path:
-    """Find the repository root by looking for pyproject.toml."""
-    current = Path(__file__).resolve().parent
-    for parent in [current, *current.parents]:
-        if (parent / "pyproject.toml").exists():
-            return parent
-    # Fallback to current working directory
-    return Path.cwd()
+ROOT = Path(__file__).resolve().parent.parent
 
 
-def archive_todos() -> int:
+def archive_todos(*, dry_run: bool = False) -> int:
     """Move completed TODO items from todo.md to archive.md.
+
+    Args:
+        dry_run: If True, show what would change without modifying files.
 
     Returns:
         Number of items archived.
     """
-    repo_root = get_repo_root()
-    todo_file = repo_root / "docs" / "notes" / "todo.md"
-    archive_file = repo_root / "docs" / "notes" / "archive.md"
+    todo_file = ROOT / "docs" / "notes" / "todo.md"
+    archive_file = ROOT / "docs" / "notes" / "archive.md"
 
     # Validate files exist
     if not todo_file.exists():
@@ -58,7 +58,6 @@ def archive_todos() -> int:
     # Remove completed items from todo.md
     new_todo_content = todo_content
     for item in completed_items:
-        # Remove the item and any trailing newline
         new_todo_content = new_todo_content.replace(item + "\n", "")
 
     # Clean up any double blank lines created by removal
@@ -73,28 +72,31 @@ def archive_todos() -> int:
 
     # Check if month header exists
     if month_header not in archive_content:
-        # Add new month section at the end
         if not archive_content.endswith("\n"):
             archive_content += "\n"
         archive_content += f"\n{month_header}\n\n### Completed\n\n"
 
-    # Find where to insert items (after the month's "### Completed" or after month header)
+    # Find where to insert items
     month_section_pattern = re.compile(
         rf"({re.escape(month_header)}.*?)(### Completed\n+)", re.DOTALL
     )
 
     match = month_section_pattern.search(archive_content)
     if match:
-        # Insert after "### Completed\n"
         insert_pos = match.end()
         items_text = "\n".join(completed_items) + "\n"
         archive_content = (
             archive_content[:insert_pos] + items_text + archive_content[insert_pos:]
         )
     else:
-        # Fallback: just append to end with the items
         items_text = "\n".join(completed_items) + "\n"
         archive_content += items_text
+
+    if dry_run:
+        print(f"Would archive {len(completed_items)} item(s) to {current_month}:")
+        for item in completed_items:
+            print(f"  {item}")
+        return len(completed_items)
 
     # Write updated files
     todo_file.write_text(new_todo_content, encoding="utf-8")
@@ -108,47 +110,19 @@ def archive_todos() -> int:
 
 
 def main() -> int:
-    """Main entry point for the clean CLI.
-
-    Returns:
-        Exit code (0 = success).
-    """
+    """CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="spb-clean",
-        description="Repository maintenance and cleanup utilities.",
-        epilog="Example: spb-clean --todo",
+        prog="archive_todos",
+        description="Archive completed TODO items from docs/notes/todo.md.",
     )
-
-    # Add arguments for different clean actions
     parser.add_argument(
-        "--todo",
+        "--dry-run",
         action="store_true",
-        help="Archive completed TODO items from docs/notes/todo.md",
+        help="Show what would change without modifying files",
     )
-
-    # Placeholder for future clean actions
-    # parser.add_argument(
-    #     "--cache",
-    #     action="store_true",
-    #     help="Clean __pycache__ and .pyc files",
-    # )
-    # parser.add_argument(
-    #     "--build",
-    #     action="store_true",
-    #     help="Clean build artifacts (dist/, build/, *.egg-info)",
-    # )
-
     args = parser.parse_args()
 
-    # If no arguments provided, show help
-    if not any(vars(args).values()):
-        parser.print_help()
-        return 0
-
-    # Execute requested actions
-    if args.todo:
-        archive_todos()
-
+    archive_todos(dry_run=args.dry_run)
     return 0
 
 

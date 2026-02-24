@@ -27,7 +27,7 @@ Use a repository guard pattern in all optional workflows. Each workflow job incl
 ```yaml
 if: >-
   ${{
-    github.repository == 'YOURNAME/YOURTEMPLATE'
+    github.repository == 'YOURNAME/YOURREPO'
     || vars.ENABLE_WORKFLOWS == 'true'
     || vars.ENABLE_<WORKFLOW_NAME> == 'true'
   }}
@@ -37,7 +37,7 @@ if: >-
 
 | Method | How | Best for |
 |--------|-----|----------|
-| **Option A** | Replace `YOURNAME/YOURTEMPLATE` with your repo slug in the YAML (or run `scripts/customize.py`) | Simple, permanent |
+| **Option A** | Replace `YOURNAME/YOURREPO` with your repo slug in the YAML (or run `scripts/customize.py`) | Simple, permanent |
 | **Option B** | Set `vars.ENABLE_WORKFLOWS = 'true'` repository variable | Enable **all** workflows at once with no YAML edits |
 | **Option C** | Set `vars.ENABLE_<WORKFLOW> = 'true'` repository variable | Granular control over individual workflows |
 
@@ -59,7 +59,7 @@ workflows are desired (without the global variable).
 
 - Every optional workflow needs the boilerplate guard condition
 - Template users must remember to opt in (guards block execution by default)
-- The `YOURNAME/YOURTEMPLATE` placeholder can be confusing if not updated
+- The `YOURNAME/YOURREPO` placeholder can be confusing if not updated
 
 ### Neutral
 
