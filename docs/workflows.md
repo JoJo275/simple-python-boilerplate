@@ -5,7 +5,7 @@
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
 This project has **26 workflow files** in `.github/workflows/`. All workflows
-follow the conventions described at the bottom of this page.
+follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
 
