@@ -51,8 +51,7 @@ Things to explore, implement, or learn more about.
 - [ ] Populate containerfile with finished product at the end of production pipeline to ensure it always reflects the current state of the project and can be used for consistent development and testing environments. *This would involve updating the `Containerfile` to include all necessary dependencies, tools, and configurations that are required for development and testing. By keeping the `Containerfile` up to date with the finished product, it would ensure that anyone who uses it to create a containerized environment will have everything they need to work on the project without additional setup steps.*
 - [ ] Test whole repo against all CI in strict mode. --final stress test--
 - [X] Check CI breadth and add more if needed (e.g., test against more Python versions, add linting or security checks)
-- [ ] Add more detailed documentation for how to write and run tests, including how to use `pytest` markers for categorizing tests (e.g., slow, integration) and how to run specific subsets of tests in CI or locally.
-- [ ] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
+- [X] Add more detailed documentation for how to use static analysis tools, including how to set up and customize linters, formatters, and security scanners in CI and locally.
 - [ ] Add more detailed documentation for how to set up and use documentation generation tools like Sphinx or MkDocs, including how to write docstrings and how to generate and host documentation for the project.
 - [ ] Add more detailed documentation for how to use GitHub Actions workflows, including how to enable/disable optional workflows, how to customize them for different project needs, and how to troubleshoot common issues with workflows.
 - [ ] Add entire repo each file check
