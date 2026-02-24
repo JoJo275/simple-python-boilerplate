@@ -53,7 +53,7 @@ Overview of all GitHub Actions workflows in this repository.
 | **PR title** | [pr-title.yml](pr-title.yml) | PR (opened/edited/sync) | Enforces conventional commit format on PR titles |
 | **Labeler** | [labeler.yml](labeler.yml) | PR (opened/sync/reopen) | Auto-labels PRs based on changed file paths |
 | **Stale** | [stale.yml](stale.yml) | daily, manual | Marks/closes stale issues and PRs |
-| **Changelog** | [changelog.yml](changelog.yml) | push to main, manual | Generates CHANGELOG.md from conventional commits (git-cliff) |
+| **Changelog** | [changelog.yml](../workflows-optional/changelog.yml) | push to main, manual | Generates CHANGELOG.md from conventional commits (git-cliff) |
 
 ### Automated Updates
 

@@ -12,7 +12,7 @@ Releases are **fully automated** via [release-please](https://github.com/googlea
 2. release-please creates a **Release PR** with version bump + CHANGELOG update
 3. You review/edit the Release PR and merge it
 4. release-please creates a **git tag** and **GitHub Release**
-5. The tag triggers the [release workflow](.github/workflows/release.yml) which builds, publishes, and attaches artifacts
+5. The tag triggers the [release workflow](../.github/workflows/release.yml) which builds, publishes, and attaches artifacts
 
 **No manual version bumping, tagging, or CHANGELOG editing required.**
 
@@ -298,7 +298,7 @@ When you merge the Release PR, release-please automatically:
 1. Creates a git tag (e.g., `v1.2.0`)
 2. Creates a GitHub Release with CHANGELOG entries as release notes
 
-The tag then triggers the [release.yml](.github/workflows/release.yml) workflow which:
+The tag then triggers the [release.yml](../.github/workflows/release.yml) workflow which:
 
 1. Builds sdist + wheel (hatch-vcs reads the tag for version)
 2. Generates SLSA build provenance attestations

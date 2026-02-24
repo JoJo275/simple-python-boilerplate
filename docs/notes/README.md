@@ -34,4 +34,4 @@ When adding a new note file:
 ## See Also
 
 - [Architecture Decision Records](../adr/) — Documented decisions about this project
-- [Development Guide](../development.md) — Setup and workflow documentation
+- [Development Guide](../development/) — Setup and workflow documentation

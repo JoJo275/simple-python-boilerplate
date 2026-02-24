@@ -10,7 +10,7 @@ Utility scripts for development and maintenance.
 | [apply-labels.sh](apply-labels.sh) | Shell wrapper for label application |
 | [archive_todos.py](archive_todos.py) | Archive completed TODO items from todo.md |
 | [bootstrap.py](bootstrap.py) | One-command setup for fresh clones |
-| [check_nul_bytes.py](check_nul_bytes.py) | Detect NUL (0x00) bytes in staged files |
+| [check_nul_bytes.py](precommit/check_nul_bytes.py) | Detect NUL (0x00) bytes in staged files |
 | [clean.py](clean.py) | Remove build artifacts and caches |
 | [customize.py](customize.py) | Interactive project customization — replaces boilerplate placeholders |
 | [dep_versions.py](dep_versions.py) | Show/update dependency versions in pyproject.toml and requirements files |

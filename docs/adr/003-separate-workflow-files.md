@@ -75,7 +75,7 @@ Define all logic in reusable workflows, call from thin wrapper files.
 - [.github/workflows/lint-format.yml](../../.github/workflows/lint-format.yml) — Code quality checks
 - [.github/workflows/release.yml](../../.github/workflows/release.yml) — Build and publish
 - [.github/workflows/spellcheck.yml](../../.github/workflows/spellcheck.yml) — Spell checking
-- [.github/workflows/_spellcheck-autofix.yml](../../.github/workflows/_spellcheck-autofix.yml) — Disabled (underscore prefix)
+- [.github/workflows/spellcheck-autofix.yml](../../.github/workflows/spellcheck-autofix.yml) — Auto-fix typos weekly
 
 ## References
 
