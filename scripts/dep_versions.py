@@ -77,7 +77,7 @@ def _package_summary(pkg: str) -> str | None:
         summary = summary.rstrip(".")
         # Remove leading "pkgname: " or "pkgname - " prefix (redundant)
         prefix_re = re.compile(
-            r"^" + re.escape(pkg) + r"\s*[:—–-]\s*",
+            r"^" + re.escape(pkg) + r"\s*[:—–-]\s*",  # noqa: RUF001
             re.IGNORECASE,
         )
         summary = prefix_re.sub("", summary)
@@ -475,9 +475,13 @@ def upgrade_all(rows: list[dict[str, str | None]]) -> int:
     """
     upgraded = 0
     for r in rows:
-        if r["upgradable"] == "yes" and r["name"] and r["installed"]:
-            if upgrade_package(r["name"]):
-                upgraded += 1
+        if (
+            r["upgradable"] == "yes"
+            and r["name"]
+            and r["installed"]
+            and upgrade_package(r["name"])
+        ):
+            upgraded += 1
     return upgraded
 
 

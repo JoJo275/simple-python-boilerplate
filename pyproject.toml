@@ -339,6 +339,9 @@ convention = "google"  # Enforce Google-style docstrings
 "tests/**" = ["T20", "D"]
 "scripts/**" = ["T20", "D"]
 "experiments/**" = ["T20", "D"]
+# CLI entry points use print() for terminal output
+"src/simple_python_boilerplate/main.py" = ["T201"]
+"src/simple_python_boilerplate/cli.py" = ["T201", "PTH123"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["simple_python_boilerplate"]
