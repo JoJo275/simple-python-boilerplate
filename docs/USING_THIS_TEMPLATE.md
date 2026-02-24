@@ -124,6 +124,8 @@ If you don't need certain features, remove these files:
 
 ---
 
+> The template is meant to be a starting point — feel free to strip out what you don't need and add what you do. **Be conscious** of certain files that depend on others (e.g., issue templates reference labels, so update or remove them together).
+
 ## Checklist
 
 ### Initial Setup
