@@ -29,8 +29,12 @@ flowchart TD
         B --> B_hook>"🔒 Hooks: Ruff, mypy, bandit, commitizen"]
         B_hook --> C[Push branch to GitHub]
         C --> D[Open PR targeting main]
-        D --> D_ci>"⚙️ CI: lint, test, typecheck, security"]
-        D_ci --> E[CI passes + review approved]
+        D --> D_labels["Add labels + Copilot review (optional)"]
+        D_labels --> D_ci>"⚙️ CI: lint, test, typecheck, security"]
+        D_ci --> D_check{All checks pass?}
+        D_check -->|No| D_fix[Fix code + push to branch]
+        D_fix --> D_ci
+        D_check -->|Yes| E[Review approved]
         E --> F[Rebase and merge]
     end
 
@@ -53,7 +57,10 @@ flowchart TD
     style PR1_title fill:none,stroke:none,color:#5b9bd5,font-weight:bold
     style PR2_title fill:none,stroke:none,color:#e6a817,font-weight:bold
     style B_hook fill:#1a3a4a,stroke:#5b9bd5,color:#8bb8d9
+    style D_labels fill:#1a3a4a,stroke:#5b9bd5,color:#8bb8d9
     style D_ci fill:#1a3a4a,stroke:#5b9bd5,color:#8bb8d9
+    style D_check fill:#2a4a6b,stroke:#5b9bd5,color:#e0e0e0
+    style D_fix fill:#4a1a1a,stroke:#d45757,color:#e0e0e0
     style G fill:#2a4a6b,stroke:#5b9bd5,color:#e0e0e0
     style H fill:#2a2a2a,stroke:#666,color:#999
     style L fill:#1a4a2a,stroke:#4caf50,color:#e0e0e0
@@ -178,29 +185,94 @@ The commitizen pre-commit hook validates each commit message automatically. If a
 > pre-commit install --hook-type pre-push      # pre-push stage
 > ```
 
-**3. Push your branch and open a PR:**
+**3. Push your branch:**
 
 ```bash
 git push                          # tracking already set in step 1
 ```
 
-CI workflows (lint, test, typecheck, security) run automatically when you open a PR targeting `main`. See the [workflows README](../.github/workflows/README.md) for the full list of workflows and their triggers.
+**4. Open the PR on GitHub:**
 
-> **When do CI workflows run?** Most workflows trigger on `pull_request` targeting `main`, meaning they run when you open or update a PR — not on every push to a feature branch. They also trigger on `push` to `main` itself (post-merge). A few workflows (PR title, labeler, dependency review) only run on pull requests. The release workflow only triggers on version tags. Check each workflow's `on:` trigger for specifics.
+After pushing, go to your repository on GitHub and create a pull request:
 
-**4. Format your feature PR:**
+1. **Navigate to the repo** — Go to `https://github.com/OWNER/REPO` (or click the link Git prints after pushing).
 
-| Element | Format | Example |
-|---------|--------|---------|
-| **PR title** | Conventional commit format | `feat: add user authentication` |
-| **PR body** | Free-form for human reviewers | Describe what, why, and any context |
-| **Commits** | Conventional commit messages | The commits are what matter for releases |
+2. **Start the PR** — GitHub usually shows a banner: *"your-branch had recent pushes — Compare & pull request"*. Click it. If the banner is gone, go to the **Pull requests** tab → **New pull request** → set base: `main` and compare: `your-branch`.
 
-> **Tip:** The repo includes a [PR template](../.github/PULL_REQUEST_TEMPLATE.md) that pre-fills the body with a structured checklist when you open a PR on GitHub.
+3. **Write the PR title** — Use conventional commit format. This is validated by the `pr-title` workflow.
+
+    | Element | Format | Example |
+    |---------|--------|---------|
+    | **PR title** | Conventional commit format | `feat: add user authentication` |
+    | **PR body** | Free-form for human reviewers | Describe what, why, and any context |
+    | **Commits** | Conventional commit messages | The commits are what matter for releases |
+
+4. **Fill in the PR description** — The repo includes a [PR template](../.github/PULL_REQUEST_TEMPLATE.md) that pre-fills the body with a structured checklist. Fill in:
+    - **Description** — what you changed and why
+    - **Related Issue** — link to an issue (`Fixes #123`) or write "N/A"
+    - **Type of Change** — check the relevant box (bug fix, feature, docs, etc.)
+    - **How to Test** — steps and commands so reviewers can verify your changes
+    - **Checklist** — confirm you've run tests, updated docs, etc.
+
+5. **Add labels** — In the right sidebar, click **Labels** and apply relevant ones (e.g., `enhancement`, `bug`, `documentation`). The `labeler` workflow also auto-applies labels based on changed file paths, but manual labels help with filtering and triage.
+
+6. **(Optional) Request a Copilot review** — In the **Reviewers** sidebar, select **Copilot** to get an AI-powered code review. Copilot will post inline suggestions on your PR. This is optional but useful for catching issues before human review.
+
+7. **Request human reviewers** — Add team members or maintainers in the **Reviewers** sidebar.
+
+8. **Click "Create pull request"** — This triggers CI workflows immediately.
 
 > **Important:** With rebase+merge, individual **commit messages** drive the CHANGELOG — not the PR title or body. The `pr-title` workflow validates your title follows conventional format for consistency, but it's the commits that release-please reads. The PR body is purely for reviewers.
 
-**5. Merge:**
+> **When do CI workflows run?** Most workflows trigger on `pull_request` targeting `main`, meaning they run when you open or update a PR — not on every push to a feature branch. They also trigger on `push` to `main` itself (post-merge). A few workflows (PR title, labeler, dependency review) only run on pull requests. The release workflow only triggers on version tags. Check each workflow's `on:` trigger for specifics. See the [workflows README](../.github/workflows/README.md) for the full list.
+
+**5. Monitor CI checks and fix failures:**
+
+After submitting your PR, CI workflows run automatically. Go to the **Checks** tab (or scroll to the bottom of the PR) to monitor progress.
+
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': {'primaryColor': '#1e3a5f', 'primaryTextColor': '#e0e0e0', 'primaryBorderColor': '#5b9bd5', 'lineColor': '#5b9bd5', 'secondaryColor': '#162d4a', 'tertiaryColor': '#0d1f36', 'edgeLabelBackground': '#0d1f36'}}}%%
+flowchart TD
+    A[PR submitted] --> B[CI checks run]
+    B --> C{All checks pass?}
+    C -->|Yes| D[Ready for review + merge]
+    C -->|No| E[Click failed check → read logs]
+    E --> F[Fix code locally]
+    F --> G[Commit + push to same branch]
+    G --> H[CI re-runs automatically]
+    H --> C
+
+    style C fill:#2a4a6b,stroke:#5b9bd5,color:#e0e0e0
+    style D fill:#1a4a2a,stroke:#4caf50,color:#e0e0e0
+    style E fill:#4a1a1a,stroke:#d45757,color:#e0e0e0
+```
+
+**When a check fails:**
+
+1. **Identify the failure** — On the PR page, failed checks show a red ✗. Click **Details** next to the failed check to open the workflow run logs.
+2. **Read the logs** — Expand the failed step to see the error. Common failures:
+    - **Ruff (lint/format)** — style or lint violation → run `task lint:fix` and `task fmt` locally
+    - **mypy (type check)** — type error → fix type annotations or add `# type: ignore` with justification
+    - **pytest (test)** — test failure → fix the test or the code under test
+    - **Bandit (security)** — security issue in Python source → fix the flagged pattern
+    - **pr-title** — PR title doesn't follow conventional format → edit the PR title on GitHub
+    - **commit-lint** — commit messages don't follow conventional format → amend or rebase commits
+    - **OpenSSF Scorecard** — repository security practices issue (see example below)
+3. **Fix and push** — Make the fix locally, commit, and push to the same branch. CI re-runs automatically on every push to a PR branch. No need to close and reopen the PR.
+
+    ```bash
+    # Fix the issue locally, then:
+    git add -A
+    git commit -m "fix: resolve lint errors from CI"
+    git push
+    ```
+
+4. **Repeat** — Keep fixing until all checks are green. Each push triggers a fresh CI run.
+
+> **Example — OpenSSF Scorecard failure:**
+> The [OpenSSF Scorecard](../.github/workflows/scorecard.yml) workflow evaluates repository security practices (branch protection, dependency pinning, signed releases, etc.). It runs on pushes to `main` and weekly. If it fails at the "Run Scorecard" step, it typically means a security practice scored low — for example, missing branch protection rules, unsigned commits, or unpinned dependencies. To fix: review the error in the Actions log, identify which scorecard check failed, and address it (e.g., enable branch protection in repo settings, pin a dependency SHA). Note that Scorecard runs against the repository's **configuration**, not just your code — some fixes require repo settings changes, not code changes.
+
+**6. Merge:**
 
 Once CI passes and the PR is approved, a maintainer clicks **Rebase and merge**. GitHub automatically appends `(#PR)` to each commit subject.
 
