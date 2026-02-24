@@ -111,7 +111,7 @@ Settings → Secrets and variables → Actions → Variables
   Value: true
 ```
 
-Or replace `YOURNAME/YOURTEMPLATE` in the workflow file with your repo slug.
+Or replace `YOURNAME/YOURREPO` in the workflow file with your repo slug.
 
 ### For release SBOMs (`release.yml`)
 

@@ -43,7 +43,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_SPELLCHECK_AUTOFIX = 'true'.
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURTEMPLATE'
+        github.repository == 'YOURNAME/YOURREPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_SPELLCHECK_AUTOFIX == 'true'
       }}

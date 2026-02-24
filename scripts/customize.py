@@ -810,6 +810,14 @@ examples:
         action="store_true",
         help="Skip the already-customized safety check",
     )
+    parser.add_argument(
+        "--enable-workflows",
+        metavar="OWNER/REPO",
+        help=(
+            "Enable all GitHub workflows by replacing 'YOURNAME/YOURREPO' placeholder. "
+            "Pass your repo slug (e.g. 'myorg/myproject'). Runs only this operation."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -861,6 +869,72 @@ def config_from_args(args: argparse.Namespace) -> Config:
 
 
 # ---------------------------------------------------------------------------
+# Enable Workflows Only
+# ---------------------------------------------------------------------------
+
+
+def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
+    """Enable all workflows by replacing the YOURNAME/YOURREPO placeholder.
+
+    This is a quick operation that only touches workflow files and related docs.
+
+    Args:
+        repo_slug: The GitHub repository slug (e.g., 'myorg/myproject').
+        dry_run: If True, show what would change without modifying files.
+
+    Returns:
+        Exit code: 0 on success, 1 on error.
+    """
+    # Validate slug format
+    if "/" not in repo_slug or repo_slug.count("/") != 1:
+        print(f"ERROR: Invalid repo slug '{repo_slug}'. Expected 'owner/repo' format.")
+        return 1
+
+    owner, repo = repo_slug.split("/")
+    if not owner or not repo:
+        print(
+            f"ERROR: Invalid repo slug '{repo_slug}'. Both owner and repo are required."
+        )
+        return 1
+
+    replacements = [
+        Replacement(
+            old=TEMPLATE_GITHUB_URL_PLACEHOLDER,
+            new=repo_slug,
+            description=f"GitHub URL placeholder -> {repo_slug}",
+        ),
+    ]
+
+    tag = "DRY RUN — " if dry_run else ""
+    print(f"{tag}Enabling workflows with repo slug: {repo_slug}")
+    print()
+
+    modified = apply_replacements(replacements, dry_run=dry_run)
+
+    if not modified:
+        print("No files needed updating (placeholder may already be replaced).")
+        return 0
+
+    for path, count in modified.items():
+        rel = path.relative_to(ROOT)
+        print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
+
+    total = sum(modified.values())
+    n_files = len(modified)
+    print(
+        f"\nTotal: {total} replacement{'s' if total != 1 else ''}"
+        f" in {n_files} file{'s' if n_files != 1 else ''}"
+    )
+
+    if dry_run:
+        print("\nDry run complete — no files were modified.")
+    else:
+        print("\nWorkflows enabled! They will now run on your repository.")
+
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -872,6 +946,10 @@ def main() -> int:
         Exit code: 0 on success, 1 on abort or error.
     """
     args = parse_args()
+
+    # Handle --enable-workflows as a standalone operation
+    if args.enable_workflows:
+        return enable_workflows_only(args.enable_workflows, dry_run=args.dry_run)
 
     # Safety check: warn if the template appears already customized
     if not args.force and _already_customized():

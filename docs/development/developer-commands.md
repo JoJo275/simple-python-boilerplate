@@ -143,10 +143,28 @@ python -m build
 
 ```bash
 # Archive completed TODO items
-spb-clean --todo
+python scripts/archive_todos.py
+# or via task runner
+task clean:todo
 
-# Show clean script help
-spb-clean --help
+# Clean build artifacts and caches
+python scripts/clean.py
+python scripts/clean.py --dry-run
+task clean:all
+
+# Print diagnostics bundle for bug reports
+python scripts/doctor.py
+python scripts/doctor.py --markdown   # For GitHub issues
+python scripts/doctor.py --output var/doctor.txt
+task doctor
+
+# Environment health check
+python scripts/env_doctor.py
+task doctor:env
+
+# One-command setup for fresh clones
+python scripts/bootstrap.py
+task bootstrap
 ```
 
 ## Git Shortcuts

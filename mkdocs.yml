@@ -6,7 +6,7 @@ site_description: Simple Python boilerplate using src/ layout
 docs_dir: docs/mkdocs
 # TODO (template users): Replace with your GitHub Pages URL
 #   e.g. https://myorg.github.io/myproject/
-site_url: https://YOURNAME.github.io/YOURTEMPLATE/
+site_url: https://YOURNAME.github.io/YOURREPO/
 # repo_url: https://github.com/username/simple-python-boilerplate
 # repo_name: username/simple-python-boilerplate
 

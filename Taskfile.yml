@@ -152,12 +152,22 @@ tasks:
   clean:todo:
     desc: Archive completed TODO items
     cmds:
-      - hatch run spb-clean --todo
+      - python scripts/archive_todos.py
 
   doctor:
-    desc: Run project health check
+    desc: Print diagnostics bundle for bug reports
     cmds:
-      - hatch run spb-doctor
+      - python scripts/doctor.py {{.CLI_ARGS}}
+
+  doctor:env:
+    desc: Run environment health check
+    cmds:
+      - python scripts/env_doctor.py {{.CLI_ARGS}}
+
+  bootstrap:
+    desc: One-command setup for fresh clones
+    cmds:
+      - python scripts/bootstrap.py {{.CLI_ARGS}}
 
   version:
     desc: Show project version
@@ -280,15 +290,7 @@ tasks:
       - hatch run python scripts/apply_labels.py --set extended
 
   # ── Deep Clean ─────────────────────────────────────────────
-  clean:dev:
-    desc: "Run dev cleanup utility (usage: task clean:dev -- --todo)"
-    cmds:
-      - hatch run spb-clean {{.CLI_ARGS}}
-
   clean:all:
     desc: Remove all build artifacts and caches
     cmds:
-      - hatch clean
-      - cmd: python -c "import shutil, pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]"
-      - cmd: python -c "import shutil; [shutil.rmtree(d, True) for d in ['.mypy_cache', '.ruff_cache', '.pytest_cache']]"
-      - cmd: echo "All caches and build artifacts removed."
+      - python scripts/clean.py {{.CLI_ARGS}}

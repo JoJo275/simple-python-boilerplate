@@ -25,7 +25,7 @@
 #
 # TODO (template users):
 #   1. Enable the repository guard (pick ONE):
-#        Option A – Replace 'YOURNAME/YOURTEMPLATE' below with
+#        Option A – Replace 'YOURNAME/YOURREPO' below with
 #                   your actual repo slug (e.g. 'myorg/myproject').
 #        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_CHANGELOG = 'true'
@@ -62,7 +62,7 @@ jobs:
     #   Option B  – Set vars.ENABLE_CHANGELOG = 'true'.
     if: >-
       ${{
-        github.repository == 'YOURNAME/YOURTEMPLATE'
+        github.repository == 'YOURNAME/YOURREPO'
         || vars.ENABLE_WORKFLOWS == 'true'
         || vars.ENABLE_CHANGELOG == 'true'
       }}
