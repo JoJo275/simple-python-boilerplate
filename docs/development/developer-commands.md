@@ -14,6 +14,28 @@ hatch shell
 hatch run <command>
 ```
 
+#### Targeting Specific Environments
+
+Hatch manages multiple environments (default, docs, test matrix). To run commands in a specific environment, prefix with the environment name:
+
+```bash
+hatch run <cmd>              # → default environment
+hatch run docs:<cmd>         # → docs environment
+hatch run test.py3.12:<cmd>  # → test.py3.12 environment
+```
+
+#### Temporary Package Installs
+
+You can install packages temporarily into a Hatch environment for quick experimentation:
+
+```bash
+hatch run pip install some-package
+```
+
+> **Warning:** This install is **temporary** — it disappears when the environment is recreated (`hatch env remove default`). For permanent dependencies, add them to `pyproject.toml` under `[project.optional-dependencies]` instead.
+>
+> Useful for: quick debugging, one-off tools, testing compatibility before committing to a dependency.
+
 ### Using pip + venv (manual)
 
 ```bash

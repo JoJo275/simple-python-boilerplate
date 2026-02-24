@@ -130,6 +130,4 @@ def validate_input(data: str) -> bool:
     Returns:
         True if valid, False otherwise.
     """
-    if not data:
-        return False
-    return True
+    return bool(data)

@@ -15,13 +15,14 @@ Exit codes:
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 CHUNK_SIZE = 1024 * 1024  # 1 MiB
 
 
 def check_file(path: str) -> bool:
     try:
-        with open(path, "rb") as f:
+        with Path(path).open("rb") as f:
             for chunk in iter(lambda: f.read(CHUNK_SIZE), b""):
                 if b"\x00" in chunk:
                     return True

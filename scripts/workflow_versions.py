@@ -212,9 +212,8 @@ def _resolve_tag(
     repo_slug = f"{parts[0]}/{parts[1]}"
 
     # Strategy 1: verify the existing comment tag (fast, 1-2 API calls)
-    if hint_tag:
-        if _tag_points_at(repo_slug, hint_tag, sha):
-            return hint_tag
+    if hint_tag and _tag_points_at(repo_slug, hint_tag, sha):
+        return hint_tag
 
     # Strategy 2: scan recent tags (slower, up to 5 pages)
     return _resolve_tag_from_tags_api(repo_slug, sha)
@@ -650,10 +649,7 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
                         )
             else:
                 # No comment at all
-                if desc:
-                    new_trail = f" # {desc} ({new_tag})"
-                else:
-                    new_trail = f" # {new_tag}"
+                new_trail = f" # {desc} ({new_tag})" if desc else f" # {new_tag}"
 
             new_line = (
                 f"{m.group('indent')}"

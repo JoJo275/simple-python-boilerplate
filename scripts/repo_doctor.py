@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Repo doctor — warn-only health checks for repository structure.
 
 Reads rules from ``.repo-doctor.toml`` and reports missing files,
@@ -19,7 +20,7 @@ from __future__ import annotations
 import argparse
 import re
 import shutil
-import subprocess  # nosec B404  # noqa: S404 — git only, no shell, no user input
+import subprocess  # nosec B404
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -91,7 +92,7 @@ def _run_git(root: Path, args: list[str]) -> tuple[int, str, str]:
     """Run a git command and return *(returncode, stdout, stderr)*."""
     if _GIT_CMD is None:
         return 1, "", "git not found on PATH"
-    result = subprocess.run(  # nosec B603  # noqa: S603, S607
+    result = subprocess.run(  # nosec B603
         [_GIT_CMD, *args],
         cwd=root,
         text=True,
@@ -185,7 +186,7 @@ def _toml_has_path(root: Path, rel: str, dotted: str) -> tuple[bool, str]:
 
     try:
         data = tomllib.loads(target.read_text(encoding="utf-8"))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return False, f"Could not parse TOML: {exc!s}"
 
     cur: Any = data

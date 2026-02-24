@@ -55,5 +55,6 @@ jobs:
           codespell \
             --check-filenames \
             --check-hidden \
-            --skip ".git,.venv,dist,build,.mypy_cache,.ruff_cache,__pycache__" \
+            --skip ".git,.venv,dist,build,.mypy_cache,.ruff_cache,__pycache__,*.egg-info,site,_typos.toml" \
+            --ignore-words-list "implementors" \
             .
