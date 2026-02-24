@@ -7,8 +7,7 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-<!-- Uncomment after setting up Codecov (free for public repos): -->
-<!-- [![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/JoJo275/simple-python-boilerplate) -->
+[![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/JoJo275/simple-python-boilerplate)
 
 ---
 
