@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **26 workflow files** in `.github/workflows/`. All workflows
+This project has **27 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -29,7 +29,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Security Audit** | [security-audit.yml](../.github/workflows/security-audit.yml) | push, PR, weekly, manual | `pip-audit` | Checks Python deps against OSV/PyPI vuln databases |
 | **Bandit** | [bandit.yml](../.github/workflows/bandit.yml) | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan` | Static security analysis for Python source |
 | **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR | `Scan dependencies` | Scans PRs for vulnerable or risky new dependencies |
-| **CodeQL** | [codeql.yml](../.github/workflows/codeql.yml) | push, PR, weekly | `CodeQL Analysis` | GitHub CodeQL static analysis |
+| **CodeQL** | [security-codeql.yml](../.github/workflows/security-codeql.yml) | push, PR, weekly | `CodeQL Analysis` | GitHub CodeQL static analysis |
 | **Container Scan** | [container-scan.yml](../.github/workflows/container-scan.yml) | push, PR, weekly, manual | `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline |
 | **Nightly Security** | [nightly-security.yml](../.github/workflows/nightly-security.yml) | daily, manual | Multiple (SBOM rescan, pip-audit, container scans) | Consolidated nightly sweep against latest vuln databases |
 | **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml) | push (main), weekly, manual | `Scorecard analysis` | Evaluates repo security practices via OpenSSF Scorecard |
@@ -54,7 +54,8 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 | Workflow | File | Triggers | Job name(s) | Purpose |
 |----------|------|----------|-------------|---------|
-| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main, path-filtered), PR (path-filtered), manual | `Build docs`, `Deploy to GitHub Pages` | Builds MkDocs site (strict) and deploys to GitHub Pages on push to main |
+| **Docs Build** | [docs-build.yml](../.github/workflows/docs-build.yml) | push, PR, manual | `Build docs` | Builds MkDocs site with `--strict` mode (CI gate quality check) |
+| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main, path-filtered), manual | `Build docs for deploy`, `Deploy to GitHub Pages` | Builds and deploys MkDocs site to GitHub Pages on push to main |
 
 ### Container
 
@@ -109,11 +110,12 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 | `Build container image` | container-build.yml |
 | `Conventional commit check` | pr-title.yml |
 | `Validate commit messages` | commit-lint.yml |
+| `Build docs` | docs-build.yml |
 
 **Excluded from gate** (path-filtered — don't run on every PR):
 
 - `bandit.yml` — only runs on `src/**`, `scripts/**`, `experiments/**`, `pyproject.toml` changes
-- `docs-deploy.yml` — only runs on `docs/**`, `mkdocs.yml`, `src/**/*.py`, `pyproject.toml` changes
+- `docs-deploy.yml` — only runs on `docs/**`, `mkdocs.yml`, `src/**/*.py`, `pyproject.toml` changes (deploy only)
 - `link-checker.yml` — only runs on `**/*.md`, `**/*.html`, `docs/**` changes
 
 These still report status when they run and also run on push to main + schedules.

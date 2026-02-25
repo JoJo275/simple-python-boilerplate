@@ -85,7 +85,7 @@ pattern.
 | **coverage.yml** | pytest-cov | Tracks coverage trends. |
 | **security-audit.yml** | pip-audit | Vulnerability scanning against OSV/PyPI DB. |
 | **bandit.yml** | Bandit security lint | Path-filtered to `src/`/`scripts/` — only runs when Python source changes. |
-| **codeql.yml** | GitHub CodeQL | Deep semantic analysis. Scheduled + PR-triggered. |
+| **security-codeql.yml** | GitHub CodeQL | Deep semantic analysis. Scheduled + PR-triggered. |
 | **dependency-review.yml** | Dependency review | Flags new dependencies with known vulnerabilities on PRs. |
 | **container-build.yml** | OCI image build | Builds the Containerfile on push/PR. |
 | **container-scan.yml** | Trivy + Grype | Multi-scanner container vulnerability scanning (ADR 012). |
@@ -108,7 +108,7 @@ pattern.
 |--------------|------------|
 | **Mega CI workflow** | Would consolidate all jobs into one file with `needs:`. Violates ADR 003 (separate files). Loses per-workflow triggers, permissions, path filters, and independent failure isolation. The ci-gate pattern solves the "single required check" problem without this trade-off. |
 | **auto-merge Dependabot** | Considered but deferred. Would auto-approve + merge minor/patch Dependabot PRs. Useful for reducing toil, but need to set up first and ensure security-audit + dependency-review pass before auto-merge. Can add later. |
-| **docs-deploy.yml** (MkDocs) | Have `mkdocs.yml` and `site/` but docs aren't deployed to GitHub Pages yet. Worth adding when ready to publish — even just `mkdocs build --strict` to catch broken cross-refs. |
+| ~~**docs-deploy.yml** (MkDocs)~~ | **Adopted.** Split into `docs-build.yml` (CI gate — runs `mkdocs build --strict` on every PR) and `docs-deploy.yml` (deploys to GitHub Pages on push to main). |
 
 ### Notes
 

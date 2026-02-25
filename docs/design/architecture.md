@@ -187,6 +187,7 @@ PR opened / push to main
   ├── link-checker.yml    (path-filtered: *.md, docs/)
   ├── container-build.yml (OCI image build)
   ├── container-scan.yml  (Trivy scan)
+  ├── docs-build.yml      (MkDocs build — CI gate check)
   └── ci-gate.yml         (fan-in: single "gate" required check)
                            └── polls Checks API for all required jobs
                            └── only check listed in branch protection
@@ -198,7 +199,7 @@ push to main (release-please)
 
 scheduled
   ├── nightly-security.yml  (comprehensive scan)
-  ├── codeql.yml            (CodeQL analysis)
+  ├── security-codeql.yml   (CodeQL analysis)
   ├── scorecard.yml         (OpenSSF Scorecard)
   ├── pre-commit-update.yml (weekly hook updates)
   └── stale.yml             (close stale issues/PRs)

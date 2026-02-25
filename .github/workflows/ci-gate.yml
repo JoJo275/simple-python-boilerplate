@@ -115,6 +115,9 @@ jobs:
 
               // Container (build only — scans are non-blocking by design)
               'Build container image',     // container-build.yml → build
+
+              // Documentation
+              'Build docs',                // docs-build.yml → build
             ];
 
             // Checks required only on pull_request events.
