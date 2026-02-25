@@ -42,7 +42,7 @@ Things to explore, implement, or learn more about.
 
 - [X] How to handle private dependencies in pyproject.toml?
 - [X] Best practice for versioning: manual vs automated?
-- [ ] When is namespace packaging appropriate?
+- [X] When is namespace packaging appropriate?
 - [ ] How to manage multiple Python versions in CI?
 - [ ] How to handle optional dependencies in pyproject.toml?
 
