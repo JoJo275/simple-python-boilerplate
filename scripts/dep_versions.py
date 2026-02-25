@@ -21,6 +21,7 @@ Requirements:
     - The project installed in the current environment
 
 Usage:
+    python scripts/dep_versions.py --version             # Show script version
     python scripts/dep_versions.py                       # Show all dep versions
     python scripts/dep_versions.py show --offline        # Skip PyPI check
     python scripts/dep_versions.py update-comments       # Sync comments with installed
@@ -46,6 +47,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+SCRIPT_VERSION = "1.1.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
@@ -89,7 +92,7 @@ def _package_summary(pkg: str) -> str | None:
     """
     try:
         meta = pkg_metadata(pkg)
-        summary: str | None = meta.get("Summary")
+        summary: str | None = meta["Summary"]
         if not summary:
             return None
         # Strip trailing periods for consistency
@@ -507,7 +510,12 @@ def upgrade_package(name: str, target_version: str | None = None) -> bool:
     spec = f"{name}=={target_version}" if target_version else name
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", spec]
     print(f"  pip install --upgrade {spec}")
-    result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
+    result = subprocess.run(  # nosec B603
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
     if result.returncode != 0:
         print(f"  FAILED: {result.stderr.strip()}")
         return False
@@ -544,6 +552,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dep_versions",
         description="Dependency version manager for pyproject.toml and requirements files.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
