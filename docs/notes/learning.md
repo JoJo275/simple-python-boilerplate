@@ -4391,6 +4391,9 @@ Common programming and development terminology, including informal terms you'll 
 | **Vendoring** | Copying a dependency's source code directly into your project instead of installing it. | "We vendored the library to avoid the pip dependency" |
 | **Shim** | A thin adapter layer that translates between two interfaces. | "We added a shim to support both the old and new API" |
 | **Tombstone** | Code or data that's been logically deleted but physically retained (marked as dead). | "The method is a tombstone — it exists but is never called" |
+| **DX** | Developer Experience — how easy, pleasant, and efficient it is for developers to work with a tool, project, or codebase. The developer-facing equivalent of UX. | "Good error messages and fast CI improve DX" |
+| **UX** | User Experience — how easy, pleasant, and efficient a product is to use from the end user's perspective. Covers usability, accessibility, and overall satisfaction. | "The UX of this CLI is confusing — too many flags" |
+| **GHCR** | GitHub Container Registry — GitHub's built-in container image registry at `ghcr.io`. Stores OCI/Docker container images alongside your source code. Free for public repos. | "The container-build workflow pushes images to GHCR" |
 
 ### Git-Specific Jargon
 

@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **27 workflow files** in `.github/workflows/`. All workflows
+This project has **29 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -71,6 +71,8 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Stale** | [stale.yml](../.github/workflows/stale.yml) | daily, manual | `Close stale issues & PRs` | Marks and closes inactive issues/PRs |
 | **Link Checker** | [link-checker.yml](../.github/workflows/link-checker.yml) | push (path-filtered), PR (path-filtered), weekly, manual | `Check links` | Checks Markdown/HTML for broken links using lychee |
 | **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target | `Auto-approve & merge` | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes |
+| **Cache Cleanup** | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml) | PR closed, manual | `Clean branch caches` | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
+| **Regenerate Files** | [regenerate-files.yml](../.github/workflows/regenerate-files.yml) | weekly, manual | `Regenerate derived files` | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR |
 
 ### Gate
 
