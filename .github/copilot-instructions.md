@@ -308,7 +308,10 @@ and move on.
 7. **Naming** — Clear, descriptive variable and function names
 
 ### Low Priority
-8. **Comments** — Helpful but not excessive
+8. **Comments** — Explain *why*, not *what*. Skip comments that restate the code
+   (`# Read the file` before `file.read_text()`). Add them when the reasoning
+   isn't obvious — non-trivial regex patterns, workarounds, design trade-offs,
+   or "this looks wrong but is intentional because…"
 9. **Code style** — Ruff handles most of this automatically
 
 ### General Guidance
