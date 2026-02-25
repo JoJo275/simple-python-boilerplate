@@ -3432,6 +3432,192 @@ The framework:
 
 ---
 
+## Repo Versioning — Manual vs Automatic
+
+Every repo needs a version number, but *where* that number lives and *how* it gets updated varies. This is the fundamental decision that shapes your release workflow.
+
+### The Core Question: Who Decides the Version?
+
+| Approach | Who/what sets the version | Where the version lives | When it changes |
+|----------|--------------------------|------------------------|-----------------|
+| **Manual** | Developer edits a file | Hardcoded in source | When you remember to update it |
+| **Semi-automatic** | Developer triggers a tool | Tool updates source file(s) | When you run the bump command |
+| **Fully automatic** | CI derives from commits/tags | Git tags or computed at build time | Every qualifying merge to main |
+
+### Manual Versioning
+
+You write the version string directly in one or more files and update it by hand before each release.
+
+#### Where the version can live
+
+```toml
+# pyproject.toml — static version
+[project]
+version = "1.2.3"
+```
+
+```python
+# src/my_package/__init__.py
+__version__ = "1.2.3"
+```
+
+```python
+# src/my_package/_version.py (dedicated version file)
+VERSION = "1.2.3"
+```
+
+#### Typical manual workflow
+
+```bash
+# 1. Edit pyproject.toml (and any other files with version strings)
+# 2. Commit
+git add pyproject.toml
+git commit -m "chore: bump version to 1.3.0"
+# 3. Tag
+git tag v1.3.0
+# 4. Push
+git push origin main --tags
+```
+
+#### Problems with manual versioning
+
+- **Drift** — easy to update pyproject.toml but forget `__init__.py` or vice versa
+- **Human error** — typos, skipped versions, forgetting to tag
+- **No changelog** — you have to write release notes from memory
+- **Merge conflicts** — version bumps in pyproject.toml create conflicts between parallel PRs
+- **Tag/version mismatch** — commit says `1.3.0` but you tagged `v1.2.9`
+
+#### When manual versioning is fine
+
+- Solo projects with infrequent releases
+- Learning how versioning works (do it manually first, then automate)
+- Projects with no consumers (internal tools, scripts)
+- Very early development where releases don't matter yet
+
+### Automatic Versioning
+
+The version is *derived* — either from git tags at build time, or from commit messages by a CI tool.
+
+#### Approach A: Tag-derived (build-time versioning)
+
+The version doesn't exist in any source file. Instead, a build plugin reads the latest git tag and computes the version.
+
+```toml
+# pyproject.toml — dynamic version via hatch-vcs
+[project]
+dynamic = ["version"]
+
+[tool.hatch.version]
+source = "vcs"         # version comes from git tags
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/my_package/_version.py"  # generated at build time
+```
+
+**How it works:**
+
+```text
+git tag v1.2.0 on commit abc123
+
+After tagging:
+  pip install .  →  version = "1.2.0"
+
+3 commits later (no new tag):
+  pip install .  →  version = "1.2.0.dev3+g7f8e9a1"
+                              ↑ 3 commits since tag, at this hash
+```
+
+**Tools that do this:**
+
+| Tool | Build backend | Config |
+|------|--------------|--------|
+| **hatch-vcs** | Hatchling | `[tool.hatch.version] source = "vcs"` |
+| **setuptools-scm** | Setuptools | `[tool.setuptools_scm]` |
+| **versioningit** | Any (Hatchling, setuptools, etc.) | `[tool.versioningit]` |
+| **dunamai** | Any (library/CLI) | CLI flags or API calls |
+
+**Pros:**
+
+- Zero maintenance — version is always correct
+- No merge conflicts — no version string in source files
+- Tag is the single source of truth — impossible for code and tag to drift
+- Dev versions (`1.2.0.dev3`) are automatic for unreleased commits
+
+**Cons:**
+
+- Requires git history at build time (`git clone --depth 1` breaks it)
+- Can be confusing — "where is the version?" has no obvious answer
+- Import-time overhead if the version is computed dynamically (vs generated file)
+- CI must have full git history or at least tags (`fetch-depth: 0`)
+
+#### Approach B: Commit-derived (CI determines the bump)
+
+A CI tool reads commit messages (conventional commits), determines the bump type, updates the version, and creates the release — all automatically.
+
+```text
+feat: add export endpoint        →  CI bumps minor:  1.2.0 → 1.3.0
+fix: handle null email           →  CI bumps patch:  1.3.0 → 1.3.1
+feat!: redesign auth API         →  CI bumps major:  1.3.1 → 2.0.0
+chore: update deps               →  no release
+```
+
+**Tools that do this:**
+
+| Tool | How it manages versions |
+|------|------------------------|
+| **release-please** | Opens a Release PR tracking pending changes; merging bumps version, updates CHANGELOG, creates GitHub Release + tag |
+| **python-semantic-release** | Runs in CI, parses commits, bumps version in source, tags, publishes to PyPI |
+| **commitizen** | `cz bump` reads commits and bumps version; can run locally or in CI |
+| **semantic-release** (JS) | The original Node.js version — full plugin pipeline |
+
+**Pros:**
+
+- Fully hands-off — merge PRs with good commit messages, releases happen
+- Changelog is generated automatically from commit history
+- Version bumps are deterministic — same commits always produce same version
+- Enforces commit discipline (teams must write meaningful commit messages)
+
+**Cons:**
+
+- Requires disciplined commit messages — messy commits = wrong versions
+- Opinionated — you give up control over when releases happen
+- Debugging release issues means reading CI logs, not local files
+- Learning curve for the tooling configuration
+
+### Combining Both Approaches (What This Project Does)
+
+This project uses **tag-derived versioning** (hatch-vcs) for the package version and **commit-derived releases** (release-please) for deciding *when* to create tags:
+
+```text
+Developer writes conventional commits
+  → release-please opens a Release PR (accumulates changes)
+  → Merging the Release PR creates a git tag (e.g. v1.3.0)
+  → hatch-vcs reads that tag at build time → package version = 1.3.0
+  → GitHub Actions builds and publishes artifacts
+```
+
+This gives you:
+
+- **No version in source code** — hatch-vcs derives it from tags
+- **Automatic release timing** — release-please decides when to release based on commits
+- **Human review** — the Release PR lets you review the changelog before merging
+- **Correct versions everywhere** — tag, package metadata, and CHANGELOG all agree
+
+### Decision Matrix: Which Approach to Choose
+
+| Factor | Manual | Semi-auto (bump tools) | Tag-derived | Commit-derived | Both (this project) |
+|--------|--------|----------------------|-------------|----------------|---------------------|
+| **Effort per release** | High | Medium | None | None | None |
+| **Risk of version drift** | High | Medium | None | Low | None |
+| **Changelog** | Manual | Manual | Manual | Automatic | Automatic |
+| **Commit discipline needed** | No | No | No | Yes | Yes |
+| **Setup complexity** | None | Low | Low | Medium | Medium |
+| **Best for** | Learning, solo | Small teams | Libraries | Apps, teams | Template repos, mature projects |
+
+See also: [Release Workflows](#release-workflows) below for the full tool comparison, and [ADR 021](../adr/021-automated-release-pipeline.md) for this project's specific choices.
+
+---
+
 ## Release Workflows
 
 How to get code from "PR merged" to "version published" — and the many tools that automate each step. There's no single right answer; the ecosystem has a lot of overlapping approaches. These notes capture what I've learned about the options.
