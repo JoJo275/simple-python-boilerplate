@@ -44,7 +44,7 @@ Things to explore, implement, or learn more about.
 - [X] Best practice for versioning: manual vs automated?
 - [X] When is namespace packaging appropriate?
 - [X] How to manage multiple Python versions in CI?
-- [ ] How to handle optional dependencies in pyproject.toml?
+- [X] How to handle optional dependencies in pyproject.toml?
 
 ## Bookmarks
 
