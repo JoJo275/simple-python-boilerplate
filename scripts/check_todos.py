@@ -31,10 +31,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_VERSION = "1.1.0"
 DEFAULT_PATTERN = "TODO (template users)"
 
-# Directory names or suffixes to skip.  Entries ending with a wildcard-like
-# marker are matched as suffixes (e.g. ".egg-info" matches any directory
-# whose name *ends with* ".egg-info").  All other entries require an exact
-# path-component match.
+# Directory names to skip (exact path-component match).
 DEFAULT_EXCLUDE = {
     ".git",
     ".venv",
@@ -45,7 +42,13 @@ DEFAULT_EXCLUDE = {
     ".pytest_cache",
     "node_modules",
     "site",
-    ".egg-info",  # suffix match — see _is_excluded()
+}
+
+# Directory name suffixes to skip.  A path component whose name *ends with*
+# one of these is excluded (e.g. ".egg-info" matches
+# "simple_python_boilerplate.egg-info").
+DEFAULT_EXCLUDE_SUFFIXES = {
+    ".egg-info",
 }
 
 # File extensions to scan (text files only)
@@ -91,33 +94,33 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def _is_excluded(path: Path, exclude_dirs: set[str]) -> bool:
+def _is_excluded(
+    path: Path,
+    exclude_dirs: set[str],
+    exclude_suffixes: set[str],
+) -> bool:
     """Check whether *path* falls under an excluded directory.
 
     Supports two matching modes:
 
     * **Exact match** — the directory name equals an entry in *exclude_dirs*
       (e.g. ``".git"``, ``"__pycache__"``).
-    * **Suffix match** — the directory name *ends with* an entry that starts
-      with ``"."`` and contains no other dots (e.g. ``".egg-info"`` matches
+    * **Suffix match** — the directory name *ends with* an entry in
+      *exclude_suffixes* (e.g. ``".egg-info"`` matches
       ``"simple_python_boilerplate.egg-info"``).
 
     Args:
         path: File path to test.
-        exclude_dirs: Set of directory names / suffixes to exclude.
+        exclude_dirs: Set of directory names to exclude (exact match).
+        exclude_suffixes: Set of suffixes to exclude (endswith match).
 
     Returns:
         True if the path should be skipped.
     """
-    suffix_entries = {
-        e for e in exclude_dirs if e.startswith(".") and e.count(".") == 1
-    }
-    exact_entries = exclude_dirs - suffix_entries
-
     for part in path.parts:
-        if part in exact_entries:
+        if part in exclude_dirs:
             return True
-        if any(part.endswith(sfx) for sfx in suffix_entries):
+        if any(part.endswith(sfx) for sfx in exclude_suffixes):
             return True
     return False
 
@@ -127,6 +130,7 @@ def find_todos(
     pattern: str,
     exclude_dirs: set[str],
     extra_excludes: list[str] | None = None,
+    exclude_suffixes: set[str] | None = None,
 ) -> dict[Path, list[tuple[int, str]]]:
     """Find all lines matching the pattern, grouped by file.
 
@@ -135,6 +139,7 @@ def find_todos(
         pattern: Text pattern to search for (case-insensitive).
         exclude_dirs: Directory names to skip entirely.
         extra_excludes: Additional path prefixes to exclude.
+        exclude_suffixes: Directory name suffixes to skip.
 
     Returns:
         Dict mapping file paths to list of (line_number, line_text) tuples.
@@ -142,6 +147,7 @@ def find_todos(
     results: dict[Path, list[tuple[int, str]]] = {}
     pattern_lower = pattern.lower()
     extra = [Path(root / e) for e in (extra_excludes or [])]
+    suffixes = exclude_suffixes or set()
     files_scanned = 0
 
     for path in sorted(root.rglob("*")):
@@ -149,7 +155,7 @@ def find_todos(
             continue
         if path.suffix not in SCAN_EXTENSIONS and path.name not in SCAN_FILENAMES:
             continue
-        if _is_excluded(path, exclude_dirs):
+        if _is_excluded(path, exclude_dirs, suffixes):
             continue
         if any(path.is_relative_to(e) for e in extra):
             continue
@@ -197,7 +203,7 @@ def format_report(
             "total": total,
             "file_count": len(results),
             "files": {
-                str(path.relative_to(root)): [
+                path.relative_to(root).as_posix(): [
                     {"line": num, "text": text.strip()} for num, text in matches
                 ]
                 for path, matches in results.items()
@@ -262,12 +268,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=DEFAULT_PATTERN,
         help=f'Text pattern to search for (default: "{DEFAULT_PATTERN}")',
     )
-    parser.add_argument(
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument(
         "--count",
         action="store_true",
         help="Only print the count of TODOs found",
     )
-    parser.add_argument(
+    output_group.add_argument(
         "--json",
         action="store_true",
         dest="json_output",
@@ -305,6 +312,7 @@ def main() -> int:
         pattern=args.pattern,
         exclude_dirs=DEFAULT_EXCLUDE,
         extra_excludes=args.exclude,
+        exclude_suffixes=DEFAULT_EXCLUDE_SUFFIXES,
     )
 
     if not args.quiet:

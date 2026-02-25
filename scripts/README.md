@@ -11,6 +11,7 @@ Utility scripts for development and maintenance.
 | [archive_todos.py](archive_todos.py) | Archive completed TODO items from todo.md |
 | [bootstrap.py](bootstrap.py) | One-command setup for fresh clones |
 | [check_nul_bytes.py](precommit/check_nul_bytes.py) | Detect NUL (0x00) bytes in staged files |
+| [check_todos.py](check_todos.py) | Scan for `TODO (template users)` comments |
 | [clean.py](clean.py) | Remove build artifacts and caches |
 | [customize.py](customize.py) | Interactive project customization — replaces boilerplate placeholders |
 | [dep_versions.py](dep_versions.py) | Show/update dependency versions in pyproject.toml and requirements files |
