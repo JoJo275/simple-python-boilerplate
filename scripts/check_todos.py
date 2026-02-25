@@ -9,13 +9,17 @@ Usage::
 
     python scripts/check_todos.py
     python scripts/check_todos.py --count
+    python scripts/check_todos.py --json
     python scripts/check_todos.py --pattern "TODO"
     python scripts/check_todos.py --exclude docs/notes
+    python scripts/check_todos.py --quiet
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import logging
 import sys
 from pathlib import Path
 
@@ -24,7 +28,13 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
+SCRIPT_VERSION = "1.1.0"
 DEFAULT_PATTERN = "TODO (template users)"
+
+# Directory names or suffixes to skip.  Entries ending with a wildcard-like
+# marker are matched as suffixes (e.g. ".egg-info" matches any directory
+# whose name *ends with* ".egg-info").  All other entries require an exact
+# path-component match.
 DEFAULT_EXCLUDE = {
     ".git",
     ".venv",
@@ -32,17 +42,21 @@ DEFAULT_EXCLUDE = {
     "__pycache__",
     ".mypy_cache",
     ".ruff_cache",
+    ".pytest_cache",
     "node_modules",
     "site",
-    ".egg-info",
+    ".egg-info",  # suffix match — see _is_excluded()
 }
+
 # File extensions to scan (text files only)
 SCAN_EXTENSIONS = {
     ".py",
+    ".pyi",
     ".toml",
     ".yml",
     ".yaml",
     ".md",
+    ".rst",
     ".txt",
     ".cfg",
     ".ini",
@@ -54,12 +68,58 @@ SCAN_EXTENSIONS = {
     ".css",
     ".js",
     ".ts",
+    ".sql",
+    ".env",
+    ".containerfile",
+    ".dockerfile",
 }
+
+# Extensionless filenames that should always be scanned
+SCAN_FILENAMES = {
+    "Containerfile",
+    "Dockerfile",
+    "Makefile",
+    "Taskfile",
+    "Procfile",
+}
+
+log = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
 # Core logic
 # ---------------------------------------------------------------------------
+
+
+def _is_excluded(path: Path, exclude_dirs: set[str]) -> bool:
+    """Check whether *path* falls under an excluded directory.
+
+    Supports two matching modes:
+
+    * **Exact match** — the directory name equals an entry in *exclude_dirs*
+      (e.g. ``".git"``, ``"__pycache__"``).
+    * **Suffix match** — the directory name *ends with* an entry that starts
+      with ``"."`` and contains no other dots (e.g. ``".egg-info"`` matches
+      ``"simple_python_boilerplate.egg-info"``).
+
+    Args:
+        path: File path to test.
+        exclude_dirs: Set of directory names / suffixes to exclude.
+
+    Returns:
+        True if the path should be skipped.
+    """
+    suffix_entries = {
+        e for e in exclude_dirs if e.startswith(".") and e.count(".") == 1
+    }
+    exact_entries = exclude_dirs - suffix_entries
+
+    for part in path.parts:
+        if part in exact_entries:
+            return True
+        if any(part.endswith(sfx) for sfx in suffix_entries):
+            return True
+    return False
 
 
 def find_todos(
@@ -82,13 +142,14 @@ def find_todos(
     results: dict[Path, list[tuple[int, str]]] = {}
     pattern_lower = pattern.lower()
     extra = [Path(root / e) for e in (extra_excludes or [])]
+    files_scanned = 0
 
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
-        if path.suffix not in SCAN_EXTENSIONS:
+        if path.suffix not in SCAN_EXTENSIONS and path.name not in SCAN_FILENAMES:
             continue
-        if any(part in exclude_dirs for part in path.parts):
+        if _is_excluded(path, exclude_dirs):
             continue
         if any(path.is_relative_to(e) for e in extra):
             continue
@@ -98,6 +159,7 @@ def find_todos(
         except (OSError, PermissionError):
             continue
 
+        files_scanned += 1
         matches = []
         for i, line in enumerate(text.splitlines(), start=1):
             if pattern_lower in line.lower():
@@ -106,46 +168,74 @@ def find_todos(
         if matches:
             results[path] = matches
 
+    log.debug("Scanned %d file(s)", files_scanned)
     return results
 
 
-def print_report(
-    results: dict[Path, list[tuple[int, str]]], root: Path, count_only: bool
-) -> None:
-    """Print a human-readable report of found TODOs.
+def format_report(
+    results: dict[Path, list[tuple[int, str]]],
+    root: Path,
+    *,
+    count_only: bool = False,
+    as_json: bool = False,
+) -> str:
+    """Build a report string for the found TODOs.
 
     Args:
         results: Output from find_todos().
         root: Project root (for relative path display).
-        count_only: If True, only print summary counts.
+        count_only: If True, only return summary counts.
+        as_json: If True, return a JSON-encoded report.
+
+    Returns:
+        Formatted report string.
     """
     total = sum(len(matches) for matches in results.values())
 
+    if as_json:
+        data = {
+            "total": total,
+            "file_count": len(results),
+            "files": {
+                str(path.relative_to(root)): [
+                    {"line": num, "text": text.strip()} for num, text in matches
+                ]
+                for path, matches in results.items()
+            },
+        }
+        return json.dumps(data, indent=2)
+
     if count_only:
-        print(f"{total} TODO(s) across {len(results)} file(s)")
-        return
+        return f"{total} TODO(s) across {len(results)} file(s)"
 
     if not results:
-        print("No TODOs found — template has been fully customized!")
-        return
+        return "No TODOs found — template has been fully customized!"
 
-    print(f"Found {total} TODO(s) across {len(results)} file(s):\n")
+    lines: list[str] = [f"Found {total} TODO(s) across {len(results)} file(s):\n"]
 
     for path, matches in results.items():
         rel = path.relative_to(root)
-        print(f"  {rel}")
+        lines.append(f"  {rel}")
         for line_num, line_text in matches:
             # Truncate long lines for readability
             display = line_text.strip()
             if len(display) > 100:
                 display = display[:97] + "..."
-            print(f"    L{line_num}: {display}")
-        print()
+            lines.append(f"    L{line_num}: {display}")
+        lines.append("")
+
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
+_EPILOG = """\
+exit codes:
+  0  No TODOs found (template fully customized)
+  1  TODOs remain (useful as a CI gate)
+"""
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -159,7 +249,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         description="Scan for TODO (template users) comments in the repository.",
+        epilog=_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     parser.add_argument(
         "--pattern",
@@ -170,6 +266,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--count",
         action="store_true",
         help="Only print the count of TODOs found",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output results as JSON (for CI integration)",
+    )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress output (exit code still indicates result)",
     )
     parser.add_argument(
         "--exclude",
@@ -187,13 +295,30 @@ def main() -> int:
         Exit code: 0 if no TODOs found, 1 if TODOs remain.
     """
     args = parse_args()
+
+    # Configure logging: --quiet suppresses INFO, errors always shown
+    level = logging.WARNING if args.quiet else logging.INFO
+    logging.basicConfig(format="%(message)s", level=level)
+
     results = find_todos(
         root=ROOT,
         pattern=args.pattern,
         exclude_dirs=DEFAULT_EXCLUDE,
         extra_excludes=args.exclude,
     )
-    print_report(results, ROOT, args.count)
+
+    if not args.quiet:
+        report = format_report(
+            results,
+            ROOT,
+            count_only=args.count,
+            as_json=args.json_output,
+        )
+        # JSON goes to stdout for easy piping; human text uses logging
+        if args.json_output:
+            print(report)
+        else:
+            log.info("%s", report)
 
     # Non-zero exit if TODOs remain (useful in CI)
     return 1 if results else 0
