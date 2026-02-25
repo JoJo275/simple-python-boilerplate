@@ -35,7 +35,18 @@ src/
     cli.py            # CLI argument parsing
     engine.py         # Core business logic
     main.py           # Entry points
-tests/                # Test suite
-docs/                 # Documentation source
+tests/                # Test suite (unit + integration)
+docs/                 # Documentation source (this site)
+scripts/              # Utility scripts (bootstrap, clean, doctor, etc.)
+db/                   # Database schema, migrations, seeds, queries
+experiments/          # Scratch files for exploration (not packaged)
+.github/
+  workflows/          # ~26 GitHub Actions workflows (SHA-pinned)
+  ISSUE_TEMPLATE/     # Issue form templates
 pyproject.toml        # Project configuration (single source of truth)
+Taskfile.yml          # Task runner shortcuts
+Containerfile         # Multi-stage container build
+mkdocs.yml            # Documentation site config
 ```
+
+See [Repo Layout](repo-layout.md) for the full annotated directory tree.
