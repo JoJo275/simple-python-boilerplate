@@ -10,13 +10,9 @@ site_url: https://YOURNAME.github.io/YOURREPO/
 # repo_url: https://github.com/username/simple-python-boilerplate
 # repo_name: username/simple-python-boilerplate
 
-# Exclude the mkdocs/ example directory from the build.
-# It stays in the repo as a reference for the original MkDocs-only layout,
-# but is not processed into the site (avoids duplicate mkdocstrings output).
 # README.md is excluded because it conflicts with index.md (MkDocs treats
 # README.md as index.md by default).
 exclude_docs: |
-  mkdocs/
   README.md
 
 # Many docs link to repo files outside docs/ (pyproject.toml, workflows, etc.).
@@ -106,6 +102,13 @@ nav:
       - 024 – CI Gate: adr/024-ci-gate-pattern.md
       - 025 – Container Strategy: adr/025-container-strategy.md
       - 026 – No pip-tools: adr/026-no-pip-tools.md
+  - Templates:
+      - Overview: templates/README.md
+      - Security Policy: templates/SECURITY_no_bounty.md
+      - Security Policy (Bounty): templates/SECURITY_with_bounty.md
+      - Bug Bounty: templates/BUG_BOUNTY.md
+      - PR Draft: templates/pull-request-draft.md
+      - Issue Templates: templates/issue_templates/README.md
   - Notes:
       - Learning: notes/learning.md
       - Tool Comparison: notes/tool-comparison.md
@@ -135,13 +138,13 @@ plugins:
 # warn about files not included in nav.
 not_in_nav: |
   README.md
-  mkdocs/**
   adr/template.md
   adr/archive/**
   design/README.md
   development/README.md
   notes/README.md
-  templates/**
+  templates/issue_templates/issue_forms/**
+  templates/issue_templates/legacy_markdown/**
 
 markdown_extensions:
   - admonition
