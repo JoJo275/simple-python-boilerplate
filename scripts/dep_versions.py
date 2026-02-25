@@ -38,6 +38,7 @@ import json
 import re
 import subprocess  # nosec B404
 import sys
+import tomllib
 import warnings
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import metadata as pkg_metadata
@@ -48,11 +49,19 @@ from pathlib import Path
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
-REQ_FILES = sorted(ROOT.glob("requirements*.txt"))
+
+
+def _get_req_files() -> list[Path]:
+    """Return requirements files, discovered fresh each call.
+
+    Avoids stale results if files are created/deleted after import.
+    """
+    return sorted(ROOT.glob("requirements*.txt"))
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -203,50 +212,21 @@ _DEP_RE = re.compile(
 def _parse_deps_from_toml(text: str) -> dict[str, list[str]]:
     """Return ``{group_name: [specifier_string, ...]}`` from pyproject.toml.
 
-    Reads ``[project].dependencies`` and every key under
+    Uses ``tomllib`` (stdlib) for reliable TOML parsing.  Reads
+    ``[project].dependencies`` and every key under
     ``[project.optional-dependencies]``.
     """
+    data = tomllib.loads(text)
+    project = data.get("project", {})
     groups: dict[str, list[str]] = {}
-    current_section: str | None = None
-    current_list: list[str] | None = None
-    in_opt_deps = False
 
-    for line in text.splitlines():
-        stripped = line.strip()
+    deps = project.get("dependencies")
+    if deps:
+        groups["dependencies"] = list(deps)
 
-        # Detect TOML table headers: [something] or [[something]]
-        table_match = re.match(r"^\[+([^\]]+)\]+$", stripped)
-        if table_match:
-            table_name = table_match.group(1).strip()
-            current_section = table_name
-            current_list = None
-            in_opt_deps = table_name == "project.optional-dependencies"
-            continue
-
-        # Inside [project]: look for ``dependencies = [``
-        if current_section == "project" and stripped == "dependencies = [":
-            current_list = []
-            groups["dependencies"] = current_list
-            continue
-
-        # Inside [project.optional-dependencies]: look for ``name = [``
-        if in_opt_deps:
-            group_match = re.match(r"^(\w[\w-]*)\s*=\s*\[$", stripped)
-            if group_match:
-                current_list = []
-                groups[group_match.group(1)] = current_list
-                continue
-
-        # Closing bracket ends the current array
-        if stripped == "]":
-            current_list = None
-            continue
-
-        # Collect quoted strings inside an active dependency array
-        if current_list is not None and stripped.startswith('"'):
-            spec_match = re.match(r'^"([^"]+)"', stripped)
-            if spec_match:
-                current_list.append(spec_match.group(1))
+    opt = project.get("optional-dependencies", {})
+    for group_name, specs in opt.items():
+        groups[group_name] = list(specs)
 
     return groups
 
@@ -435,7 +415,7 @@ def update_requirements_comments() -> dict[str, int]:
     """
     results: dict[str, int] = {}
 
-    for req_path in REQ_FILES:
+    for req_path in _get_req_files():
         text = req_path.read_text(encoding="utf-8")
         lines = text.splitlines(keepends=True)
         modified = 0
@@ -523,6 +503,86 @@ def upgrade_package(name: str, target_version: str | None = None) -> bool:
     new_ver = _installed_version(name)
     print(f"  -> {name} {new_ver}")
     return True
+
+
+# ---------------------------------------------------------------------------
+# Specifier updater
+# ---------------------------------------------------------------------------
+
+# Matches a version specifier like >=1.6, >=0.27, ==8.0.0
+_SPEC_VER_RE = re.compile(r"(>=|~=|==)([\d]+(?:\.[\d]+)*)")
+
+
+def _update_minimum_specifier(old_spec: str, new_version: str) -> str:
+    """Update the minimum version in a specifier to *new_version*.
+
+    Only touches ``>=`` and ``~=`` constraints — exact pins (``==``) and
+    upper bounds (``<``, ``<=``) are left alone.
+
+    Examples::
+
+        _update_minimum_specifier("ruff>=0.9.0", "0.15.0")  -> "ruff>=0.15.0"
+        _update_minimum_specifier("mkdocs>=1.6", "1.6.1")   -> "mkdocs>=1.6.1"
+        _update_minimum_specifier("pytest", "9.0.2")         -> "pytest"  # no constraint
+    """
+
+    def _replace(m: re.Match[str]) -> str:
+        op = m.group(1)
+        if op in (">=", "~="):
+            return f"{op}{new_version}"
+        return m.group(0)  # leave == pins alone
+
+    return _SPEC_VER_RE.sub(_replace, old_spec)
+
+
+def update_specifiers_in_toml(upgraded: list[dict[str, str | None]]) -> int:
+    """Update version specifiers in pyproject.toml for upgraded packages.
+
+    For each upgraded package, rewrites ``>=old`` to ``>=new`` in the
+    dependency line.  Only touches ``>=`` and ``~=`` constraints.
+
+    Returns the number of lines modified.
+    """
+    text = PYPROJECT.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+
+    # Build lookup: normalised name -> new installed version
+    new_versions: dict[str, str] = {}
+    for r in upgraded:
+        name = r.get("name", "")
+        inst = _installed_version(name) if name else None
+        if name and inst:
+            new_versions[name] = inst
+
+    modified = 0
+
+    for i, line in enumerate(lines):
+        m = _DEP_RE.match(line.rstrip("\n"))
+        if not m:
+            continue
+
+        spec = m.group("spec")
+        name = _normalise_name(spec)
+
+        if name not in new_versions:
+            continue
+
+        new_spec = _update_minimum_specifier(spec, new_versions[name])
+        if new_spec == spec:
+            continue
+
+        new_line = (
+            f'{m.group("indent")}"{new_spec}"{m.group("sep")}{m.group("trail")}\n'
+        )
+
+        if new_line != lines[i]:
+            lines[i] = new_line
+            modified += 1
+
+    if modified:
+        PYPROJECT.write_text("".join(lines), encoding="utf-8")
+
+    return modified
 
 
 def upgrade_all(rows: list[dict[str, str | None]]) -> int:
@@ -701,8 +761,26 @@ def main() -> None:
                 count = upgrade_all(rows)
                 print(f"\nUpgraded {count} package(s).")
 
-        # After successful upgrade, refresh comments to keep files in sync
+        # After successful upgrade, refresh specifiers and comments
         if not dry_run:
+            # Update >=X.Y specifiers in pyproject.toml
+            fresh_rows = collect_report(check_latest=False)
+            upgradable_rows = [
+                r
+                for r in fresh_rows
+                if r["name"]
+                in {
+                    _normalise_name(pkg)
+                    for pkg in (
+                        [pkg] if pkg else [r2["name"] or "" for r2 in fresh_rows]
+                    )
+                }
+            ]
+            spec_count = update_specifiers_in_toml(upgradable_rows)
+            if spec_count:
+                print(f"  Updated {spec_count} specifier(s) in pyproject.toml")
+
+            # Refresh version comments
             print("  Refreshing version comments...")
             fresh_rows = collect_report(check_latest=False)
             toml_count = update_comments(fresh_rows)
