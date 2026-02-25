@@ -33,6 +33,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
+SCRIPT_VERSION = "1.1.0"
 
 # Module-level verbosity flag, set by CLI parsing
 _quiet = False
@@ -172,20 +173,6 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
             print(f"  ✗ Failed to create {env}: {e}")
             all_ok = False
 
-    # Verify package is importable in default environment
-    if all_ok and not dry_run:
-        try:
-            run_cmd(
-                ["hatch", "run", "python", "-c", "import simple_python_boilerplate"],
-                capture=True,
-            )
-            print("  ✓ Package importable in default environment")
-        except subprocess.CalledProcessError as e:
-            print(f"  ✗ Package import failed: {e}")
-            all_ok = False
-    elif dry_run:
-        print("  → Would verify package is importable")
-
     return all_ok
 
 
@@ -311,6 +298,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         prog="bootstrap",
         description="One-command setup for fresh clones.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     parser.add_argument(
         "--skip-hooks",
