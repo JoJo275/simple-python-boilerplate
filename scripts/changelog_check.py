@@ -86,12 +86,13 @@ def get_git_tag_versions() -> list[str]:
     return sorted(versions, key=_version_key)
 
 
-def _version_key(version: str) -> tuple[int | str, ...]:
+def _version_key(version: str) -> tuple[tuple[int, int | str], ...]:
     """Convert a version string to a sortable tuple.
 
     Handles semver with optional pre-release suffixes (e.g., ``1.2.3-rc.1``).
-    Numeric segments sort naturally; non-numeric pre-release suffixes sort
-    lexicographically after the numeric part.
+    Each segment becomes ``(0, int_value)`` for numeric parts or
+    ``(1, str_value)`` for non-numeric parts, ensuring ints and strings
+    never compare directly (which raises ``TypeError`` in Python 3).
 
     Args:
         version: Semver-like version string (e.g., "1.2.3", "1.2.3-rc.1").
@@ -99,13 +100,12 @@ def _version_key(version: str) -> tuple[int | str, ...]:
     Returns:
         Tuple for sorting.
     """
-    # Split on . and - to handle pre-release segments
-    parts: list[int | str] = []
+    parts: list[tuple[int, int | str]] = []
     for segment in re.split(r"[.-]", version):
         if segment.isdigit():
-            parts.append(int(segment))
+            parts.append((0, int(segment)))
         else:
-            parts.append(segment)
+            parts.append((1, segment))
     return tuple(parts)
 
 
@@ -204,7 +204,15 @@ def compare_versions(
     tagged_not_in_changelog = sorted(tag_set - changelog_set, key=_version_key)
     in_sync = sorted(changelog_set & tag_set, key=_version_key)
 
-    # Additional checks
+    # Print header first, before sub-checks that may also print
+    if not quiet:
+        print("CHANGELOG vs Git Tags")
+        print("=" * 50)
+        print(f"  CHANGELOG versions: {len(changelog_versions)}")
+        print(f"  Git tag versions:   {len(tag_versions)}")
+        print(f"  In sync:            {len(in_sync)}")
+
+    # Additional checks (printed under the header)
     duplicates = check_duplicates(changelog_versions, quiet=quiet)
     ordering_ok = check_ordering(changelog_versions, quiet=quiet)
 
@@ -216,12 +224,6 @@ def compare_versions(
     )
 
     if not quiet:
-        print("CHANGELOG vs Git Tags")
-        print("=" * 50)
-        print(f"  CHANGELOG versions: {len(changelog_versions)}")
-        print(f"  Git tag versions:   {len(tag_versions)}")
-        print(f"  In sync:            {len(in_sync)}")
-
         if in_changelog_not_tagged:
             print(f"\n  In CHANGELOG but not tagged ({len(in_changelog_not_tagged)}):")
             for v in in_changelog_not_tagged:
@@ -259,13 +261,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Verify CHANGELOG.md entries match git tags.",
     )
-    parser.add_argument(
+    verbosity = parser.add_mutually_exclusive_group()
+    verbosity.add_argument(
         "--verbose",
         "-v",
         action="store_true",
         help="Show versions that are in sync",
     )
-    parser.add_argument(
+    verbosity.add_argument(
         "--quiet",
         "-q",
         action="store_true",

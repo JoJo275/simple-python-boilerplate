@@ -38,12 +38,18 @@ TOTAL_STEPS = 7
 _quiet = False
 
 
+# Default timeout for subprocess calls (5 minutes). Prevents hanging forever
+# if a command (e.g., hatch env create) gets stuck.
+_TIMEOUT = 300
+
+
 def run_cmd(
     cmd: list[str],
     *,
     check: bool = True,
     capture: bool = False,
     dry_run: bool = False,
+    timeout: int = _TIMEOUT,
 ) -> subprocess.CompletedProcess[str]:
     """Run a command with standard settings.
 
@@ -52,6 +58,7 @@ def run_cmd(
         check: Raise on non-zero exit code.
         capture: Capture stdout/stderr instead of printing.
         dry_run: If True, print the command but don't execute it.
+        timeout: Maximum seconds to wait for the command.
 
     Returns:
         Completed process result (or a dummy result in dry-run mode).
@@ -66,6 +73,7 @@ def run_cmd(
         check=check,
         capture_output=capture,
         text=True,
+        timeout=timeout,
     )
 
 
@@ -117,9 +125,9 @@ def check_hatch() -> bool:
             print("  (Recommended: install pipx first, then: pipx install hatch)")
         return False
 
-    result = run_cmd(["hatch", "version"], capture=True, check=False)
+    result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
-        print(f"  ✓ Hatch {result.stdout.strip()}")
+        print(f"  ✓ {result.stdout.strip()}")
         return True
     print("  ✗ Hatch found but failed to run")
     return False
@@ -196,34 +204,21 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
         print("  → Skipped (--skip-hooks)")
         return True
 
+    # Build base command: direct pre-commit or via hatch
     pre_commit = shutil.which("pre-commit")
-    if not pre_commit:
-        # Try via hatch
+    if pre_commit:
+        base = [pre_commit]
+    else:
         print("  Using pre-commit via Hatch...")
-        stages = ["pre-commit", "commit-msg", "pre-push"]
-        try:
-            for stage in stages:
-                if stage == "pre-commit":
-                    run_cmd(
-                        ["hatch", "run", "pre-commit", "install"],
-                        dry_run=dry_run,
-                    )
-                else:
-                    run_cmd(
-                        ["hatch", "run", "pre-commit", "install", "--hook-type", stage],
-                        dry_run=dry_run,
-                    )
-            label = "Would install" if dry_run else "Installed"
-            print(f"  ✓ {label} all hook stages")
-            return True
-        except subprocess.CalledProcessError as e:
-            print(f"  ✗ Failed: {e}")
-            return False
+        base = ["hatch", "run", "pre-commit"]
 
+    stages = ["pre-commit", "commit-msg", "pre-push"]
     try:
-        run_cmd([pre_commit, "install"], dry_run=dry_run)
-        run_cmd([pre_commit, "install", "--hook-type", "commit-msg"], dry_run=dry_run)
-        run_cmd([pre_commit, "install", "--hook-type", "pre-push"], dry_run=dry_run)
+        for stage in stages:
+            cmd = [*base, "install"]
+            if stage != "pre-commit":
+                cmd.extend(["--hook-type", stage])
+            run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
         print(f"  ✓ {label} all hook stages")
         return True
