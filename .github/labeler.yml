@@ -34,6 +34,7 @@ github_actions:
           - ".github/dependabot.yml"
           - "Taskfile.yml"
           - ".pre-commit-config.yaml"
+          - ".github/ci-gate.yml"
 
 "area: tests":
   - changed-files:
@@ -53,12 +54,30 @@ github_actions:
           - "requirements*.txt"
           - "Containerfile"
           - "release-please-config.json"
+          - ".release-please-manifest.json"
+          - "docker-compose.yml"
 
 "area: cli":
   - changed-files:
       - any-glob-to-any-file:
           - "src/simple_python_boilerplate/cli.py"
           - "src/simple_python_boilerplate/main.py"
+
+"area: api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/simple_python_boilerplate/api.py"
+
+"area: config":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "pyproject.toml"
+          - "_typos.toml"
+          - "codecov.yml"
+          - "mkdocs.yml"
+          - ".pre-commit-config.yaml"
+          - "release-please-config.json"
+          - "Taskfile.yml"
 
 # ── Type labels ───────────────────────────────────────────────
 
@@ -68,6 +87,7 @@ github_actions:
           - "pyproject.toml"
           - "Containerfile"
           - "requirements*.txt"
+          - "docker-compose.yml"
 
 "type: test":
   - changed-files:
@@ -85,6 +105,25 @@ github_actions:
           - ".github/workflows/security-audit.yml"
           - ".github/workflows/codeql.yml"
           - ".github/workflows/container-scan.yml"
+          - ".github/workflows/scorecard.yml"
+          - ".github/workflows/dependency-review.yml"
+
+"type: refactor":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/**"
+      - all-globs-to-all-files:
+          - "!tests/**"
+          - "!docs/**"
+          - "!*.md"
+
+"type: chore":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+          - "labels/**"
+          - "repo_doctor.d/**"
+          - "_typos.toml"
 
 # ── Dependency label ──────────────────────────────────────────
 
@@ -94,3 +133,30 @@ dependencies:
           - "pyproject.toml"
           - "requirements*.txt"
           - ".github/dependabot.yml"
+
+# ── Database label ────────────────────────────────────────────
+
+"area: database":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "db/**"
+          - "src/simple_python_boilerplate/sql/**"
+          - "scripts/sql/**"
+          - "var/**"
+
+# ── Scripts / tooling label ───────────────────────────────────
+
+"area: scripts":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+
+# ── Container label ───────────────────────────────────────────
+
+"area: container":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "Containerfile"
+          - "docker-compose.yml"
+          - ".github/workflows/container-build.yml"
+          - ".github/workflows/container-scan.yml"
