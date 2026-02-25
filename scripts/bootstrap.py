@@ -3,16 +3,20 @@
 
 Typical actions:
 1. Verify Python version meets requirements
-2. Create all Hatch environments (default, docs, test matrix)
-3. Install pre-commit hooks (all stages)
-4. Verify editable install
-5. Print next steps
+2. Check Git repository
+3. Check Hatch is installed
+4. Create all Hatch environments (default, docs, test matrix)
+5. Install pre-commit hooks (all stages)
+6. Check Task runner availability
+7. Verify editable install
+8. Print next steps
 
 Usage::
 
     python scripts/bootstrap.py
     python scripts/bootstrap.py --skip-hooks
     python scripts/bootstrap.py --skip-test-matrix  # Skip test.py3.x (3.11, 3.12, 3.13) envs
+    python scripts/bootstrap.py --dry-run            # Show what would happen
 """
 
 from __future__ import annotations
@@ -21,10 +25,12 @@ import argparse
 import shutil
 import subprocess  # nosec B404
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 11)
+TOTAL_STEPS = 7
 
 
 def run_cmd(
@@ -32,9 +38,22 @@ def run_cmd(
     *,
     check: bool = True,
     capture: bool = False,
+    dry_run: bool = False,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a command with standard settings."""
+    """Run a command with standard settings.
+
+    Args:
+        cmd: Command and arguments to run.
+        check: Raise on non-zero exit code.
+        capture: Capture stdout/stderr instead of printing.
+        dry_run: If True, print the command but don't execute it.
+
+    Returns:
+        Completed process result (or a dummy result in dry-run mode).
+    """
     print(f"  $ {' '.join(cmd)}")
+    if dry_run:
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
     return subprocess.run(  # nosec B603
         cmd,
         cwd=ROOT,
@@ -46,7 +65,7 @@ def run_cmd(
 
 def check_python() -> bool:
     """Verify Python version."""
-    print("\n[1/5] Checking Python version...")
+    print(f"\n[1/{TOTAL_STEPS}] Checking Python version...")
     current = sys.version_info[:2]
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
@@ -56,16 +75,40 @@ def check_python() -> bool:
         return True
     else:
         print(f"  ✗ Python {cur_str} — requires >= {min_str}")
+        print(f"  Install Python {min_str}+: https://www.python.org/downloads/")
         return False
+
+
+def check_git() -> bool:
+    """Verify Git is installed and we're inside a Git repository."""
+    print(f"\n[2/{TOTAL_STEPS}] Checking Git...")
+    git = shutil.which("git")
+    if not git:
+        print("  ✗ Git not found")
+        print("  Install from: https://git-scm.com/downloads")
+        return False
+
+    git_dir = ROOT / ".git"
+    if not git_dir.is_dir():
+        print("  ✗ Not a Git repository (no .git/ directory)")
+        print("  Run: git init")
+        return False
+
+    print("  ✓ Git repository detected")
+    return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
-    print("\n[2/5] Checking Hatch...")
+    print(f"\n[3/{TOTAL_STEPS}] Checking Hatch...")
     hatch = shutil.which("hatch")
     if not hatch:
         print("  ✗ Hatch not found")
-        print("  Install with: pipx install hatch")
+        if shutil.which("pipx"):
+            print("  Install with: pipx install hatch")
+        else:
+            print("  Install with: pip install --user hatch")
+            print("  (Recommended: install pipx first, then: pipx install hatch)")
         return False
 
     result = run_cmd(["hatch", "version"], capture=True, check=False)
@@ -76,40 +119,46 @@ def check_hatch() -> bool:
     return False
 
 
-def create_hatch_env(*, skip_test_matrix: bool = False) -> bool:
+def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -> bool:
     """Create all Hatch environments (default, docs, test matrix).
 
     Args:
         skip_test_matrix: If True, skip creating test.py3.x environments.
+        dry_run: If True, show what would happen without executing.
 
     Returns:
         True if all environments were created successfully.
     """
-    print("\n[3/5] Creating Hatch environments...")
+    print(f"\n[4/{TOTAL_STEPS}] Creating Hatch environments...")
 
     # Environments to create
     envs = ["default", "docs"]
     if not skip_test_matrix:
         envs.extend(["test.py3.11", "test.py3.12", "test.py3.13"])
 
+    # Query existing environments once (not per-env)
+    existing_envs = ""
+    if not dry_run:
+        result = run_cmd(["hatch", "env", "show", "--json"], capture=True, check=False)
+        if result.returncode == 0:
+            existing_envs = result.stdout
+
     all_ok = True
     for env in envs:
         try:
-            # Check if env exists
-            result = run_cmd(
-                ["hatch", "env", "show", "--json"], capture=True, check=False
-            )
-            if result.returncode == 0 and env in result.stdout:
+            if not dry_run and env in existing_envs:
                 print(f"  ✓ {env} environment already exists")
             else:
-                run_cmd(["hatch", "env", "create", env])
-                print(f"  ✓ Created {env} environment")
+                run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
+                print(
+                    f"  ✓ {'Would create' if dry_run else 'Created'} {env} environment"
+                )
         except subprocess.CalledProcessError as e:
             print(f"  ✗ Failed to create {env}: {e}")
             all_ok = False
 
     # Verify package is importable in default environment
-    if all_ok:
+    if all_ok and not dry_run:
         try:
             run_cmd(
                 ["hatch", "run", "python", "-c", "import simple_python_boilerplate"],
@@ -119,13 +168,23 @@ def create_hatch_env(*, skip_test_matrix: bool = False) -> bool:
         except subprocess.CalledProcessError as e:
             print(f"  ✗ Package import failed: {e}")
             all_ok = False
+    elif dry_run:
+        print("  → Would verify package is importable")
 
     return all_ok
 
 
-def install_hooks(*, skip: bool = False) -> bool:
-    """Install pre-commit hooks."""
-    print("\n[4/5] Installing pre-commit hooks...")
+def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
+    """Install pre-commit hooks.
+
+    Args:
+        skip: If True, skip hook installation entirely.
+        dry_run: If True, show what would happen without executing.
+
+    Returns:
+        True if hooks were installed (or skipped) successfully.
+    """
+    print(f"\n[5/{TOTAL_STEPS}] Installing pre-commit hooks...")
     if skip:
         print("  → Skipped (--skip-hooks)")
         return True
@@ -138,31 +197,58 @@ def install_hooks(*, skip: bool = False) -> bool:
         try:
             for stage in stages:
                 if stage == "pre-commit":
-                    run_cmd(["hatch", "run", "pre-commit", "install"])
+                    run_cmd(
+                        ["hatch", "run", "pre-commit", "install"],
+                        dry_run=dry_run,
+                    )
                 else:
                     run_cmd(
-                        ["hatch", "run", "pre-commit", "install", "--hook-type", stage]
+                        ["hatch", "run", "pre-commit", "install", "--hook-type", stage],
+                        dry_run=dry_run,
                     )
-            print("  ✓ All hook stages installed")
+            label = "Would install" if dry_run else "Installed"
+            print(f"  ✓ {label} all hook stages")
             return True
         except subprocess.CalledProcessError as e:
             print(f"  ✗ Failed: {e}")
             return False
 
     try:
-        run_cmd([pre_commit, "install"])
-        run_cmd([pre_commit, "install", "--hook-type", "commit-msg"])
-        run_cmd([pre_commit, "install", "--hook-type", "pre-push"])
-        print("  ✓ All hook stages installed")
+        run_cmd([pre_commit, "install"], dry_run=dry_run)
+        run_cmd([pre_commit, "install", "--hook-type", "commit-msg"], dry_run=dry_run)
+        run_cmd([pre_commit, "install", "--hook-type", "pre-push"], dry_run=dry_run)
+        label = "Would install" if dry_run else "Installed"
+        print(f"  ✓ {label} all hook stages")
         return True
     except subprocess.CalledProcessError as e:
         print(f"  ✗ Failed: {e}")
         return False
 
 
-def verify_setup() -> bool:
-    """Run a quick sanity check."""
-    print("\n[5/5] Verifying setup...")
+def check_task_runner() -> None:
+    """Check if Task runner is available (advisory only)."""
+    print(f"\n[6/{TOTAL_STEPS}] Checking Task runner...")
+    task = shutil.which("task")
+    if task:
+        print("  ✓ Task runner available")
+    else:
+        print("  ⚠ Task not found (optional but recommended)")
+        print("  Install from: https://taskfile.dev/installation/")
+
+
+def verify_setup(*, dry_run: bool = False) -> bool:
+    """Run a quick sanity check.
+
+    Args:
+        dry_run: If True, skip actual verification.
+
+    Returns:
+        True if the setup is verified (or dry-run mode).
+    """
+    print(f"\n[7/{TOTAL_STEPS}] Verifying setup...")
+    if dry_run:
+        print("  → Would verify package version")
+        return True
     try:
         # Quick test run
         result = run_cmd(
@@ -229,15 +315,28 @@ def main() -> int:
         action="store_true",
         help="Skip creating test.py3.x environments (faster setup)",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would happen without making changes",
+    )
     args = parser.parse_args()
 
+    start_time = time.monotonic()
+
     print("=" * 60)
-    print("BOOTSTRAP: Setting up development environment")
+    label = (
+        "BOOTSTRAP: Dry run"
+        if args.dry_run
+        else "BOOTSTRAP: Setting up development environment"
+    )
+    print(label)
     print("=" * 60)
 
-    # Run all checks
+    # Run prerequisite checks
     all_ok = True
     all_ok &= check_python()
+    all_ok &= check_git()
     all_ok &= check_hatch()
 
     if not all_ok:
@@ -245,15 +344,22 @@ def main() -> int:
         return 1
 
     # Setup steps
-    all_ok &= create_hatch_env(skip_test_matrix=args.skip_test_matrix)
-    all_ok &= install_hooks(skip=args.skip_hooks)
-    all_ok &= verify_setup()
+    all_ok &= create_hatch_env(
+        skip_test_matrix=args.skip_test_matrix, dry_run=args.dry_run
+    )
+    all_ok &= install_hooks(skip=args.skip_hooks, dry_run=args.dry_run)
+    check_task_runner()
+    all_ok &= verify_setup(dry_run=args.dry_run)
+
+    elapsed = time.monotonic() - start_time
 
     if all_ok:
         print_next_steps()
+        print(f"Completed in {elapsed:.1f}s")
         return 0
     else:
         print("\n⚠ Setup completed with warnings. Review the output above.")
+        print(f"Completed in {elapsed:.1f}s")
         return 1
 
 
