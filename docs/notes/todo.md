@@ -14,7 +14,7 @@ Things to explore, implement, or learn more about.
 - [ ] Add more detailed development workflow docs
 - [ ] Set up continuous deployment to PyPI on new releases
 - [ ] Add support for multiple Python versions in CI
-- [ ] Study trusted publishing practices for PyPI to ensure secure releases
+- [X] Study trusted publishing practices for PyPI to ensure secure releases
 - [ ] Understand all programs within repo
 - [ ] Make other smaller template repos for specific use cases, such as a data science project template, a web application template, etc. *This would involve creating separate repositories that are tailored to specific types of projects, with relevant dependencies, file structures, and example code. For example, a data science project template might include Jupyter notebooks, common data processing libraries, and a structure for organizing datasets and analysis scripts. A web application template might include a basic Flask or Django setup with relevant dependencies and example routes. This would allow users to choose a template that best fits their project needs and get started more quickly.*
 - [ ] Make other template repos tailored to "minimal", "library", "cli", etc..
