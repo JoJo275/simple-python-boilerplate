@@ -70,7 +70,7 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def remove_path(path: Path, *, dry_run: bool = False) -> bool:
+def remove_path(path: Path, *, dry_run: bool = False) -> bool | None:
     """Remove a file or directory.
 
     Args:
@@ -78,27 +78,36 @@ def remove_path(path: Path, *, dry_run: bool = False) -> bool:
         dry_run: If True, only log what would be removed.
 
     Returns:
-        True if path existed and was (or would be) removed.
+        True if path was (or would be) removed, None on error,
+        False if path doesn't exist.
     """
     if not path.exists():
         return False
 
     kind = "directory" if path.is_dir() else "file"
-    rel = path.relative_to(ROOT)
+    try:
+        rel = path.relative_to(ROOT)
+    except ValueError:
+        rel = path
 
     if dry_run:
         log.info("  Would remove %s: %s", kind, rel)
         return True
 
-    if path.is_dir():
-        shutil.rmtree(path)
-    else:
-        path.unlink()
+    try:
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+    except (OSError, PermissionError) as exc:
+        log.warning("  Failed to remove %s: %s (%s)", kind, rel, exc)
+        return None
+
     log.info("  Removed %s: %s", kind, rel)
     return True
 
 
-def clean(*, dry_run: bool = False, include_venv: bool = False) -> int:
+def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, int]:
     """Remove all build artifacts and caches.
 
     Args:
@@ -106,34 +115,40 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> int:
         include_venv: If True, also remove .venv* directories.
 
     Returns:
-        Number of items removed.
+        Tuple of (items_removed, errors).
     """
     removed = 0
+    errors = 0
 
     # Track directories removed in previous phases so we don't double-count
     # files inside them (e.g. .pyc files inside already-removed __pycache__).
     removed_dirs: set[Path] = set()
 
+    def _track(result: bool | None, path: Path | None = None) -> None:
+        """Update counters and track removed directories."""
+        nonlocal removed, errors
+        if result is True:
+            removed += 1
+            if path and path.is_dir():
+                removed_dirs.add(path)
+        elif result is None:
+            errors += 1
+
     # Top-level cache directories
     log.info("Cleaning cache directories...")
     for name in CACHE_DIRS:
         path = ROOT / name
-        if remove_path(path, dry_run=dry_run):
-            removed_dirs.add(path)
-            removed += 1
+        _track(remove_path(path, dry_run=dry_run), path)
 
     # Top-level cache files
     for name in CACHE_FILES:
-        if remove_path(ROOT / name, dry_run=dry_run):
-            removed += 1
+        _track(remove_path(ROOT / name, dry_run=dry_run))
 
     # Top-level build directories
     log.info("Cleaning build directories...")
     for name in BUILD_DIRS:
         path = ROOT / name
-        if remove_path(path, dry_run=dry_run):
-            removed_dirs.add(path)
-            removed += 1
+        _track(remove_path(path, dry_run=dry_run), path)
 
     # Recursive directories (__pycache__, *.egg-info)
     log.info("Cleaning recursive directories...")
@@ -142,9 +157,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> int:
             # Skip .venv directories unless explicitly requested
             if ".venv" in path.parts and not include_venv:
                 continue
-            if remove_path(path, dry_run=dry_run):
-                removed_dirs.add(path)
-                removed += 1
+            _track(remove_path(path, dry_run=dry_run), path)
 
     # File patterns (skip files inside already-removed directories)
     log.info("Cleaning file patterns...")
@@ -156,20 +169,21 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> int:
             # removal in dry-run) to avoid double-counting.
             if any(path.is_relative_to(d) for d in removed_dirs):
                 continue
-            if remove_path(path, dry_run=dry_run):
-                removed += 1
+            _track(remove_path(path, dry_run=dry_run))
 
     # Virtual environments (only if requested)
     if include_venv:
         log.info("Cleaning virtual environments...")
         for venv_dir in sorted(ROOT.glob(".venv*")):
-            if venv_dir.is_dir() and remove_path(venv_dir, dry_run=dry_run):
-                removed += 1
+            if venv_dir.is_dir():
+                _track(remove_path(venv_dir, dry_run=dry_run), venv_dir)
 
     # Summary
     action = "Would remove" if dry_run else "Removed"
     log.info("\n%s %d item(s).", action, removed)
-    return removed
+    if errors:
+        log.warning("%d item(s) failed to remove.", errors)
+    return removed, errors
 
 
 # ---------------------------------------------------------------------------
@@ -241,8 +255,8 @@ def main() -> int:
             log.info("Aborted.")
             return 0
 
-    clean(dry_run=args.dry_run, include_venv=args.include_venv)
-    return 0
+    _removed, err = clean(dry_run=args.dry_run, include_venv=args.include_venv)
+    return 1 if err else 0
 
 
 if __name__ == "__main__":
