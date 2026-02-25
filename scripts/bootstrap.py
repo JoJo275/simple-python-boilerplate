@@ -24,20 +24,19 @@ from __future__ import annotations
 import argparse
 import contextlib
 import json
+import logging
 import shutil
 import subprocess  # nosec B404
 import sys
 import time
 from pathlib import Path
 
+log = logging.getLogger(__name__)
+
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
 SCRIPT_VERSION = "1.1.0"
-
-# Module-level verbosity flag, set by CLI parsing
-_quiet = False
-
 
 # Default timeout for subprocess calls (5 minutes). Prevents hanging forever
 # if a command (e.g., hatch env create) gets stuck.
@@ -58,14 +57,13 @@ def run_cmd(
         cmd: Command and arguments to run.
         check: Raise on non-zero exit code.
         capture: Capture stdout/stderr instead of printing.
-        dry_run: If True, print the command but don't execute it.
+        dry_run: If True, log the command but don't execute it.
         timeout: Maximum seconds to wait for the command.
 
     Returns:
         Completed process result (or a dummy result in dry-run mode).
     """
-    if not _quiet:
-        print(f"  $ {' '.join(cmd)}")
+    log.debug("  $ %s", " ".join(cmd))
     if dry_run:
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
     return subprocess.run(  # nosec B603
@@ -80,57 +78,57 @@ def run_cmd(
 
 def check_python() -> bool:
     """Verify Python version."""
-    print(f"\n[1/{TOTAL_STEPS}] Checking Python version...")
+    log.info("\n[1/%d] Checking Python version...", TOTAL_STEPS)
     current = sys.version_info[:2]
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
 
     if current >= MIN_PYTHON:
-        print(f"  ✓ Python {cur_str} (>= {min_str})")
+        log.info("  ✓ Python %s (>= %s)", cur_str, min_str)
         return True
     else:
-        print(f"  ✗ Python {cur_str} — requires >= {min_str}")
-        print(f"  Install Python {min_str}+: https://www.python.org/downloads/")
+        log.error("  ✗ Python %s — requires >= %s", cur_str, min_str)
+        log.error("  Install Python %s+: https://www.python.org/downloads/", min_str)
         return False
 
 
 def check_git() -> bool:
     """Verify Git is installed and we're inside a Git repository."""
-    print(f"\n[2/{TOTAL_STEPS}] Checking Git...")
+    log.info("\n[2/%d] Checking Git...", TOTAL_STEPS)
     git = shutil.which("git")
     if not git:
-        print("  ✗ Git not found")
-        print("  Install from: https://git-scm.com/downloads")
+        log.error("  ✗ Git not found")
+        log.error("  Install from: https://git-scm.com/downloads")
         return False
 
     git_dir = ROOT / ".git"
     if not git_dir.is_dir():
-        print("  ✗ Not a Git repository (no .git/ directory)")
-        print("  Run: git init")
+        log.error("  ✗ Not a Git repository (no .git/ directory)")
+        log.error("  Run: git init")
         return False
 
-    print("  ✓ Git repository detected")
+    log.info("  ✓ Git repository detected")
     return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
-    print(f"\n[3/{TOTAL_STEPS}] Checking Hatch...")
+    log.info("\n[3/%d] Checking Hatch...", TOTAL_STEPS)
     hatch = shutil.which("hatch")
     if not hatch:
-        print("  ✗ Hatch not found")
+        log.error("  ✗ Hatch not found")
         if shutil.which("pipx"):
-            print("  Install with: pipx install hatch")
+            log.error("  Install with: pipx install hatch")
         else:
-            print("  Install with: pip install --user hatch")
-            print("  (Recommended: install pipx first, then: pipx install hatch)")
+            log.error("  Install with: pip install --user hatch")
+            log.error("  (Recommended: install pipx first, then: pipx install hatch)")
         return False
 
     result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
-        print(f"  ✓ {result.stdout.strip()}")
+        log.info("  ✓ %s", result.stdout.strip())
         return True
-    print("  ✗ Hatch found but failed to run")
+    log.error("  ✗ Hatch found but failed to run")
     return False
 
 
@@ -144,7 +142,7 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     Returns:
         True if all environments were created successfully.
     """
-    print(f"\n[4/{TOTAL_STEPS}] Creating Hatch environments...")
+    log.info("\n[4/%d] Creating Hatch environments...", TOTAL_STEPS)
 
     # Environments to create
     envs = ["default", "docs"]
@@ -163,14 +161,13 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     for env in envs:
         try:
             if not dry_run and env in existing_env_names:
-                print(f"  ✓ {env} environment already exists")
+                log.info("  ✓ %s environment already exists", env)
             else:
                 run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
-                print(
-                    f"  ✓ {'Would create' if dry_run else 'Created'} {env} environment"
-                )
+                label = "Would create" if dry_run else "Created"
+                log.info("  ✓ %s %s environment", label, env)
         except subprocess.CalledProcessError as e:
-            print(f"  ✗ Failed to create {env}: {e}")
+            log.error("  ✗ Failed to create %s: %s", env, e)
             all_ok = False
 
     return all_ok
@@ -186,9 +183,9 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
     Returns:
         True if hooks were installed (or skipped) successfully.
     """
-    print(f"\n[5/{TOTAL_STEPS}] Installing pre-commit hooks...")
+    log.info("\n[5/%d] Installing pre-commit hooks...", TOTAL_STEPS)
     if skip:
-        print("  → Skipped (--skip-hooks)")
+        log.info("  → Skipped (--skip-hooks)")
         return True
 
     # Build base command: direct pre-commit or via hatch
@@ -196,7 +193,7 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
     if pre_commit:
         base = [pre_commit]
     else:
-        print("  Using pre-commit via Hatch...")
+        log.info("  Using pre-commit via Hatch...")
         base = ["hatch", "run", "pre-commit"]
 
     stages = ["pre-commit", "commit-msg", "pre-push"]
@@ -207,10 +204,10 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
                 cmd.extend(["--hook-type", stage])
             run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
-        print(f"  ✓ {label} all hook stages")
+        log.info("  ✓ %s all hook stages", label)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"  ✗ Failed: {e}")
+        log.error("  ✗ Failed: %s", e)
         return False
 
 
@@ -220,13 +217,13 @@ def check_task_runner() -> bool:
     Returns:
         True always — Task is optional so this never blocks setup.
     """
-    print(f"\n[6/{TOTAL_STEPS}] Checking Task runner...")
+    log.info("\n[6/%d] Checking Task runner...", TOTAL_STEPS)
     task = shutil.which("task")
     if task:
-        print("  ✓ Task runner available")
+        log.info("  ✓ Task runner available")
     else:
-        print("  ⚠ Task not found (optional but recommended)")
-        print("  Install from: https://taskfile.dev/installation/")
+        log.warning("  ⚠ Task not found (optional but recommended)")
+        log.warning("  Install from: https://taskfile.dev/installation/")
     return True
 
 
@@ -239,9 +236,9 @@ def verify_setup(*, dry_run: bool = False) -> bool:
     Returns:
         True if the setup is verified (or dry-run mode).
     """
-    print(f"\n[7/{TOTAL_STEPS}] Verifying setup...")
+    log.info("\n[7/%d] Verifying setup...", TOTAL_STEPS)
     if dry_run:
-        print("  → Would verify package version")
+        log.info("  → Would verify package version")
         return True
     try:
         # Quick test run
@@ -256,19 +253,19 @@ def verify_setup(*, dry_run: bool = False) -> bool:
             capture=True,
         )
         version = result.stdout.strip()
-        print(f"  ✓ Package version: {version}")
+        log.info("  ✓ Package version: %s", version)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"  ✗ Verification failed: {e}")
+        log.error("  ✗ Verification failed: %s", e)
         return False
 
 
 def print_next_steps() -> None:
     """Print helpful next steps."""
-    print("\n" + "=" * 60)
-    print("SETUP COMPLETE")
-    print("=" * 60)
-    print("""
+    log.info("\n" + "=" * 60)
+    log.info("SETUP COMPLETE")
+    log.info("=" * 60)
+    log.info("""
 Next steps:
 
   1. Enter the dev environment:
@@ -323,23 +320,23 @@ def main() -> int:
         "--quiet",
         "-q",
         action="store_true",
-        help="Suppress command echo output (show only results)",
+        help="Suppress informational output (errors and warnings still shown)",
     )
     args = parser.parse_args()
 
-    global _quiet  # intentional module-level state for CLI flag
-    _quiet = args.quiet
+    level = logging.WARNING if args.quiet else logging.INFO
+    logging.basicConfig(format="%(message)s", level=level)
 
     start_time = time.monotonic()
 
-    print("=" * 60)
+    log.info("=" * 60)
     label = (
         "BOOTSTRAP: Dry run"
         if args.dry_run
         else "BOOTSTRAP: Setting up development environment"
     )
-    print(label)
-    print("=" * 60)
+    log.info("%s", label)
+    log.info("=" * 60)
 
     # Run prerequisite checks
     all_ok = True
@@ -348,7 +345,7 @@ def main() -> int:
     all_ok &= check_hatch()
 
     if not all_ok:
-        print("\n✗ Prerequisites not met. Fix the issues above and re-run.")
+        log.error("\n✗ Prerequisites not met. Fix the issues above and re-run.")
         return 1
 
     # Setup steps
@@ -363,11 +360,11 @@ def main() -> int:
 
     if all_ok:
         print_next_steps()
-        print(f"Completed in {elapsed:.1f}s")
+        log.info("Completed in %.1fs", elapsed)
         return 0
     else:
-        print("\n⚠ Setup completed with warnings. Review the output above.")
-        print(f"Completed in {elapsed:.1f}s")
+        log.warning("\n⚠ Setup completed with warnings. Review the output above.")
+        log.info("Completed in %.1fs", elapsed)
         return 1
 
 

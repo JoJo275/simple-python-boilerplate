@@ -16,10 +16,13 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import logging
 import re
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
+
+log = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -112,14 +115,11 @@ def _version_key(version: str) -> tuple[tuple[int, int | str], ...]:
 
 def check_duplicates(
     versions: list[str],
-    *,
-    quiet: bool = False,
 ) -> list[str]:
     """Find duplicate version entries.
 
     Args:
         versions: List of version strings (in file order).
-        quiet: Suppress output.
 
     Returns:
         List of duplicated version strings.
@@ -131,24 +131,21 @@ def check_duplicates(
             duplicates.append(v)
         seen.add(v)
 
-    if duplicates and not quiet:
-        print(f"\n  Duplicate CHANGELOG entries ({len(duplicates)}):")
+    if duplicates:
+        log.info("\n  Duplicate CHANGELOG entries (%d):", len(duplicates))
         for v in duplicates:
-            print(f"    - {v}")
+            log.info("    - %s", v)
 
     return duplicates
 
 
 def check_ordering(
     versions: list[str],
-    *,
-    quiet: bool = False,
 ) -> bool:
     """Verify versions in CHANGELOG are in descending order (newest first).
 
     Args:
         versions: Version strings in file order.
-        quiet: Suppress output.
 
     Returns:
         True if ordering is correct.
@@ -170,10 +167,10 @@ def check_ordering(
         if _version_key(unique[i]) < _version_key(unique[i + 1])
     ]
 
-    if misordered and not quiet:
-        print(f"\n  Misordered versions ({len(misordered)}):")
+    if misordered:
+        log.info("\n  Misordered versions (%d):", len(misordered))
         for before, after in misordered:
-            print(f"    - {before} appears before {after} (should be after)")
+            log.info("    - %s appears before %s (should be after)", before, after)
 
     return len(misordered) == 0
 
@@ -183,7 +180,6 @@ def compare_versions(
     tag_versions: list[str],
     *,
     verbose: bool = False,
-    quiet: bool = False,
 ) -> int:
     """Compare changelog versions against git tags and report differences.
 
@@ -192,8 +188,7 @@ def compare_versions(
     Args:
         changelog_versions: Versions found in CHANGELOG.md.
         tag_versions: Versions found in git tags.
-        verbose: Print detailed output.
-        quiet: Suppress all output (exit code only).
+        verbose: Log detailed output (in-sync versions).
 
     Returns:
         Exit code: 0 if in sync, 1 if drift detected.
@@ -205,17 +200,16 @@ def compare_versions(
     tagged_not_in_changelog = sorted(tag_set - changelog_set, key=_version_key)
     in_sync = sorted(changelog_set & tag_set, key=_version_key)
 
-    # Print header first, before sub-checks that may also print
-    if not quiet:
-        print("CHANGELOG vs Git Tags")
-        print("=" * 50)
-        print(f"  CHANGELOG versions: {len(changelog_versions)}")
-        print(f"  Git tag versions:   {len(tag_versions)}")
-        print(f"  In sync:            {len(in_sync)}")
+    # Header first, before sub-checks that may also log
+    log.info("CHANGELOG vs Git Tags")
+    log.info("=" * 50)
+    log.info("  CHANGELOG versions: %d", len(changelog_versions))
+    log.info("  Git tag versions:   %d", len(tag_versions))
+    log.info("  In sync:            %d", len(in_sync))
 
-    # Additional checks (printed under the header)
-    duplicates = check_duplicates(changelog_versions, quiet=quiet)
-    ordering_ok = check_ordering(changelog_versions, quiet=quiet)
+    # Additional checks (logged under the header)
+    duplicates = check_duplicates(changelog_versions)
+    ordering_ok = check_ordering(changelog_versions)
 
     has_drift = bool(
         in_changelog_not_tagged
@@ -224,26 +218,25 @@ def compare_versions(
         or not ordering_ok
     )
 
-    if not quiet:
-        if in_changelog_not_tagged:
-            print(f"\n  In CHANGELOG but not tagged ({len(in_changelog_not_tagged)}):")
-            for v in in_changelog_not_tagged:
-                print(f"    - {v}")
+    if in_changelog_not_tagged:
+        log.info("\n  In CHANGELOG but not tagged (%d):", len(in_changelog_not_tagged))
+        for v in in_changelog_not_tagged:
+            log.info("    - %s", v)
 
-        if tagged_not_in_changelog:
-            print(f"\n  Tagged but not in CHANGELOG ({len(tagged_not_in_changelog)}):")
-            for v in tagged_not_in_changelog:
-                print(f"    - {v}")
+    if tagged_not_in_changelog:
+        log.info("\n  Tagged but not in CHANGELOG (%d):", len(tagged_not_in_changelog))
+        for v in tagged_not_in_changelog:
+            log.info("    - %s", v)
 
-        if verbose and in_sync:
-            print(f"\n  In sync ({len(in_sync)}):")
-            for v in in_sync:
-                print(f"    - {v}")
+    if verbose and in_sync:
+        log.info("\n  In sync (%d):", len(in_sync))
+        for v in in_sync:
+            log.info("    - %s", v)
 
-        if not has_drift:
-            print("\nAll versions are in sync.")
-        else:
-            print("\nDrift detected between CHANGELOG.md and git tags.")
+    if not has_drift:
+        log.info("\nAll versions are in sync.")
+    else:
+        log.warning("\nDrift detected between CHANGELOG.md and git tags.")
 
     return 1 if has_drift else 0
 
@@ -288,10 +281,12 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    level = logging.WARNING if args.quiet else logging.INFO
+    logging.basicConfig(format="%(message)s", level=level)
+
     changelog_path: Path = args.changelog_path
     if not changelog_path.exists():
-        if not args.quiet:
-            print(f"CHANGELOG.md not found at {changelog_path}")
+        log.error("CHANGELOG.md not found at %s", changelog_path)
         return 1
 
     changelog_versions = get_changelog_versions(changelog_path)
@@ -301,7 +296,6 @@ def main() -> int:
         changelog_versions,
         tag_versions,
         verbose=args.verbose,
-        quiet=args.quiet,
     )
 
 

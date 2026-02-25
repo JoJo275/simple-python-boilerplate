@@ -95,6 +95,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Backup files created by scripts (e.g., archive_todos.py)
+*.bak
+
 # =========================================
 # Static type checking (mypy)
 # =========================================
