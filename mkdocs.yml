@@ -3,12 +3,31 @@
 
 site_name: simple-python-boilerplate
 site_description: Simple Python boilerplate using src/ layout
-docs_dir: docs/mkdocs
+docs_dir: docs
 # TODO (template users): Replace with your GitHub Pages URL
 #   e.g. https://myorg.github.io/myproject/
 site_url: https://YOURNAME.github.io/YOURREPO/
 # repo_url: https://github.com/username/simple-python-boilerplate
 # repo_name: username/simple-python-boilerplate
+
+# Exclude the mkdocs/ example directory from the build.
+# It stays in the repo as a reference for the original MkDocs-only layout,
+# but is not processed into the site (avoids duplicate mkdocstrings output).
+# README.md is excluded because it conflicts with index.md (MkDocs treats
+# README.md as index.md by default).
+exclude_docs: |
+  mkdocs/
+  README.md
+
+# Many docs link to repo files outside docs/ (pyproject.toml, workflows, etc.).
+# These links work on GitHub but MkDocs can't resolve them. Downgrade to info
+# so --strict mode doesn't fail on them, while still catching real broken
+# doc-to-doc links.
+validation:
+  links:
+    not_found: info
+    absolute_links: info
+    unrecognized_links: info
 
 theme:
   name: material
@@ -40,6 +59,58 @@ nav:
   - Home: index.md
   - Guide:
       - Getting Started: guide/getting-started.md
+      - Using This Template: USING_THIS_TEMPLATE.md
+      - Repo Layout: repo-layout.md
+      - Tooling: tooling.md
+      - Labels: labels.md
+  - Development:
+      - Overview: development/development.md
+      - Dev Setup: development/dev-setup.md
+      - Developer Commands: development/developer-commands.md
+      - Command Workflows: development/command-workflows.md
+      - Pull Requests: development/pull-requests.md
+  - CI/CD:
+      - Workflows: workflows.md
+      - Releasing: releasing.md
+      - Release Policy: release-policy.md
+      - SBOM: sbom.md
+  - Design:
+      - Architecture: design/architecture.md
+      - Tool Decisions: design/tool-decisions.md
+      - Database: design/database.md
+  - ADRs:
+      - Index: adr/README.md
+      - 001 – src/ Layout: adr/001-src-layout.md
+      - 002 – pyproject.toml: adr/002-pyproject-toml.md
+      - 003 – Separate Workflows: adr/003-separate-workflow-files.md
+      - 004 – Pin Action SHAs: adr/004-pin-action-shas.md
+      - 005 – Ruff: adr/005-ruff-for-linting-formatting.md
+      - 006 – pytest: adr/006-pytest-for-testing.md
+      - 007 – mypy: adr/007-mypy-for-type-checking.md
+      - 008 – Pre-commit Hooks: adr/008-pre-commit-hooks.md
+      - 009 – Conventional Commits: adr/009-conventional-commits.md
+      - 010 – Dependabot: adr/010-dependabot-for-dependency-updates.md
+      - 011 – Repository Guard: adr/011-repository-guard-pattern.md
+      - 012 – Security Scanning: adr/012-multi-layer-security-scanning.md
+      - 013 – SBOM: adr/013-sbom-bill-of-materials.md
+      - 014 – No Template Engine: adr/014-no-template-engine.md
+      - 015 – No .github README: adr/015-no-github-directory-readme.md
+      - 016 – Hatchling & Hatch: adr/016-hatchling-and-hatch.md
+      - 017 – Task Runner: adr/017-task-runner.md
+      - 018 – Bandit: adr/018-bandit-for-security-linting.md
+      - 019 – Containerfile: adr/019-containerfile.md
+      - 020 – MkDocs Stack: adr/020-mkdocs-documentation-stack.md
+      - 021 – Release Pipeline: adr/021-automated-release-pipeline.md
+      - 022 – Rebase Merge: adr/022-rebase-merge-strategy.md
+      - 023 – Branch Protection: adr/023-branch-protection-rules.md
+      - 024 – CI Gate: adr/024-ci-gate-pattern.md
+      - 025 – Container Strategy: adr/025-container-strategy.md
+      - 026 – No pip-tools: adr/026-no-pip-tools.md
+  - Notes:
+      - Learning: notes/learning.md
+      - Tool Comparison: notes/tool-comparison.md
+      - Archive: notes/archive.md
+      - TODO: notes/todo.md
   - Reference:
       - Overview: reference/index.md
       - API: reference/api.md
@@ -57,6 +128,20 @@ plugins:
             heading_level: 2
             members_order: source
             docstring_style: google
+
+# Files that live in docs/ but are not part of the site navigation.
+# These are repo-facing files (READMEs, templates) or the mkdocs/ example
+# directory kept as a reference.  Without this list, --strict mode would
+# warn about files not included in nav.
+not_in_nav: |
+  README.md
+  mkdocs/**
+  adr/template.md
+  adr/archive/**
+  design/README.md
+  development/README.md
+  notes/README.md
+  templates/**
 
 markdown_extensions:
   - admonition
