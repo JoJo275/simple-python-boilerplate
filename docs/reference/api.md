@@ -1,5 +1,10 @@
 # API
 
+<!-- TODO (template users): Replace the module directives below with your
+     own package modules. The ::: directive tells mkdocstrings to import
+     and document the specified module.
+     Example: ::: my_project.core -->
+
 Auto-generated from source docstrings and type annotations.
 
 ## Engine

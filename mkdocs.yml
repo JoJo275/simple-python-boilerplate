@@ -1,5 +1,17 @@
 # MkDocs configuration
 # Docs: https://www.mkdocs.org/user-guide/configuration/
+#
+# TODO (template users):
+#   1. Replace site_name, site_description with your project name/description.
+#   2. Replace site_url with your GitHub Pages URL
+#      (e.g. https://myorg.github.io/myproject/).
+#   3. Replace repo_url and repo_name with your repo slug
+#      (e.g. https://github.com/myorg/myproject and myorg/myproject).
+#   4. Update the nav section — remove boilerplate-specific pages
+#      (ADRs, Templates, Notes) and add your own.
+#   5. In the mkdocstrings plugin, replace 'simple_python_boilerplate'
+#      module references in docs/reference/api.md with your package name.
+#   6. Update not_in_nav if you add or remove files from docs/.
 
 site_name: simple-python-boilerplate
 site_description: Simple Python boilerplate using src/ layout
@@ -52,6 +64,9 @@ theme:
     - search.suggest
     - toc.follow
 
+# TODO (template users): Replace this nav with your own pages.
+#   Keep Home, Guide, and Reference as a starting point.
+#   Remove ADRs, Templates, and Notes sections unless you use them.
 nav:
   - Home: index.md
   - Guide:
@@ -121,6 +136,8 @@ nav:
 
 plugins:
   - search
+  # TODO (template users): Update 'paths: [src]' if your package
+  #   uses a different layout (e.g. flat layout without src/).
   - mkdocstrings:
       handlers:
         python:
