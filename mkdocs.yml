@@ -4,11 +4,9 @@
 site_name: simple-python-boilerplate
 site_description: Simple Python boilerplate using src/ layout
 docs_dir: docs
-# TODO (template users): Replace with your GitHub Pages URL
-#   e.g. https://myorg.github.io/myproject/
-site_url: https://YOURNAME.github.io/YOURREPO/
-# repo_url: https://github.com/username/simple-python-boilerplate
-# repo_name: username/simple-python-boilerplate
+site_url: https://jojo275.github.io/simple-python-boilerplate/
+repo_url: https://github.com/JoJo275/simple-python-boilerplate
+repo_name: JoJo275/simple-python-boilerplate
 
 # README.md is excluded because it conflicts with index.md (MkDocs treats
 # README.md as index.md by default).
@@ -44,6 +42,9 @@ theme:
         name: Switch to light mode
   features:
     - content.code.copy
+    - content.tabs.link
+    - navigation.footer
+    - navigation.indexes
     - navigation.instant
     - navigation.sections
     - navigation.top
