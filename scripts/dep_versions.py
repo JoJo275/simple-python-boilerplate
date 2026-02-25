@@ -25,6 +25,7 @@ Usage:
     python scripts/dep_versions.py show --offline        # Skip PyPI check
     python scripts/dep_versions.py update-comments       # Sync comments with installed
     python scripts/dep_versions.py upgrade               # Upgrade ALL deps to latest
+    python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades without installing
     python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
     python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
 """
@@ -32,9 +33,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess  # nosec B404
 import sys
+import warnings
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
@@ -51,6 +54,22 @@ REQ_FILES = sorted(ROOT.glob("requirements*.txt"))
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _warn_if_no_venv() -> None:
+    """Emit a warning if running outside a virtual environment.
+
+    Installing or upgrading packages outside a venv risks polluting
+    the global Python installation.  This project convention is to
+    always use a Hatch-managed environment.
+    """
+    if sys.prefix == sys.base_prefix:
+        warnings.warn(
+            "You are running outside a virtual environment. "
+            "Upgrading packages here will modify the global Python "
+            "installation. Consider using 'hatch shell' first.",
+            stacklevel=2,
+        )
 
 
 def _installed_version(pkg: str) -> str | None:
@@ -87,11 +106,41 @@ def _package_summary(pkg: str) -> str | None:
 
 
 def _latest_version(pkg: str) -> str | None:
-    """Query PyPI for the latest version of *pkg* via ``pip index versions``.
+    """Query PyPI for the latest version of *pkg*.
+
+    Tries ``pip index versions --format=json`` first (stable, machine-
+    readable output added in pip 24.2).  Falls back to parsing the
+    human-readable output for older pip versions.
 
     Returns ``None`` on any failure (network, pip too old, etc.).
     """
     try:
+        # Attempt JSON format first (pip >= 24.2)
+        result = subprocess.run(  # nosec B603
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "index",
+                "versions",
+                pkg,
+                "--format=json",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.returncode == 0:
+            try:
+                data = json.loads(result.stdout)
+                # JSON output: {"name": ..., "version": "1.2.3", ...}
+                ver = data.get("version")
+                if ver:
+                    return str(ver)
+            except (json.JSONDecodeError, KeyError, TypeError):
+                pass
+
+        # Fallback: parse human-readable output (older pip)
         result = subprocess.run(  # nosec B603
             [sys.executable, "-m", "pip", "index", "versions", pkg],
             capture_output=True,
@@ -536,6 +585,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Target version (omit to upgrade to latest).",
     )
+    upgrade_p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be upgraded without installing anything.",
+    )
 
     return parser
 
@@ -583,6 +637,10 @@ def main() -> None:
     elif command == "upgrade":
         pkg = getattr(args, "package", None)
         ver = getattr(args, "version", None)
+        dry_run = getattr(args, "dry_run", False)
+
+        # Warn if running outside a virtual environment
+        _warn_if_no_venv()
 
         if pkg:
             # Upgrade a single package
@@ -598,8 +656,13 @@ def main() -> None:
                     " or [project].dependencies can be upgraded."
                 )
                 sys.exit(1)
-            success = upgrade_package(normalised, ver)
-            sys.exit(0 if success else 1)
+            if dry_run:
+                latest = _latest_version(normalised)
+                installed = _installed_version(normalised)
+                print(f"  [dry-run] {normalised}: {installed} -> {latest or '?'}")
+            else:
+                success = upgrade_package(normalised, ver)
+                sys.exit(0 if success else 1)
         else:
             # Upgrade all
             rows = collect_report(check_latest=True)
@@ -613,9 +676,29 @@ def main() -> None:
                 print("\n  All dependencies are up to date.")
                 return
 
-            print(f"\nUpgrading {len(upgradable)} package(s)...\n")
-            count = upgrade_all(rows)
-            print(f"\nUpgraded {count} package(s).")
+            if dry_run:
+                print(
+                    f"\n  [dry-run] {len(upgradable)} package(s) would be upgraded:\n"
+                )
+                for r in upgradable:
+                    print(f"    {r['name']}: {r['installed']} -> {r['latest']}")
+                print("\n  Run without --dry-run to install.")
+            else:
+                print(f"\nUpgrading {len(upgradable)} package(s)...\n")
+                count = upgrade_all(rows)
+                print(f"\nUpgraded {count} package(s).")
+
+        # After successful upgrade, refresh comments to keep files in sync
+        if not dry_run:
+            print("  Refreshing version comments...")
+            fresh_rows = collect_report(check_latest=False)
+            toml_count = update_comments(fresh_rows)
+            req_results = update_requirements_comments()
+            if toml_count:
+                print(f"  Updated {toml_count} comment(s) in pyproject.toml")
+            for fname, n in req_results.items():
+                if n:
+                    print(f"  Updated {n} comment(s) in {fname}")
 
     print()
 
