@@ -107,10 +107,10 @@ jobs:
           path: site/
 
   # ── Job 2: Deploy ──────────────────────────────────────────
-  # Only runs on push to main (not on PRs).
+  # Only runs on push to main or manual dispatch from main (not on PRs or other branches).
   deploy:
     name: Deploy to GitHub Pages
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 5
