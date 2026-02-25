@@ -103,7 +103,7 @@ github_actions:
           - "SECURITY.md"
           - ".github/workflows/nightly-security.yml"
           - ".github/workflows/security-audit.yml"
-          - ".github/workflows/codeql.yml"
+          - ".github/workflows/security-codeql.yml"
           - ".github/workflows/container-scan.yml"
           - ".github/workflows/scorecard.yml"
           - ".github/workflows/dependency-review.yml"

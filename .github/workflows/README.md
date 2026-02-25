@@ -21,7 +21,7 @@ Overview of all GitHub Actions workflows in this repository.
 | Workflow | File | Triggers | What it does |
 |----------|------|----------|--------------|
 | **Bandit** | [bandit.yml](bandit.yml) | push, PR, nightly, manual | Static security analysis of Python code |
-| **CodeQL** | [codeql.yml](codeql.yml) | push, PR, weekly | GitHub's semantic code analysis (security-extended) |
+| **CodeQL** | [security-codeql.yml](security-codeql.yml) | push, PR, weekly | GitHub's semantic code analysis (security-extended) |
 | **Security audit** | [security-audit.yml](security-audit.yml) | push, PR, weekly, manual | Checks installed packages for known vulnerabilities (pip-audit) |
 | **Dependency review** | [dependency-review.yml](dependency-review.yml) | PR | Scans new dependencies for vulnerabilities/licenses |
 | **Container scan** | [container-scan.yml](container-scan.yml) | push, PR, weekly, manual | Scans container image for CVEs with Trivy |
@@ -44,6 +44,8 @@ Overview of all GitHub Actions workflows in this repository.
 
 | Workflow | File | Triggers | What it does |
 |----------|------|----------|--------------|
+| **Docs build** | [docs-build.yml](docs-build.yml) | push, PR, manual | Builds MkDocs site with `--strict` (CI gate check) |
+| **Docs deploy** | [docs-deploy.yml](docs-deploy.yml) | push (main, path-filtered), manual | Builds and deploys MkDocs site to GitHub Pages |
 | **Link checker** | [link-checker.yml](link-checker.yml) | push, PR (docs), weekly, manual | Checks Markdown/HTML for broken links with lychee |
 
 ### PR Hygiene & Maintenance
@@ -91,6 +93,8 @@ Most workflows include a **repository guard** that prevents them from running on
 | Changelog | `ENABLE_CHANGELOG` |
 | Stale | `ENABLE_STALE` |
 | Pre-commit update | `ENABLE_PRE_COMMIT_UPDATE` |
+| Docs build | `ENABLE_DOCS_BUILD` |
+| Docs deploy | `ENABLE_DOCS_DEPLOY` |
 
 ## Conventions
 

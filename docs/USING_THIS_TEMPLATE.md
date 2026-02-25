@@ -354,9 +354,10 @@ so the linter and the doc renderer stay in sync.
 3. Update the `nav:` section in `mkdocs.yml` to reflect your page structure
 4. (Optional) Enable GitHub Pages deployment via the `docs-deploy.yml` workflow
 
-The CI workflow [`docs-deploy.yml`](../.github/workflows/docs-deploy.yml)
-automatically builds the site on push to `main` and deploys to GitHub Pages
-(path-filtered to docs/source changes only).
+Docs have two workflows:
+
+- [`docs-build.yml`](../.github/workflows/docs-build.yml) — runs `mkdocs build --strict` on every PR as a CI gate check (catches broken links and cross-refs)
+- [`docs-deploy.yml`](../.github/workflows/docs-deploy.yml) — builds and deploys to GitHub Pages on push to `main` (path-filtered to docs/source changes)
 
 If you don’t need a documentation site, delete `mkdocs.yml`, `docs/mkdocs/`,
 and `site/`.

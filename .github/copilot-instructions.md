@@ -81,14 +81,15 @@ the summary below is for quick orientation only.
 - **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck
 - **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy container scan, nightly scan, OpenSSF Scorecard
 - **PR hygiene:** commit-lint, pr-title, labeler, spellcheck-autofix
-- **Documentation:** docs-deploy (MkDocs build + GitHub Pages deployment)
+- **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
 - **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot
 - **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](../docs/adr/024-ci-gate-pattern.md))
 
-Path-filtered workflows (bandit, link-checker) are excluded from required
-checks because they don't run on every PR.
+Path-filtered workflows (bandit, docs-deploy, link-checker) are excluded from
+required checks because they don't run on every PR. `docs-build` runs on all
+PRs and IS in the CI gate.
 
 ### Task Runner — Taskfile
 
@@ -427,7 +428,7 @@ Acknowledged gaps that don't need to be rediscovered each session:
 | Area | Issue | Notes |
 |------|-------|-------|
 | **CI** | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing). |
-| **CI** | Docs deploy is path-filtered | `docs-deploy.yml` only runs on docs/src changes. It is NOT in the CI gate (path-filtered workflows cause gate timeouts). Same pattern as bandit and link-checker. |
+| **CI** | Docs deploy is path-filtered | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs *build* validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
 | **Docs** | `docs/workflows.md` can drift | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast. |
 | **Template** | Placeholder source code | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely. |
 

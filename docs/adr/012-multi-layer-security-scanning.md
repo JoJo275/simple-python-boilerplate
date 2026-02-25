@@ -27,7 +27,7 @@ Use a multi-layer approach with four complementary tools:
 1. **Dependabot** (`.github/dependabot.yml`) — Automated PRs for vulnerable and outdated dependencies
 2. **dependency-review-action** (`dependency-review.yml`) — Blocks PRs that introduce vulnerable or restrictively-licensed dependencies
 3. **pip-audit** (`security-audit.yml`) — Audits the full installed dependency tree against OSV and PyPI databases; catches transitive dependency vulnerabilities that Dependabot may miss
-4. **CodeQL** (`codeql.yml`) — GitHub's semantic code analysis engine; finds vulnerabilities in the project's own source code
+4. **CodeQL** (`security-codeql.yml`) — GitHub's semantic code analysis engine; finds vulnerabilities in the project's own source code
 
 ### Why all four?
 
