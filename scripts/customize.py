@@ -21,9 +21,9 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import logging
 import re
 import shutil
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -32,6 +32,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
+SCRIPT_VERSION = "1.1.0"
 
 # Original placeholders baked into the template
 TEMPLATE_PROJECT_NAME = "simple-python-boilerplate"
@@ -42,7 +43,7 @@ TEMPLATE_AUTHOR = "Joseph"
 TEMPLATE_DESCRIPTION = "Simple Python boilerplate using src/ layout"
 TEMPLATE_CLI_PREFIX = "spb"
 
-# Directories to skip when scanning files
+# Directory names to skip when scanning files (exact match)
 SKIP_DIRS: set[str] = {
     ".git",
     ".venv",
@@ -50,8 +51,13 @@ SKIP_DIRS: set[str] = {
     "__pycache__",
     ".mypy_cache",
     ".ruff_cache",
+    ".pytest_cache",
     "node_modules",
     "site",
+}
+
+# Directory name suffixes to skip (endswith match)
+SKIP_DIR_SUFFIXES: set[str] = {
     ".egg-info",
 }
 
@@ -75,6 +81,19 @@ TEXT_EXTENSIONS: set[str] = {
     ".ts",
     ".rst",
     ".in",
+    ".sql",
+    ".env",
+    ".containerfile",
+    ".dockerfile",
+}
+
+# Extensionless filenames that should always be scanned
+SCAN_FILENAMES: set[str] = {
+    "Containerfile",
+    "Dockerfile",
+    "Makefile",
+    "Taskfile",
+    "Procfile",
 }
 
 # Files to never modify (relative to ROOT)
@@ -113,6 +132,8 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         ],
     },
 }
+
+log = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # License templates
@@ -238,7 +259,11 @@ def _prompt(label: str, default: str = "") -> str:
     """
     suffix = f" [{default}]" if default else ""
     while True:
-        value = input(f"  {label}{suffix}: ").strip()
+        try:
+            value = input(f"  {label}{suffix}: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            raise SystemExit(1) from None
         if value:
             return value
         if default:
@@ -257,7 +282,11 @@ def _prompt_yn(label: str, *, default: bool = True) -> bool:
         ``True`` for yes, ``False`` for no.
     """
     hint = "Y/n" if default else "y/N"
-    value = input(f"  {label} [{hint}]: ").strip().lower()
+    try:
+        value = input(f"  {label} [{hint}]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        raise SystemExit(1) from None
     if not value:
         return default
     return value in ("y", "yes")
@@ -280,7 +309,11 @@ def _prompt_choice(label: str, choices: dict[str, str], default: str) -> str:
         marker = " (default)" if key == default else ""
         print(f"    {i}. {choices[key]}{marker}")
     while True:
-        raw = input(f"  Choice [1-{len(keys)}]: ").strip()
+        try:
+            raw = input(f"  Choice [1-{len(keys)}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            raise SystemExit(1) from None
         if not raw:
             return default
         try:
@@ -308,7 +341,11 @@ def _prompt_multi(label: str, choices: dict[str, str]) -> list[str]:
     for i, key in enumerate(keys, 1):
         print(f"    {i}. {choices[key]}")
     print("    0. None of the above")
-    raw = input("  Selection (comma-separated, e.g. 1,3): ").strip()
+    try:
+        raw = input("  Selection (comma-separated, e.g. 1,3): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        raise SystemExit(1) from None
     if not raw or raw == "0":
         return []
     selected: list[str] = []
@@ -496,10 +533,14 @@ def _should_process(path: Path) -> bool:
     """Return True if *path* is a text file we should scan for replacements."""
     if not path.is_file():
         return False
-    if path.suffix not in TEXT_EXTENSIONS:
+    if path.suffix not in TEXT_EXTENSIONS and path.name not in SCAN_FILENAMES:
         return False
     rel = path.relative_to(ROOT)
+    # Exact directory name match
     if any(part in SKIP_DIRS for part in rel.parts):
+        return False
+    # Suffix-based directory match (e.g. .egg-info)
+    if any(part.endswith(sfx) for part in rel.parts for sfx in SKIP_DIR_SUFFIXES):
         return False
     return rel not in SKIP_FILES
 
@@ -563,10 +604,10 @@ def rename_package_dir(cfg: Config, *, dry_run: bool = False) -> bool:
     new_dir = ROOT / "src" / cfg.package_name
 
     if not old_dir.is_dir():
-        print(f"  WARNING: src/{TEMPLATE_PACKAGE_NAME}/ not found — skipping rename")
+        log.warning("src/%s/ not found — skipping rename", TEMPLATE_PACKAGE_NAME)
         return False
     if new_dir.exists():
-        print(f"  WARNING: src/{cfg.package_name}/ already exists — skipping rename")
+        log.warning("src/%s/ already exists — skipping rename", cfg.package_name)
         return False
 
     if dry_run:
@@ -619,12 +660,15 @@ def strip_directories(
                 kind = "directory" if target.is_dir() else "file"
                 print(f"  Would remove {kind}: {rel_path}")
             else:
-                if target.is_dir():
-                    shutil.rmtree(target)
-                    print(f"  Removed directory: {rel_path}")
-                else:
-                    target.unlink()
-                    print(f"  Removed file: {rel_path}")
+                try:
+                    if target.is_dir():
+                        shutil.rmtree(target)
+                        print(f"  Removed directory: {rel_path}")
+                    else:
+                        target.unlink()
+                        print(f"  Removed file: {rel_path}")
+                except (OSError, PermissionError) as exc:
+                    log.warning("  Failed to remove %s: %s", rel_path, exc)
 
     return removed
 
@@ -767,9 +811,20 @@ examples:
 """,
     )
     parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Show what would change without modifying any files",
+    )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress informational output (errors still shown)",
     )
     parser.add_argument(
         "--non-interactive",
@@ -842,10 +897,7 @@ def config_from_args(args: argparse.Namespace) -> Config:
         missing.append("--github-user")
 
     if missing:
-        print(
-            f"ERROR: --non-interactive requires: {', '.join(missing)}",
-            file=sys.stderr,
-        )
+        log.error("--non-interactive requires: %s", ", ".join(missing))
         raise SystemExit(2)
 
     package_name = args.package_name or args.project_name.replace("-", "_")
@@ -887,13 +939,13 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
     """
     # Validate slug format
     if "/" not in repo_slug or repo_slug.count("/") != 1:
-        print(f"ERROR: Invalid repo slug '{repo_slug}'. Expected 'owner/repo' format.")
+        log.error("Invalid repo slug '%s'. Expected 'owner/repo' format.", repo_slug)
         return 1
 
     owner, repo = repo_slug.split("/")
     if not owner or not repo:
-        print(
-            f"ERROR: Invalid repo slug '{repo_slug}'. Both owner and repo are required."
+        log.error(
+            "Invalid repo slug '%s'. Both owner and repo are required.", repo_slug
         )
         return 1
 
@@ -947,19 +999,23 @@ def main() -> int:
     """
     args = parse_args()
 
+    # Configure logging: --quiet suppresses INFO, errors always shown
+    level = logging.WARNING if args.quiet else logging.INFO
+    logging.basicConfig(format="%(message)s", level=level)
+
     # Handle --enable-workflows as a standalone operation
     if args.enable_workflows:
         return enable_workflows_only(args.enable_workflows, dry_run=args.dry_run)
 
     # Safety check: warn if the template appears already customized
     if not args.force and _already_customized():
-        print(
-            "WARNING: This project appears to have already been customized "
-            f"(src/{TEMPLATE_PACKAGE_NAME}/ is missing or pyproject.toml "
-            "has been modified)."
+        log.warning(
+            "This project appears to have already been customized "
+            "(src/%s/ is missing or pyproject.toml has been modified).",
+            TEMPLATE_PACKAGE_NAME,
         )
         if args.non_interactive:
-            print("Use --force to run anyway.", file=sys.stderr)
+            log.error("Use --force to run anyway.")
             return 1
         if not _prompt_yn("Run anyway?", default=False):
             print("Aborted.")
