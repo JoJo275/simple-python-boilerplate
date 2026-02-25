@@ -27,6 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CHANGELOG = ROOT / "CHANGELOG.md"
+SCRIPT_VERSION = "1.1.0"
 
 # Matches release-please style headings: ## [1.2.3](url) (date) or ## 1.2.3
 VERSION_HEADING_RE = re.compile(
@@ -260,6 +261,11 @@ def main() -> int:
     """
     parser = argparse.ArgumentParser(
         description="Verify CHANGELOG.md entries match git tags.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     verbosity = parser.add_mutually_exclusive_group()
     verbosity.add_argument(
