@@ -22,6 +22,8 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import contextlib
+import json
 import shutil
 import subprocess  # nosec B404
 import sys
@@ -31,6 +33,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
+
+# Module-level verbosity flag, set by CLI parsing
+_quiet = False
 
 
 def run_cmd(
@@ -51,7 +56,8 @@ def run_cmd(
     Returns:
         Completed process result (or a dummy result in dry-run mode).
     """
-    print(f"  $ {' '.join(cmd)}")
+    if not _quiet:
+        print(f"  $ {' '.join(cmd)}")
     if dry_run:
         return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
     return subprocess.run(  # nosec B603
@@ -137,16 +143,17 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
         envs.extend(["test.py3.11", "test.py3.12", "test.py3.13"])
 
     # Query existing environments once (not per-env)
-    existing_envs = ""
+    existing_env_names: set[str] = set()
     if not dry_run:
         result = run_cmd(["hatch", "env", "show", "--json"], capture=True, check=False)
         if result.returncode == 0:
-            existing_envs = result.stdout
+            with contextlib.suppress(json.JSONDecodeError, AttributeError):
+                existing_env_names = set(json.loads(result.stdout).keys())
 
     all_ok = True
     for env in envs:
         try:
-            if not dry_run and env in existing_envs:
+            if not dry_run and env in existing_env_names:
                 print(f"  ✓ {env} environment already exists")
             else:
                 run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
@@ -225,8 +232,12 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
         return False
 
 
-def check_task_runner() -> None:
-    """Check if Task runner is available (advisory only)."""
+def check_task_runner() -> bool:
+    """Check if Task runner is available (advisory only).
+
+    Returns:
+        True always — Task is optional so this never blocks setup.
+    """
     print(f"\n[6/{TOTAL_STEPS}] Checking Task runner...")
     task = shutil.which("task")
     if task:
@@ -234,6 +245,7 @@ def check_task_runner() -> None:
     else:
         print("  ⚠ Task not found (optional but recommended)")
         print("  Install from: https://taskfile.dev/installation/")
+    return True
 
 
 def verify_setup(*, dry_run: bool = False) -> bool:
@@ -320,7 +332,16 @@ def main() -> int:
         action="store_true",
         help="Show what would happen without making changes",
     )
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress command echo output (show only results)",
+    )
     args = parser.parse_args()
+
+    global _quiet  # intentional module-level state for CLI flag
+    _quiet = args.quiet
 
     start_time = time.monotonic()
 
