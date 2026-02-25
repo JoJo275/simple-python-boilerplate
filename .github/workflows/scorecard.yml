@@ -49,10 +49,9 @@ on:
 
 # Scorecard needs these permissions to read repo metadata and
 # upload results to the Security tab via SARIF.
-permissions:
-  contents: read
-  security-events: write
-  id-token: write          # Needed for publishing results to OpenSSF
+# Permissions are set at the job level (not workflow level) because
+# the OpenSSF API rejects workflows with global write permissions.
+permissions: read-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -76,6 +75,10 @@ jobs:
       }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write          # Needed for publishing results to OpenSSF
 
     steps:
       - name: Checkout repository

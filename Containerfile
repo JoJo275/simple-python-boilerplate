@@ -25,7 +25,7 @@
 # ──────────────────────────────────────────────────────────────
 
 # Base image digest — pin for reproducibility (update via comment above)
-ARG PYTHON_BASE=python:3.12-slim@sha256:48006ff57afe15f247ad3da166e9487da0f66a94adbc92810b0e189382d79246
+ARG PYTHON_BASE=python:3.12-slim@sha256:41563b9752d16a220983617270a893a0ddd478717e1b9af7ca1df5c5fdb13c34
 
 # ── Stage 1: Build ────────────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
