@@ -1,3 +1,6 @@
+<!-- TODO (template users): Replace the title, description, features list,
+     quick links, and project layout below with your own project details. -->
+
 # simple-python-boilerplate
 
 A minimal Python boilerplate using the **src/ layout**, configured with

@@ -1,3 +1,7 @@
+<!-- TODO (template users): Replace 'simple_python_boilerplate' with your
+     package name throughout this page. Update the Sections table to
+     reflect your actual modules. -->
+
 # API Reference
 
 This section contains auto-generated documentation for the
