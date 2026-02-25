@@ -70,6 +70,9 @@ jobs:
       - name: Install hatch
         run: python -m pip install --upgrade pip hatch
 
+      - name: Install project in editable mode
+        run: python -m pip install -e ".[dev]"
+
       # ── Regenerate requirements.txt ─────────────────────────
       # Reads [project].dependencies from pyproject.toml and
       # writes them into the convenience requirements.txt file.
@@ -168,6 +171,14 @@ jobs:
           Path('requirements-dev.txt').write_text('\n'.join(lines))
           print('Regenerated requirements-dev.txt')
           "
+
+      # ── Add version comments ────────────────────────────────
+      # Runs dep_versions.py update-comments to annotate each dep
+      # line with its package summary and installed version, just
+      # like the hand-maintained files had.  Requires the project
+      # to be installed (done above) so metadata is available.
+      - name: Add version comments to requirements files
+        run: python scripts/dep_versions.py update-comments
 
       # ── Check for changes and create PR ─────────────────────
       - name: Check for changes
