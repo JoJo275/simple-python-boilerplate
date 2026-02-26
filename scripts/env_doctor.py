@@ -8,10 +8,17 @@ Task, pre-commit hooks, and key tool availability.
 Lighter than repo_doctor.py — focuses on environment readiness
 rather than repository structure.
 
+Note:
+    The ``cz`` tool check requires the ``commitizen`` package to be
+    installed (it provides the ``cz`` CLI).  If you see ``cz not found
+    in PATH``, install it via ``hatch shell`` (which pulls in the dev
+    extras) or ``pipx install commitizen``.
+
 Usage::
 
     python scripts/env_doctor.py
     python scripts/env_doctor.py --strict
+    python scripts/env_doctor.py --version
 """
 
 from __future__ import annotations
@@ -24,16 +31,22 @@ import struct
 import subprocess  # nosec B404
 import sys
 from pathlib import Path
+from typing import TextIO
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
+SCRIPT_VERSION = "1.0.0"
+
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 11)
 
 # Tools expected in the dev environment
-EXPECTED_TOOLS = ["ruff", "mypy", "pytest", "bandit", "pre-commit"]
+EXPECTED_TOOLS = ["ruff", "mypy", "pytest", "bandit", "pre-commit", "cz", "deptry"]
+
+# Optional tools — reported but don't fail unless --strict
+OPTIONAL_TOOLS = ["actionlint"]
 
 # Pre-commit hook files to check
 HOOK_FILES = {
@@ -95,7 +108,10 @@ def check_editable_install() -> tuple[bool, str]:
         version = importlib.metadata.version("simple-python-boilerplate")
         return True, f"Editable install OK (v{version})"
     except importlib.metadata.PackageNotFoundError:
-        return False, 'Package not installed — run: pip install -e ".[dev]"'
+        return (
+            False,
+            "Package not installed — run: hatch shell  (or pip install -e '.[dev]')",
+        )
 
 
 def check_tool_available(tool: str) -> tuple[bool, str]:
@@ -122,7 +138,7 @@ def check_hatch() -> tuple[bool, str]:
     if not hatch:
         return False, "Hatch not found — install: pipx install hatch"
     try:
-        result = subprocess.run(  # nosec B603 — resolved path from shutil.which, no user input
+        result = subprocess.run(  # nosec B603
             [hatch, "--version"],
             capture_output=True,
             text=True,
@@ -152,8 +168,8 @@ def check_pre_commit_hooks() -> tuple[bool, str]:
     Returns:
         Tuple of (passed, message).
     """
-    installed = []
-    missing = []
+    installed: list[str] = []
+    missing: list[str] = []
 
     for name, path in HOOK_FILES.items():
         if path.exists():
@@ -180,6 +196,50 @@ def check_git_repo() -> tuple[bool, str]:
     return False, "Not a git repository"
 
 
+def check_git_user_config() -> tuple[bool, str]:
+    """Check if git user.name and user.email are configured.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    git = shutil.which("git")
+    if not git:
+        return False, "git not found in PATH"
+
+    missing: list[str] = []
+    for key in ("user.name", "user.email"):
+        try:
+            result = subprocess.run(  # nosec B603
+                [git, "config", key],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if not result.stdout.strip():
+                missing.append(key)
+        except (subprocess.TimeoutExpired, OSError):
+            missing.append(key)
+
+    if not missing:
+        return True, "Git user.name and user.email configured"
+    return (
+        False,
+        f"Git config missing: {', '.join(missing)} — run: git config --global {missing[0]} <value>",
+    )
+
+
+def check_pyproject_toml() -> tuple[bool, str]:
+    """Check if pyproject.toml exists in the project root.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    pyproject = ROOT / "pyproject.toml"
+    if pyproject.is_file():
+        return True, "pyproject.toml found"
+    return False, "pyproject.toml missing — project configuration is incomplete"
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -188,6 +248,8 @@ CHECKS = [
     ("Python version", check_python_version),
     ("Architecture", check_architecture),
     ("Git repository", check_git_repo),
+    ("Git user config", check_git_user_config),
+    ("pyproject.toml", check_pyproject_toml),
     ("Virtual environment", check_venv_active),
     ("Editable install", check_editable_install),
     ("Hatch", check_hatch),
@@ -196,52 +258,118 @@ CHECKS = [
 ]
 
 
-def run_checks(strict: bool = False) -> int:
+# ---------------------------------------------------------------------------
+# Color output helpers
+# ---------------------------------------------------------------------------
+
+
+def _supports_color(stream: TextIO) -> bool:
+    """Detect whether the output stream supports ANSI color.
+
+    Returns:
+        True if color is likely supported.
+    """
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    return hasattr(stream, "isatty") and stream.isatty()
+
+
+def _colorize(text: str, code: str, *, use_color: bool) -> str:
+    """Wrap text in ANSI escape codes if color is enabled.
+
+    Args:
+        text: The text to colorize.
+        code: ANSI color code (e.g. '32' for green).
+        use_color: Whether to apply color.
+
+    Returns:
+        Colorized string, or plain text if color is disabled.
+    """
+    if not use_color:
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
+def _icon(status: str, *, use_color: bool) -> str:
+    """Return a colored status icon.
+
+    Args:
+        status: One of 'PASS', 'FAIL', 'WARN'.
+        use_color: Whether to apply color.
+
+    Returns:
+        Formatted status string.
+    """
+    colors = {"PASS": "32", "FAIL": "31", "WARN": "33"}  # nosec
+    return _colorize(status, colors.get(status, "0"), use_color=use_color)
+
+
+def run_checks(strict: bool = False, *, color: bool | None = None) -> int:
     """Run all environment checks and print results.
 
     Args:
         strict: If True, treat warnings (Task not found) as failures.
+        color: Force color on/off. None = auto-detect.
 
     Returns:
         Exit code: 0 if all passed, 1 if any failed.
     """
-    # Optional tools that don't fail unless --strict
-    optional = {"Task runner", "Architecture"}
+    use_color = color if color is not None else _supports_color(sys.stdout)
+
+    # Optional checks that don't fail unless --strict
+    optional_checks = {"Task runner", "Architecture"}
 
     failures = 0
-    print("Environment Health Check")
+    print(_colorize("Environment Health Check", "1", use_color=use_color))
     print("=" * 50)
 
     # Core checks
     for name, check_fn in CHECKS:
         passed, msg = check_fn()
-        icon = "PASS" if passed else "FAIL"
-        if not passed and name in optional and not strict:
-            icon = "WARN"
+        status = "PASS" if passed else "FAIL"
+        if not passed and name in optional_checks and not strict:
+            status = "WARN"
         else:
             if not passed:
                 failures += 1
-        print(f"  [{icon}] {name}: {msg}")
+        print(f"  [{_icon(status, use_color=use_color)}] {name}: {msg}")
 
     # Dev tool checks
     print()
-    print("Development Tools")
+    print(_colorize("Development Tools", "1", use_color=use_color))
     print("-" * 50)
     for tool in EXPECTED_TOOLS:
         passed, msg = check_tool_available(tool)
-        icon = "PASS" if passed else "FAIL"
+        status = "PASS" if passed else "FAIL"
         if not passed:
             failures += 1
-        print(f"  [{icon}] {msg}")
+        print(f"  [{_icon(status, use_color=use_color)}] {msg}")
+
+    # Optional tools
+    for tool in OPTIONAL_TOOLS:
+        passed, msg = check_tool_available(tool)
+        status = "PASS" if passed else "WARN"
+        if not passed and strict:
+            status = "FAIL"
+            failures += 1
+        print(f"  [{_icon(status, use_color=use_color)}] {msg}")
 
     # Summary
     print()
-    total = len(CHECKS) + len(EXPECTED_TOOLS)
+    total = len(CHECKS) + len(EXPECTED_TOOLS) + len(OPTIONAL_TOOLS)
     passed_count = total - failures
     if failures == 0:
-        print(f"All {total} checks passed!")
+        print(_colorize(f"All {total} checks passed!", "32", use_color=use_color))
     else:
-        print(f"{passed_count}/{total} checks passed, {failures} failed")
+        print(
+            _colorize(
+                f"{passed_count}/{total} checks passed, {failures} failed",
+                "31",
+                use_color=use_color,
+            )
+        )
 
     return 1 if failures else 0
 
@@ -261,12 +389,23 @@ def main() -> int:
         description="Quick environment health check for development.",
     )
     parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
+    parser.add_argument(
         "--strict",
         action="store_true",
         help="Treat optional tool warnings as failures",
     )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored output",
+    )
     args = parser.parse_args()
-    return run_checks(strict=args.strict)
+    color = False if args.no_color else None
+    return run_checks(strict=args.strict, color=color)
 
 
 if __name__ == "__main__":
