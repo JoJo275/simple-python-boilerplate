@@ -4,8 +4,6 @@ Things to explore, implement, or learn more about.
 
 ## To Implement
 
-- [ ] Set up GitHub Codespaces configuration
-- [ ] Set up continuous deployment to PyPI on new releases
 - [ ] Add workflow enable/disable guidance to `USING_THIS_TEMPLATE.md`
 - [ ] Full CI stress-test in strict mode
 - [ ] Add detailed design document to `docs/design/`
