@@ -6,6 +6,8 @@ Things to explore, implement, or learn more about.
 
 - [ ] Final file check: taskfile.yml
 - [ ] Add in TODOs where warrented
+- [ ] Review and consolidate docs/
+- [ ]
 
 ## Ideas for Later
 

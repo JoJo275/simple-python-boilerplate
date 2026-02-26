@@ -102,6 +102,12 @@ tasks:
     desc: Run bandit security linter
     cmds:
       - hatch run bandit -r src/ {{.CLI_ARGS}}
+
+  deptry:
+    desc: Check for unused, missing, or transitive dependencies
+    cmds:
+      - hatch run deptry src/ {{.CLI_ARGS}}
+
   # ── Documentation ──────────────────────────────────────────
   docs:serve:
     desc: Serve documentation with live-reload
@@ -125,8 +131,8 @@ tasks:
     cmds:
       - hatch build
 
-  clean:
-    desc: Clean build artifacts
+  clean:build:
+    desc: Clean build artifacts (hatch only)
     cmds:
       - hatch clean
 
@@ -148,6 +154,11 @@ tasks:
     cmds:
       - hatch run pre-commit autoupdate
 
+  pre-commit:hook:
+    desc: "Run a single hook on all files (usage: task pre-commit:hook -- ruff)"
+    cmds:
+      - hatch run pre-commit run {{.CLI_ARGS}} --all-files
+
   # ── Utility ────────────────────────────────────────────────
   clean:todo:
     desc: Archive completed TODO items
@@ -163,6 +174,26 @@ tasks:
     desc: Run environment health check
     cmds:
       - python scripts/env_doctor.py {{.CLI_ARGS}}
+
+  doctor:repo:
+    desc: Run repository health checks
+    cmds:
+      - python scripts/repo_doctor.py {{.CLI_ARGS}}
+
+  customize:
+    desc: Interactive project customization
+    cmds:
+      - python scripts/customize.py {{.CLI_ARGS}}
+
+  todo:check:
+    desc: Find and report TODO items across the codebase
+    cmds:
+      - python scripts/check_todos.py {{.CLI_ARGS}}
+
+  changelog:check:
+    desc: Validate changelog format and consistency
+    cmds:
+      - python scripts/changelog_check.py {{.CLI_ARGS}}
 
   bootstrap:
     desc: One-command setup for fresh clones
@@ -196,12 +227,6 @@ tasks:
     cmds:
       - hatch run cz check --rev-range {{.CLI_ARGS | default "HEAD~1..HEAD"}}
 
-  release:tag:
-    desc: "Create initial version tag (usage: task release:tag -- v0.1.0)"
-    cmds:
-      - git tag -a {{.CLI_ARGS}} -m "Release {{.CLI_ARGS}}"
-      - cmd: echo "Tag {{.CLI_ARGS}} created. Push with git push origin {{.CLI_ARGS}}"
-
   # ── Targeted Testing ───────────────────────────────────────
   test:unit:
     desc: Run unit tests only
@@ -218,12 +243,17 @@ tasks:
     cmds:
       - hatch run test --lf {{.CLI_ARGS}}
 
-  # ── Dependency Info ────────────────────────────────────────
-  deps:tree:
-    desc: Show dependency tree (requires extras)
+  test:x:
+    desc: Stop on first test failure
     cmds:
-      - hatch run pip install -q pipdeptree && hatch run pipdeptree
+      - hatch run test -x {{.CLI_ARGS}}
 
+  test:k:
+    desc: "Run tests matching keyword (usage: task test:k -- my_test)"
+    cmds:
+      - hatch run test -k {{.CLI_ARGS}}
+
+  # ── Dependency Info ────────────────────────────────────────
   deps:outdated:
     desc: Check for outdated dependencies
     cmds:
@@ -243,11 +273,6 @@ tasks:
     desc: "Upgrade dependencies (usage: task deps:upgrade, or: task deps:upgrade -- ruff 0.9.0)"
     cmds:
       - hatch run python scripts/dep_versions.py upgrade {{.CLI_ARGS}}
-
-  pip:upgrade:
-    desc: Upgrade pip to the latest version
-    cmds:
-      - hatch run python -m pip install --upgrade pip
 
   # ── Workflow Actions ───────────────────────────────────────
   actions:versions:
