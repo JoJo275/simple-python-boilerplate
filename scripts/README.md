@@ -58,6 +58,15 @@ python scripts/doctor.py --markdown   # For GitHub issues
 # Archive completed TODO items
 python scripts/archive_todos.py
 
+# Manage SHA-pinned GitHub Actions versions
+python scripts/workflow_versions.py                    # Show all actions
+python scripts/workflow_versions.py show --offline     # Skip GitHub API
+python scripts/workflow_versions.py show --json        # JSON output
+python scripts/workflow_versions.py update-comments    # Sync comments + add descriptions
+python scripts/workflow_versions.py upgrade            # Upgrade all to latest
+python scripts/workflow_versions.py upgrade --dry-run  # Preview upgrades
+python scripts/workflow_versions.py upgrade actions/checkout v6.1.0  # Specific version
+
 # Run SQL against database
 sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
 ```

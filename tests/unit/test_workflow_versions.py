@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -16,6 +17,7 @@ from workflow_versions import (
     _USES_RE,
     SCRIPT_VERSION,
     _build_parser,
+    _Colors,
     _repo_slug,
     _shorten_description,
     _unique_by_slug,
@@ -193,6 +195,54 @@ class TestUniqueBySlug:
 
 
 # ---------------------------------------------------------------------------
+# _Colors
+# ---------------------------------------------------------------------------
+
+
+class TestColors:
+    """Tests for the color support class."""
+
+    def test_enabled_wraps_text(self) -> None:
+        c = _Colors(enabled=True)
+        result = c.red("error")
+        assert "\033[31m" in result
+        assert "\033[0m" in result
+        assert "error" in result
+
+    def test_disabled_returns_plain_text(self) -> None:
+        c = _Colors(enabled=False)
+        assert c.red("error") == "error"
+        assert c.green("ok") == "ok"
+        assert c.bold("title") == "title"
+
+    def test_all_color_methods(self) -> None:
+        c = _Colors(enabled=True)
+        for method in ("bold", "dim", "red", "green", "yellow", "blue", "cyan"):
+            result = getattr(c, method)("test")
+            assert "test" in result
+            assert "\033[" in result
+
+    def test_auto_detect_respects_no_color_env(self) -> None:
+        with patch.dict("os.environ", {"NO_COLOR": "1"}, clear=False):
+            c = _Colors()
+            assert c.enabled is False
+
+    def test_auto_detect_respects_force_color_env(self) -> None:
+        with patch.dict(
+            "os.environ",
+            {"FORCE_COLOR": "1"},
+            clear=False,
+        ):
+            # Remove NO_COLOR if present
+            env = dict(os.environ)
+            env.pop("NO_COLOR", None)
+            env["FORCE_COLOR"] = "1"
+            with patch.dict("os.environ", env, clear=True):
+                c = _Colors()
+                assert c.enabled is True
+
+
+# ---------------------------------------------------------------------------
 # _build_parser
 # ---------------------------------------------------------------------------
 
@@ -245,6 +295,31 @@ class TestBuildParser:
         parser = _build_parser()
         args = parser.parse_args([])
         assert args.command is None
+
+    def test_color_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["--color", "show"])
+        assert args.color is True
+
+    def test_no_color_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["--no-color", "show"])
+        assert args.color is False
+
+    def test_color_default_is_none(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["show"])
+        assert args.color is None
+
+    def test_upgrade_dry_run_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["upgrade", "--dry-run"])
+        assert args.dry_run is True
+
+    def test_upgrade_dry_run_default(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["upgrade"])
+        assert args.dry_run is False
 
 
 # ---------------------------------------------------------------------------

@@ -159,12 +159,49 @@ All workflows in this project follow these patterns:
 1. Create a new `.yml` file in `.github/workflows/`
 2. Follow the conventions above — copy an existing workflow as a starting point
 3. Pin actions to full SHAs (not tags) — use `scripts/workflow_versions.py` to manage
+   (see [Managing Action Versions](#managing-action-versions) below)
 4. Add the repository guard pattern
 5. Add minimal required permissions
 6. Include concurrency and timeout settings
 7. If the workflow should block PRs, add its job `name:` to `REQUIRED_CHECKS` in `ci-gate.yml`
    and tag the `name:` line with `# ci-gate: required`
 8. Update this file and `copilot-instructions.md`
+
+---
+
+## Managing Action Versions
+
+All GitHub Actions are pinned to full commit SHAs ([ADR 004](adr/004-pin-action-shas.md)).
+`scripts/workflow_versions.py` manages the version comments and upgrades.
+
+### Commands
+
+| Task | Command | What it does |
+|------|---------|-------------|
+| **Show versions** | `task actions:versions` | List all pinned actions with current and latest tags |
+| **Show (offline)** | `task actions:versions -- --offline` | Skip GitHub API calls |
+| **Show (JSON)** | `task actions:versions -- --json` | Machine-readable output |
+| **Update comments** | `task actions:update-comments` | Sync `# vX.Y.Z` comments and add action descriptions |
+| **Upgrade all** | `task actions:upgrade` | Upgrade all actions to latest release |
+| **Upgrade (preview)** | `task actions:upgrade:dry-run` | Preview upgrades without modifying files |
+| **Upgrade one** | `task actions:upgrade -- actions/checkout` | Upgrade a specific action |
+| **Pin version** | `task actions:upgrade -- actions/checkout v6.1.0` | Pin to a specific version |
+
+### Typical workflow after Dependabot updates
+
+Dependabot updates SHAs but not the version comments. After merging a
+Dependabot PR:
+
+```bash
+task actions:update-comments   # sync comments to match new SHAs
+```
+
+### Color output
+
+Color is auto-detected. Use `--color` to force it or `--no-color` to disable.
+Respects `NO_COLOR` and `FORCE_COLOR` environment variables.
+
+> **Tip:** Set `GITHUB_TOKEN` for higher API rate limits (5,000/hr vs 60/hr unauthenticated).
 
 ---
 

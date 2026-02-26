@@ -189,6 +189,44 @@ python scripts/bootstrap.py
 task bootstrap
 ```
 
+## GitHub Actions Version Management
+
+Manage SHA-pinned GitHub Actions across workflow files.
+
+```bash
+# Show all pinned actions with version info
+python scripts/workflow_versions.py show
+task actions:versions
+
+# Show offline (skip GitHub API)
+task actions:versions -- --offline
+
+# JSON output (useful for scripting)
+task actions:versions -- --json
+
+# Update version comments and add descriptions
+python scripts/workflow_versions.py update-comments
+task actions:update-comments
+
+# Upgrade all actions to their latest release
+python scripts/workflow_versions.py upgrade
+task actions:upgrade
+
+# Preview upgrades without modifying files
+task actions:upgrade:dry-run
+
+# Upgrade a specific action
+task actions:upgrade -- actions/checkout
+
+# Upgrade to a specific version
+task actions:upgrade -- actions/checkout v6.1.0
+
+# Force colored output
+task actions:versions -- --color
+```
+
+> **Tip:** Set `GITHUB_TOKEN` for higher API rate limits (5,000/hr vs. 60/hr).
+
 ## Git Shortcuts
 
 ```bash
