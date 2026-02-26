@@ -104,6 +104,7 @@ list available tasks. Key ones:
 - `task commit` — interactive conventional commit via commitizen
 - `task deps:versions` / `task deps:upgrade` — dependency management
 - `task actions:versions` — show SHA-pinned action versions
+- `task actions:check` — CI gate: exit non-zero if stale or upgradable actions
 
 ### Scripts
 
