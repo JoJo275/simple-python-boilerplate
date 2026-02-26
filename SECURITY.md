@@ -28,10 +28,11 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report security vulnerabilities via one of the following methods:
 
-<!-- TODO (template users): Update the contact methods below. At minimum, replace the GitHub advisory link and set a real email address. -->
-
 1. **GitHub Security Advisories (Preferred)**
    Use [GitHub's private vulnerability reporting](https://github.com/JoJo275/simple-python-boilerplate/security/advisories/new) to submit a report directly.
+
+   <!-- TODO (template users): Replace the advisory URL above with your own:
+        https://github.com/YOURNAME/YOURREPO/security/advisories/new -->
 
    > ℹ️ *If you forked this repo, update the link above to point to your own repository.*
 
@@ -63,12 +64,12 @@ Please provide as much information as possible:
 
 ### Response Timeline
 
-| Action | Timeframe |
-|--------|----------|
-| Acknowledgment of report | Within 72 hours |
-| Initial assessment | Within 7 days |
+| Action                   | Timeframe          |
+|--------------------------|--------------------|
+| Acknowledgment of report | Within 72 hours    |
+| Initial assessment       | Within 7 days      |
 | Resolution or mitigation | Varies by severity |
-| Public disclosure | After fix is released |
+| Public disclosure        | After fix released |
 
 ### Disclosure Policy
 
@@ -109,17 +110,17 @@ This project includes multiple layers of automated security scanning.
 All CI workflows are SHA-pinned to prevent supply-chain attacks
 ([ADR 004](docs/adr/004-pin-action-shas.md)).
 
-| Tool | What it does | When it runs |
-|------|--------------|--------------|
-| **[Bandit](https://bandit.readthedocs.io/)** | Python static security analysis | Every PR (`bandit.yml`) + pre-commit hook |
-| **[pip-audit](https://github.com/pypa/pip-audit)** | Checks dependencies for known CVEs | Pre-push hook + nightly (`nightly-security.yml`) |
-| **[CodeQL](https://codeql.github.com/)** | Semantic code analysis (GitHub) | Every PR + weekly (`security-codeql.yml`) |
-| **[Trivy](https://trivy.dev/)** | Container image vulnerability scan | On container builds (`container-scan.yml`) |
-| **[Gitleaks](https://gitleaks.io/)** | Detects hardcoded secrets | Pre-push hook |
-| **[Dependency Review](https://github.com/actions/dependency-review-action)** | Blocks PRs introducing vulnerable deps | Every PR (`dependency-review.yml`) |
-| **[OpenSSF Scorecard](https://scorecard.dev/)** | Supply-chain security posture | Scheduled (`scorecard.yml`) |
-| **[Dependabot](https://docs.github.com/en/code-security/dependabot)** | Automated dependency update PRs | Daily (`.github/dependabot.yml`) |
-| **[SBOM](https://cyclonedx.org/)** | Software Bill of Materials generation | On release (`sbom.yml`) |
+| Tool                                                                          | What it does                           | When it runs                                     |
+|-------------------------------------------------------------------------------|----------------------------------------|--------------------------------------------------|
+| **[Bandit](https://bandit.readthedocs.io/)**                                  | Python static security analysis        | Every PR (`bandit.yml`) + pre-commit hook        |
+| **[pip-audit](https://github.com/pypa/pip-audit)**                            | Checks dependencies for known CVEs     | Pre-push hook + nightly (`nightly-security.yml`) |
+| **[CodeQL](https://codeql.github.com/)**                                      | Semantic code analysis (GitHub)        | Every PR + weekly (`security-codeql.yml`)        |
+| **[Trivy](https://trivy.dev/)**                                               | Container image vulnerability scan     | On container builds (`container-scan.yml`)       |
+| **[Gitleaks](https://gitleaks.io/)**                                          | Detects hardcoded secrets              | Pre-push hook                                    |
+| **[Dependency Review](https://github.com/actions/dependency-review-action)**  | Blocks PRs introducing vulnerable deps | Every PR (`dependency-review.yml`)               |
+| **[OpenSSF Scorecard](https://scorecard.dev/)**                               | Supply-chain security posture          | Scheduled (`scorecard.yml`)                      |
+| **[Dependabot](https://docs.github.com/en/code-security/dependabot)**         | Automated dependency update PRs        | Daily (`.github/dependabot.yml`)                 |
+| **[SBOM](https://cyclonedx.org/)**                                            | Software Bill of Materials generation  | On release (`sbom.yml`)                          |
 
 > See [docs/workflows.md](docs/workflows.md) for the full workflow inventory
 > and [docs/design/tool-decisions.md](docs/design/tool-decisions.md) for why
