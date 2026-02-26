@@ -9,6 +9,10 @@
 # This file exists for tools and workflows that require a requirements file
 # (e.g., pip-audit, Dependabot, Docker builds without Hatch).
 # Keep it in sync with [project.optional-dependencies].dev in pyproject.toml.
+#
+# TODO (template users): When you add or remove dev dependencies in
+#   pyproject.toml, update this file to match. If you only use Hatch
+#   and never need a plain requirements file, you can delete this file.
 
 # Include runtime dependencies
 -r requirements.txt
@@ -28,6 +32,10 @@ bandit  # Security oriented static analyser for python code (v1.9.3)
 
 # Git Hooks
 pre-commit  # A framework for managing and maintaining multi-language pre-commit hooks (v4.5.1)
+
+# Commit & Dependency Hygiene
+commitizen  # Conventional commit helper + validator (v4.4.1)
+deptry  # Detect unused, missing, and transitive dependencies (v0.22.0)
 
 # Optional helpful tools (uncomment as needed)
 # pipdeptree      # Dependency tree visualization
