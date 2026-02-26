@@ -4,9 +4,8 @@ Things to explore, implement, or learn more about.
 
 ## To Implement
 
-- [ ] Add workflow enable/disable guidance to `USING_THIS_TEMPLATE.md`
-- [ ] Add detailed design document to `docs/design/`
-- [ ] Add learning resources doc to `docs/notes/resources.md`
+- [ ] Final file check: taskfile.yml
+- [ ] Add in TODOs where warrented
 
 ## Ideas for Later
 
