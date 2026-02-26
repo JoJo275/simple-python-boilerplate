@@ -30,7 +30,7 @@ Configuration lives in a single file:
 ```yaml
 # mkdocs.yml
 site_name: simple-python-boilerplate
-docs_dir: docs/mkdocs
+docs_dir: docs
 theme:
   name: material
 plugins:
@@ -38,7 +38,7 @@ plugins:
   - mkdocstrings
 ```
 
-Documentation source lives in `docs/mkdocs/` to separate MkDocs content from other project docs (ADRs, notes, design docs) that live alongside the code.
+Documentation source lives in `docs/` alongside ADRs, notes, and design docs.
 
 ## Consequences
 
@@ -55,7 +55,7 @@ Documentation source lives in `docs/mkdocs/` to separate MkDocs content from oth
 ### Negative
 
 - **Extra dependencies** — Four packages added to `[project.optional-dependencies.docs]`
-- **Separate docs directory** — `docs/mkdocs/` adds a level of indirection vs. a flat `docs/` layout
+- **Flat docs directory** — All documentation lives in `docs/`, which keeps paths simple but mixes MkDocs content with ADRs and design docs
 - **Material theme lock-in** — Heavily using Material-specific features makes switching themes harder
 - **Build step required** — Must run `mkdocs build` to produce the site; not just raw Markdown
 
@@ -93,7 +93,7 @@ Sphinx-based tool with MyST Markdown support.
 ## Implementation
 
 - [mkdocs.yml](../../mkdocs.yml) — Site configuration (theme, plugins, nav, extensions)
-- [docs/mkdocs/](../../docs/mkdocs/) — Documentation source files
+- [docs/](../../docs/) — Documentation source files
 - [pyproject.toml](../../pyproject.toml) — Dependencies in `[project.optional-dependencies.docs]`
 - [pyproject.toml](../../pyproject.toml) — Hatch scripts in `[tool.hatch.envs.docs.scripts]`:
   - `hatch run docs:serve` — Live-reload dev server
