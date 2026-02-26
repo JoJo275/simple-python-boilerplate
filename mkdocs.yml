@@ -88,6 +88,7 @@ nav:
       - SBOM: sbom.md
   - Design:
       - Architecture: design/architecture.md
+      - CI/CD Design: design/ci-cd-design.md
       - Tool Decisions: design/tool-decisions.md
       - Database: design/database.md
   - ADRs:
@@ -127,6 +128,7 @@ nav:
       - Issue Templates: templates/issue_templates/README.md
   - Notes:
       - Learning: notes/learning.md
+      - Resources: notes/resources.md
       - Tool Comparison: notes/tool-comparison.md
       - Archive: notes/archive.md
       - TODO: notes/todo.md

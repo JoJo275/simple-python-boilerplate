@@ -215,7 +215,7 @@ Add the following to your `.gitignore`:
 
 ## CI/CD Workflows Included
 
-This template ships with **26 GitHub Actions workflows** in `.github/workflows/`
+This template ships with **29 GitHub Actions workflows** in `.github/workflows/`
 covering quality, security, PR hygiene, releases, docs, containers, and
 maintenance. All are SHA-pinned to commit SHAs
 ([ADR 004](adr/004-pin-action-shas.md)) and disabled by default via repository
@@ -229,6 +229,82 @@ GitHub settings ([ADR 024](adr/024-ci-gate-pattern.md)).
 For the full list of every workflow with triggers, job names, and descriptions,
 see the [workflows README](../.github/workflows/README.md) or
 [workflows.md](workflows.md).
+
+### Enabling Workflows
+
+All optional workflows are disabled by default via a **repository guard** — an
+`if:` condition at the top of each job. Until you opt in, workflows silently
+skip on forks and clones so you don't waste Actions minutes or see confusing
+failures.
+
+**Three ways to enable:**
+
+| Method | How | Best for |
+|--------|-----|----------|
+| **Option A — Edit the YAML** | Replace `YOURNAME/YOURREPO` with your repo slug (e.g. `myorg/myproject`) in each workflow file | Permanent, no external config needed |
+| **Option B — Global variable** | Set `vars.ENABLE_WORKFLOWS = 'true'` as a repository variable | Enable **all** workflows at once with zero YAML edits |
+| **Option C — Per-workflow variable** | Set `vars.ENABLE_<WORKFLOW> = 'true'` (e.g. `ENABLE_TEST`, `ENABLE_STALE`) | Granular control over individual workflows |
+
+!!! tip "Fastest approach"
+    Run the customization script with the `--enable-workflows` flag to replace
+    the placeholder in all workflow files at once:
+
+    ```bash
+    python scripts/customize.py --enable-workflows myorg/myproject
+    python scripts/customize.py --enable-workflows myorg/myproject --dry-run  # preview first
+    ```
+
+**Setting a repository variable (Options B/C):**
+
+1. Go to your repository on GitHub
+2. Navigate to **Settings** → **Secrets and variables** → **Actions** → **Variables** tab
+3. Click **New repository variable**
+4. Name: `ENABLE_WORKFLOWS` (or `ENABLE_<WORKFLOW>` for individual control)
+5. Value: `true`
+
+Options B and C can be combined — `ENABLE_WORKFLOWS` activates everything,
+while individual `ENABLE_<WORKFLOW>` variables let you cherry-pick specific
+workflows without the global flag.
+
+### Disabling Workflows You Don't Need
+
+Not every project needs all 29 workflows. Here's a guide to what's safe to
+remove based on your project's needs:
+
+| If you don't need… | Remove these workflows | Notes |
+|---------------------|----------------------|-------|
+| Container support | `container-build.yml`, `container-scan.yml` | Also delete `Containerfile` and `docker-compose.yml` |
+| Documentation site | `docs-deploy.yml` | Keep `docs-build.yml` if you still want CI validation of docs |
+| Automated releases | `release-please.yml`, `release.yml`, `sbom.yml` | Manual releases still work via git tags |
+| Security scanning | `nightly-security.yml`, `container-scan.yml`, `scorecard.yml` | Keep `security-audit.yml` and `dependency-review.yml` at minimum |
+| Spell checking | `spellcheck.yml`, `spellcheck-autofix.yml` | Also remove the typos/codespell pre-commit hooks if desired |
+| Auto-merge Dependabot | `auto-merge-dependabot.yml` | Review Dependabot PRs manually instead |
+| Stale issue cleanup | `stale.yml` | Manage stale issues manually |
+
+!!! warning "Don't remove core quality workflows"
+    These workflows are in the CI gate and should stay unless you're replacing
+    them with equivalents: `test.yml`, `lint-format.yml`, `type-check.yml`,
+    `coverage.yml`, `ci-gate.yml`.
+
+**After removing workflows:**
+
+1. Update `REQUIRED_CHECKS` in `ci-gate.yml` to remove references to deleted
+   workflow job names — otherwise the gate will wait for checks that never arrive
+2. Update [workflows.md](workflows.md) to keep the inventory accurate
+3. Update branch protection if you removed workflows listed as required checks
+
+### Workflow Categories at a Glance
+
+| Category | Workflows | Always run? |
+|----------|-----------|-------------|
+| **Quality** | test, lint-format, type-check, coverage, spellcheck | Yes — in CI gate |
+| **Security** | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard | Mixed — some path-filtered |
+| **PR Hygiene** | pr-title, commit-lint, labeler | Yes — in CI gate |
+| **Release** | release-please, release, sbom | Push to main / tags only |
+| **Documentation** | docs-build, docs-deploy | docs-build in gate; deploy is path-filtered |
+| **Container** | container-build, container-scan | container-build in gate |
+| **Maintenance** | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered |
+| **Gate** | ci-gate | Yes — the single required check |
 
 ## Pre-commit Hooks
 
