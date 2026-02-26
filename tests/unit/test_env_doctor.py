@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,7 @@ from env_doctor import (
     EXPECTED_TOOLS,
     OPTIONAL_TOOLS,
     SCRIPT_VERSION,
+    _collect_results,
     _colorize,
     _icon,
     _supports_color,
@@ -525,3 +527,77 @@ class TestRunChecks:
             patch("env_doctor.shutil.which", return_value=None),
         ):
             assert run_checks(strict=True, color=False) == 1
+
+    def test_json_output(self, capsys) -> None:
+        """--json outputs valid JSON with expected structure."""
+        passing = lambda: (True, "OK")  # noqa: E731
+
+        fake_checks = [("Check 1", passing)]
+        with (
+            patch("env_doctor.CHECKS", fake_checks),
+            patch("env_doctor.EXPECTED_TOOLS", []),
+            patch("env_doctor.OPTIONAL_TOOLS", []),
+        ):
+            result = run_checks(color=False, output_json=True)
+
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert result == 0
+        assert data["version"] == SCRIPT_VERSION
+        assert data["total"] == 1
+        assert data["passed"] == 1
+        assert data["failed"] == 0
+        assert len(data["checks"]) == 1
+        assert data["checks"][0]["status"] == "PASS"
+
+    def test_json_output_with_failures(self, capsys) -> None:
+        """--json reflects failures in output."""
+        failing = lambda: (False, "broken")  # noqa: E731
+
+        fake_checks = [("Check 1", failing)]
+        with (
+            patch("env_doctor.CHECKS", fake_checks),
+            patch("env_doctor.EXPECTED_TOOLS", []),
+            patch("env_doctor.OPTIONAL_TOOLS", []),
+        ):
+            result = run_checks(color=False, output_json=True)
+
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert result == 1
+        assert data["failed"] == 1
+
+
+# ---------------------------------------------------------------------------
+# _collect_results
+# ---------------------------------------------------------------------------
+
+
+class TestCollectResults:
+    """Tests for _collect_results."""
+
+    def test_returns_results_and_count(self) -> None:
+        passing = lambda: (True, "OK")  # noqa: E731
+
+        fake_checks = [("Test", passing)]
+        with (
+            patch("env_doctor.CHECKS", fake_checks),
+            patch("env_doctor.EXPECTED_TOOLS", []),
+            patch("env_doctor.OPTIONAL_TOOLS", []),
+        ):
+            results, failures = _collect_results()
+        assert failures == 0
+        assert len(results) == 1
+        assert results[0]["group"] == "core"
+
+    def test_groups_tools_correctly(self) -> None:
+        with (
+            patch("env_doctor.CHECKS", []),
+            patch("env_doctor.EXPECTED_TOOLS", ["ruff"]),
+            patch("env_doctor.OPTIONAL_TOOLS", ["actionlint"]),
+            patch("env_doctor.shutil.which", return_value="/usr/bin/x"),
+        ):
+            results, _failures = _collect_results()
+        groups = [r["group"] for r in results]
+        assert "tools" in groups
+        assert "optional" in groups
