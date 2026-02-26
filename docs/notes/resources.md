@@ -87,6 +87,13 @@ patterns used in this project. Organized by topic for quick lookup.
 
 | Resource | Description |
 |----------|-------------|
+| [Pro Git book (free)](https://git-scm.com/book/en/v2) | The definitive Git book — covers fundamentals through advanced topics |
+| [Git documentation](https://git-scm.com/doc) | Official reference — man pages, videos, cheat sheet |
+| [Learn Git Branching](https://learngitbranching.js.org/) | Interactive visual tutorial for learning Git branching |
+| [Oh Shit, Git!?!](https://ohshitgit.com/) | Plain-English fixes for common Git mistakes |
+| [Git flight rules](https://github.com/k88hudson/git-flight-rules) | FAQ-style guide — "I did X, how do I fix it?" |
+| [GitHub Git cheat sheet](https://education.github.com/git-cheat-sheet-education.pdf) | One-page PDF reference for common commands |
+| [Atlassian Git tutorials](https://www.atlassian.com/git/tutorials) | Well-illustrated guides on branching, merging, rebasing |
 | [Conventional Commits](https://www.conventionalcommits.org/) | Commit message convention used in this project |
 | [commitizen](https://commitizen-tools.github.io/commitizen/) | CLI tool for authoring conventional commits |
 | [release-please](https://github.com/googleapis/release-please) | Automated release management from conventional commits |
@@ -108,14 +115,76 @@ patterns used in this project. Organized by topic for quick lookup.
 | [The Hitchhiker's Guide to Python](https://docs.python-guide.org/) | Best practices for Python development |
 | [PEP 8 — Style Guide](https://peps.python.org/pep-0008/) | The foundational Python style guide (Ruff enforces most of this) |
 | [Python Type Hints cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html) | Quick reference for common type patterns |
+| [Python 3 Module of the Week](https://pymotw.com/3/) | In-depth stdlib module walkthroughs |
+| [Fluent Python (book)](https://www.oreilly.com/library/view/fluent-python-2nd/9781492056348/) | Advanced Python — data models, concurrency, metaprogramming |
+
+## Project Dependencies (Dev & Test)
+
+Every tool declared in `pyproject.toml` `[project.optional-dependencies]`:
+
+| Tool | Docs | Description |
+|------|------|-------------|
+| **pytest** | [docs.pytest.org](https://docs.pytest.org/) | Testing framework |
+| **pytest-cov** | [pytest-cov.readthedocs.io](https://pytest-cov.readthedocs.io/) | Coverage plugin for pytest |
+| **Ruff** | [docs.astral.sh/ruff](https://docs.astral.sh/ruff/) | Linter + formatter |
+| **mypy** | [mypy.readthedocs.io](https://mypy.readthedocs.io/) | Static type checker |
+| **pre-commit** | [pre-commit.com](https://pre-commit.com/) | Git hooks framework |
+| **Bandit** | [bandit.readthedocs.io](https://bandit.readthedocs.io/) | Security linter for Python |
+| **commitizen** | [commitizen-tools.github.io](https://commitizen-tools.github.io/commitizen/) | Conventional commit helper |
+| **deptry** | [deptry.com](https://deptry.com/) | Dependency hygiene checker |
+| **pipdeptree** | [github.com/tox-dev/pipdeptree](https://github.com/tox-dev/pipdeptree) | Dependency tree visualizer |
+| **MkDocs** | [mkdocs.org](https://www.mkdocs.org/) | Documentation site generator |
+| **Material for MkDocs** | [squidfunk.github.io/mkdocs-material](https://squidfunk.github.io/mkdocs-material/) | MkDocs theme |
+| **pymdown-extensions** | [facelessuser.github.io/pymdown-extensions](https://facelessuser.github.io/pymdown-extensions/) | Markdown extensions (tabbed, highlight, superfences) |
+| **mkdocstrings** | [mkdocstrings.github.io](https://mkdocstrings.github.io/) | Auto-generate API docs from docstrings |
+
+## Configuration File Formats
+
+| Resource | Description |
+|----------|-------------|
+| [TOML specification](https://toml.io/) | Config file format used by pyproject.toml |
+| [YAML specification](https://yaml.org/spec/) | Config format used by workflows, mkdocs.yml, pre-commit |
+| [YAML multiline strings](https://yaml-multiline.info/) | Interactive guide to YAML's confusing string styles |
+| [JSON Schema](https://json-schema.org/) | Used for labels/*.json, GitHub issue templates |
+| [Cron expression guide](https://crontab.guru/) | Interactive helper for GitHub Actions schedule cron syntax |
+
+## GitHub Platform
+
+| Resource | Description |
+|----------|-------------|
+| [GitHub Docs](https://docs.github.com/) | Official platform documentation |
+| [Branch protection rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-a-branch-protection-rule) | How to configure required checks |
+| [Repository variables](https://docs.github.com/en/actions/learn-github-actions/variables) | Variables and secrets for Actions (used by repository guards) |
+| [Dependabot documentation](https://docs.github.com/en/code-security/dependabot) | Automated dependency updates |
+| [GitHub Pages](https://docs.github.com/en/pages) | Hosting docs from the repo (used by docs-deploy workflow) |
+| [GitHub Codespaces](https://docs.github.com/en/codespaces) | Cloud dev environments (pairs with .devcontainer/) |
+| [GitHub CLI (gh)](https://cli.github.com/) | Command-line tool for GitHub — PRs, issues, releases |
+
+## Task Runner
+
+| Resource | Description |
+|----------|-------------|
+| [Taskfile documentation](https://taskfile.dev/) | Task runner used for `task test`, `task lint`, etc. |
+| [Taskfile schema reference](https://taskfile.dev/reference/schema/) | YAML schema for Taskfile.yml |
+
+## Software Supply Chain & SBOMs
+
+| Resource | Description |
+|----------|-------------|
+| [SPDX specification](https://spdx.dev/) | Software Package Data Exchange — SBOM format |
+| [CycloneDX specification](https://cyclonedx.org/) | Alternative SBOM format (also generated by this project) |
+| [OpenSSF best practices](https://best.openssf.org/) | Open Source Security Foundation guidelines |
+| [SLSA framework](https://slsa.dev/) | Supply-chain Levels for Software Artifacts |
 
 ---
 
 ## How to Use This Page
 
-- **New to the project?** Start with the Python Packaging and Testing sections
-- **Setting up CI?** GitHub Actions and Security Tools sections
+- **New to the project?** Start with the Python Packaging, Git, and Testing sections
+- **Setting up CI?** GitHub Actions, GitHub Platform, and Security Tools sections
 - **Writing docs?** MkDocs section and the Google docstring guide
+- **Configuring tools?** Configuration File Formats section for TOML/YAML reference
+- **Looking for a tool's docs?** Project Dependencies table links every dev tool
 - **Making an architectural decision?** ADR section for the template and process
 
 This is a living document — add links as you discover useful resources and

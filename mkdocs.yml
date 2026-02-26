@@ -72,6 +72,7 @@ nav:
   - Guide:
       - Getting Started: guide/getting-started.md
       - Using This Template: USING_THIS_TEMPLATE.md
+      - Troubleshooting: guide/troubleshooting.md
       - Repo Layout: repo-layout.md
       - Tooling: tooling.md
       - Labels: labels.md
