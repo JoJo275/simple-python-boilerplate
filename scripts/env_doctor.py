@@ -19,12 +19,14 @@ Usage::
     python scripts/env_doctor.py
     python scripts/env_doctor.py --strict
     python scripts/env_doctor.py --version
+    python scripts/env_doctor.py --json
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib.metadata
+import json
 import os
 import shutil
 import struct
@@ -110,7 +112,7 @@ def check_editable_install() -> tuple[bool, str]:
     except importlib.metadata.PackageNotFoundError:
         return (
             False,
-            "Package not installed — run: hatch shell  (or pip install -e '.[dev]')",
+            "Package not installed — run: hatch shell (or pip install -e '.[dev]')",
         )
 
 
@@ -306,24 +308,20 @@ def _icon(status: str, *, use_color: bool) -> str:
     return _colorize(status, colors.get(status, "0"), use_color=use_color)
 
 
-def run_checks(strict: bool = False, *, color: bool | None = None) -> int:
-    """Run all environment checks and print results.
+def _collect_results(
+    strict: bool = False,
+) -> tuple[list[dict[str, str]], int]:
+    """Run all checks and collect structured results.
 
     Args:
-        strict: If True, treat warnings (Task not found) as failures.
-        color: Force color on/off. None = auto-detect.
+        strict: If True, treat optional items as required.
 
     Returns:
-        Exit code: 0 if all passed, 1 if any failed.
+        Tuple of (list of result dicts, failure count).
     """
-    use_color = color if color is not None else _supports_color(sys.stdout)
-
-    # Optional checks that don't fail unless --strict
     optional_checks = {"Task runner", "Architecture"}
-
+    results: list[dict[str, str]] = []
     failures = 0
-    print(_colorize("Environment Health Check", "1", use_color=use_color))
-    print("=" * 50)
 
     # Core checks
     for name, check_fn in CHECKS:
@@ -334,18 +332,19 @@ def run_checks(strict: bool = False, *, color: bool | None = None) -> int:
         else:
             if not passed:
                 failures += 1
-        print(f"  [{_icon(status, use_color=use_color)}] {name}: {msg}")
+        results.append(
+            {"name": name, "status": status, "message": msg, "group": "core"}
+        )
 
-    # Dev tool checks
-    print()
-    print(_colorize("Development Tools", "1", use_color=use_color))
-    print("-" * 50)
+    # Required dev tools
     for tool in EXPECTED_TOOLS:
         passed, msg = check_tool_available(tool)
         status = "PASS" if passed else "FAIL"
         if not passed:
             failures += 1
-        print(f"  [{_icon(status, use_color=use_color)}] {msg}")
+        results.append(
+            {"name": tool, "status": status, "message": msg, "group": "tools"}
+        )
 
     # Optional tools
     for tool in OPTIONAL_TOOLS:
@@ -354,11 +353,73 @@ def run_checks(strict: bool = False, *, color: bool | None = None) -> int:
         if not passed and strict:
             status = "FAIL"
             failures += 1
-        print(f"  [{_icon(status, use_color=use_color)}] {msg}")
+        results.append(
+            {
+                "name": tool,
+                "status": status,
+                "message": msg,
+                "group": "optional",
+            }
+        )
+
+    return results, failures
+
+
+def run_checks(
+    strict: bool = False,
+    *,
+    color: bool | None = None,
+    output_json: bool = False,
+) -> int:
+    """Run all environment checks and print results.
+
+    Args:
+        strict: If True, treat warnings (Task not found) as failures.
+        color: Force color on/off. None = auto-detect.
+        output_json: If True, output results as JSON instead of text.
+
+    Returns:
+        Exit code: 0 if all passed, 1 if any failed.
+    """
+    results, failures = _collect_results(strict)
+
+    if output_json:
+        total = len(results)
+        passed_count = total - failures
+        payload = {
+            "version": SCRIPT_VERSION,
+            "total": total,
+            "passed": passed_count,
+            "failed": failures,
+            "checks": results,
+        }
+        print(json.dumps(payload, indent=2))
+        return 1 if failures else 0
+
+    use_color = color if color is not None else _supports_color(sys.stdout)
+
+    print(_colorize("Environment Health Check", "1", use_color=use_color))
+    print("=" * 50)
+
+    # Core checks
+    for r in results:
+        if r["group"] == "core":
+            print(
+                f"  [{_icon(r['status'], use_color=use_color)}]"
+                f" {r['name']}: {r['message']}"
+            )
+
+    # Dev tool checks
+    print()
+    print(_colorize("Development Tools", "1", use_color=use_color))
+    print("-" * 50)
+    for r in results:
+        if r["group"] in ("tools", "optional"):
+            print(f"  [{_icon(r['status'], use_color=use_color)}] {r['message']}")
 
     # Summary
     print()
-    total = len(CHECKS) + len(EXPECTED_TOOLS) + len(OPTIONAL_TOOLS)
+    total = len(results)
     passed_count = total - failures
     if failures == 0:
         print(_colorize(f"All {total} checks passed!", "32", use_color=use_color))
@@ -403,9 +464,14 @@ def main() -> int:
         action="store_true",
         help="Disable colored output",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output results as JSON (for CI integration)",
+    )
     args = parser.parse_args()
     color = False if args.no_color else None
-    return run_checks(strict=args.strict, color=color)
+    return run_checks(strict=args.strict, color=color, output_json=args.json)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ always exits 0.
 Usage::
 
     python scripts/repo_doctor.py
+    python scripts/repo_doctor.py --version
     python scripts/repo_doctor.py --missing --staged
     python scripts/repo_doctor.py --category ci --min-level info
     python scripts/repo_doctor.py --include-info
@@ -18,12 +19,14 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess  # nosec B404
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 try:
     import tomllib  # Python 3.11+
@@ -80,6 +83,8 @@ class DoctorConfig:
 
 _LEVEL_ORDER: dict[str, int] = {"info": 0, "warn": 1}
 
+SCRIPT_VERSION = "1.0.0"
+
 
 # ---------------------------------------------------------------------------
 # Git helpers
@@ -97,6 +102,7 @@ def _run_git(root: Path, args: list[str]) -> tuple[int, str, str]:
         cwd=root,
         text=True,
         capture_output=True,
+        timeout=30,
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -295,8 +301,11 @@ def _load_profile_rules(root: Path, profiles: list[str]) -> list[Rule]:
     for fpath in files_to_load:
         try:
             data = tomllib.loads(fpath.read_text(encoding="utf-8"))
-        except (OSError, ValueError, TypeError):
-            # Skip unreadable or unparsable profile files gracefully.
+        except (OSError, ValueError, TypeError) as exc:
+            print(
+                f"Warning: could not load profile {fpath.name}: {exc}",
+                file=sys.stderr,
+            )
             continue
         all_rules.extend(_parse_rule_entries(data.get("rule", [])))
     return all_rules
@@ -317,6 +326,9 @@ def _evaluate_rules(
     """Evaluate all rules and return a list of warnings."""
     warnings: list[Warning] = []
 
+    # Track paths that already have a deletion warning to avoid duplicates
+    deleted_rule_paths: set[str] = set()
+
     # Deletion warnings
     if deleted:
         for rule in rules:
@@ -324,6 +336,7 @@ def _evaluate_rules(
             for deleted_path in deleted:
                 if _matches_deletion(rule.path, kind, deleted_path):
                     warnings.append(Warning(rule=rule, message=f"Deleted: {rule.path}"))
+                    deleted_rule_paths.add(rule.path)
                     break
 
     # Rule checks
@@ -334,12 +347,16 @@ def _evaluate_rules(
             continue
 
         if rule.type == "exists":
-            if check_missing and not _exists_kind(root, rule.path, rule.kind):
+            if (
+                check_missing
+                and not _exists_kind(root, rule.path, rule.kind)
+                and rule.path not in deleted_rule_paths
+            ):
                 warnings.append(Warning(rule=rule, message=f"Missing: {rule.path}"))
 
         elif rule.type == "regex_present":
             if not _exists_kind(root, rule.path, "any"):
-                if check_missing:
+                if check_missing and rule.path not in deleted_rule_paths:
                     warnings.append(Warning(rule=rule, message=f"Missing: {rule.path}"))
                 continue
             if rule.regex and not _file_contains_regex(root, rule.path, rule.regex):
@@ -387,16 +404,48 @@ def _evaluate_rules(
 
 
 # ---------------------------------------------------------------------------
+# Color output helpers
+# ---------------------------------------------------------------------------
+
+
+def _supports_color(stream: TextIO) -> bool:
+    """Detect whether the output stream supports ANSI color."""
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    return hasattr(stream, "isatty") and stream.isatty()
+
+
+def _colorize(text: str, code: str, *, use_color: bool) -> str:
+    """Wrap text in ANSI escape codes if color is enabled."""
+    if not use_color:
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
+# ---------------------------------------------------------------------------
 # Output formatting
 # ---------------------------------------------------------------------------
 
 
 def _format_warning(
-    warning: Warning, *, show_hints: bool, show_links: bool, show_fix: bool
+    warning: Warning,
+    *,
+    show_hints: bool,
+    show_links: bool,
+    show_fix: bool,
+    use_color: bool = False,
 ) -> str:
     """Format a single warning as a human-readable string."""
     rule = warning.rule
-    tag = f"[{rule.level}]" if rule.level else "[warn]"
+    level_colors = {"warn": "33", "info": "36"}  # nosec
+    color_code = level_colors.get(rule.level, "0")
+    tag = _colorize(
+        f"[{rule.level}]" if rule.level else "[warn]",
+        color_code,
+        use_color=use_color,
+    )
     cat = f" ({rule.category})" if rule.category else ""
 
     lines = [f"{tag}{cat} {warning.message}"]
@@ -421,6 +470,11 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Warn-only repo doctor checks "
         "(missing files, deletions, config presence).",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     parser.add_argument(
         "--missing",
@@ -480,6 +534,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show auto-fix commands for rules that define one.",
     )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored output.",
+    )
     return parser
 
 
@@ -487,6 +546,8 @@ def main() -> int:
     """Entry point — always returns 0 (warn-only, never blocks)."""
     parser = _build_parser()
     args = parser.parse_args()
+
+    use_color = False if args.no_color else _supports_color(sys.stdout)
 
     # Default: check missing + staged
     if not (args.missing or args.staged or args.diff):
@@ -528,7 +589,13 @@ def main() -> int:
     warnings = _evaluate_rules(root, rules, check_missing=args.missing, deleted=deleted)
 
     if warnings:
-        print("Repo doctor warnings (non-blocking):")
+        print(
+            _colorize(
+                "Repo doctor warnings (non-blocking):",
+                "33",
+                use_color=use_color,
+            )
+        )
         print()
         for w in warnings:
             print(
@@ -537,11 +604,18 @@ def main() -> int:
                     show_hints=not args.no_hints,
                     show_links=not args.no_links,
                     show_fix=args.fix,
+                    use_color=use_color,
                 )
             )
             print()
     else:
-        print("Repo doctor: all checks passed.")
+        print(
+            _colorize(
+                "Repo doctor: all checks passed.",
+                "32",
+                use_color=use_color,
+            )
+        )
 
     return 0
 
