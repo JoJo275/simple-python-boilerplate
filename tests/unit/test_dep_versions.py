@@ -226,19 +226,12 @@ class TestWarnIfNoVenv:
     def test_warns_outside_venv(self) -> None:
         """Should emit a warning when sys.prefix == sys.base_prefix."""
         with (
-            patch("dep_versions.sys") as mock_sys,
+            patch("dep_versions.sys.prefix", "/usr"),
+            patch("dep_versions.sys.base_prefix", "/usr"),
             warnings.catch_warnings(record=True) as w,
         ):
-            mock_sys.prefix = "/usr"
-            mock_sys.base_prefix = "/usr"
             warnings.simplefilter("always")
-            # Need to call the real function, not the mocked one.
-            # Re-implement the check since we're mocking sys:
-            if mock_sys.prefix == mock_sys.base_prefix:
-                warnings.warn(
-                    "You are running outside a virtual environment.",
-                    stacklevel=1,
-                )
+            _warn_if_no_venv()
             assert len(w) == 1
             assert "virtual environment" in str(w[0].message)
 
