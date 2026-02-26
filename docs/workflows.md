@@ -181,6 +181,9 @@ All GitHub Actions are pinned to full commit SHAs ([ADR 004](adr/004-pin-action-
 | **Show versions** | `task actions:versions` | List all pinned actions with current and latest tags |
 | **Show (offline)** | `task actions:versions -- --offline` | Skip GitHub API calls |
 | **Show (JSON)** | `task actions:versions -- --json` | Machine-readable output |
+| **Filter stale** | `task actions:versions -- --filter stale` | Show only stale/missing comment actions |
+| **Filter upgradable** | `task actions:versions -- --filter upgradable` | Show only upgradable actions |
+| **CI check** | `task actions:versions -- --quiet` | Exit non-zero if stale or upgradable (no output) |
 | **Update comments** | `task actions:update-comments` | Sync `# vX.Y.Z` comments and add action descriptions |
 | **Upgrade all** | `task actions:upgrade` | Upgrade all actions to latest release |
 | **Upgrade (preview)** | `task actions:upgrade:dry-run` | Preview upgrades without modifying files |
@@ -202,6 +205,18 @@ Color is auto-detected. Use `--color` to force it or `--no-color` to disable.
 Respects `NO_COLOR` and `FORCE_COLOR` environment variables.
 
 > **Tip:** Set `GITHUB_TOKEN` for higher API rate limits (5,000/hr vs 60/hr unauthenticated).
+> The remaining rate limit is displayed at the end of each run.
+
+### Quiet / CI mode
+
+Use `--quiet` (or `-q`) to suppress all table and summary output.
+The exit code indicates status: **0** = all OK, **1** = stale or upgradable actions found.
+Status and progress messages are sent to stderr.
+This is useful for CI gates:
+
+```bash
+python scripts/workflow_versions.py show --quiet || echo "Actions need attention"
+```
 
 ---
 

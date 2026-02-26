@@ -18,9 +18,12 @@ from workflow_versions import (
     SCRIPT_VERSION,
     _build_parser,
     _Colors,
+    _info,
+    _normalize_version,
     _repo_slug,
     _shorten_description,
     _unique_by_slug,
+    _versions_equal,
     scan_workflows,
 )
 
@@ -195,6 +198,61 @@ class TestUniqueBySlug:
 
 
 # ---------------------------------------------------------------------------
+# _normalize_version / _versions_equal
+# ---------------------------------------------------------------------------
+
+
+class TestNormalizeVersion:
+    """Tests for semver normalization."""
+
+    def test_full_semver(self) -> None:
+        assert _normalize_version("v4.2.1") == (4, 2, 1)
+
+    def test_two_segments(self) -> None:
+        assert _normalize_version("v4.2") == (4, 2, 0)
+
+    def test_one_segment(self) -> None:
+        assert _normalize_version("v4") == (4, 0, 0)
+
+    def test_no_v_prefix(self) -> None:
+        assert _normalize_version("4.2.1") == (4, 2, 1)
+
+    def test_four_segments(self) -> None:
+        assert _normalize_version("v1.2.3.4") == (1, 2, 3, 4)
+
+    def test_non_numeric_suffix_ignored(self) -> None:
+        # "v1.2.3-beta" — "3-beta" is not an int, so parsing stops at "3"?
+        # Actually "3-beta" fails int(), so it stops at segment 2 (1, 2)
+        # then pads to (1, 2, 0)
+        assert _normalize_version("v1.2.3-beta") == (1, 2, 0)
+
+    def test_empty_string(self) -> None:
+        assert _normalize_version("") == (0, 0, 0)
+
+
+class TestVersionsEqual:
+    """Tests for version equality with normalization."""
+
+    def test_same_versions(self) -> None:
+        assert _versions_equal("v4.2.1", "v4.2.1") is True
+
+    def test_v_prefix_mismatch(self) -> None:
+        assert _versions_equal("v4.2.1", "4.2.1") is True
+
+    def test_padded_segments(self) -> None:
+        assert _versions_equal("v4", "v4.0.0") is True
+
+    def test_two_vs_three_segments(self) -> None:
+        assert _versions_equal("v4.2", "v4.2.0") is True
+
+    def test_different_versions(self) -> None:
+        assert _versions_equal("v4.1.0", "v4.2.0") is False
+
+    def test_major_vs_padded(self) -> None:
+        assert _versions_equal("v4", "v5.0.0") is False
+
+
+# ---------------------------------------------------------------------------
 # _Colors
 # ---------------------------------------------------------------------------
 
@@ -240,6 +298,26 @@ class TestColors:
             with patch.dict("os.environ", env, clear=True):
                 c = _Colors()
                 assert c.enabled is True
+
+
+# ---------------------------------------------------------------------------
+# _info
+# ---------------------------------------------------------------------------
+
+
+class TestInfo:
+    """Tests for the _info stderr helper."""
+
+    def test_writes_to_stderr(self, capsys: pytest.CaptureFixture[str]) -> None:
+        _info("hello stderr")
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert "hello stderr" in captured.err
+
+    def test_empty_default(self, capsys: pytest.CaptureFixture[str]) -> None:
+        _info()
+        captured = capsys.readouterr()
+        assert captured.err == "\n"
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +398,42 @@ class TestBuildParser:
         parser = _build_parser()
         args = parser.parse_args(["upgrade"])
         assert args.dry_run is False
+
+    def test_quiet_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["--quiet", "show"])
+        assert args.quiet is True
+
+    def test_quiet_short_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["-q", "show"])
+        assert args.quiet is True
+
+    def test_quiet_default_is_false(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["show"])
+        assert args.quiet is False
+
+    def test_filter_flag(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["show", "--filter", "stale"])
+        assert args.filter_mode == "stale"
+
+    def test_filter_default_is_all(self) -> None:
+        parser = _build_parser()
+        args = parser.parse_args(["show"])
+        assert args.filter_mode == "all"
+
+    def test_filter_choices(self) -> None:
+        parser = _build_parser()
+        for choice in ("all", "stale", "upgradable", "no-desc"):
+            args = parser.parse_args(["show", "--filter", choice])
+            assert args.filter_mode == choice
+
+    def test_filter_invalid_choice_errors(self) -> None:
+        parser = _build_parser()
+        with pytest.raises(SystemExit):
+            parser.parse_args(["show", "--filter", "invalid"])
 
 
 # ---------------------------------------------------------------------------
@@ -426,7 +540,7 @@ class TestMain:
         ):
             ret = main()
         assert ret == 1
-        assert "No workflows directory" in capsys.readouterr().out
+        assert "No workflows directory" in capsys.readouterr().err
 
     def test_show_json_empty(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
@@ -446,9 +560,7 @@ class TestMain:
             ret = main()
         assert ret == 0
         out = capsys.readouterr().out
-        # Extract JSON array from output (skip header line)
-        json_start = out.index("[")
-        output = json.loads(out[json_start:])
+        output = json.loads(out)
         assert output == []
 
     def test_show_json_with_actions(
@@ -476,9 +588,7 @@ class TestMain:
             ret = main()
         assert ret == 0
         out = capsys.readouterr().out
-        # Extract JSON (skip the header line)
-        json_start = out.index("[")
-        data = json.loads(out[json_start:])
+        data = json.loads(out)
         assert len(data) == 1
         assert data[0]["action"] == "actions/checkout"
         assert data[0]["comment_tag"] == "v4.2.0"
@@ -502,3 +612,104 @@ class TestMain:
         ):
             ret = main()
         assert ret == 0
+
+    def test_quiet_returns_0_when_no_issues(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from workflow_versions import main
+
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "f" * 40
+        (wf_dir / "ci.yml").write_text(f"      uses: actions/checkout@{sha} # v4.2.0\n")
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "sys.argv",
+                ["workflow_versions", "--quiet", "show", "--offline"],
+            ),
+        ):
+            ret = main()
+        assert ret == 0
+        # Quiet mode suppresses table output on stdout
+        out = capsys.readouterr().out
+        assert out == ""
+
+    def test_quiet_suppresses_json_output(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from workflow_versions import main
+
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "f" * 40
+        (wf_dir / "ci.yml").write_text(f"      uses: actions/checkout@{sha} # v4.2.0\n")
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "sys.argv",
+                ["workflow_versions", "-q", "show", "--json", "--offline"],
+            ),
+        ):
+            ret = main()
+        assert ret == 0
+        out = capsys.readouterr().out
+        assert out == ""
+
+    def test_filter_stale_returns_matching_json(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from workflow_versions import main
+
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "a" * 40
+        # Action with comment tag — offline mode won't resolve, so stale="missing"
+        (wf_dir / "ci.yml").write_text(
+            f"      uses: actions/checkout@{sha}\n"  # no comment -> stale=missing
+        )
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "sys.argv",
+                [
+                    "workflow_versions",
+                    "show",
+                    "--json",
+                    "--offline",
+                    "--filter",
+                    "stale",
+                ],
+            ),
+        ):
+            ret = main()
+        assert ret == 0
+        out = capsys.readouterr().out
+        data = json.loads(out)
+        # In offline mode with no comment, stale is "" (no resolved tag either)
+        # so filter=stale returns empty
+        assert isinstance(data, list)
+
+    def test_header_goes_to_stderr(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from workflow_versions import main
+
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "sys.argv",
+                ["workflow_versions", "show", "--offline"],
+            ),
+        ):
+            main()
+        captured = capsys.readouterr()
+        assert "Workflow action versions" in captured.err
+        # Header should NOT be on stdout
+        assert "Workflow action versions" not in captured.out

@@ -24,6 +24,9 @@ Usage:
     python scripts/workflow_versions.py show           # Same as above
     python scripts/workflow_versions.py show --offline # Skip GitHub API
     python scripts/workflow_versions.py show --json    # JSON output
+    python scripts/workflow_versions.py show --filter stale      # Only stale actions
+    python scripts/workflow_versions.py show --filter upgradable # Only upgradable
+    python scripts/workflow_versions.py show --quiet   # CI mode: exit 1 if issues
     python scripts/workflow_versions.py update-comments # Sync comments + add descriptions
     python scripts/workflow_versions.py upgrade        # Upgrade ALL actions to latest
     python scripts/workflow_versions.py upgrade --dry-run   # Preview upgrades
@@ -33,12 +36,18 @@ Usage:
 Color output:
     Color is auto-detected (TTY + NO_COLOR/FORCE_COLOR env vars).
     Use ``--color`` to force color or ``--no-color`` to disable it.
+
+Quiet mode:
+    ``--quiet`` / ``-q`` suppresses table and summary output.
+    The exit code indicates status: 0 = all OK, 1 = stale or upgradable.
+    Status/progress messages are always sent to stderr.
 """
 
 from __future__ import annotations
 
 import argparse
 import base64
+import contextlib
 import json
 import os
 import re
@@ -52,7 +61,7 @@ from typing import Any
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
@@ -75,6 +84,9 @@ _USES_RE = re.compile(
     """,
     re.VERBOSE,
 )
+
+# Reusable semver prefix pattern (used by _latest_tag)
+_SEMVER_RE = re.compile(r"^v?\d+\.\d+")
 
 
 # ---------------------------------------------------------------------------
@@ -139,6 +151,14 @@ class _Colors:
 # Global instance — overridden by CLI flags
 _colors = _Colors()
 
+# Rate-limit tracking (updated by _gh_api on every successful response)
+_rate_limit: dict[str, int | None] = {"remaining": None}
+
+
+def _info(msg: str = "", **kwargs: Any) -> None:
+    """Print a status/progress message to stderr."""
+    print(msg, file=sys.stderr, **kwargs)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -162,6 +182,10 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
     try:
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:  # nosec B310
+            remaining = resp.headers.get("X-RateLimit-Remaining")
+            if remaining is not None:
+                with contextlib.suppress(ValueError):
+                    _rate_limit["remaining"] = int(remaining)
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
         if exc.code == 403:
@@ -291,6 +315,39 @@ def _resolve_tag(
     return _resolve_tag_from_tags_api(repo_slug, sha)
 
 
+def _normalize_version(tag: str) -> tuple[int, ...]:
+    """Normalize a version tag to a comparable tuple of integers.
+
+    Strips the ``v`` prefix and pads to at least 3 segments so that
+    ``v4`` and ``v4.0.0`` compare as equal.
+
+    Examples:
+        ``v4`` → ``(4, 0, 0)``
+        ``v4.2`` → ``(4, 2, 0)``
+        ``v4.2.1`` → ``(4, 2, 1)``
+    """
+    s = tag.lstrip("v")
+    parts = s.split(".")
+    ints: list[int] = []
+    for p in parts:
+        try:
+            ints.append(int(p))
+        except ValueError:
+            break
+    while len(ints) < 3:
+        ints.append(0)
+    return tuple(ints)
+
+
+def _versions_equal(tag_a: str, tag_b: str) -> bool:
+    """Compare two version tags, normalizing segment count.
+
+    Returns ``True`` when two tags represent the same version:
+    ``v4`` == ``v4.0.0``, ``v2.1`` == ``v2.1.0``.
+    """
+    return _normalize_version(tag_a) == _normalize_version(tag_b)
+
+
 # ---------------------------------------------------------------------------
 # Latest release / tag-to-SHA resolution
 # ---------------------------------------------------------------------------
@@ -305,14 +362,12 @@ def _latest_tag(repo_slug: str) -> str | None:
     scanning the first page of tags for the newest ``vX.Y.Z``
     style tag.
     """
-    _semver_re = re.compile(r"^v?\d+\.\d+")
-
     # Strategy 1: latest release (fast, 1 API call)
     url = f"https://api.github.com/repos/{repo_slug}/releases/latest"
     data = _gh_api(url)
     if isinstance(data, dict):
         tag = data.get("tag_name", "")
-        if tag and _semver_re.match(tag):
+        if tag and _SEMVER_RE.match(tag):
             return tag
 
     # Strategy 2: first semver tag on page 1
@@ -321,7 +376,7 @@ def _latest_tag(repo_slug: str) -> str | None:
     if isinstance(data, list):
         for tag_info in data:
             tag = tag_info.get("name", "")
-            if tag and _semver_re.match(tag):
+            if tag and _SEMVER_RE.match(tag):
                 return tag
 
     return None
@@ -543,7 +598,9 @@ def scan_workflows(
 
             current = resolved_tag or comment_tag
             upgradable = (
-                "yes" if current and latest_tag and current != latest_tag else ""
+                "yes"
+                if current and latest_tag and not _versions_equal(current, latest_tag)
+                else ""
             )
 
             rows.append(
@@ -692,12 +749,12 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
     }
     actions_needing_desc.discard("")
     if actions_needing_desc:
-        print(f"\n  Fetching descriptions for {len(actions_needing_desc)} action(s) …")
+        _info(f"\n  Fetching descriptions for {len(actions_needing_desc)} action(s) …")
     for action in sorted(actions_needing_desc):
         if action not in desc_cache:
             desc_cache[action] = _action_description(action)
             status = desc_cache[action] or "(not found)"
-            print(f"    {action}: {status}")
+            _info(f"    {action}: {status}")
 
     modified_total = 0
 
@@ -797,7 +854,7 @@ def upgrade_action(
     slug = _repo_slug(action)
     new_sha = _resolve_sha_for_tag(slug, target_tag)
     if not new_sha:
-        print(f"  [!] Could not resolve {target_tag} for {slug}")
+        _info(f"  [!] Could not resolve {target_tag} for {slug}")
         return 0
 
     # Group affected rows by file
@@ -887,13 +944,13 @@ def upgrade_all_actions(
     modified_total = 0
     for action, target_tag in upgrades:
         slug = _repo_slug(action)
-        print(f"  {slug}: upgrading to {target_tag} …")
+        _info(f"  {slug}: upgrading to {target_tag} …")
         count = upgrade_action(action, target_tag, rows)
         if count:
-            print(f"    updated {count} line(s)")
+            _info(f"    updated {count} line(s)")
             modified_total += count
         else:
-            print("    no changes")
+            _info("    no changes")
 
     return modified_total
 
@@ -948,6 +1005,13 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Disable colored output.",
     )
 
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress table output. Exit non-zero if issues are found (CI mode).",
+    )
+
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     show_p = sub.add_parser(
@@ -964,6 +1028,13 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="json_output",
         help="Output results as JSON instead of a table.",
+    )
+    show_p.add_argument(
+        "--filter",
+        choices=["all", "stale", "upgradable", "no-desc"],
+        default="all",
+        dest="filter_mode",
+        help="Filter results: stale, upgradable, no-desc, or all (default: all).",
     )
 
     sub.add_parser(
@@ -1010,42 +1081,61 @@ def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
     command = args.command or "show"
+    quiet = getattr(args, "quiet", False)
 
     # Initialize color support based on CLI flags
     _colors = _Colors(enabled=args.color)
 
-    print(
+    _info(
         f"\n{_colors.bold('Workflow action versions')} for {_colors.cyan(ROOT.name)}\n"
     )
 
     if not WORKFLOWS_DIR.is_dir():
-        print(f"  No workflows directory found at {WORKFLOWS_DIR}")
+        _info(f"  No workflows directory found at {WORKFLOWS_DIR}")
         return 1
 
     if command == "show":
         offline = getattr(args, "offline", False)
         use_json = getattr(args, "json_output", False)
+        filter_mode = getattr(args, "filter_mode", "all")
         rows = scan_workflows(
             resolve_tags=not offline,
             check_latest=not offline,
         )
         if not rows:
-            if use_json:
+            if use_json and not quiet:
                 print(json.dumps([], indent=2))
-            else:
+            elif not quiet:
                 print("  No SHA-pinned actions found in workflow files.")
             return 0
 
-        if use_json:
-            print(json.dumps(rows, indent=2))
-            return 0
+        # Keep unfiltered rows for summary, apply filter for display
+        all_rows = rows
+        if filter_mode == "stale":
+            rows = [r for r in all_rows if r["stale"] in ("yes", "missing")]
+        elif filter_mode == "upgradable":
+            rows = [r for r in all_rows if r.get("upgradable") == "yes"]
+        elif filter_mode == "no-desc":
+            rows = [r for r in all_rows if r["stale"] == "no-desc"]
 
-        print_report(rows)
+        if not quiet:
+            if use_json:
+                print(json.dumps(rows, indent=2))
+                return 0
 
-        # Summary
-        stale = [r for r in rows if r["stale"] in ("yes", "missing")]
-        no_desc = [r for r in rows if r["stale"] == "no-desc"]
-        upgradable = [r for r in rows if r.get("upgradable") == "yes"]
+            if rows:
+                print_report(rows)
+            elif filter_mode != "all":
+                print(f"  No actions match filter '{filter_mode}'.")
+
+        # Summary (always based on all rows)
+        stale = [r for r in all_rows if r["stale"] in ("yes", "missing")]
+        no_desc = [r for r in all_rows if r["stale"] == "no-desc"]
+        upgradable = [r for r in all_rows if r.get("upgradable") == "yes"]
+
+        if quiet:
+            return 1 if (stale or upgradable) else 0
+
         if stale or no_desc:
             parts: list[str] = []
             if stale:
@@ -1070,13 +1160,16 @@ def main() -> int:
     elif command == "update-comments":
         rows = scan_workflows(resolve_tags=True)
         if not rows:
-            print("  No SHA-pinned actions found.")
+            if not quiet:
+                print("  No SHA-pinned actions found.")
             return 0
-        print_report(rows)
+        if not quiet:
+            print_report(rows)
 
         needs_update = [r for r in rows if r["stale"] in ("yes", "missing", "no-desc")]
         if not needs_update:
-            print("\n  All comments are already up to date.")
+            if not quiet:
+                print("\n  All comments are already up to date.")
             return 0
 
         count = update_comments(rows)
@@ -1093,20 +1186,20 @@ def main() -> int:
         dry_run = getattr(args, "dry_run", False)
 
         if dry_run:
-            print(f"  {_colors.yellow('[DRY RUN]')} No files will be modified.\n")
+            _info(f"  {_colors.yellow('[DRY RUN]')} No files will be modified.\n")
 
         if action_arg:
             # Upgrade a specific action
             rows = scan_workflows(resolve_tags=True, check_latest=True)
             if not rows:
-                print("  No SHA-pinned actions found.")
+                _info("  No SHA-pinned actions found.")
                 return 1
 
             # Verify the action exists in workflows
             slug = _repo_slug(action_arg)
             matching = [r for r in rows if _repo_slug(r["action"] or "") == slug]
             if not matching:
-                print(f"  '{action_arg}' not found in workflow files.")
+                _info(f"  '{action_arg}' not found in workflow files.")
                 return 1
 
             if version_arg:
@@ -1114,7 +1207,7 @@ def main() -> int:
             else:
                 target = matching[0].get("latest_tag")
                 if not target:
-                    print(f"  Could not determine latest tag for {slug}.")
+                    _info(f"  Could not determine latest tag for {slug}.")
                     return 1
 
             current = matching[0].get("resolved_tag") or matching[0].get("comment_tag")
@@ -1137,15 +1230,18 @@ def main() -> int:
             # Upgrade all
             rows = scan_workflows(resolve_tags=True, check_latest=True)
             if not rows:
-                print("  No SHA-pinned actions found.")
+                if not quiet:
+                    print("  No SHA-pinned actions found.")
                 return 0
-            print_report(rows)
+            if not quiet:
+                print_report(rows)
 
             upgradable = [r for r in rows if r.get("upgradable") == "yes"]
             if not upgradable:
-                print(
-                    f"\n  {_colors.green('All actions are already at their latest version.')}"
-                )
+                if not quiet:
+                    print(
+                        f"\n  {_colors.green('All actions are already at their latest version.')}"
+                    )
                 return 0
 
             unique = _unique_by_slug(upgradable)
@@ -1162,7 +1258,7 @@ def main() -> int:
                         f"    {_colors.cyan(slug)}: {current} -> {_colors.green(latest)}"
                     )
             else:
-                print(f"\n  Upgrading {_colors.yellow(str(len(unique)))} action(s) …\n")
+                _info(f"\n  Upgrading {_colors.yellow(str(len(unique)))} action(s) …\n")
                 count = upgrade_all_actions(rows)
                 if count:
                     print(
@@ -1171,7 +1267,11 @@ def main() -> int:
                 else:
                     print(f"\n  {_colors.dim('No changes made.')}")
 
-    print()
+    # Display remaining API rate limit
+    if _rate_limit["remaining"] is not None:
+        _info(f"  GitHub API rate limit remaining: {_rate_limit['remaining']}")
+
+    _info()
     return 0
 
 

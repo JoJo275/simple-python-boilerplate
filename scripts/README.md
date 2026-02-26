@@ -62,6 +62,9 @@ python scripts/archive_todos.py
 python scripts/workflow_versions.py                    # Show all actions
 python scripts/workflow_versions.py show --offline     # Skip GitHub API
 python scripts/workflow_versions.py show --json        # JSON output
+python scripts/workflow_versions.py show --filter stale      # Only stale actions
+python scripts/workflow_versions.py show --filter upgradable # Only upgradable
+python scripts/workflow_versions.py show --quiet       # CI mode: exit 1 if issues
 python scripts/workflow_versions.py update-comments    # Sync comments + add descriptions
 python scripts/workflow_versions.py upgrade            # Upgrade all to latest
 python scripts/workflow_versions.py upgrade --dry-run  # Preview upgrades
