@@ -2,26 +2,35 @@
 """Print a diagnostics bundle for bug reports and environment debugging.
 
 Collects: Python version, OS, Hatch version, active environment, key tool
-versions, important paths, and configuration status.
+versions, important paths, git status, and configuration status.
 
 Usage::
 
     python scripts/doctor.py
+    python scripts/doctor.py --version
     python scripts/doctor.py --output var/doctor.txt
     python scripts/doctor.py --markdown   # For GitHub issues
+    python scripts/doctor.py --json       # Machine-readable output
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib.metadata
+import json
 import os
 import platform
 import shutil
 import subprocess  # nosec B404
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+SCRIPT_VERSION = "1.1.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -62,12 +71,43 @@ def check_path_exists(path: Path) -> str:
     return "file"
 
 
+def _git_info() -> dict[str, str]:
+    """Collect git repository information (branch, commit, dirty state)."""
+    result: dict[str, str] = {}
+    git_exe = shutil.which("git")
+    if not git_exe:
+        return {"status": "git not found"}
+
+    def _run_git(*args: str) -> str:
+        try:
+            proc = subprocess.run(  # nosec B603
+                [git_exe, *args],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                cwd=ROOT,
+            )
+            return proc.stdout.strip() if proc.returncode == 0 else ""
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+
+    result["branch"] = _run_git("rev-parse", "--abbrev-ref", "HEAD") or "unknown"
+    result["commit"] = _run_git("rev-parse", "--short", "HEAD") or "unknown"
+    result["commit_date"] = _run_git("log", "-1", "--format=%ci") or "unknown"
+
+    # Dirty = uncommitted changes exist
+    dirty_check = _run_git("status", "--porcelain")
+    result["dirty"] = "yes" if dirty_check else "no"
+
+    return result
+
+
 def collect_diagnostics() -> dict[str, str | dict[str, str]]:
     """Collect all diagnostic information."""
     info: dict[str, str | dict[str, str]] = {}
 
-    # Timestamp
-    info["timestamp"] = datetime.now().isoformat()
+    # Timestamp (UTC for unambiguous reports)
+    info["timestamp"] = datetime.now(tz=UTC).isoformat()
 
     # System
     info["system"] = {
@@ -89,7 +129,8 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
 
     # Tool versions
     info["tools"] = {
-        "hatch": get_version(["hatch", "version"]),
+        "hatch": get_version(["hatch", "--version"]),
+        "pip": get_version([sys.executable, "-m", "pip", "--version"]),
         "task": get_version(["task", "--version"]),
         "ruff": get_version(["ruff", "--version"]),
         "mypy": get_version(["mypy", "--version"]),
@@ -97,6 +138,9 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
         "pre-commit": get_version(["pre-commit", "--version"]),
         "git": get_version(["git", "--version"]),
     }
+
+    # Git repository
+    info["git"] = _git_info()
 
     # Package status
     info["package"] = {
@@ -121,7 +165,7 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
     return info
 
 
-def format_plain(info: dict) -> str:
+def format_plain(info: dict[str, str | dict[str, str]]) -> str:
     """Format diagnostics as plain text."""
     lines = ["=" * 60, "DIAGNOSTICS REPORT", "=" * 60, ""]
 
@@ -137,7 +181,7 @@ def format_plain(info: dict) -> str:
     return "\n".join(lines)
 
 
-def format_markdown(info: dict) -> str:
+def format_markdown(info: dict[str, str | dict[str, str]]) -> str:
     """Format diagnostics as markdown for GitHub issues."""
     lines = [
         "<details>",
@@ -158,6 +202,11 @@ def format_markdown(info: dict) -> str:
     return "\n".join(lines)
 
 
+def format_json(info: dict[str, str | dict[str, str]]) -> str:
+    """Format diagnostics as JSON for scripting and automation."""
+    return json.dumps(info, indent=2)
+
+
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -165,20 +214,39 @@ def main() -> int:
         description="Print a diagnostics bundle for bug reports.",
     )
     parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
+    parser.add_argument(
         "--output",
         "-o",
         type=Path,
         help="Write output to file (e.g., var/doctor.txt)",
     )
-    parser.add_argument(
+
+    fmt_group = parser.add_mutually_exclusive_group()
+    fmt_group.add_argument(
         "--markdown",
         action="store_true",
         help="Output as markdown (for GitHub issues)",
     )
+    fmt_group.add_argument(
+        "--json",
+        action="store_true",
+        help="Output as JSON (machine-readable)",
+    )
     args = parser.parse_args()
 
     info = collect_diagnostics()
-    output = format_markdown(info) if args.markdown else format_plain(info)
+
+    if args.json:
+        output = format_json(info)
+    elif args.markdown:
+        output = format_markdown(info)
+    else:
+        output = format_plain(info)
+
     print(output)
 
     if args.output:
