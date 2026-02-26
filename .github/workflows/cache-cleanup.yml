@@ -58,11 +58,11 @@ jobs:
           # Set the internal field separator to newline
           echo "Deleting caches..."
           count=0
-          for cacheKey in $cacheKeysForPR; do
+          while IFS= read -r cacheKey; do
             gh actions-cache delete "$cacheKey" -R "$REPO" -B "$BRANCH" --confirm
             count=$((count + 1))
             echo "  Deleted: $cacheKey"
-          done
+          done <<< "$cacheKeysForPR"
           echo "Done. Deleted $count cache(s) for branch: $BRANCH"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
