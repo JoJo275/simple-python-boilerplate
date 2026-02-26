@@ -211,6 +211,9 @@ task actions:versions -- --filter upgradable
 # Quiet / CI mode (exit 1 if stale or upgradable actions found)
 task actions:versions -- --quiet
 
+# CI gate shortcut (same as --quiet, for pre-push hooks or CI)
+task actions:check
+
 # Update version comments and add descriptions
 python scripts/workflow_versions.py update-comments
 task actions:update-comments
@@ -234,6 +237,9 @@ task actions:versions -- --color
 
 > **Tip:** Set `GITHUB_TOKEN` for higher API rate limits (5,000/hr vs. 60/hr).
 > The remaining rate limit is shown at the end of each run.
+>
+> API responses are cached on disk (`.cache/workflow-versions/`, 1-hour TTL).
+> Set `WV_CACHE_TTL=0` to disable caching.
 
 ## Git Shortcuts
 

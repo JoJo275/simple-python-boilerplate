@@ -48,10 +48,12 @@ from __future__ import annotations
 import argparse
 import base64
 import contextlib
+import hashlib
 import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -61,10 +63,14 @@ from typing import Any
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
+
+# Disk cache for GitHub API responses (1-hour TTL by default)
+_CACHE_DIR = ROOT / ".cache" / "workflow-versions"
+_CACHE_TTL = int(os.environ.get("WV_CACHE_TTL", "3600"))  # seconds
 
 # Matches:  uses: owner/repo@SHA # vX.Y.Z
 #      or:  uses: owner/repo/sub@SHA # vX.Y.Z
@@ -219,10 +225,46 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
         return None
 
 
+def _cached_gh_api(url: str) -> dict[str, Any] | list[Any] | None:
+    """Wrapper around ``_gh_api`` with file-based disk caching.
+
+    Caches successful (non-None) responses as JSON files under
+    ``_CACHE_DIR`` with a TTL of ``_CACHE_TTL`` seconds.  Set
+    ``WV_CACHE_TTL=0`` to disable caching entirely.
+    """
+    if _CACHE_TTL <= 0:
+        return _gh_api(url)
+
+    # Deterministic filename from URL
+    url_hash = hashlib.sha256(url.encode()).hexdigest()[:16]
+    cache_file = _CACHE_DIR / f"{url_hash}.json"
+
+    # Return cached response if still fresh
+    if cache_file.exists():
+        try:
+            age = time.time() - cache_file.stat().st_mtime
+            if age < _CACHE_TTL:
+                return json.loads(cache_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            pass  # stale or corrupt — re-fetch
+
+    result = _gh_api(url)
+    if result is not None:
+        try:
+            _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps(result, separators=(",", ":")),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass  # cache write failure is non-fatal
+    return result
+
+
 def _peel_to_commit(repo_slug: str, tag_obj_sha: str) -> str | None:
     """Peel an annotated tag object to its underlying commit SHA."""
     url = f"https://api.github.com/repos/{repo_slug}/git/tags/{tag_obj_sha}"
-    data = _gh_api(url)
+    data = _cached_gh_api(url)
     if isinstance(data, dict):
         return data.get("object", {}).get("sha")
     return None
@@ -234,7 +276,7 @@ def _tag_points_at(repo_slug: str, tag_name: str, sha: str) -> bool:
     Handles both lightweight and annotated tags.
     """
     url = f"https://api.github.com/repos/{repo_slug}/git/matching-refs/tags/{tag_name}"
-    data = _gh_api(url)
+    data = _cached_gh_api(url)
     if not isinstance(data, list):
         return False
 
@@ -264,7 +306,7 @@ def _resolve_tag_from_tags_api(
     """
     for page in range(1, 6):
         url = f"https://api.github.com/repos/{repo_slug}/tags?per_page=100&page={page}"
-        data = _gh_api(url)
+        data = _cached_gh_api(url)
         if not data or not isinstance(data, list):
             break
 
@@ -330,8 +372,10 @@ def _normalize_version(tag: str) -> tuple[int, ...]:
     parts = s.split(".")
     ints: list[int] = []
     for p in parts:
+        # Strip pre-release suffixes: "3-beta" → "3"
+        numeric = p.partition("-")[0]
         try:
-            ints.append(int(p))
+            ints.append(int(numeric))
         except ValueError:
             break
     while len(ints) < 3:
@@ -364,7 +408,7 @@ def _latest_tag(repo_slug: str) -> str | None:
     """
     # Strategy 1: latest release (fast, 1 API call)
     url = f"https://api.github.com/repos/{repo_slug}/releases/latest"
-    data = _gh_api(url)
+    data = _cached_gh_api(url)
     if isinstance(data, dict):
         tag = data.get("tag_name", "")
         if tag and _SEMVER_RE.match(tag):
@@ -372,7 +416,7 @@ def _latest_tag(repo_slug: str) -> str | None:
 
     # Strategy 2: first semver tag on page 1
     url = f"https://api.github.com/repos/{repo_slug}/tags?per_page=30"
-    data = _gh_api(url)
+    data = _cached_gh_api(url)
     if isinstance(data, list):
         for tag_info in data:
             tag = tag_info.get("name", "")
@@ -391,7 +435,7 @@ def _resolve_sha_for_tag(
     Handles both lightweight and annotated tags.
     """
     url = f"https://api.github.com/repos/{repo_slug}/git/matching-refs/tags/{tag_name}"
-    data = _gh_api(url)
+    data = _cached_gh_api(url)
     if not isinstance(data, list):
         return None
 
@@ -468,7 +512,7 @@ def _action_description(action: str) -> str | None:
     for filename in ("action.yml", "action.yaml"):
         path = f"{sub_path}/{filename}" if sub_path else filename
         url = f"https://api.github.com/repos/{repo_slug}/contents/{path}"
-        data = _gh_api(url)
+        data = _cached_gh_api(url)
         if not isinstance(data, dict) or "content" not in data:
             continue
 
@@ -536,7 +580,14 @@ def scan_workflows(
     seen_latest: dict[str, str | None] = {}  # repo_slug -> latest tag
 
     for wf in sorted(WORKFLOWS_DIR.glob("*.yml")):
-        text = wf.read_text(encoding="utf-8")
+        try:
+            text = wf.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            _info(f"  [!] File disappeared: {wf.name} (skipping)")
+            continue
+        except UnicodeDecodeError:
+            _info(f"  [!] Non-UTF-8 file: {wf.name} (skipping)")
+            continue
         for lineno, line in enumerate(text.splitlines(), start=1):
             m = _USES_RE.match(line)
             if not m:
@@ -561,7 +612,9 @@ def scan_workflows(
                     has_desc = True
                 else:
                     # Fallback: bare version tag "# v1.2.3"
-                    comment_match = re.search(r"#\s*(v?\S+)", trail)
+                    # Require a leading digit (with optional v prefix) so
+                    # plain description words like "Checkout" are not captured.
+                    comment_match = re.search(r"#\s*(v?\d[\S]*)", trail)
                     if comment_match:
                         comment_tag = comment_match.group(1)
 
@@ -661,6 +714,10 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     for r in rows:
         ctag = r["comment_tag"] or "-"
         rtag = r["resolved_tag"] or "-"
+        file_raw = r["file"] or ""
+        action_raw = r["action"] or ""
+        file_col = _colors.dim(file_raw)
+        action_col = _colors.cyan(action_raw)
 
         if has_latest:
             ltag = r.get("latest_tag") or "-"
@@ -673,10 +730,10 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             )
 
             print(
-                f"  {_colors.dim(r['file'] or ''):<{w_file + _ansi_pad(_colors, r['file'] or '')}}  "
-                f"{_colors.cyan(r['action'] or ''):<{w_action + _ansi_pad(_colors, r['action'] or '')}}  "
+                f"  {file_col:<{w_file + _ansi_pad(file_col, file_raw)}}  "
+                f"{action_col:<{w_action + _ansi_pad(action_col, action_raw)}}  "
                 f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  "
-                f"{ltag_display:<{w_ltag + _ansi_pad(_colors, ltag)}}  {uflag}"
+                f"{ltag_display:<{w_ltag + _ansi_pad(ltag_display, ltag)}}  {uflag}"
             )
         else:
             stale_val = r["stale"] or ""
@@ -692,25 +749,20 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 flag = ""
 
             print(
-                f"  {_colors.dim(r['file'] or ''):<{w_file + _ansi_pad(_colors, r['file'] or '')}}  "
-                f"{_colors.cyan(r['action'] or ''):<{w_action + _ansi_pad(_colors, r['action'] or '')}}  "
+                f"  {file_col:<{w_file + _ansi_pad(file_col, file_raw)}}  "
+                f"{action_col:<{w_action + _ansi_pad(action_col, action_raw)}}  "
                 f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
             )
 
 
-def _ansi_pad(colors: _Colors, text: str) -> int:
+def _ansi_pad(colored_text: str, raw_text: str) -> int:
     """Return extra padding needed to compensate for ANSI escape codes.
 
     When color is enabled, ANSI codes add invisible characters that
     throw off ``:<width>`` format alignment.  This returns the number
-    of extra characters added so callers can add it to the field width.
+    of extra characters so callers can add it to the field width.
     """
-    if not colors.enabled:
-        return 0
-    # Each color wrap adds len(code) + len(RESET)
-    return len(colors.RESET) + max(
-        len(c) for c in (colors.DIM, colors.CYAN, colors.YELLOW, colors.GREEN)
-    )
+    return len(colored_text) - len(raw_text)
 
 
 # ---------------------------------------------------------------------------
@@ -760,7 +812,11 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
 
     for fname, file_rows in by_file.items():
         wf_path = WORKFLOWS_DIR / fname
-        text = wf_path.read_text(encoding="utf-8")
+        try:
+            text = wf_path.read_text(encoding="utf-8")
+        except (FileNotFoundError, UnicodeDecodeError) as exc:
+            _info(f"  [!] Cannot read {fname}: {exc} (skipping)")
+            continue
         lines = text.splitlines(keepends=True)
         modified = 0
 
@@ -868,7 +924,11 @@ def upgrade_action(
 
     for fname, file_rows in by_file.items():
         wf_path = WORKFLOWS_DIR / fname
-        text = wf_path.read_text(encoding="utf-8")
+        try:
+            text = wf_path.read_text(encoding="utf-8")
+        except (FileNotFoundError, UnicodeDecodeError) as exc:
+            _info(f"  [!] Cannot read {fname}: {exc} (skipping)")
+            continue
         lines = text.splitlines(keepends=True)
         modified = 0
 
@@ -891,6 +951,7 @@ def upgrade_action(
                     r"\(v?\d+\.\d+[\.\d]*\)",
                     f"({target_tag})",
                     trail,
+                    count=1,
                 )
                 # Also handle bare "# v1.2.3" style
                 if new_trail == trail:

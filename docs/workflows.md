@@ -183,7 +183,7 @@ All GitHub Actions are pinned to full commit SHAs ([ADR 004](adr/004-pin-action-
 | **Show (JSON)** | `task actions:versions -- --json` | Machine-readable output |
 | **Filter stale** | `task actions:versions -- --filter stale` | Show only stale/missing comment actions |
 | **Filter upgradable** | `task actions:versions -- --filter upgradable` | Show only upgradable actions |
-| **CI check** | `task actions:versions -- --quiet` | Exit non-zero if stale or upgradable (no output) |
+| **CI check** | `task actions:check` | Exit non-zero if stale or upgradable (CI gate shortcut) |
 | **Update comments** | `task actions:update-comments` | Sync `# vX.Y.Z` comments and add action descriptions |
 | **Upgrade all** | `task actions:upgrade` | Upgrade all actions to latest release |
 | **Upgrade (preview)** | `task actions:upgrade:dry-run` | Preview upgrades without modifying files |

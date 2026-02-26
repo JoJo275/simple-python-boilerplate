@@ -16,7 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"
 from workflow_versions import (
     _USES_RE,
     SCRIPT_VERSION,
+    _ansi_pad,
     _build_parser,
+    _cached_gh_api,
     _Colors,
     _info,
     _normalize_version,
@@ -25,6 +27,9 @@ from workflow_versions import (
     _unique_by_slug,
     _versions_equal,
     scan_workflows,
+    update_comments,
+    upgrade_action,
+    upgrade_all_actions,
 )
 
 # ---------------------------------------------------------------------------
@@ -220,11 +225,9 @@ class TestNormalizeVersion:
     def test_four_segments(self) -> None:
         assert _normalize_version("v1.2.3.4") == (1, 2, 3, 4)
 
-    def test_non_numeric_suffix_ignored(self) -> None:
-        # "v1.2.3-beta" — "3-beta" is not an int, so parsing stops at "3"?
-        # Actually "3-beta" fails int(), so it stops at segment 2 (1, 2)
-        # then pads to (1, 2, 0)
-        assert _normalize_version("v1.2.3-beta") == (1, 2, 0)
+    def test_pre_release_suffix_stripped(self) -> None:
+        # "v1.2.3-beta" — partition("-") strips the suffix so int("3") succeeds
+        assert _normalize_version("v1.2.3-beta") == (1, 2, 3)
 
     def test_empty_string(self) -> None:
         assert _normalize_version("") == (0, 0, 0)
@@ -658,40 +661,63 @@ class TestMain:
         out = capsys.readouterr().out
         assert out == ""
 
-    def test_filter_stale_returns_matching_json(
+    def test_filter_stale_returns_only_stale_rows(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         from workflow_versions import main
 
         wf_dir = tmp_path / "workflows"
         wf_dir.mkdir()
-        sha = "a" * 40
-        # Action with comment tag — offline mode won't resolve, so stale="missing"
-        (wf_dir / "ci.yml").write_text(
-            f"      uses: actions/checkout@{sha}\n"  # no comment -> stale=missing
-        )
+
+        # Mock scan_workflows to return rows with known stale values
+        mock_rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v4.2.0",
+                "latest_tag": None,
+                "stale": "yes",
+                "upgradable": "",
+                "has_description": "",
+            },
+            {
+                "file": "ci.yml",
+                "line": "2",
+                "action": "actions/upload-artifact",
+                "sha": "b" * 40,
+                "comment_tag": "v4.0.0",
+                "resolved_tag": "v4.0.0",
+                "latest_tag": None,
+                "stale": "",
+                "upgradable": "",
+                "has_description": "yes",
+            },
+        ]
 
         with (
             patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch("workflow_versions.scan_workflows", return_value=mock_rows),
             patch(
                 "sys.argv",
                 [
                     "workflow_versions",
                     "show",
                     "--json",
-                    "--offline",
                     "--filter",
                     "stale",
                 ],
             ),
         ):
             ret = main()
+
         assert ret == 0
-        out = capsys.readouterr().out
-        data = json.loads(out)
-        # In offline mode with no comment, stale is "" (no resolved tag either)
-        # so filter=stale returns empty
-        assert isinstance(data, list)
+        data = json.loads(capsys.readouterr().out)
+        assert len(data) == 1
+        assert data[0]["action"] == "actions/checkout"
+        assert data[0]["stale"] == "yes"
 
     def test_header_goes_to_stderr(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
@@ -713,3 +739,521 @@ class TestMain:
         assert "Workflow action versions" in captured.err
         # Header should NOT be on stdout
         assert "Workflow action versions" not in captured.out
+
+
+# ---------------------------------------------------------------------------
+# _ansi_pad
+# ---------------------------------------------------------------------------
+
+
+class TestAnsiPad:
+    """Tests for ANSI padding calculation."""
+
+    def test_no_color_returns_zero(self) -> None:
+        assert _ansi_pad("hello", "hello") == 0
+
+    def test_colored_text_returns_escape_len(self) -> None:
+        c = _Colors(enabled=True)
+        raw = "error"
+        colored = c.red(raw)
+        pad = _ansi_pad(colored, raw)
+        # ANSI codes: \033[31m + \033[0m = 5 + 4 = 9 chars
+        assert pad == len(colored) - len(raw)
+        assert pad > 0
+
+    def test_different_color_methods(self) -> None:
+        c = _Colors(enabled=True)
+        for method in ("bold", "dim", "red", "green", "yellow", "blue", "cyan"):
+            raw = "test"
+            colored = getattr(c, method)(raw)
+            pad = _ansi_pad(colored, raw)
+            assert pad == len(colored) - len(raw)
+            assert pad > 0
+
+
+# ---------------------------------------------------------------------------
+# update_comments (write path)
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateComments:
+    """Tests for the comment-update write path."""
+
+    def _make_workflow(
+        self, wf_dir: Path, content: str, *, name: str = "ci.yml"
+    ) -> Path:
+        wf_dir.mkdir(exist_ok=True)
+        f = wf_dir / name
+        f.write_text(content, encoding="utf-8")
+        return f
+
+    def test_updates_stale_comment(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        sha = "a" * 40
+        content = f"      - uses: actions/checkout@{sha} # v3.0.0\n"
+        wf = self._make_workflow(wf_dir, content)
+
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": sha,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v4.2.0",
+                "latest_tag": None,
+                "stale": "yes",
+                "upgradable": "",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch("workflow_versions._action_description", return_value=None),
+        ):
+            count = update_comments(rows)
+
+        assert count == 1
+        updated = wf.read_text(encoding="utf-8")
+        assert "v4.2.0" in updated
+        assert "v3.0.0" not in updated
+
+    def test_adds_missing_comment(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        sha = "b" * 40
+        content = f"      - uses: actions/checkout@{sha}\n"
+        wf = self._make_workflow(wf_dir, content)
+
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": sha,
+                "comment_tag": None,
+                "resolved_tag": "v4.2.0",
+                "latest_tag": None,
+                "stale": "missing",
+                "upgradable": "",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch("workflow_versions._action_description", return_value=None),
+        ):
+            count = update_comments(rows)
+
+        assert count == 1
+        updated = wf.read_text(encoding="utf-8")
+        assert "# v4.2.0" in updated
+
+    def test_adds_description_to_no_desc(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        sha = "c" * 40
+        content = f"      - uses: actions/checkout@{sha} # v4.2.0\n"
+        wf = self._make_workflow(wf_dir, content)
+
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": sha,
+                "comment_tag": "v4.2.0",
+                "resolved_tag": "v4.2.0",
+                "latest_tag": None,
+                "stale": "no-desc",
+                "upgradable": "",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "workflow_versions._action_description",
+                return_value="Checkout code",
+            ),
+        ):
+            count = update_comments(rows)
+
+        assert count == 1
+        updated = wf.read_text(encoding="utf-8")
+        assert "Checkout code" in updated
+        assert "(v4.2.0)" in updated
+
+    def test_returns_zero_when_nothing_to_update(self, tmp_path: Path) -> None:
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v4.2.0",
+                "resolved_tag": "v4.2.0",
+                "latest_tag": None,
+                "stale": "",
+                "upgradable": "",
+                "has_description": "yes",
+            }
+        ]
+        with patch("workflow_versions.WORKFLOWS_DIR", tmp_path):
+            count = update_comments(rows)
+        assert count == 0
+
+    def test_skips_deleted_file(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        # Don't create the file — simulates deletion after scan
+
+        rows = [
+            {
+                "file": "gone.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v4.0.0",
+                "latest_tag": None,
+                "stale": "yes",
+                "upgradable": "",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch("workflow_versions._action_description", return_value=None),
+        ):
+            count = update_comments(rows)
+
+        assert count == 0
+        err = capsys.readouterr().err
+        assert "Cannot read" in err
+
+
+# ---------------------------------------------------------------------------
+# upgrade_action (write path)
+# ---------------------------------------------------------------------------
+
+
+class TestUpgradeAction:
+    """Tests for the single-action upgrade write path."""
+
+    def test_upgrades_sha_and_comment(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        old_sha = "a" * 40
+        new_sha = "b" * 40
+        content = f"      - uses: actions/checkout@{old_sha} # v3.0.0\n"
+        wf = wf_dir / "ci.yml"
+        wf.write_text(content, encoding="utf-8")
+
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": old_sha,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v3.0.0",
+                "latest_tag": "v4.2.0",
+                "stale": "",
+                "upgradable": "yes",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "workflow_versions._resolve_sha_for_tag",
+                return_value=new_sha,
+            ),
+        ):
+            count = upgrade_action("actions/checkout", "v4.2.0", rows)
+
+        assert count == 1
+        updated = wf.read_text(encoding="utf-8")
+        assert new_sha in updated
+        assert old_sha not in updated
+        assert "v4.2.0" in updated
+
+    def test_returns_zero_when_tag_unresolvable(self, tmp_path: Path) -> None:
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v3.0.0",
+                "latest_tag": "v4.2.0",
+                "stale": "",
+                "upgradable": "yes",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", tmp_path),
+            patch("workflow_versions._resolve_sha_for_tag", return_value=None),
+        ):
+            count = upgrade_action("actions/checkout", "v99.0.0", rows)
+
+        assert count == 0
+
+    def test_skips_deleted_file(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        # Don't create the file
+
+        rows = [
+            {
+                "file": "gone.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v3.0.0",
+                "latest_tag": "v4.2.0",
+                "stale": "",
+                "upgradable": "yes",
+                "has_description": "",
+            }
+        ]
+
+        new_sha = "b" * 40
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "workflow_versions._resolve_sha_for_tag",
+                return_value=new_sha,
+            ),
+        ):
+            count = upgrade_action("actions/checkout", "v4.2.0", rows)
+
+        assert count == 0
+        err = capsys.readouterr().err
+        assert "Cannot read" in err
+
+
+# ---------------------------------------------------------------------------
+# upgrade_all_actions
+# ---------------------------------------------------------------------------
+
+
+class TestUpgradeAllActions:
+    """Tests for the upgrade-all write path."""
+
+    def test_upgrades_only_upgradable_rows(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        old_sha = "a" * 40
+        new_sha = "b" * 40
+        content = f"      - uses: actions/checkout@{old_sha} # v3.0.0\n"
+        wf = wf_dir / "ci.yml"
+        wf.write_text(content, encoding="utf-8")
+
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": old_sha,
+                "comment_tag": "v3.0.0",
+                "resolved_tag": "v3.0.0",
+                "latest_tag": "v4.2.0",
+                "stale": "",
+                "upgradable": "yes",
+                "has_description": "",
+            }
+        ]
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch(
+                "workflow_versions._resolve_sha_for_tag",
+                return_value=new_sha,
+            ),
+        ):
+            count = upgrade_all_actions(rows)
+
+        assert count == 1
+        updated = wf.read_text(encoding="utf-8")
+        assert new_sha in updated
+
+    def test_returns_zero_when_nothing_upgradable(self) -> None:
+        rows = [
+            {
+                "file": "ci.yml",
+                "line": "1",
+                "action": "actions/checkout",
+                "sha": "a" * 40,
+                "comment_tag": "v4.2.0",
+                "resolved_tag": "v4.2.0",
+                "latest_tag": "v4.2.0",
+                "stale": "",
+                "upgradable": "",
+                "has_description": "yes",
+            }
+        ]
+        count = upgrade_all_actions(rows)
+        assert count == 0
+
+
+# ---------------------------------------------------------------------------
+# _cached_gh_api
+# ---------------------------------------------------------------------------
+
+
+class TestCachedGhApi:
+    """Tests for the disk-caching wrapper."""
+
+    def test_caches_successful_response(self, tmp_path: Path) -> None:
+        cache_dir = tmp_path / "cache"
+        with (
+            patch("workflow_versions._CACHE_DIR", cache_dir),
+            patch("workflow_versions._CACHE_TTL", 3600),
+            patch(
+                "workflow_versions._gh_api",
+                return_value={"tag_name": "v1.0.0"},
+            ) as mock_api,
+        ):
+            # First call — should hit the API
+            result1 = _cached_gh_api("https://api.github.com/test")
+            assert result1 == {"tag_name": "v1.0.0"}
+            assert mock_api.call_count == 1
+
+            # Second call — should come from cache
+            result2 = _cached_gh_api("https://api.github.com/test")
+            assert result2 == {"tag_name": "v1.0.0"}
+            assert mock_api.call_count == 1  # no additional API call
+
+    def test_does_not_cache_none(self, tmp_path: Path) -> None:
+        cache_dir = tmp_path / "cache"
+        with (
+            patch("workflow_versions._CACHE_DIR", cache_dir),
+            patch("workflow_versions._CACHE_TTL", 3600),
+            patch(
+                "workflow_versions._gh_api",
+                return_value=None,
+            ) as mock_api,
+        ):
+            result = _cached_gh_api("https://api.github.com/test")
+            assert result is None
+            assert mock_api.call_count == 1
+
+            # Second call should still hit API (no cache for None)
+            _cached_gh_api("https://api.github.com/test")
+            assert mock_api.call_count == 2
+
+    def test_bypasses_cache_when_ttl_zero(self, tmp_path: Path) -> None:
+        cache_dir = tmp_path / "cache"
+        with (
+            patch("workflow_versions._CACHE_DIR", cache_dir),
+            patch("workflow_versions._CACHE_TTL", 0),
+            patch(
+                "workflow_versions._gh_api",
+                return_value={"data": 1},
+            ) as mock_api,
+        ):
+            _cached_gh_api("https://api.github.com/test")
+            _cached_gh_api("https://api.github.com/test")
+            assert mock_api.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# scan_workflows error handling (B6/B7)
+# ---------------------------------------------------------------------------
+
+
+class TestScanWorkflowsErrorHandling:
+    """Tests for graceful handling of file errors during scanning."""
+
+    def test_skips_non_utf8_file(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        # Write invalid UTF-8 bytes
+        (wf_dir / "bad.yml").write_bytes(b"\xff\xfe invalid utf-8")
+
+        with patch("workflow_versions.WORKFLOWS_DIR", wf_dir):
+            rows = scan_workflows(resolve_tags=False)
+
+        assert rows == []
+        err = capsys.readouterr().err
+        assert "Non-UTF-8" in err
+
+    def test_skips_deleted_file_during_scan(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "a" * 40
+        f = wf_dir / "ci.yml"
+        f.write_text(f"      uses: actions/checkout@{sha} # v4\n")
+
+        original_glob = Path.glob
+
+        def patched_glob(self_path: Path, pattern: str) -> list[Path]:
+            results = list(original_glob(self_path, pattern))
+            # Return a path that will be deleted before read
+            ghost = wf_dir / "ghost.yml"
+            results.append(ghost)
+            return results
+
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            patch.object(Path, "glob", patched_glob),
+        ):
+            rows = scan_workflows(resolve_tags=False)
+
+        # Should have scanned ci.yml successfully and skipped ghost.yml
+        assert len(rows) == 1
+        assert rows[0]["action"] == "actions/checkout"
+        err = capsys.readouterr().err
+        assert "disappeared" in err
+
+
+# ---------------------------------------------------------------------------
+# Comment regex (B1 fix)
+# ---------------------------------------------------------------------------
+
+
+class TestCommentRegexB1Fix:
+    """Verify the B1 fix: comment regex doesn't capture description words."""
+
+    def test_descriptive_comment_not_captured_as_tag(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "a" * 40
+        # "Checkout" starts with a capital letter, not a digit — should not
+        # be captured as a version tag
+        content = f"      - uses: actions/checkout@{sha} # Checkout code\n"
+        (wf_dir / "ci.yml").write_text(content)
+
+        with patch("workflow_versions.WORKFLOWS_DIR", wf_dir):
+            rows = scan_workflows(resolve_tags=False)
+
+        assert rows[0]["comment_tag"] is None
+
+    def test_version_tag_still_captured(self, tmp_path: Path) -> None:
+        wf_dir = tmp_path / "workflows"
+        wf_dir.mkdir()
+        sha = "a" * 40
+        content = f"      - uses: actions/checkout@{sha} # v4.2.0\n"
+        (wf_dir / "ci.yml").write_text(content)
+
+        with patch("workflow_versions.WORKFLOWS_DIR", wf_dir):
+            rows = scan_workflows(resolve_tags=False)
+
+        assert rows[0]["comment_tag"] == "v4.2.0"

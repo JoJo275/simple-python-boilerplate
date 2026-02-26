@@ -270,6 +270,11 @@ tasks:
     cmds:
       - hatch run python scripts/workflow_versions.py upgrade --dry-run {{.CLI_ARGS}}
 
+  actions:check:
+    desc: "CI gate: exit non-zero if any actions are stale or upgradable"
+    cmds:
+      - hatch run python scripts/workflow_versions.py --quiet show {{.CLI_ARGS}}
+
   # ── Database ───────────────────────────────────────────────
   db:reset:
     desc: Reset the local development database
