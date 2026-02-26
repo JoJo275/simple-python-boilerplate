@@ -51,6 +51,24 @@ class TestGetVersion:
         with patch("doctor.shutil.which", return_value=None):
             assert get_version(["nonexistent-tool", "--version"]) == "not found"
 
+    def test_handles_absolute_path_directly(self) -> None:
+        """Should skip shutil.which when cmd[0] is an existing absolute path."""
+        mock_result = MagicMock()
+        mock_result.stdout = "pip 24.3.1 from /some/path"
+        mock_result.stderr = ""
+
+        with (
+            patch("doctor.Path.is_absolute", return_value=True),
+            patch("doctor.Path.exists", return_value=True),
+            patch("doctor.subprocess.run", return_value=mock_result),
+            patch("doctor.shutil.which") as mock_which,
+        ):
+            result = get_version(["/usr/bin/python", "-m", "pip", "--version"])
+
+        # shutil.which should NOT have been called for absolute paths
+        mock_which.assert_not_called()
+        assert "pip 24.3.1" in result
+
     def test_returns_stdout_first_line(self) -> None:
         mock_result = MagicMock()
         mock_result.stdout = "tool 1.2.3\nsome other info"
@@ -259,3 +277,41 @@ class TestGitInfo:
 
         assert result["branch"] == "unknown"
         assert result["commit"] == "unknown"
+
+
+# ---------------------------------------------------------------------------
+# collect_diagnostics (parallel tools)
+# ---------------------------------------------------------------------------
+
+
+class TestCollectDiagnostics:
+    """Tests for the full diagnostics collector."""
+
+    def test_tools_include_actionlint_and_cz(self) -> None:
+        """actionlint and cz should appear in the tools section."""
+        from doctor import collect_diagnostics
+
+        info = collect_diagnostics()
+        tools = info["tools"]
+        assert isinstance(tools, dict)
+        assert "actionlint" in tools
+        assert "cz" in tools
+
+    def test_all_tool_values_are_strings(self) -> None:
+        """Every tool version should be a string (not an exception)."""
+        from doctor import collect_diagnostics
+
+        info = collect_diagnostics()
+        tools = info["tools"]
+        assert isinstance(tools, dict)
+        for name, value in tools.items():
+            assert isinstance(value, str), f"tools[{name!r}] is {type(value)}"
+
+    def test_timestamp_is_utc(self) -> None:
+        """Timestamp should contain UTC offset (+00:00)."""
+        from doctor import collect_diagnostics
+
+        info = collect_diagnostics()
+        ts = info["timestamp"]
+        assert isinstance(ts, str)
+        assert "+00:00" in ts
