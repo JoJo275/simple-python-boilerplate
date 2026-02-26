@@ -1,12 +1,14 @@
-# ⚠️  DEPRECATED — This repo uses pyproject.toml + Hatch as the source of truth.
-# Prefer: pip install -e ".[dev]"  (or: hatch shell)
-# This file exists only for compatibility with tools that require it.
 # Development dependencies for simple-python-boilerplate
-# Install with: python -m pip install -r requirements-dev.txt
 #
-# NOTE: This file mirrors [project.optional-dependencies].dev in pyproject.toml
-# For editable install with dev deps, prefer: python -m pip install -e ".[dev]"
-# This file is primarily for users who prefer using pip and requirements files.
+# This file is OPTIONAL. The source of truth for dependencies is
+# pyproject.toml, managed via Hatch (https://hatch.pypa.io/).
+# Preferred install methods:
+#   pip install -e ".[dev]"   (editable install with dev deps)
+#   hatch shell               (enter Hatch-managed dev environment)
+#
+# This file exists for tools and workflows that require a requirements file
+# (e.g., pip-audit, Dependabot, Docker builds without Hatch).
+# Keep it in sync with [project.optional-dependencies].dev in pyproject.toml.
 
 # Include runtime dependencies
 -r requirements.txt

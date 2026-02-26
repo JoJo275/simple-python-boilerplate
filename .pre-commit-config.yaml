@@ -219,7 +219,6 @@ repos:
           (?x)
           \.pre-commit-config\.yaml$|
           \.env\.example$|
-          requirements.*\.txt$|
           ^docs/|
           SECURITY\.md$
 
