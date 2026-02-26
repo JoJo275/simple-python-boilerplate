@@ -9,7 +9,36 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.1.0...v0.2.0) (2026-02-24)
+## [0.3.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.2.0...v0.3.0) (2026-02-26)
+
+
+### Features
+
+* add cache cleanup and regenerate files workflows; update documentation for workflow inventory ([581238e](https://github.com/JoJo275/simple-python-boilerplate/commit/581238e25acca1bdbfc38d44fed57b61ceff5ecc))
+* add timeout to run_cmd and improve version sorting in changelog check ([40b8ac4](https://github.com/JoJo275/simple-python-boilerplate/commit/40b8ac4ed36ba6f3fe445651496c4c6eed240894))
+* add unit tests for _warn_if_no_venv and _latest_version functions in test_dep_versions.py ([db4ba17](https://github.com/JoJo275/simple-python-boilerplate/commit/db4ba1773f543b68374ecb9a4c25525fa479857c))
+* add version argument to bootstrap and changelog check scripts ([10fb10a](https://github.com/JoJo275/simple-python-boilerplate/commit/10fb10a9c7f3d18d021e99334911d991c0f7d9f9))
+* add version flag to dep_versions script and update usage documentation ([a7def40](https://github.com/JoJo275/simple-python-boilerplate/commit/a7def407c7459ead60b77e0a91ba6cb59713f502))
+* enhance archive_todos script with backup functionality and logging; add unit tests for helper functions ([d7b50cf](https://github.com/JoJo275/simple-python-boilerplate/commit/d7b50cf181f35ead02c202295ffd1b264163304e))
+* enhance check_todos script to support suffix-based directory exclusion and improve argument parsing ([9513b53](https://github.com/JoJo275/simple-python-boilerplate/commit/9513b538f60f2bdf63cba3dd82b0714fbe83d45f))
+* enhance check_todos script with JSON output and quiet mode; add logging and improve exclusion logic ([e9e26bf](https://github.com/JoJo275/simple-python-boilerplate/commit/e9e26bf2e5400df83be40b17235e762e76666e27))
+* enhance clean script with logging, quiet mode, and improved argument handling ([de21d4d](https://github.com/JoJo275/simple-python-boilerplate/commit/de21d4deb09e636a72e8856929aba7d817f07368))
+* enhance customize script with logging, error handling, and new options for quiet mode and version display ([3322c46](https://github.com/JoJo275/simple-python-boilerplate/commit/3322c46fbf3d55ba0e3fe14378928a04cabd0d61))
+* enhance doctor script with git information collection and output formatting options; add unit tests for helper functions ([119fe68](https://github.com/JoJo275/simple-python-boilerplate/commit/119fe68dc43a8477ffb1aee94ae715d9f394f37d))
+* enhance doctor script with parallel tool version collection and add quiet output option; update env_doctor for hatch version command ([6bc2763](https://github.com/JoJo275/simple-python-boilerplate/commit/6bc27631037050791470af7d3ecff9a64f5e0d8c))
+* enhance pull request draft template with new utility scripts, workflow consistency fixes, and documentation improvements ([acf09b4](https://github.com/JoJo275/simple-python-boilerplate/commit/acf09b4691cbfbe06ab22fc071132304afe6182b))
+* enhance regenerate-files workflow and dep_versions script with editable install and dry-run option for upgrades ([6089a85](https://github.com/JoJo275/simple-python-boilerplate/commit/6089a857fc555a74e7c8452130958d0b3d17163e))
+* enhance remove_path and clean functions to handle errors and return detailed results ([2169f85](https://github.com/JoJo275/simple-python-boilerplate/commit/2169f85f59a084927f962d117a4dde42332a03f0))
+* enhance utility scripts, CI workflows, and documentation; add new features, improve robustness, and introduce comprehensive tests ([0e49f6f](https://github.com/JoJo275/simple-python-boilerplate/commit/0e49f6f6e1373e04a16d32c7f34cc31b1f98a29f))
+* update CI workflows for documentation build and deployment; rename CodeQL workflow and enhance documentation ([47912c6](https://github.com/JoJo275/simple-python-boilerplate/commit/47912c667efaeb698a2bbe8ec2aac1eeb878b0b8))
+* update dep_versions script with TOML parsing and version specifier updates; add unit tests for helper functions ([d854799](https://github.com/JoJo275/simple-python-boilerplate/commit/d854799ffff594db4f69373254e314e852c21212))
+
+
+### Bug Fixes
+
+* update changelog links and adjust MkDocs documentation structure; improve test for virtual environment warnings ([9416283](https://github.com/JoJo275/simple-python-boilerplate/commit/94162836cd1bc5b536bc57e9c6d8621d7178c04b))
+
+## [0.2.0](https://github.com/JoJo275/simple-python-boilerplate/releases/tag/v0.2.0) (2026-02-24)
 
 
 ### Features
