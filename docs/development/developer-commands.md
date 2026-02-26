@@ -204,6 +204,13 @@ task actions:versions -- --offline
 # JSON output (useful for scripting)
 task actions:versions -- --json
 
+# Filter results (stale, upgradable, no-desc, or all)
+task actions:versions -- --filter stale
+task actions:versions -- --filter upgradable
+
+# Quiet / CI mode (exit 1 if stale or upgradable actions found)
+task actions:versions -- --quiet
+
 # Update version comments and add descriptions
 python scripts/workflow_versions.py update-comments
 task actions:update-comments
@@ -226,6 +233,7 @@ task actions:versions -- --color
 ```
 
 > **Tip:** Set `GITHUB_TOKEN` for higher API rate limits (5,000/hr vs. 60/hr).
+> The remaining rate limit is shown at the end of each run.
 
 ## Git Shortcuts
 
