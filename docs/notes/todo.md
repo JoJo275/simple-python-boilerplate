@@ -6,8 +6,10 @@ Things to explore, implement, or learn more about.
 
 - [X] Final file check: taskfile.yml
 - [X] Final file check: SECURITY.md
-- [ ] Final file check: requirements.txt
-- [ ] Final file check: requirements-dev.txt
+- [X] Final file check: requirements.txt
+- [X] Final file check: requirements-dev.txt
+- [ ] Final file check: release-please-config.json
+- [ ] Final file check: root-level README.md
 - [ ] Add in TODOs where warrented
 - [ ] Review and consolidate docs/
 - [ ]
