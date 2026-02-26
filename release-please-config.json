@@ -1,5 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "_comment_todo": "TODO (template users): Update 'package-name' to your project name. Review 'release-type' — use 'python' if publishing to PyPI, 'simple' for non-PyPI projects. Update 'extra-files' to point to your renamed __init__.py. Delete this _comment_todo field after customizing.",
   "packages": {
     ".": {
       "release-type": "simple",
