@@ -2,7 +2,7 @@
 """Remove build artifacts and caches from the repository.
 
 Cleans: dist/, build/, *.egg-info/, __pycache__/, .pytest_cache/,
-.mypy_cache/, .ruff_cache/, site/, .coverage, htmlcov/, *.pyc
+.mypy_cache/, .ruff_cache/, .cache/, site/, .coverage, htmlcov/, *.pyc
 
 Usage::
 
@@ -31,6 +31,7 @@ SCRIPT_VERSION = "1.1.0"
 
 # Top-level cache directories to remove
 CACHE_DIRS = [
+    ".cache",
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",

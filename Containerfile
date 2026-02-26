@@ -36,6 +36,11 @@ WORKDIR /build
 COPY pyproject.toml README.md LICENSE ./
 RUN python -m pip install --no-cache-dir build
 
+# Allow CI to inject the version when .git is unavailable inside the container.
+# Usage: podman build --build-arg VERSION=$(git describe --tags) ...
+ARG VERSION=""
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION}
+
 # Copy source and build the wheel
 COPY src/ src/
 RUN python -m build --wheel --outdir /build/dist
@@ -47,7 +52,7 @@ FROM ${PYTHON_BASE} AS runtime
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
 LABEL org.opencontainers.image.title="simple-python-boilerplate" \
       org.opencontainers.image.description="A Python boilerplate project" \
-      org.opencontainers.image.source="https://github.com/YOUR_USERNAME/simple-python-boilerplate" \
+      org.opencontainers.image.source="https://github.com/YOURNAME/YOURREPO" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 # Don't run as root

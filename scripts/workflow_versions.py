@@ -41,6 +41,12 @@ Quiet mode:
     ``--quiet`` / ``-q`` suppresses table and summary output.
     The exit code indicates status: 0 = all OK, 1 = stale or upgradable.
     Status/progress messages are always sent to stderr.
+
+Caching:
+    API responses are cached on disk under ``.cache/workflow-versions/``
+    with a 1-hour TTL (3600 seconds) to avoid unnecessary API calls
+    during repeated runs.  Override with ``WV_CACHE_TTL`` env var
+    (seconds).  Set ``WV_CACHE_TTL=0`` to disable caching entirely.
 """
 
 from __future__ import annotations

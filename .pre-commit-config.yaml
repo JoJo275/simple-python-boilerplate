@@ -285,11 +285,14 @@ repos:
   # pip-audit — Vulnerability check against OSV / PyPI advisory DB
   # Complements the security-audit.yml CI workflow with shift-left
   # detection before code leaves your machine.
+  # NOTE: pip-audit runs in an isolated venv, so we must explicitly
+  #       pass requirements files for it to have something to audit.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pypa/pip-audit
     rev: v2.7.3
     hooks:
       - id: pip-audit
+        args: ["-r", "requirements-dev.txt"]
         stages: [pre-push]
 
   # ---------------------------------------------------------------------------

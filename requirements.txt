@@ -1,4 +1,6 @@
-# Optional: this repo uses pyproject.toml as the source of truth.
+# ⚠️  DEPRECATED — This repo uses pyproject.toml + Hatch as the source of truth.
+# Prefer: pip install -e .  (or: hatch shell)
+# This file exists only for compatibility with tools that require it.
 # Runtime dependencies for simple-python-boilerplate
 # Install with: python -m pip install -r requirements.txt
 #

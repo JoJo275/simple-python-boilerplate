@@ -39,7 +39,10 @@ def project_root() -> Path:
 def sample_input() -> str:
     """Provide sample input data for processing tests.
 
+    TODO (template users): Replace this with a fixture relevant to your
+    project, or delete it if you don't need shared test data.
+
     Returns:
-        A non-empty string suitable for ``process_data()``.
+        A non-empty string suitable for placeholder tests.
     """
     return "hello world"
