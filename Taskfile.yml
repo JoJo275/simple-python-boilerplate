@@ -6,6 +6,10 @@
 #   task test         # run tests
 #   task check        # run all quality checks
 #   task --list-all   # show all tasks including internal ones
+#
+# TODO (template users): Review all tasks below and remove or adapt any that
+#   don't apply to your project (e.g., db:*, labels:*, container tasks).
+#   Add tasks for your own scripts and workflows as needed.
 
 version: "3"
 
@@ -211,6 +215,9 @@ tasks:
       - hatch project metadata
 
   # ── Run ────────────────────────────────────────────────────
+  # TODO (template users): Update the entry point below. 'spb' is the CLI
+  #   name defined in [project.scripts] in pyproject.toml. Replace it with
+  #   your own entry point name.
   run:
     desc: Run the application
     cmds:
@@ -301,6 +308,8 @@ tasks:
       - hatch run python scripts/workflow_versions.py --quiet show {{.CLI_ARGS}}
 
   # ── Database ───────────────────────────────────────────────
+  # TODO (template users): Remove this section if your project doesn't use a
+  #   database. If it does, update the path and SQL script to match your setup.
   db:reset:
     desc: Reset the local development database
     prompt: This will DELETE all data in the dev database. Continue?
@@ -309,6 +318,9 @@ tasks:
       - cmd: echo "Database reset complete."
 
   # ── Labels ────────────────────────────────────────────────
+  # TODO (template users): These tasks apply GitHub issue/PR labels. Run
+  #   'task labels:dry-run' first to preview. Remove if you manage labels
+  #   through the GitHub UI instead.
   labels:apply:
     desc: "Apply GitHub labels (usage: task labels:apply -- --set baseline [--repo OWNER/REPO] [--dry-run])"
     cmds:
