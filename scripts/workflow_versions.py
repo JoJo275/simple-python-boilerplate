@@ -40,10 +40,13 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+SCRIPT_VERSION = "1.0.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
@@ -73,7 +76,7 @@ _USES_RE = re.compile(
 # ---------------------------------------------------------------------------
 
 
-def _gh_api(url: str) -> object:
+def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
     """Make a GET request to the GitHub API and return parsed JSON.
 
     Uses ``GITHUB_TOKEN`` / ``GH_TOKEN`` env var if available.
@@ -350,7 +353,9 @@ def _action_description(action: str) -> str | None:
         except (ValueError, UnicodeDecodeError):
             continue
 
-        # Simple YAML parsing: find top-level ``description:`` key
+        # Simple YAML parsing — regex-based, not a full parser.
+        # Handles scalar values and quoted strings but not
+        # multi-line block scalars (>, |) or YAML anchors.
         for yml_line in raw.splitlines():
             if not yml_line.startswith("description"):
                 continue
@@ -795,7 +800,21 @@ def upgrade_all_actions(
 # ---------------------------------------------------------------------------
 
 
-def build_parser() -> argparse.ArgumentParser:
+def _unique_by_slug(
+    rows: list[dict[str, str | None]],
+) -> list[dict[str, str | None]]:
+    """Deduplicate *rows* by repo slug, keeping the first occurrence."""
+    seen: set[str] = set()
+    unique: list[dict[str, str | None]] = []
+    for r in rows:
+        slug = _repo_slug(r["action"] or "")
+        if slug not in seen:
+            seen.add(slug)
+            unique.append(r)
+    return unique
+
+
+def _build_parser() -> argparse.ArgumentParser:
     """Build the argument parser."""
     parser = argparse.ArgumentParser(
         prog="workflow_versions",
@@ -803,6 +822,11 @@ def build_parser() -> argparse.ArgumentParser:
             "Show and update version comments on SHA-pinned "
             "GitHub Actions in .github/workflows/."
         ),
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -814,6 +838,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--offline",
         action="store_true",
         help="Skip resolving tags via GitHub API (just show comment tags).",
+    )
+    show_p.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output results as JSON instead of a table.",
     )
 
     sub.add_parser(
@@ -848,9 +878,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
-    """Entry point."""
-    parser = build_parser()
+def main() -> int:
+    """Entry point — returns 0 on success, 1 on error."""
+    parser = _build_parser()
     args = parser.parse_args()
     command = args.command or "show"
 
@@ -858,17 +888,26 @@ def main() -> None:
 
     if not WORKFLOWS_DIR.is_dir():
         print(f"  No workflows directory found at {WORKFLOWS_DIR}")
-        sys.exit(1)
+        return 1
 
     if command == "show":
         offline = getattr(args, "offline", False)
+        use_json = getattr(args, "json_output", False)
         rows = scan_workflows(
             resolve_tags=not offline,
             check_latest=not offline,
         )
         if not rows:
-            print("  No SHA-pinned actions found in workflow files.")
-            return
+            if use_json:
+                print(json.dumps([], indent=2))
+            else:
+                print("  No SHA-pinned actions found in workflow files.")
+            return 0
+
+        if use_json:
+            print(json.dumps(rows, indent=2))
+            return 0
+
         print_report(rows)
 
         # Summary
@@ -887,14 +926,7 @@ def main() -> None:
         else:
             print("\n  All comments are up to date.")
 
-        # Dedupe upgradable by repo slug
-        seen_slugs: set[str] = set()
-        unique_upgradable: list[dict[str, str | None]] = []
-        for r in upgradable:
-            slug = _repo_slug(r["action"] or "")
-            if slug not in seen_slugs:
-                seen_slugs.add(slug)
-                unique_upgradable.append(r)
+        unique_upgradable = _unique_by_slug(upgradable)
         if unique_upgradable:
             print(
                 f"  {len(unique_upgradable)} action(s) can be "
@@ -905,13 +937,13 @@ def main() -> None:
         rows = scan_workflows(resolve_tags=True)
         if not rows:
             print("  No SHA-pinned actions found.")
-            return
+            return 0
         print_report(rows)
 
         needs_update = [r for r in rows if r["stale"] in ("yes", "missing", "no-desc")]
         if not needs_update:
             print("\n  All comments are already up to date.")
-            return
+            return 0
 
         count = update_comments(rows)
         if count:
@@ -928,14 +960,14 @@ def main() -> None:
             rows = scan_workflows(resolve_tags=True, check_latest=True)
             if not rows:
                 print("  No SHA-pinned actions found.")
-                sys.exit(1)
+                return 1
 
             # Verify the action exists in workflows
             slug = _repo_slug(action_arg)
             matching = [r for r in rows if _repo_slug(r["action"] or "") == slug]
             if not matching:
                 print(f"  '{action_arg}' not found in workflow files.")
-                sys.exit(1)
+                return 1
 
             if version_arg:
                 target = version_arg
@@ -943,7 +975,7 @@ def main() -> None:
                 target = matching[0].get("latest_tag")
                 if not target:
                     print(f"  Could not determine latest tag for {slug}.")
-                    sys.exit(1)
+                    return 1
 
             current = matching[0].get("resolved_tag") or matching[0].get("comment_tag")
             print(f"  {slug}: {current} -> {target}")
@@ -957,23 +989,15 @@ def main() -> None:
             rows = scan_workflows(resolve_tags=True, check_latest=True)
             if not rows:
                 print("  No SHA-pinned actions found.")
-                return
+                return 0
             print_report(rows)
 
             upgradable = [r for r in rows if r.get("upgradable") == "yes"]
             if not upgradable:
                 print("\n  All actions are already at their latest version.")
-                return
+                return 0
 
-            # Dedupe by slug
-            seen_slugs_u: set[str] = set()
-            unique: list[dict[str, str | None]] = []
-            for r in upgradable:
-                s = _repo_slug(r["action"] or "")
-                if s not in seen_slugs_u:
-                    seen_slugs_u.add(s)
-                    unique.append(r)
-
+            unique = _unique_by_slug(upgradable)
             print(f"\n  Upgrading {len(unique)} action(s) …\n")
             count = upgrade_all_actions(rows)
             if count:
@@ -982,7 +1006,8 @@ def main() -> None:
                 print("\n  No changes made.")
 
     print()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
