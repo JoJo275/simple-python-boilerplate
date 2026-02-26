@@ -4,6 +4,11 @@ This document guides you through customizing the boilerplate files for your own 
 
 Implement any of these changes at your discretion — this is just a guide to help you get started. You can skip or modify steps as needed for your specific project.
 
+!!! tip "Something not working?"
+    See the **[Troubleshooting & FAQ](guide/troubleshooting.md)** for solutions
+    to common errors with installation, CI/CD, pre-commit hooks, testing, Git,
+    and more.
+
 ## Quick Start
 
 1. **Clone or use as template** on GitHub
@@ -476,5 +481,8 @@ These aren't included in the template but are worth evaluating for your project:
 
 ## Need Help?
 
+- Check the **[Troubleshooting & FAQ](guide/troubleshooting.md)** — covers
+  common errors for installation, pre-commit, CI/CD, testing, linting, Git,
+  containers, virtual environments, pip, VS Code, and more
 - Open an issue on the [template repository](https://github.com/JoJo275/simple-python-boilerplate)
 - Check existing issues for common questions
