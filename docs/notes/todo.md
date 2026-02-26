@@ -5,14 +5,12 @@ Things to explore, implement, or learn more about.
 ## To Implement
 
 - [ ] Add workflow enable/disable guidance to `USING_THIS_TEMPLATE.md`
-- [ ] Full CI stress-test in strict mode
 - [ ] Add detailed design document to `docs/design/`
 - [ ] Add learning resources doc to `docs/notes/resources.md`
 
 ## Ideas for Later
 
 - [ ] Spin-off template repos: "minimal", "library", "cli", "data-science", "web-app"
-- [ ] Investigate copier/cookiecutter/cruft for interactive template generation
 - [ ] Keep Containerfile in sync with production pipeline
 
 ## For Template Users
