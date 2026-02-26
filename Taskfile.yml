@@ -260,6 +260,16 @@ tasks:
     cmds:
       - hatch run python scripts/workflow_versions.py update-comments
 
+  actions:upgrade:
+    desc: "Upgrade SHA-pinned actions (usage: task actions:upgrade, or: task actions:upgrade -- actions/checkout v6.1.0)"
+    cmds:
+      - hatch run python scripts/workflow_versions.py upgrade {{.CLI_ARGS}}
+
+  actions:upgrade:dry-run:
+    desc: Preview action upgrades without modifying files
+    cmds:
+      - hatch run python scripts/workflow_versions.py upgrade --dry-run {{.CLI_ARGS}}
+
   # ── Database ───────────────────────────────────────────────
   db:reset:
     desc: Reset the local development database

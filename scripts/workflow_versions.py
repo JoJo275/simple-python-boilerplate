@@ -23,10 +23,16 @@ Usage:
     python scripts/workflow_versions.py                # Show all actions
     python scripts/workflow_versions.py show           # Same as above
     python scripts/workflow_versions.py show --offline # Skip GitHub API
+    python scripts/workflow_versions.py show --json    # JSON output
     python scripts/workflow_versions.py update-comments # Sync comments + add descriptions
     python scripts/workflow_versions.py upgrade        # Upgrade ALL actions to latest
+    python scripts/workflow_versions.py upgrade --dry-run   # Preview upgrades
     python scripts/workflow_versions.py upgrade actions/checkout          # Upgrade one action
     python scripts/workflow_versions.py upgrade actions/checkout v6.1.0   # Pin to a version
+
+Color output:
+    Color is auto-detected (TTY + NO_COLOR/FORCE_COLOR env vars).
+    Use ``--color`` to force color or ``--no-color`` to disable it.
 """
 
 from __future__ import annotations
@@ -46,7 +52,7 @@ from typing import Any
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
@@ -69,6 +75,69 @@ _USES_RE = re.compile(
     """,
     re.VERBOSE,
 )
+
+
+# ---------------------------------------------------------------------------
+# Color support
+# ---------------------------------------------------------------------------
+
+
+class _Colors:
+    """ANSI color codes with auto-detection and manual override."""
+
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+
+    def __init__(self, *, enabled: bool | None = None) -> None:
+        if enabled is None:
+            enabled = self._auto_detect()
+        self.enabled = enabled
+
+    @staticmethod
+    def _auto_detect() -> bool:
+        """Enable color when stdout is a TTY and NO_COLOR is not set."""
+        if os.environ.get("NO_COLOR"):
+            return False
+        if os.environ.get("FORCE_COLOR"):
+            return True
+        return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+
+    def _wrap(self, code: str, text: str) -> str:
+        if not self.enabled:
+            return text
+        return f"{code}{text}{self.RESET}"
+
+    def bold(self, text: str) -> str:
+        return self._wrap(self.BOLD, text)
+
+    def dim(self, text: str) -> str:
+        return self._wrap(self.DIM, text)
+
+    def red(self, text: str) -> str:
+        return self._wrap(self.RED, text)
+
+    def green(self, text: str) -> str:
+        return self._wrap(self.GREEN, text)
+
+    def yellow(self, text: str) -> str:
+        return self._wrap(self.YELLOW, text)
+
+    def blue(self, text: str) -> str:
+        return self._wrap(self.BLUE, text)
+
+    def cyan(self, text: str) -> str:
+        return self._wrap(self.CYAN, text)
+
+
+# Global instance — overridden by CLI flags
+_colors = _Colors()
 
 
 # ---------------------------------------------------------------------------
@@ -501,7 +570,7 @@ def scan_workflows(
 
 
 def print_report(rows: list[dict[str, str | None]]) -> None:
-    """Pretty-print the workflow action report."""
+    """Pretty-print the workflow action report with optional color."""
     if not rows:
         print("  No SHA-pinned actions found.")
         return
@@ -529,8 +598,8 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
             f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  Stale?"
         )
-    print(hdr)
-    print("  " + "-" * (len(hdr) - 2))
+    print(_colors.bold(hdr))
+    print(_colors.dim("  " + "-" * (len(hdr) - 2)))
 
     for r in rows:
         ctag = r["comment_tag"] or "-"
@@ -538,19 +607,53 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
 
         if has_latest:
             ltag = r.get("latest_tag") or "-"
-            uflag = "^" if r.get("upgradable") == "yes" else ""
+            is_upgradable = r.get("upgradable") == "yes"
+            uflag = _colors.yellow("^") if is_upgradable else ""
+
+            # Color the latest tag green if current, yellow if upgrade available
+            ltag_display = (
+                _colors.yellow(ltag) if is_upgradable else _colors.green(ltag)
+            )
+
             print(
-                f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
+                f"  {_colors.dim(r['file'] or ''):<{w_file + _ansi_pad(_colors, r['file'] or '')}}  "
+                f"{_colors.cyan(r['action'] or ''):<{w_action + _ansi_pad(_colors, r['action'] or '')}}  "
                 f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  "
-                f"{ltag:<{w_ltag}}  {uflag}"
+                f"{ltag_display:<{w_ltag + _ansi_pad(_colors, ltag)}}  {uflag}"
             )
         else:
+            stale_val = r["stale"] or ""
             flag_map = {"yes": "^", "missing": "+", "no-desc": "d"}
-            flag = flag_map.get(r["stale"] or "", "")
+            raw_flag = flag_map.get(stale_val, "")
+
+            # Color flags: red for stale/missing, yellow for no-desc
+            if stale_val in ("yes", "missing"):
+                flag = _colors.red(raw_flag)
+            elif stale_val == "no-desc":
+                flag = _colors.yellow(raw_flag)
+            else:
+                flag = ""
+
             print(
-                f"  {r['file']:<{w_file}}  {r['action']:<{w_action}}  "
+                f"  {_colors.dim(r['file'] or ''):<{w_file + _ansi_pad(_colors, r['file'] or '')}}  "
+                f"{_colors.cyan(r['action'] or ''):<{w_action + _ansi_pad(_colors, r['action'] or '')}}  "
                 f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
             )
+
+
+def _ansi_pad(colors: _Colors, text: str) -> int:
+    """Return extra padding needed to compensate for ANSI escape codes.
+
+    When color is enabled, ANSI codes add invisible characters that
+    throw off ``:<width>`` format alignment.  This returns the number
+    of extra characters added so callers can add it to the field width.
+    """
+    if not colors.enabled:
+        return 0
+    # Each color wrap adds len(code) + len(RESET)
+    return len(colors.RESET) + max(
+        len(c) for c in (colors.DIM, colors.CYAN, colors.YELLOW, colors.GREEN)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -828,6 +931,23 @@ def _build_parser() -> argparse.ArgumentParser:
         action="version",
         version=f"%(prog)s {SCRIPT_VERSION}",
     )
+
+    # Color control (global flags)
+    color_group = parser.add_mutually_exclusive_group()
+    color_group.add_argument(
+        "--color",
+        action="store_true",
+        default=None,
+        dest="color",
+        help="Force colored output.",
+    )
+    color_group.add_argument(
+        "--no-color",
+        action="store_false",
+        dest="color",
+        help="Disable colored output.",
+    )
+
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     show_p = sub.add_parser(
@@ -874,17 +994,29 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Target version tag (e.g. v6.1.0). Omit for latest.",
     )
+    upgrade_p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be upgraded without modifying files.",
+    )
 
     return parser
 
 
 def main() -> int:
     """Entry point — returns 0 on success, 1 on error."""
+    global _colors
+
     parser = _build_parser()
     args = parser.parse_args()
     command = args.command or "show"
 
-    print(f"\nWorkflow action versions for {ROOT.name}\n")
+    # Initialize color support based on CLI flags
+    _colors = _Colors(enabled=args.color)
+
+    print(
+        f"\n{_colors.bold('Workflow action versions')} for {_colors.cyan(ROOT.name)}\n"
+    )
 
     if not WORKFLOWS_DIR.is_dir():
         print(f"  No workflows directory found at {WORKFLOWS_DIR}")
@@ -918,19 +1050,21 @@ def main() -> int:
             parts: list[str] = []
             if stale:
                 parts.append(
-                    f"{len(stale)} version(s) (^ = stale, + = missing)",
+                    f"{len(stale)} version(s) ({_colors.red('^')} = stale, {_colors.red('+')} = missing)",
                 )
             if no_desc:
-                parts.append(f"{len(no_desc)} description(s) (d = no desc)")
-            print(f"\n  Needs updating: {', '.join(parts)}")
+                parts.append(
+                    f"{len(no_desc)} description(s) ({_colors.yellow('d')} = no desc)"
+                )
+            print(f"\n  {_colors.yellow('Needs updating:')} {', '.join(parts)}")
         else:
-            print("\n  All comments are up to date.")
+            print(f"\n  {_colors.green('All comments are up to date.')}")
 
         unique_upgradable = _unique_by_slug(upgradable)
         if unique_upgradable:
             print(
-                f"  {len(unique_upgradable)} action(s) can be "
-                f"upgraded (^ = upgrade available)",
+                f"  {_colors.yellow(str(len(unique_upgradable)))} action(s) can be "
+                f"upgraded ({_colors.yellow('^')} = upgrade available)",
             )
 
     elif command == "update-comments":
@@ -947,13 +1081,19 @@ def main() -> int:
 
         count = update_comments(rows)
         if count:
-            print(f"\n  Updated {count} comment(s) across workflow files.")
+            print(
+                f"\n  {_colors.green(f'Updated {count} comment(s)')} across workflow files."
+            )
         else:
-            print("\n  No changes made.")
+            print(f"\n  {_colors.dim('No changes made.')}")
 
     elif command == "upgrade":
         action_arg = getattr(args, "action", None)
         version_arg = getattr(args, "version", None)
+        dry_run = getattr(args, "dry_run", False)
+
+        if dry_run:
+            print(f"  {_colors.yellow('[DRY RUN]')} No files will be modified.\n")
 
         if action_arg:
             # Upgrade a specific action
@@ -978,12 +1118,21 @@ def main() -> int:
                     return 1
 
             current = matching[0].get("resolved_tag") or matching[0].get("comment_tag")
-            print(f"  {slug}: {current} -> {target}")
-            count = upgrade_action(action_arg, target, rows)
-            if count:
-                print(f"\n  Upgraded {count} line(s) across workflow files.")
+            print(f"  {_colors.cyan(slug)}: {current} -> {_colors.green(target)}")
+
+            if dry_run:
+                files = {r["file"] for r in matching}
+                print(
+                    f"  Would update {len(matching)} line(s) in {len(files)} file(s)."
+                )
             else:
-                print("\n  No changes made.")
+                count = upgrade_action(action_arg, target, rows)
+                if count:
+                    print(
+                        f"\n  {_colors.green(f'Upgraded {count} line(s)')} across workflow files."
+                    )
+                else:
+                    print(f"\n  {_colors.dim('No changes made.')}")
         else:
             # Upgrade all
             rows = scan_workflows(resolve_tags=True, check_latest=True)
@@ -994,16 +1143,33 @@ def main() -> int:
 
             upgradable = [r for r in rows if r.get("upgradable") == "yes"]
             if not upgradable:
-                print("\n  All actions are already at their latest version.")
+                print(
+                    f"\n  {_colors.green('All actions are already at their latest version.')}"
+                )
                 return 0
 
             unique = _unique_by_slug(upgradable)
-            print(f"\n  Upgrading {len(unique)} action(s) …\n")
-            count = upgrade_all_actions(rows)
-            if count:
-                print(f"\n  Upgraded {count} line(s) across workflow files.")
+
+            if dry_run:
+                print(
+                    f"\n  {_colors.yellow('[DRY RUN]')} {len(unique)} action(s) would be upgraded:"
+                )
+                for r in unique:
+                    slug = _repo_slug(r["action"] or "")
+                    current = r.get("resolved_tag") or r.get("comment_tag") or "?"
+                    latest = r.get("latest_tag") or "?"
+                    print(
+                        f"    {_colors.cyan(slug)}: {current} -> {_colors.green(latest)}"
+                    )
             else:
-                print("\n  No changes made.")
+                print(f"\n  Upgrading {_colors.yellow(str(len(unique)))} action(s) …\n")
+                count = upgrade_all_actions(rows)
+                if count:
+                    print(
+                        f"\n  {_colors.green(f'Upgraded {count} line(s)')} across workflow files."
+                    )
+                else:
+                    print(f"\n  {_colors.dim('No changes made.')}")
 
     print()
     return 0
