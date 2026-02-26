@@ -5,7 +5,9 @@ Things to explore, implement, or learn more about.
 ## To Implement
 
 - [X] Final file check: taskfile.yml
-- [ ] Final file check: SECURITY.md
+- [X] Final file check: SECURITY.md
+- [ ] Final file check: requirements.txt
+- [ ] Final file check: requirements-dev.txt
 - [ ] Add in TODOs where warrented
 - [ ] Review and consolidate docs/
 - [ ]
