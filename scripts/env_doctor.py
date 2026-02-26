@@ -123,7 +123,7 @@ def check_hatch() -> tuple[bool, str]:
         return False, "Hatch not found — install: pipx install hatch"
     try:
         result = subprocess.run(  # nosec B603 — resolved path from shutil.which, no user input
-            [hatch, "version"],
+            [hatch, "--version"],
             capture_output=True,
             text=True,
             timeout=10,

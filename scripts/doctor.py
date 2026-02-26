@@ -11,6 +11,7 @@ Usage::
     python scripts/doctor.py --output var/doctor.txt
     python scripts/doctor.py --markdown   # For GitHub issues
     python scripts/doctor.py --json       # Machine-readable output
+    python scripts/doctor.py --quiet      # One-line summary
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import platform
 import shutil
 import subprocess  # nosec B404
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -30,16 +32,27 @@ from pathlib import Path
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 def get_version(cmd: list[str]) -> str:
-    """Run a command and extract its version output."""
-    exe = shutil.which(cmd[0])
-    if not exe:
-        return "not found"
+    """Run a command and extract its version output.
+
+    Handles both PATH-based lookups (``["ruff", "--version"]``) and
+    absolute-path commands (``[sys.executable, "-m", "pip", ...]``).
+    """
+    first = cmd[0]
+    # If it's already an absolute path that exists, use it directly;
+    # otherwise look it up on PATH via shutil.which.
+    if Path(first).is_absolute() and Path(first).exists():
+        exe: str = first
+    else:
+        found = shutil.which(first)
+        if not found:
+            return "not found"
+        exe = found
     try:
         result = subprocess.run(  # nosec B603
             [exe, *cmd[1:]],
@@ -127,19 +140,32 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
         "hatch_env": os.environ.get("HATCH_ENV", "none"),
     }
 
-    # Tool versions
-    info["tools"] = {
-        "hatch": get_version(["hatch", "--version"]),
-        "pip": get_version([sys.executable, "-m", "pip", "--version"]),
-        "task": get_version(["task", "--version"]),
-        "ruff": get_version(["ruff", "--version"]),
-        "mypy": get_version(["mypy", "--version"]),
-        "pytest": get_version(["pytest", "--version"]),
-        "pre-commit": get_version(["pre-commit", "--version"]),
-        "git": get_version(["git", "--version"]),
+    # Tool versions — collected in parallel to reduce wall-clock time
+    tool_cmds: dict[str, list[str]] = {
+        "hatch": ["hatch", "--version"],
+        "pip": [sys.executable, "-m", "pip", "--version"],
+        "task": ["task", "--version"],
+        "ruff": ["ruff", "--version"],
+        "mypy": ["mypy", "--version"],
+        "pytest": ["pytest", "--version"],
+        "pre-commit": ["pre-commit", "--version"],
+        "git": ["git", "--version"],
+        "actionlint": ["actionlint", "--version"],
+        "cz": ["cz", "version"],
     }
 
-    # Git repository
+    tools: dict[str, str] = {}
+    with ThreadPoolExecutor(max_workers=len(tool_cmds)) as pool:
+        futures = {
+            pool.submit(get_version, cmd): name for name, cmd in tool_cmds.items()
+        }
+        for future in as_completed(futures):
+            tools[futures[future]] = future.result()
+
+    # Preserve a stable key order (same as tool_cmds definition)
+    info["tools"] = {name: tools[name] for name in tool_cmds}
+
+    # Git repository — also collected in parallel with tools above
     info["git"] = _git_info()
 
     # Package status
@@ -236,11 +262,20 @@ def main() -> int:
         action="store_true",
         help="Output as JSON (machine-readable)",
     )
+    fmt_group.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Print a one-line summary only",
+    )
     args = parser.parse_args()
 
     info = collect_diagnostics()
 
-    if args.json:
+    if args.quiet:
+        section_count = len(info)
+        output = f"doctor {SCRIPT_VERSION} — {section_count} sections collected, all OK"
+    elif args.json:
         output = format_json(info)
     elif args.markdown:
         output = format_markdown(info)
