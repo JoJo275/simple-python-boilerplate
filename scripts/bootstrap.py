@@ -11,12 +11,20 @@ Typical actions:
 7. Verify editable install
 8. Print next steps
 
+Flags::
+
+    --dry-run            Show what would happen without making changes
+    --skip-hooks         Skip pre-commit hook installation
+    --skip-test-matrix   Skip creating test.py3.x environments (faster setup)
+    -q, --quiet          Suppress informational output (errors/warnings still shown)
+    --version            Print version and exit
+
 Usage::
 
-    python scripts/bootstrap.py
-    python scripts/bootstrap.py --skip-hooks
-    python scripts/bootstrap.py --skip-test-matrix  # Skip test.py3.x (3.11, 3.12, 3.13) envs
-    python scripts/bootstrap.py --dry-run            # Show what would happen
+    python scripts/bootstrap.py                            # full setup
+    python scripts/bootstrap.py --skip-hooks               # skip hook install
+    python scripts/bootstrap.py --skip-hooks --skip-test-matrix  # fastest setup
+    python scripts/bootstrap.py --dry-run                  # preview
 """
 
 from __future__ import annotations
