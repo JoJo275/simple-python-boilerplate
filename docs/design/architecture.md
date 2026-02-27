@@ -25,7 +25,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────┐   ┌────────────┐   ┌──────────────┐          │
-│  │  main.py   │──▶│   cli.py   │──▶│  engine.py   │         │
+│  │  main.py   │──▶│   cli.py  │──▶│  engine.py   │          │
 │  │  (entry    │   │  (argparse │   │  (core logic │          │
 │  │   points)  │   │   parsing) │   │   TypedDicts)│          │
 │  └────────────┘   └────────────┘   └──────┬───────┘          │
@@ -43,7 +43,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 │                                                              │
 │  ┌────────────────────┐                                      │
 │  │  dev_tools/        │  (repo maintenance, not app logic)   │
-│  │  clean.py          │                                      │
+│  │  (empty scaffold)  │                                      │
 │  └────────────────────┘                                      │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
@@ -176,7 +176,8 @@ Version is derived from git tags at build time via `hatch-vcs`
 
 1. `hatch-vcs` reads the latest git tag (e.g. `v1.2.3`)
 2. Generates `_version.py` with `__version__` and `__version_tuple__`
-3. `__init__.py` re-exports the version, with a fallback for uninstalled state
+3. `__init__.py` re-exports the version, with a hardcoded fallback
+   that `release-please` keeps in sync via `# x-release-please-version`
 4. `release-please` creates the git tags automatically
    ([ADR 021](../adr/021-automated-release-pipeline.md))
 
@@ -272,7 +273,8 @@ Dev/test dependencies are listed in `pyproject.toml`
 ## What's Not Yet Implemented
 
 - **`api.py`** — HTTP/REST interface is a placeholder (`NotImplementedError`)
-- **`sql/`** — Empty package, no application queries yet
+- **`dev_tools/`** — Empty package (just `__init__.py`), intended for repo maintenance utilities
+- **`sql/`** — Has `example_query.sql` only, no application queries yet
 - **`db/schema.sql`** — Placeholder schema, no tables defined
 
 
