@@ -13,17 +13,17 @@ Python packaging involves two distinct concerns:
 
 These are separate tools that are often confused because they share a name:
 
-| Tool | Role | Runs when |
-|------|------|-----------|
-| **Hatchling** | Build backend (like setuptools) | `pip install .`, `python -m build`, `hatch build` |
-| **Hatch** | Project manager (like tox/nox + venv) | `hatch run`, `hatch shell`, `hatch env`, `hatch build` |
+| Tool          | Role                                  | Runs when                                              |
+| ------------- | ------------------------------------- | ------------------------------------------------------ |
+| **Hatchling** | Build backend (like setuptools)       | `pip install .`, `python -m build`, `hatch build`      |
+| **Hatch**     | Project manager (like tox/nox + venv) | `hatch run`, `hatch shell`, `hatch env`, `hatch build` |
 
 ### Key mental model
 
 - **Hatchling** = "how to build the package"
 - **Hatch** = "how to work on the project and trigger builds/tests/publishing"
 
-Hatchling is declared in `[build-system]` and is used by *any* PEP 517 installer (pip, build, etc.) — it does not require Hatch to be installed. Hatch is a CLI tool that *uses* Hatchling under the hood for builds, but also manages environments, scripts, and version bumping.
+Hatchling is declared in `[build-system]` and is used by _any_ PEP 517 installer (pip, build, etc.) — it does not require Hatch to be installed. Hatch is a CLI tool that _uses_ Hatchling under the hood for builds, but also manages environments, scripts, and version bumping.
 
 ### Why use both
 
@@ -36,14 +36,14 @@ Using both gives you a single `pyproject.toml` that can define:
 
 ## Alternatives Considered
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **setuptools + tox** | Mature, widely known | Two config formats, verbose setup |
-| **setuptools + nox** | Flexible (Python-based config) | Still two separate tools/configs |
-| **Hatchling + tox/nox** | Hatchling for build, tox/nox for workflow | Mixes ecosystems unnecessarily |
-| **Flit** | Simple, minimal config | No environment management, fewer features |
-| **PDM** | PEP 582 support, lock files | Smaller community, different philosophy |
-| **Hatchling + Hatch** | Single ecosystem, single config file | Less familiar to some developers |
+| Option                  | Pros                                      | Cons                                      |
+| ----------------------- | ----------------------------------------- | ----------------------------------------- |
+| **setuptools + tox**    | Mature, widely known                      | Two config formats, verbose setup         |
+| **setuptools + nox**    | Flexible (Python-based config)            | Still two separate tools/configs          |
+| **Hatchling + tox/nox** | Hatchling for build, tox/nox for workflow | Mixes ecosystems unnecessarily            |
+| **Flit**                | Simple, minimal config                    | No environment management, fewer features |
+| **PDM**                 | PEP 582 support, lock files               | Smaller community, different philosophy   |
+| **Hatchling + Hatch**   | Single ecosystem, single config file      | Less familiar to some developers          |
 
 ## Decision
 

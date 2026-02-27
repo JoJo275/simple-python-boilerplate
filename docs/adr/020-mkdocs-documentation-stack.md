@@ -18,12 +18,12 @@ Every non-trivial project needs a documentation site that is easy to write, easy
 
 Use **MkDocs** as the static site generator with the following stack:
 
-| Component | Package | Purpose |
-|-----------|---------|---------|
-| Site generator | `mkdocs>=1.6` | Builds Markdown into a static HTML site |
-| Theme | `mkdocs-material>=9.4` | Material Design theme with dark/light toggle, search, code copy |
-| Markdown extensions | `pymdown-extensions>=10.0` | Tabbed content, admonitions, syntax highlighting |
-| API docs | `mkdocstrings[python]>=0.27` | Auto-generates reference docs from Google-style docstrings |
+| Component           | Package                      | Purpose                                                         |
+| ------------------- | ---------------------------- | --------------------------------------------------------------- |
+| Site generator      | `mkdocs>=1.6`                | Builds Markdown into a static HTML site                         |
+| Theme               | `mkdocs-material>=9.4`       | Material Design theme with dark/light toggle, search, code copy |
+| Markdown extensions | `pymdown-extensions>=10.0`   | Tabbed content, admonitions, syntax highlighting                |
+| API docs            | `mkdocstrings[python]>=0.27` | Auto-generates reference docs from Google-style docstrings      |
 
 Configuration lives in a single file:
 

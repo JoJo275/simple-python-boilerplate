@@ -58,13 +58,13 @@ pre-commit install --hook-type commit-msg        # commit-msg stage
 pre-commit install --hook-type pre-push          # pre-push stage
 ```
 
-| Stage          | Key hooks                                                            | Count |
-| :------------- | :------------------------------------------------------------------- | ----: |
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite | 35 |
-| **commit-msg** | commitizen (Conventional Commits)                                    |     1 |
-| **pre-push**   | pytest, pip-audit, gitleaks                                          |     3 |
-| **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      |     4 |
-| **Total**      |                                                                      |  **43** |
+| Stage          | Key hooks                                                               |  Count |
+| :------------- | :---------------------------------------------------------------------- | -----: |
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite |     35 |
+| **commit-msg** | commitizen (Conventional Commits)                                       |      1 |
+| **pre-push**   | pytest, pip-audit, gitleaks                                             |      3 |
+| **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules         |      4 |
+| **Total**      |                                                                         | **43** |
 
 Full hook inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md)
 Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
@@ -114,6 +114,7 @@ the installed package. See [`scripts/README.md`](../scripts/README.md) for the
 full inventory.
 
 Key scripts:
+
 - `bootstrap.py` — One-command setup for fresh clones
 - `customize.py` — Interactive project customization (use `--enable-workflows OWNER/REPO` for quick workflow enablement)
 - `clean.py` — Remove build artifacts/caches
@@ -132,16 +133,16 @@ shortcuts where available.
 
 ### Key Configuration Files
 
-| File | Controls |
-|------|----------|
-| `pyproject.toml` | Project metadata, dependencies, Hatch envs, and all tool configs (ruff, mypy, pytest, coverage, bandit, deptry, commitizen) |
-| `.pre-commit-config.yaml` | All pre-commit hook definitions and stages |
-| `_typos.toml` | Typos spellchecker exceptions and config |
-| `Taskfile.yml` | Task runner shortcuts |
-| `mkdocs.yml` | Documentation site config |
-| `Containerfile` | Multi-stage container build |
-| `release-please-config.json` | Release automation config |
-| `.github/dependabot.yml` | Dependabot auto-update schedule |
+| File                         | Controls                                                                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `pyproject.toml`             | Project metadata, dependencies, Hatch envs, and all tool configs (ruff, mypy, pytest, coverage, bandit, deptry, commitizen) |
+| `.pre-commit-config.yaml`    | All pre-commit hook definitions and stages                                                                                  |
+| `_typos.toml`                | Typos spellchecker exceptions and config                                                                                    |
+| `Taskfile.yml`               | Task runner shortcuts                                                                                                       |
+| `mkdocs.yml`                 | Documentation site config                                                                                                   |
+| `Containerfile`              | Multi-stage container build                                                                                                 |
+| `release-please-config.json` | Release automation config                                                                                                   |
+| `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
 
 ---
 
@@ -185,7 +186,7 @@ changed and update them too. Examples:
 - Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
 - Making an architectural or tooling choice → update `docs/design/architecture.md`
   and/or `docs/design/tool-decisions.md` to reflect the current state
-- Making a *significant* decision (new pattern, new tool category, new
+- Making a _significant_ decision (new pattern, new tool category, new
   convention) → propose creating an ADR in `docs/adr/`. Use the template at
   `docs/adr/template.md`. Not every change needs an ADR — reserve them for
   decisions that are hard to reverse, affect multiple parts of the project, or
@@ -235,7 +236,7 @@ debugging sessions, or multi-step tasks), provide a brief recap that covers:
 1. **What changed** — files created, modified, or deleted
 2. **Why** — the motivation or problem being solved
 3. **Impact** — how the changes benefit the project (e.g., reduced
-   complexity, improved safety, better DX) *and* any downsides or
+   complexity, improved safety, better DX) _and_ any downsides or
    trade-offs introduced (e.g., added maintenance burden, increased
    build time, new dependency). Be honest about both sides so the user
    can judge the net effect.
@@ -295,6 +296,7 @@ and move on.
 ## Review Priorities
 
 ### High Priority
+
 1. **Type hints** — Public functions should have type annotations (public = exported API and anything not prefixed with `_` in `src/`)
 2. **Tests** — Changes should include or update relevant tests
 3. **Security** — Flag:
@@ -306,18 +308,21 @@ and move on.
 4. **Import errors** — Ensure imports work with src/ layout (must be installed)
 
 ### Medium Priority
+
 5. **Docstrings** — Public functions should have docstrings
 6. **Error handling** — Appropriate exception handling
 7. **Naming** — Clear, descriptive variable and function names
 
 ### Low Priority
-8. **Comments** — Explain *why*, not *what*. Skip comments that restate the code
+
+8. **Comments** — Explain _why_, not _what_. Skip comments that restate the code
    (`# Read the file` before `file.read_text()`). Add them when the reasoning
    isn't obvious — non-trivial regex patterns, workarounds, design trade-offs,
    or "this looks wrong but is intentional because…"
 9. **Code style** — Ruff handles most of this automatically
 
 ### General Guidance
+
 - **Prefer minimal diffs** — Avoid stylistic rewrites; Ruff already enforces formatting
 - **Don't churn** — Only suggest changes that add clear value
 - **Use Hatch for virtual environments** — Prefer `hatch shell` to enter the dev environment rather than creating manual `.venv` directories. Hatch manages environments automatically and keeps them in sync with `pyproject.toml`. Don't create `.venv` or `.venv-1` directories manually; use `hatch env create` if you need to explicitly create an environment.
@@ -326,6 +331,7 @@ and move on.
 ## Conventions
 
 ### Python
+
 - Use absolute imports: `from simple_python_boilerplate.module import func`
 - Type hints for all public functions and methods
 - Type checking uses **mypy** (strict mode) — prefer fixes compatible with mypy
@@ -333,12 +339,14 @@ and move on.
 - Constants in UPPER_SNAKE_CASE
 
 ### Project Structure
+
 - Source code in `src/simple_python_boilerplate/`
 - Tests in `tests/`
 - Scripts in `scripts/`
 - Documentation in `docs/`
 
 ### Git & PRs
+
 - Conventional commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `ci:`
 - Use `ci:` for workflow-only changes, `docs:` for docs-only changes, `chore:` for maintenance
 - One logical change per commit
@@ -369,6 +377,7 @@ Issues/Refs: #<issue number if applicable, otherwise omit>
 - Omit `Breaking change` and `Issues/Refs` sections when not applicable
 
 ### CI/CD
+
 - GitHub Actions pinned to full commit SHAs (not tags)
 - Workflows separated by concern (e.g., test, lint, release)
 
@@ -388,8 +397,8 @@ For deeper context beyond what's in this file, consult these docs:
   was chosen, what was skipped, and why (pre-commit hooks, workflows, Python tooling)
 - **`docs/adr/`** — Architecture Decision Records (template: `docs/adr/template.md`)
 
-These are the canonical references for *why* things are the way they are.
-This file summarises *what* to do; those files explain the reasoning.
+These are the canonical references for _why_ things are the way they are.
+This file summarises _what_ to do; those files explain the reasoning.
 
 **When numbers in this file conflict with those docs, those docs win.**
 This file is a quick-reference summary that can go stale; the docs above
@@ -397,20 +406,20 @@ are maintained as the source of truth.
 
 Key ADRs that most affect day-to-day work:
 
-| ADR | Decision |
-|-----|----------|
-| 001 | src/ layout for package structure |
-| 002 | pyproject.toml for all configuration |
-| 005 | Ruff for linting and formatting |
-| 008 | Pre-commit hooks (full inventory) |
-| 009 | Conventional commits |
-| 011 | Repository guard pattern |
-| 016 | Hatchling and Hatch |
-| 024 | CI gate pattern |
-| 026 | No pip-tools for dependency management |
+| ADR | Decision                                                    |
+| --- | ----------------------------------------------------------- |
+| 001 | src/ layout for package structure                           |
+| 002 | pyproject.toml for all configuration                        |
+| 005 | Ruff for linting and formatting                             |
+| 008 | Pre-commit hooks (full inventory)                           |
+| 009 | Conventional commits                                        |
+| 011 | Repository guard pattern                                    |
+| 016 | Hatchling and Hatch                                         |
+| 024 | CI gate pattern                                             |
+| 026 | No pip-tools for dependency management                      |
 | 029 | Testing strategy (unit/integration split, coverage, matrix) |
-| 031 | Script conventions |
-| 032 | Dependency grouping strategy |
+| 031 | Script conventions                                          |
+| 032 | Dependency grouping strategy                                |
 
 Full index: `docs/adr/README.md`
 
@@ -430,11 +439,11 @@ Full index: `docs/adr/README.md`
 
 Acknowledged gaps that don't need to be rediscovered each session:
 
-| Area | Issue | Notes |
-|------|-------|-------|
-| **CI** | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing). |
-| **CI** | Docs deploy is path-filtered | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs *build* validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
-| **Docs** | `docs/workflows.md` can drift | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast. |
-| **Template** | Placeholder source code | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely. |
+| Area         | Issue                           | Notes                                                                                                                                                                 |
+| ------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CI**       | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing).                                                                                       |
+| **CI**       | Docs deploy is path-filtered    | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs _build_ validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
+| **Docs**     | `docs/workflows.md` can drift   | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast.                                                                    |
+| **Template** | Placeholder source code         | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely.                                                           |
 
 <!-- Add new entries here as they're discovered. Remove entries when resolved. -->

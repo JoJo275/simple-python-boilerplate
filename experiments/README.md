@@ -20,9 +20,9 @@ This directory is for:
 
 ## Examples
 
-| File | Description |
-|------|-------------|
-| `example_api_test.py` | Testing an external API |
+| File                          | Description                |
+| ----------------------------- | -------------------------- |
+| `example_api_test.py`         | Testing an external API    |
 | `example_data_exploration.py` | Quick data analysis script |
 
 ## Cleanup

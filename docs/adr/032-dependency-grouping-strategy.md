@@ -12,7 +12,7 @@ organized affects developer experience, CI speed, and Dependabot's ability
 to auto-update them.
 
 [ADR 026](026-no-pip-tools.md) decided against pip-tools for dependency
-management. This ADR documents how dependencies are *grouped* and how those
+management. This ADR documents how dependencies are _grouped_ and how those
 groups map to Hatch environments, `pip install` extras, and CI workflows.
 
 ### Forces
@@ -34,12 +34,12 @@ groups map to Hatch environments, `pip install` extras, and CI workflows.
 
 Define four groups in `[project.optional-dependencies]`:
 
-| Group | Contents | Purpose |
-| :---- | :------- | :------ |
-| `test` | pytest, pytest-cov | Minimal set for running tests |
-| `dev` | test deps + ruff, mypy, pre-commit, bandit, commitizen, deptry | Full development toolchain |
-| `extras` | pipdeptree (+ commented suggestions) | Helpful but not required tools |
-| `docs` | mkdocs, mkdocs-material, pymdown-extensions, mkdocstrings | Documentation build stack |
+| Group    | Contents                                                       | Purpose                        |
+| :------- | :------------------------------------------------------------- | :----------------------------- |
+| `test`   | pytest, pytest-cov                                             | Minimal set for running tests  |
+| `dev`    | test deps + ruff, mypy, pre-commit, bandit, commitizen, deptry | Full development toolchain     |
+| `extras` | pipdeptree (+ commented suggestions)                           | Helpful but not required tools |
+| `docs`   | mkdocs, mkdocs-material, pymdown-extensions, mkdocstrings      | Documentation build stack      |
 
 ### Group relationships
 
@@ -58,20 +58,20 @@ dependency. This means installing `dev` also installs all test dependencies.
 
 ### Hatch environment mapping
 
-| Hatch env | Features | Python versions | Purpose |
-| :-------- | :------- | :-------------- | :------ |
-| `default` | `["dev"]` | System default | Day-to-day development (`hatch shell`) |
-| `docs` | `["docs"]` | System default | Documentation build and serve |
-| `test` | `["test"]` | 3.11, 3.12, 3.13 | Multi-version test matrix |
+| Hatch env | Features   | Python versions  | Purpose                                |
+| :-------- | :--------- | :--------------- | :------------------------------------- |
+| `default` | `["dev"]`  | System default   | Day-to-day development (`hatch shell`) |
+| `docs`    | `["docs"]` | System default   | Documentation build and serve          |
+| `test`    | `["test"]` | 3.11, 3.12, 3.13 | Multi-version test matrix              |
 
 ### requirements.txt files
 
 Two mirror files exist for compatibility:
 
-| File | Mirrors | Purpose |
-| :--- | :------ | :------ |
-| `requirements.txt` | Runtime deps (`[project.dependencies]`) | Tools that read requirements.txt (some CI actions, Dependabot pip) |
-| `requirements-dev.txt` | `test` + `dev` groups combined | Same |
+| File                   | Mirrors                                 | Purpose                                                            |
+| :--------------------- | :-------------------------------------- | :----------------------------------------------------------------- |
+| `requirements.txt`     | Runtime deps (`[project.dependencies]`) | Tools that read requirements.txt (some CI actions, Dependabot pip) |
+| `requirements-dev.txt` | `test` + `dev` groups combined          | Same                                                               |
 
 These files are **not** the source of truth — `pyproject.toml` is
 ([ADR 002](002-pyproject-toml.md)). They exist as compatibility shims and

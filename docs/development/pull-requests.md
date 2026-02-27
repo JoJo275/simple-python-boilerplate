@@ -5,6 +5,7 @@ How to create, review, and merge pull requests in this project.
 ## Before Opening a PR
 
 1. **Create a feature branch** from `main`
+
    ```bash
    git checkout main
    git pull --ff-only
@@ -14,6 +15,7 @@ How to create, review, and merge pull requests in this project.
 2. **Make your changes** with clear, atomic commits
 
    Follow the [Conventional Commits](https://www.conventionalcommits.org/) format (see [development.md](development.md#commit-messages-conventional-commits) for the full rules):
+
    ```bash
    git commit -m "feat: add user authentication"
    ```
@@ -21,17 +23,20 @@ How to create, review, and merge pull requests in this project.
 3. **Run quality checks locally**
 
    **Quick (fix & test):**
+
    ```bash
    ruff format . && ruff check --fix . && pytest
    ```
 
    **Apply fixes:**
+
    ```bash
    ruff format .             # Auto-format code
    ruff check --fix .        # Auto-fix lint issues
    ```
 
    **Verify (CI-like):**
+
    ```bash
    pytest                    # Tests pass
    ruff check .              # Linting passes
@@ -52,17 +57,18 @@ How to create, review, and merge pull requests in this project.
 
 Use conventional commit style for PR titles:
 
-| Prefix | Use For |
-|--------|---------|
-| `feat:` | New features |
-| `fix:` | Bug fixes |
-| `docs:` | Documentation only |
-| `chore:` | Maintenance, deps |
-| `refactor:` | Code restructuring |
-| `test:` | Adding/fixing tests |
-| `ci:` | CI/CD changes |
+| Prefix      | Use For             |
+| ----------- | ------------------- |
+| `feat:`     | New features        |
+| `fix:`      | Bug fixes           |
+| `docs:`     | Documentation only  |
+| `chore:`    | Maintenance, deps   |
+| `refactor:` | Code restructuring  |
+| `test:`     | Adding/fixing tests |
+| `ci:`       | CI/CD changes       |
 
 **Examples:**
+
 - `feat: add user authentication`
 - `fix: resolve login timeout issue`
 - `docs: update installation guide`
@@ -71,16 +77,20 @@ Use conventional commit style for PR titles:
 
 ```markdown
 ## Summary
+
 Brief description of what this PR does.
 
 ## Changes
+
 - Change 1
 - Change 2
 
 ## Testing
+
 How was this tested?
 
 ## Checklist
+
 - [ ] Tests pass locally
 - [ ] Code follows style guidelines
 - [ ] Documentation updated (if needed)
@@ -93,7 +103,7 @@ How was this tested?
 - Prefer small, focused PRs — if larger than ~400 lines, explain why in the description
 - Respond to feedback promptly
 - Don't take feedback personally — it's about the code
-- Explain *why*, not just *what*
+- Explain _why_, not just _what_
 
 ### For Reviewers
 
@@ -102,12 +112,12 @@ How was this tested?
 - Approve when "good enough" — perfect is the enemy of done
 - Use conventional comments:
 
-| Prefix | Meaning |
-|--------|---------|
-| `nit:` | Minor style preference, optional |
-| `suggestion:` | Consider this approach |
-| `question:` | Need clarification |
-| `issue:` | Must be addressed |
+| Prefix        | Meaning                          |
+| ------------- | -------------------------------- |
+| `nit:`        | Minor style preference, optional |
+| `suggestion:` | Consider this approach           |
+| `question:`   | Need clarification               |
+| `issue:`      | Must be addressed                |
 
 ### What Reviewers Look For
 
@@ -123,6 +133,7 @@ How was this tested?
 ### Merge Strategy
 
 This project uses **Rebase and Merge**:
+
 - Replays commits on top of `main` without a merge commit
 - Preserves individual commit history for a linear changelog
 - Keeps `main` history clean and easy to follow
@@ -137,6 +148,7 @@ This project uses **Rebase and Merge**:
 4. Branch is up-to-date with `main`
 
 **Updating your branch (rebase workflow):**
+
 ```bash
 git fetch origin
 git rebase origin/main
@@ -155,6 +167,7 @@ git push --force-with-lease
 ## Draft PRs
 
 Use a **Draft PR** when:
+
 - You want CI feedback early but the work isn't ready to merge
 - You're seeking early design feedback before finishing implementation
 - You want to share progress without triggering review notifications

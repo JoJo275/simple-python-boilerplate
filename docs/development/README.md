@@ -4,12 +4,12 @@ Guides for developers working on this project.
 
 ## Contents
 
-| Document | Description |
-|----------|-------------|
-| [dev-setup.md](dev-setup.md) | Environment setup and prerequisites |
-| [development.md](development.md) | Daily workflows (testing, linting, building) |
-| [pull-requests.md](pull-requests.md) | PR guidelines and code review process |
-| [developer-commands.md](developer-commands.md) | Quick reference for common commands |
+| Document                                       | Description                                  |
+| ---------------------------------------------- | -------------------------------------------- |
+| [dev-setup.md](dev-setup.md)                   | Environment setup and prerequisites          |
+| [development.md](development.md)               | Daily workflows (testing, linting, building) |
+| [pull-requests.md](pull-requests.md)           | PR guidelines and code review process        |
+| [developer-commands.md](developer-commands.md) | Quick reference for common commands          |
 
 ## Quick Links
 

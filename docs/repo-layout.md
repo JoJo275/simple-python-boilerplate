@@ -88,64 +88,64 @@ simple-python-boilerplate/
 
 These are essential for the package to function.
 
-| Path | Purpose | What Breaks If Removed |
-|------|---------|------------------------|
-| `src/simple_python_boilerplate/` | Package source code | Everything — no package to import |
-| `src/simple_python_boilerplate/__init__.py` | Package marker, exports version | Package won't be recognized |
-| `pyproject.toml` | Build config, metadata, tool settings | Can't install, build, or configure tools |
-| `LICENSE` | Legal terms | License compliance issues |
+| Path                                        | Purpose                               | What Breaks If Removed                   |
+| ------------------------------------------- | ------------------------------------- | ---------------------------------------- |
+| `src/simple_python_boilerplate/`            | Package source code                   | Everything — no package to import        |
+| `src/simple_python_boilerplate/__init__.py` | Package marker, exports version       | Package won't be recognized              |
+| `pyproject.toml`                            | Build config, metadata, tool settings | Can't install, build, or configure tools |
+| `LICENSE`                                   | Legal terms                           | License compliance issues                |
 
 ### Testing
 
-| Path | Purpose | What Breaks If Removed |
-|------|---------|------------------------|
-| `tests/` | Test suite | No tests to run, CI fails |
-| `tests/unit/` | Unit tests | Reduced test coverage |
+| Path                 | Purpose           | What Breaks If Removed              |
+| -------------------- | ----------------- | ----------------------------------- |
+| `tests/`             | Test suite        | No tests to run, CI fails           |
+| `tests/unit/`        | Unit tests        | Reduced test coverage               |
 | `tests/integration/` | Integration tests | Can't verify component interactions |
 
 ### CI/CD
 
-| Path | Purpose | What Breaks If Removed |
-|------|---------|------------------------|
-| `.github/workflows/test.yml` | Run tests on push/PR | No automated testing |
-| `.github/workflows/lint-format.yml` | Code quality checks | Formatting issues slip through |
-| `.github/workflows/release.yml` | Build on version tags | Manual build required |
-| `.github/dependabot.yml` | Dependency updates | Manual dependency management |
+| Path                                | Purpose               | What Breaks If Removed         |
+| ----------------------------------- | --------------------- | ------------------------------ |
+| `.github/workflows/test.yml`        | Run tests on push/PR  | No automated testing           |
+| `.github/workflows/lint-format.yml` | Code quality checks   | Formatting issues slip through |
+| `.github/workflows/release.yml`     | Build on version tags | Manual build required          |
+| `.github/dependabot.yml`            | Dependency updates    | Manual dependency management   |
 
 See [workflows.md](workflows.md) for full workflow documentation.
 
 ### Documentation
 
-| Path | Purpose | What Breaks If Removed |
-|------|---------|------------------------|
-| `README.md` | Project overview | No landing page |
-| `CONTRIBUTING.md` | Contribution guide | Contributors lack guidance |
-| `docs/` | Detailed documentation | Missing context for developers |
-| `docs/adr/` | Decision records | Lost architectural context |
-| `CHANGELOG.md` | Version history | No release notes |
+| Path              | Purpose                | What Breaks If Removed         |
+| ----------------- | ---------------------- | ------------------------------ |
+| `README.md`       | Project overview       | No landing page                |
+| `CONTRIBUTING.md` | Contribution guide     | Contributors lack guidance     |
+| `docs/`           | Detailed documentation | Missing context for developers |
+| `docs/adr/`       | Decision records       | Lost architectural context     |
+| `CHANGELOG.md`    | Version history        | No release notes               |
 
 ### Development Experience
 
-| Path | Purpose | What Breaks If Removed |
-|------|---------|------------------------|
-| `.pre-commit-config.yaml` | Pre-commit hooks | Local checks disabled |
-| `requirements-dev.txt` | Dev dependencies list | Unclear what to install |
-| `.gitignore` | Exclude generated files | Caches committed to git |
-| `.gitattributes` | Line ending normalization | Cross-platform issues |
+| Path                      | Purpose                   | What Breaks If Removed  |
+| ------------------------- | ------------------------- | ----------------------- |
+| `.pre-commit-config.yaml` | Pre-commit hooks          | Local checks disabled   |
+| `requirements-dev.txt`    | Dev dependencies list     | Unclear what to install |
+| `.gitignore`              | Exclude generated files   | Caches committed to git |
+| `.gitattributes`          | Line ending normalization | Cross-platform issues   |
 
 ### Optional Components
 
 These can be removed without breaking core functionality.
 
-| Path | Purpose | Safe to Remove? |
-|------|---------|-----------------|
-| `db/` | Database assets | ✅ If not using a database |
-| `experiments/` | Scratch space | ✅ Personal exploration |
-| `labels/` | GitHub labels | ✅ Manual label management |
-| `scripts/` | Utility scripts | ✅ Convenience only |
-| `var/` | Runtime files | ✅ Example data |
-| `docs/notes/` | Personal notes | ✅ Learning reference |
-| `docs/templates/` | File templates | ✅ Copy as needed |
+| Path              | Purpose         | Safe to Remove?            |
+| ----------------- | --------------- | -------------------------- |
+| `db/`             | Database assets | ✅ If not using a database |
+| `experiments/`    | Scratch space   | ✅ Personal exploration    |
+| `labels/`         | GitHub labels   | ✅ Manual label management |
+| `scripts/`        | Utility scripts | ✅ Convenience only        |
+| `var/`            | Runtime files   | ✅ Example data            |
+| `docs/notes/`     | Personal notes  | ✅ Learning reference      |
+| `docs/templates/` | File templates  | ✅ Copy as needed          |
 
 ---
 
@@ -182,36 +182,36 @@ See [docs/notes/learning.md](notes/learning.md#source-code-file-workflow) for de
 
 ### pyproject.toml Sections
 
-| Section | Purpose |
-|---------|---------|
-| `[build-system]` | How to build the package |
-| `[project]` | Name, version, dependencies |
-| `[project.optional-dependencies]` | Dev/test extras |
-| `[project.scripts]` | CLI entry points |
-| `[tool.ruff]` | Linter configuration |
-| `[tool.mypy]` | Type checker configuration |
-| `[tool.pytest]` | Test runner configuration |
+| Section                           | Purpose                     |
+| --------------------------------- | --------------------------- |
+| `[build-system]`                  | How to build the package    |
+| `[project]`                       | Name, version, dependencies |
+| `[project.optional-dependencies]` | Dev/test extras             |
+| `[project.scripts]`               | CLI entry points            |
+| `[tool.ruff]`                     | Linter configuration        |
+| `[tool.mypy]`                     | Type checker configuration  |
+| `[tool.pytest]`                   | Test runner configuration   |
 
 ### Other Config Files
 
-| File | Tool | Purpose |
-|------|------|---------|
-| `.pre-commit-config.yaml` | pre-commit | Git hook definitions |
-| `.github/dependabot.yml` | Dependabot | Dependency update rules |
-| `requirements.txt` | pip | Production dependencies |
-| `requirements-dev.txt` | pip | Development dependencies |
+| File                      | Tool       | Purpose                  |
+| ------------------------- | ---------- | ------------------------ |
+| `.pre-commit-config.yaml` | pre-commit | Git hook definitions     |
+| `.github/dependabot.yml`  | Dependabot | Dependency update rules  |
+| `requirements.txt`        | pip        | Production dependencies  |
+| `requirements-dev.txt`    | pip        | Development dependencies |
 
 ---
 
 ## Naming Conventions
 
-| Pattern | Meaning | Example |
-|---------|---------|---------|
-| `_filename.yml` | Disabled workflow | `_spellcheck-autofix.yml` |
-| `test_*.py` | Test file | `test_example.py` |
-| `*.example.*` | Example/template file | `app.example.sqlite3` |
-| `__init__.py` | Package marker | Required in all packages |
-| `__pycache__/` | Python bytecode cache | Never commit |
+| Pattern         | Meaning               | Example                   |
+| --------------- | --------------------- | ------------------------- |
+| `_filename.yml` | Disabled workflow     | `_spellcheck-autofix.yml` |
+| `test_*.py`     | Test file             | `test_example.py`         |
+| `*.example.*`   | Example/template file | `app.example.sqlite3`     |
+| `__init__.py`   | Package marker        | Required in all packages  |
+| `__pycache__/`  | Python bytecode cache | Never commit              |
 
 ---
 
@@ -219,13 +219,13 @@ See [docs/notes/learning.md](notes/learning.md#source-code-file-workflow) for de
 
 If you're using this template, consider removing:
 
-| Path | When to Remove |
-|------|----------------|
-| `docs/notes/` | Optional — keep as reference or remove |
-| `experiments/` | After exploration |
-| `var/app.example.sqlite3` | Replace with your data |
-| `docs/templates/` | After copying what you need |
-| `db/` | If not using a database |
+| Path                      | When to Remove                         |
+| ------------------------- | -------------------------------------- |
+| `docs/notes/`             | Optional — keep as reference or remove |
+| `experiments/`            | After exploration                      |
+| `var/app.example.sqlite3` | Replace with your data                 |
+| `docs/templates/`         | After copying what you need            |
+| `db/`                     | If not using a database                |
 
 ---
 

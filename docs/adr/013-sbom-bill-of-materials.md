@@ -10,10 +10,10 @@ Software supply-chain transparency is increasingly expected by consumers, audito
 
 Two dominant SBOM standards exist:
 
-| Standard | Governing body | Strengths |
-|----------|---------------|-----------|
-| **SPDX** (ISO/IEC 5962:2021) | Linux Foundation | ISO standard; strong license metadata; GitHub-native support |
-| **CycloneDX** | OWASP / Ecma International (ECMA-424) | Purpose-built for security; rich vulnerability and service metadata |
+| Standard                     | Governing body                        | Strengths                                                           |
+| ---------------------------- | ------------------------------------- | ------------------------------------------------------------------- |
+| **SPDX** (ISO/IEC 5962:2021) | Linux Foundation                      | ISO standard; strong license metadata; GitHub-native support        |
+| **CycloneDX**                | OWASP / Ecma International (ECMA-424) | Purpose-built for security; rich vulnerability and service metadata |
 
 Neither standard is a strict superset of the other. Producing both maximises interoperability with downstream tooling.
 
@@ -21,22 +21,22 @@ Neither standard is a strict superset of the other. Producing both maximises int
 
 GitHub offers several complementary ways to surface SBOM data:
 
-| Channel | What it provides | Who controls it |
-|---------|-----------------|-----------------|
+| Channel                               | What it provides                                       | Who controls it       |
+| ------------------------------------- | ------------------------------------------------------ | --------------------- |
 | 1. **Dependency Graph "Export SBOM"** | SPDX JSON computed by GitHub from the dependency graph | GitHub (repo setting) |
-| 2. **Actions artifact** | SBOM files downloadable from a workflow run | Our workflow |
-| 3. **Release asset** | SBOM files attached to a GitHub Release | Our workflow |
-| 4. **Dependency Submission API** | Dependency data pushed into GitHub's graph and alerts | Our workflow |
+| 2. **Actions artifact**               | SBOM files downloadable from a workflow run            | Our workflow          |
+| 3. **Release asset**                  | SBOM files attached to a GitHub Release                | Our workflow          |
+| 4. **Dependency Submission API**      | Dependency data pushed into GitHub's graph and alerts  | Our workflow          |
 
 Channels 1 and 4 populate the same Dependency Graph UI but may differ because (1) uses GitHub's own resolver while (4) uses whatever our generator (Syft) detects.
 
 ### Generator tool considered
 
-| Tool | Formats | Maintained | Notes |
-|------|---------|-----------|-------|
-| **Syft** (Anchore) | SPDX, CycloneDX | Active | Multi-ecosystem scanner; used via `anchore/sbom-action` |
-| **CycloneDX CLI** | CycloneDX only | Active | Python-specific; would need a separate tool for SPDX |
-| **pip-licenses** | Custom / CycloneDX | Active | License-focused; not a full SBOM generator |
+| Tool               | Formats            | Maintained | Notes                                                   |
+| ------------------ | ------------------ | ---------- | ------------------------------------------------------- |
+| **Syft** (Anchore) | SPDX, CycloneDX    | Active     | Multi-ecosystem scanner; used via `anchore/sbom-action` |
+| **CycloneDX CLI**  | CycloneDX only     | Active     | Python-specific; would need a separate tool for SPDX    |
+| **pip-licenses**   | Custom / CycloneDX | Active     | License-focused; not a full SBOM generator              |
 
 ## Decision
 
@@ -45,12 +45,12 @@ Channels 1 and 4 populate the same Dependency Graph UI but may differ because (1
 3. **Generator: Syft** (via `anchore/sbom-action`) — single tool produces both formats; actively maintained; first-party GitHub Action available.
 4. **Enable all four distribution channels simultaneously:**
 
-   | Channel | Workflow | Authoritative? |
-   |---------|----------|---------------|
-   | 1. Dependency Graph export | Built-in (no workflow needed) | No — GitHub-computed, may differ |
-   | 2. Actions artifact | `sbom.yml` | No — per-commit snapshot |
-   | 3. Release asset | `release.yml` | **Yes — authoritative for each tagged version** |
-   | 4. Dependency Submission API | `sbom.yml` (push to main) | No — enriches GitHub UI/alerts |
+   | Channel                      | Workflow                      | Authoritative?                                  |
+   | ---------------------------- | ----------------------------- | ----------------------------------------------- |
+   | 1. Dependency Graph export   | Built-in (no workflow needed) | No — GitHub-computed, may differ                |
+   | 2. Actions artifact          | `sbom.yml`                    | No — per-commit snapshot                        |
+   | 3. Release asset             | `release.yml`                 | **Yes — authoritative for each tagged version** |
+   | 4. Dependency Submission API | `sbom.yml` (push to main)     | No — enriches GitHub UI/alerts                  |
 
 5. **Authoritative SBOM:** The release-asset SBOM (channel 3) attached to a tagged release is the authoritative SBOM for that version. It is generated from the same commit that produced the release artifacts.
 

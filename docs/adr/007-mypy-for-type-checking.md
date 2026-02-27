@@ -14,6 +14,7 @@ Python is dynamically typed, but type hints (PEP 484) allow optional static type
 - **pyre** — Facebook's checker
 
 Type checking catches bugs before runtime:
+
 - Incorrect argument types
 - Missing return statements
 - Attribute access on wrong types

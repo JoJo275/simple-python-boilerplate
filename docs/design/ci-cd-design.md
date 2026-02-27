@@ -12,14 +12,14 @@ and guidance for extending or modifying the pipeline.
 
 ## Design Goals
 
-| Goal | How it's achieved |
-|------|-------------------|
-| **Safe by default** | Repository guards disable workflows on forks/clones ([ADR 011](../adr/011-repository-guard-pattern.md)) |
-| **Single required check** | CI gate aggregates all checks into one `gate` status ([ADR 024](../adr/024-ci-gate-pattern.md)) |
-| **Independent failure** | Each concern has its own workflow file ([ADR 003](../adr/003-separate-workflow-files.md)) |
-| **Supply-chain security** | All actions pinned to full commit SHAs ([ADR 004](../adr/004-pin-action-shas.md)) |
-| **Minimal permissions** | Each workflow declares only the permissions it needs |
-| **Fast feedback** | Concurrency groups cancel superseded runs; path filters skip irrelevant workflows |
+| Goal                      | How it's achieved                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Safe by default**       | Repository guards disable workflows on forks/clones ([ADR 011](../adr/011-repository-guard-pattern.md)) |
+| **Single required check** | CI gate aggregates all checks into one `gate` status ([ADR 024](../adr/024-ci-gate-pattern.md))         |
+| **Independent failure**   | Each concern has its own workflow file ([ADR 003](../adr/003-separate-workflow-files.md))               |
+| **Supply-chain security** | All actions pinned to full commit SHAs ([ADR 004](../adr/004-pin-action-shas.md))                       |
+| **Minimal permissions**   | Each workflow declares only the permissions it needs                                                    |
+| **Fast feedback**         | Concurrency groups cancel superseded runs; path filters skip irrelevant workflows                       |
 
 ---
 
@@ -78,16 +78,16 @@ Push to main (conventional commit)
 
 These run on cron schedules independent of code changes:
 
-| Workflow | Schedule | Purpose |
-|----------|----------|---------|
-| `nightly-security.yml` | Daily | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
-| `security-codeql.yml` | Weekly | Deep semantic analysis |
-| `scorecard.yml` | Weekly | OpenSSF supply-chain security scoring |
-| `security-audit.yml` | Weekly | pip-audit against latest vuln databases |
-| `pre-commit-update.yml` | Weekly | Auto-update pre-commit hooks, opens PR |
-| `stale.yml` | Daily | Mark/close inactive issues and PRs |
-| `link-checker.yml` | Weekly | Validate URLs in documentation |
-| `regenerate-files.yml` | Weekly | Regenerate requirements.txt files from pyproject.toml |
+| Workflow                | Schedule | Purpose                                                                |
+| ----------------------- | -------- | ---------------------------------------------------------------------- |
+| `nightly-security.yml`  | Daily    | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
+| `security-codeql.yml`   | Weekly   | Deep semantic analysis                                                 |
+| `scorecard.yml`         | Weekly   | OpenSSF supply-chain security scoring                                  |
+| `security-audit.yml`    | Weekly   | pip-audit against latest vuln databases                                |
+| `pre-commit-update.yml` | Weekly   | Auto-update pre-commit hooks, opens PR                                 |
+| `stale.yml`             | Daily    | Mark/close inactive issues and PRs                                     |
+| `link-checker.yml`      | Weekly   | Validate URLs in documentation                                         |
+| `regenerate-files.yml`  | Weekly   | Regenerate requirements.txt files from pyproject.toml                  |
 
 ---
 
@@ -200,7 +200,7 @@ Each workflow declares the minimum permissions it needs:
 
 ```yaml
 permissions:
-  contents: read    # Most workflows only need to read code
+  contents: read # Most workflows only need to read code
 ```
 
 Workflows that need more (e.g. creating PRs, pushing to registries) declare
@@ -237,7 +237,7 @@ Always pin to the full 40-character commit SHA, not a tag:
 
 ```yaml
 # Good — pinned to exact commit
-- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
 # Bad — tag can be moved
 - uses: actions/checkout@v4
@@ -282,13 +282,13 @@ For services like Codecov, Snyk, or SonarCloud:
 
 ### Common Issues
 
-| Problem | Cause | Fix |
-|---------|-------|-----|
-| Workflow doesn't run | Repository guard blocking | Set `ENABLE_WORKFLOWS = 'true'` or update repo slug |
-| CI gate times out | Required check name changed | Update `REQUIRED_CHECKS` in `ci-gate.yml` to match new name |
-| Path-filtered workflow skipped | PR doesn't touch filtered paths | Expected behavior — these only run on relevant changes |
-| "Resource not accessible by integration" | Insufficient permissions | Add the needed permission to the workflow's `permissions:` block |
-| Duplicate runs on PR | Both `push` and `pull_request` fire | Use concurrency groups (already configured) — the duplicate is cancelled |
+| Problem                                  | Cause                               | Fix                                                                      |
+| ---------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------ |
+| Workflow doesn't run                     | Repository guard blocking           | Set `ENABLE_WORKFLOWS = 'true'` or update repo slug                      |
+| CI gate times out                        | Required check name changed         | Update `REQUIRED_CHECKS` in `ci-gate.yml` to match new name              |
+| Path-filtered workflow skipped           | PR doesn't touch filtered paths     | Expected behavior — these only run on relevant changes                   |
+| "Resource not accessible by integration" | Insufficient permissions            | Add the needed permission to the workflow's `permissions:` block         |
+| Duplicate runs on PR                     | Both `push` and `pull_request` fire | Use concurrency groups (already configured) — the duplicate is cancelled |
 
 ### Debugging Workflow Failures
 

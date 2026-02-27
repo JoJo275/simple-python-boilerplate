@@ -91,6 +91,7 @@ Type the following into .gitignore:
 ```
 
 Your `.gitignore` should include:
+
 ```
 .venv/
 __pycache__/
@@ -203,15 +204,15 @@ simple-python-boilerplate/
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `spb` | Run the CLI entry point |
-| `python -m pytest` | Run all tests |
-| `python -m pytest -v` | Run tests with verbose output |
-| `python -m pytest --cov` | Run tests with coverage report |
-| `python -m ruff check src/` | Lint source code |
-| `python -m ruff format src/` | Format source code |
-| `python -m mypy src/` | Type check source code |
+| Command                      | Description                    |
+| ---------------------------- | ------------------------------ |
+| `spb`                        | Run the CLI entry point        |
+| `python -m pytest`           | Run all tests                  |
+| `python -m pytest -v`        | Run tests with verbose output  |
+| `python -m pytest --cov`     | Run tests with coverage report |
+| `python -m ruff check src/`  | Lint source code               |
+| `python -m ruff format src/` | Format source code             |
+| `python -m mypy src/`        | Type check source code         |
 
 ## IDE Setup
 
@@ -223,6 +224,7 @@ simple-python-boilerplate/
    - `Ctrl+Shift+P` → "Python: Select Interpreter" → Choose `.venv`
 
 **Recommended Extensions:**
+
 - Python (ms-python.python)
 - Pylance (ms-python.vscode-pylance)
 - Ruff (charliermarsh.ruff)
@@ -238,6 +240,7 @@ simple-python-boilerplate/
 ### "spb" command not found
 
 Make sure:
+
 1. Virtual environment is activated (you see `(.venv)` in prompt)
 2. Package is installed: `python -m pip install -e ".[dev]"`
 
@@ -249,6 +252,7 @@ Make sure:
 ### Permission denied (Windows PowerShell)
 
 If you can't activate the virtual environment:
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
@@ -256,6 +260,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### pip install fails
 
 Ensure pip is up to date:
+
 ```bash
 python -m pip install --upgrade pip
 ```

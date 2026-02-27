@@ -10,15 +10,15 @@ Python projects are vulnerable to supply-chain attacks through dependencies with
 
 Options considered:
 
-| Tool | What it catches | When it runs |
-|------|----------------|--------------|
-| **Dependabot alerts** | Known CVEs in declared dependencies | Always (GitHub-native) |
-| **Dependabot version updates** | Outdated dependencies | Weekly PRs |
-| **dependency-review-action** | Newly introduced vulnerable/restricted-license deps | PR time |
-| **pip-audit** | CVEs in the installed dependency tree (transitive deps too) | Push, PR, and weekly schedule |
-| **CodeQL** | Code-level vulnerabilities (injection, XSS, etc.) | Push, PR, and weekly schedule |
-| **Bandit** | Python-specific security anti-patterns | Could be added later |
-| **Safety** | Commercial CVE database for Python | Requires paid license for full DB |
+| Tool                           | What it catches                                             | When it runs                      |
+| ------------------------------ | ----------------------------------------------------------- | --------------------------------- |
+| **Dependabot alerts**          | Known CVEs in declared dependencies                         | Always (GitHub-native)            |
+| **Dependabot version updates** | Outdated dependencies                                       | Weekly PRs                        |
+| **dependency-review-action**   | Newly introduced vulnerable/restricted-license deps         | PR time                           |
+| **pip-audit**                  | CVEs in the installed dependency tree (transitive deps too) | Push, PR, and weekly schedule     |
+| **CodeQL**                     | Code-level vulnerabilities (injection, XSS, etc.)           | Push, PR, and weekly schedule     |
+| **Bandit**                     | Python-specific security anti-patterns                      | Could be added later              |
+| **Safety**                     | Commercial CVE database for Python                          | Requires paid license for full DB |
 
 ## Decision
 
@@ -31,12 +31,12 @@ Use a multi-layer approach with four complementary tools:
 
 ### Why all four?
 
-| Layer | Dependencies (direct) | Dependencies (transitive) | Own code |
-|-------|:--------------------:|:------------------------:|:--------:|
-| Dependabot | Yes | Partial | No |
-| dependency-review | Yes | No | No |
-| pip-audit | Yes | Yes | No |
-| CodeQL | No | No | Yes |
+| Layer             | Dependencies (direct) | Dependencies (transitive) | Own code |
+| ----------------- | :-------------------: | :-----------------------: | :------: |
+| Dependabot        |          Yes          |          Partial          |    No    |
+| dependency-review |          Yes          |            No             |    No    |
+| pip-audit         |          Yes          |            Yes            |    No    |
+| CodeQL            |          No           |            No             |   Yes    |
 
 No single tool covers all three categories.
 

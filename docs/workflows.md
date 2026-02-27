@@ -13,72 +13,72 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Quality
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **Test** | [test.yml](../.github/workflows/test.yml) | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix |
-| **Lint + Format** | [lint-format.yml](../.github/workflows/lint-format.yml) | push, PR, manual | `Ruff (lint & format)` | Ruff linting and format checks |
-| **Type Check** | [type-check.yml](../.github/workflows/type-check.yml) | push, PR, manual | `mypy (strict)` | mypy strict mode against `src/` |
-| **Coverage** | [coverage.yml](../.github/workflows/coverage.yml) | push, PR, manual | `Test + upload coverage` | pytest with coverage, uploads to Codecov |
-| **Spellcheck** | [spellcheck.yml](../.github/workflows/spellcheck.yml) | push, PR, manual | `Spell check (codespell)` | Fails CI on spelling mistakes |
-| **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual | `Auto-fix typos` | Creates a PR to auto-fix spelling mistakes |
+| Workflow               | File                                                                  | Triggers         | Job name(s)                            | Purpose                                    |
+| ---------------------- | --------------------------------------------------------------------- | ---------------- | -------------------------------------- | ------------------------------------------ |
+| **Test**               | [test.yml](../.github/workflows/test.yml)                             | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix |
+| **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks             |
+| **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`            |
+| **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov   |
+| **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes              |
+| **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes |
 
 ### Security
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **Security Audit** | [security-audit.yml](../.github/workflows/security-audit.yml) | push, PR, weekly, manual | `pip-audit` | Checks Python deps against OSV/PyPI vuln databases |
-| **Bandit** | [bandit.yml](../.github/workflows/bandit.yml) | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan` | Static security analysis for Python source |
-| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR | `Scan dependencies` | Scans PRs for vulnerable or risky new dependencies |
-| **CodeQL** | [security-codeql.yml](../.github/workflows/security-codeql.yml) | push, PR, weekly | `CodeQL Analysis` | GitHub CodeQL static analysis |
-| **Container Scan** | [container-scan.yml](../.github/workflows/container-scan.yml) | push, PR, weekly, manual | `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline |
-| **Nightly Security** | [nightly-security.yml](../.github/workflows/nightly-security.yml) | daily, manual | Multiple (SBOM rescan, pip-audit, container scans) | Consolidated nightly sweep against latest vuln databases |
-| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml) | push (main), weekly, manual | `Scorecard analysis` | Evaluates repo security practices via OpenSSF Scorecard |
+| Workflow              | File                                                                | Triggers                                                | Job name(s)                                                                     | Purpose                                                  |
+| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Security Audit**    | [security-audit.yml](../.github/workflows/security-audit.yml)       | push, PR, weekly, manual                                | `pip-audit`                                                                     | Checks Python deps against OSV/PyPI vuln databases       |
+| **Bandit**            | [bandit.yml](../.github/workflows/bandit.yml)                       | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan`                                                          | Static security analysis for Python source               |
+| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR                                                      | `Scan dependencies`                                                             | Scans PRs for vulnerable or risky new dependencies       |
+| **CodeQL**            | [security-codeql.yml](../.github/workflows/security-codeql.yml)     | push, PR, weekly                                        | `CodeQL Analysis`                                                               | GitHub CodeQL static analysis                            |
+| **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                | `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
+| **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                           | Multiple (SBOM rescan, pip-audit, container scans)                              | Consolidated nightly sweep against latest vuln databases |
+| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                             | `Scorecard analysis`                                                            | Evaluates repo security practices via OpenSSF Scorecard  |
 
 ### PR Hygiene
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **PR Title** | [pr-title.yml](../.github/workflows/pr-title.yml) | PR | `Conventional commit check` | Enforces conventional commit format on PR titles |
-| **Commit Lint** | [commit-lint.yml](../.github/workflows/commit-lint.yml) | PR | `Validate commit messages` | Validates all PR commits follow Conventional Commits |
-| **Labeler** | [labeler.yml](../.github/workflows/labeler.yml) | PR | `Auto-label PR` | Auto-labels PRs based on changed file paths |
+| Workflow        | File                                                    | Triggers | Job name(s)                 | Purpose                                              |
+| --------------- | ------------------------------------------------------- | -------- | --------------------------- | ---------------------------------------------------- |
+| **PR Title**    | [pr-title.yml](../.github/workflows/pr-title.yml)       | PR       | `Conventional commit check` | Enforces conventional commit format on PR titles     |
+| **Commit Lint** | [commit-lint.yml](../.github/workflows/commit-lint.yml) | PR       | `Validate commit messages`  | Validates all PR commits follow Conventional Commits |
+| **Labeler**     | [labeler.yml](../.github/workflows/labeler.yml)         | PR       | `Auto-label PR`             | Auto-labels PRs based on changed file paths          |
 
 ### Release
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **Release Please** | [release-please.yml](../.github/workflows/release-please.yml) | push (main) | `Create or update Release PR` | Automates version bump, changelog, and git tags |
-| **Release** | [release.yml](../.github/workflows/release.yml) | tag push (`v*`), manual | `Build distribution`, `Generate release SBOMs`, `Upload release assets` | Builds sdist + wheel, optionally publishes to PyPI |
-| **SBOM** | [sbom.yml](../.github/workflows/sbom.yml) | push, PR, weekly, manual | `Generate SBOMs` | Generates SPDX + CycloneDX SBOMs |
+| Workflow           | File                                                          | Triggers                 | Job name(s)                                                             | Purpose                                            |
+| ------------------ | ------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------- |
+| **Release Please** | [release-please.yml](../.github/workflows/release-please.yml) | push (main)              | `Create or update Release PR`                                           | Automates version bump, changelog, and git tags    |
+| **Release**        | [release.yml](../.github/workflows/release.yml)               | tag push (`v*`), manual  | `Build distribution`, `Generate release SBOMs`, `Upload release assets` | Builds sdist + wheel, optionally publishes to PyPI |
+| **SBOM**           | [sbom.yml](../.github/workflows/sbom.yml)                     | push, PR, weekly, manual | `Generate SBOMs`                                                        | Generates SPDX + CycloneDX SBOMs                   |
 
 ### Documentation
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **Docs Build** | [docs-build.yml](../.github/workflows/docs-build.yml) | push, PR, manual | `Build docs` | Builds MkDocs site with `--strict` mode (CI gate quality check) |
-| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main, path-filtered), manual | `Build docs for deploy`, `Deploy to GitHub Pages` | Builds and deploys MkDocs site to GitHub Pages on push to main |
+| Workflow        | File                                                    | Triggers                           | Job name(s)                                       | Purpose                                                         |
+| --------------- | ------------------------------------------------------- | ---------------------------------- | ------------------------------------------------- | --------------------------------------------------------------- |
+| **Docs Build**  | [docs-build.yml](../.github/workflows/docs-build.yml)   | push, PR, manual                   | `Build docs`                                      | Builds MkDocs site with `--strict` mode (CI gate quality check) |
+| **Docs Deploy** | [docs-deploy.yml](../.github/workflows/docs-deploy.yml) | push (main, path-filtered), manual | `Build docs for deploy`, `Deploy to GitHub Pages` | Builds and deploys MkDocs site to GitHub Pages on push to main  |
 
 ### Container
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
+| Workflow            | File                                                            | Triggers                       | Job name(s)             | Purpose                                                    |
+| ------------------- | --------------------------------------------------------------- | ------------------------------ | ----------------------- | ---------------------------------------------------------- |
 | **Container Build** | [container-build.yml](../.github/workflows/container-build.yml) | push (main + tags), PR, manual | `Build container image` | Builds OCI container image, pushes to ghcr.io on main/tags |
 
 ### Maintenance
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **Pre-commit Update** | [pre-commit-update.yml](../.github/workflows/pre-commit-update.yml) | weekly, manual | `Auto-update hooks` | Runs `pre-commit autoupdate` and opens a PR |
-| **Stale** | [stale.yml](../.github/workflows/stale.yml) | daily, manual | `Close stale issues & PRs` | Marks and closes inactive issues/PRs |
-| **Link Checker** | [link-checker.yml](../.github/workflows/link-checker.yml) | push (path-filtered), PR (path-filtered), weekly, manual | `Check links` | Checks Markdown/HTML for broken links using lychee |
-| **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target | `Auto-approve & merge` | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes |
-| **Cache Cleanup** | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml) | PR closed, manual | `Clean branch caches` | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
-| **Regenerate Files** | [regenerate-files.yml](../.github/workflows/regenerate-files.yml) | weekly, manual | `Regenerate derived files` | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR |
+| Workflow                  | File                                                                        | Triggers                                                 | Job name(s)                | Purpose                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------- |
+| **Pre-commit Update**     | [pre-commit-update.yml](../.github/workflows/pre-commit-update.yml)         | weekly, manual                                           | `Auto-update hooks`        | Runs `pre-commit autoupdate` and opens a PR                                                   |
+| **Stale**                 | [stale.yml](../.github/workflows/stale.yml)                                 | daily, manual                                            | `Close stale issues & PRs` | Marks and closes inactive issues/PRs                                                          |
+| **Link Checker**          | [link-checker.yml](../.github/workflows/link-checker.yml)                   | push (path-filtered), PR (path-filtered), weekly, manual | `Check links`              | Checks Markdown/HTML for broken links using lychee                                            |
+| **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target                                      | `Auto-approve & merge`     | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes                     |
+| **Cache Cleanup**         | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml)                 | PR closed, manual                                        | `Clean branch caches`      | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
+| **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files` | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
 
 ### Gate
 
-| Workflow | File | Triggers | Job name(s) | Purpose |
-|----------|------|----------|-------------|---------|
-| **CI Gate** | [ci-gate.yml](../.github/workflows/ci-gate.yml) | PR, push, manual | `gate` | Single fan-in "all-green" check for branch protection ([ADR 024](adr/024-ci-gate-pattern.md)) |
+| Workflow    | File                                            | Triggers         | Job name(s) | Purpose                                                                                       |
+| ----------- | ----------------------------------------------- | ---------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| **CI Gate** | [ci-gate.yml](../.github/workflows/ci-gate.yml) | PR, push, manual | `gate`      | Single fan-in "all-green" check for branch protection ([ADR 024](adr/024-ci-gate-pattern.md)) |
 
 ---
 
@@ -98,21 +98,21 @@ grep -r 'ci-gate: required' .github/workflows/
 Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 ```
 
-| Check name | Workflow |
-|-----------|----------|
-| `Ruff (lint & format)` | lint-format.yml |
-| `mypy (strict)` | type-check.yml |
-| `Spell check (codespell)` | spellcheck.yml |
-| `Test + upload coverage` | coverage.yml |
-| `Test (Python 3.11)` | test.yml |
-| `Test (Python 3.12)` | test.yml |
-| `Test (Python 3.13)` | test.yml |
-| `pip-audit` | security-audit.yml |
-| `Scan dependencies` | dependency-review.yml |
-| `Build container image` | container-build.yml |
-| `Conventional commit check` | pr-title.yml |
-| `Validate commit messages` | commit-lint.yml |
-| `Build docs` | docs-build.yml |
+| Check name                  | Workflow              |
+| --------------------------- | --------------------- |
+| `Ruff (lint & format)`      | lint-format.yml       |
+| `mypy (strict)`             | type-check.yml        |
+| `Spell check (codespell)`   | spellcheck.yml        |
+| `Test + upload coverage`    | coverage.yml          |
+| `Test (Python 3.11)`        | test.yml              |
+| `Test (Python 3.12)`        | test.yml              |
+| `Test (Python 3.13)`        | test.yml              |
+| `pip-audit`                 | security-audit.yml    |
+| `Scan dependencies`         | dependency-review.yml |
+| `Build container image`     | container-build.yml   |
+| `Conventional commit check` | pr-title.yml          |
+| `Validate commit messages`  | commit-lint.yml       |
+| `Build docs`                | docs-build.yml        |
 
 **Excluded from gate** (path-filtered — don't run on every PR):
 
@@ -138,20 +138,20 @@ Not a workflow, but automated dependency updates via
 
 All workflows in this project follow these patterns:
 
-| Convention | Detail |
-|-----------|--------|
-| **SHA-pinned actions** | Full commit SHAs with human-readable version comments ([ADR 004](adr/004-pin-action-shas.md)) |
-| **Repository guard** | Workflows are disabled by default via `YOURNAME/YOURREPO` slug check; enable with repo slug or `vars.ENABLE_*` variable ([ADR 011](adr/011-repository-guard-pattern.md)) |
-| **Concurrency control** | `cancel-in-progress: true` per workflow + ref |
-| **Timeout limits** | `timeout-minutes` set on every job |
-| **Minimal permissions** | `permissions: contents: read` (least privilege) |
-| **Persist-credentials: false** | On all checkout steps |
-| **Header comments** | Each file has a comment block explaining purpose, triggers, and TODO instructions for template users |
+| Convention                     | Detail                                                                                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **SHA-pinned actions**         | Full commit SHAs with human-readable version comments ([ADR 004](adr/004-pin-action-shas.md))                                                                            |
+| **Repository guard**           | Workflows are disabled by default via `YOURNAME/YOURREPO` slug check; enable with repo slug or `vars.ENABLE_*` variable ([ADR 011](adr/011-repository-guard-pattern.md)) |
+| **Concurrency control**        | `cancel-in-progress: true` per workflow + ref                                                                                                                            |
+| **Timeout limits**             | `timeout-minutes` set on every job                                                                                                                                       |
+| **Minimal permissions**        | `permissions: contents: read` (least privilege)                                                                                                                          |
+| **Persist-credentials: false** | On all checkout steps                                                                                                                                                    |
+| **Header comments**            | Each file has a comment block explaining purpose, triggers, and TODO instructions for template users                                                                     |
 
 ### File Naming
 
-| Pattern | Meaning |
-|---------|---------|
+| Pattern        | Meaning         |
+| -------------- | --------------- |
 | `workflow.yml` | Active workflow |
 
 ### Adding New Workflows
@@ -176,19 +176,19 @@ All GitHub Actions are pinned to full commit SHAs ([ADR 004](adr/004-pin-action-
 
 ### Commands
 
-| Task | Command | What it does |
-|------|---------|-------------|
-| **Show versions** | `task actions:versions` | List all pinned actions with current and latest tags |
-| **Show (offline)** | `task actions:versions -- --offline` | Skip GitHub API calls |
-| **Show (JSON)** | `task actions:versions -- --json` | Machine-readable output |
-| **Filter stale** | `task actions:versions -- --filter stale` | Show only stale/missing comment actions |
-| **Filter upgradable** | `task actions:versions -- --filter upgradable` | Show only upgradable actions |
-| **CI check** | `task actions:check` | Exit non-zero if stale or upgradable (CI gate shortcut) |
-| **Update comments** | `task actions:update-comments` | Sync `# vX.Y.Z` comments and add action descriptions |
-| **Upgrade all** | `task actions:upgrade` | Upgrade all actions to latest release |
-| **Upgrade (preview)** | `task actions:upgrade:dry-run` | Preview upgrades without modifying files |
-| **Upgrade one** | `task actions:upgrade -- actions/checkout` | Upgrade a specific action |
-| **Pin version** | `task actions:upgrade -- actions/checkout v6.1.0` | Pin to a specific version |
+| Task                  | Command                                           | What it does                                            |
+| --------------------- | ------------------------------------------------- | ------------------------------------------------------- |
+| **Show versions**     | `task actions:versions`                           | List all pinned actions with current and latest tags    |
+| **Show (offline)**    | `task actions:versions -- --offline`              | Skip GitHub API calls                                   |
+| **Show (JSON)**       | `task actions:versions -- --json`                 | Machine-readable output                                 |
+| **Filter stale**      | `task actions:versions -- --filter stale`         | Show only stale/missing comment actions                 |
+| **Filter upgradable** | `task actions:versions -- --filter upgradable`    | Show only upgradable actions                            |
+| **CI check**          | `task actions:check`                              | Exit non-zero if stale or upgradable (CI gate shortcut) |
+| **Update comments**   | `task actions:update-comments`                    | Sync `# vX.Y.Z` comments and add action descriptions    |
+| **Upgrade all**       | `task actions:upgrade`                            | Upgrade all actions to latest release                   |
+| **Upgrade (preview)** | `task actions:upgrade:dry-run`                    | Preview upgrades without modifying files                |
+| **Upgrade one**       | `task actions:upgrade -- actions/checkout`        | Upgrade a specific action                               |
+| **Pin version**       | `task actions:upgrade -- actions/checkout v6.1.0` | Pin to a specific version                               |
 
 ### Typical workflow after Dependabot updates
 

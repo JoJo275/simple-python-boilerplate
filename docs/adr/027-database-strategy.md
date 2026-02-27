@@ -48,7 +48,7 @@ db/
   (`CREATE TABLE IF NOT EXISTS`, `ALTER TABLE … ADD COLUMN IF NOT EXISTS`).
 - **Seeds** are numbered and provide test/development data. They should be
   re-runnable without duplicating data (`INSERT OR IGNORE`, `ON CONFLICT DO
-  NOTHING`).
+NOTHING`).
 - **Queries** store reusable SQL with parameter placeholders. The template
   doesn't mandate a particular parameter style — use whatever your driver
   expects (`?` for sqlite3, `%s` for psycopg2, etc.).

@@ -17,15 +17,15 @@ The project needs an automated release workflow that:
 
 ### Tools Considered
 
-| Tool | Approach | Pros | Cons |
-|------|----------|------|------|
-| **release-please** (Google) | Scans conventional commits, creates Release PR | Auto version from commits, editable Release PR, auto tags+releases, GitHub-native | Google-maintained (may change direction), less Python-specific |
-| **python-semantic-release** | Parses commits, pushes tags directly | Python-native, PyPI publishing built in | No reviewable Release PR, pushes tags directly (no review step) |
-| **towncrier** | Fragment files per PR, assembled at release | Per-PR granularity, no merge conflicts | Cannot auto-determine version from commits, manual version decision, requires fragment file discipline |
-| **commitizen** (bump mode) | Parses commits, bumps version | Python-native, also validates commits | Overlaps with release-please, less GitHub integration |
-| **changesets** | Fragment-based (like towncrier, from JS ecosystem) | Popular in JS projects | Node.js oriented, fragment-based |
-| **git-cliff** | Generates changelogs from commits | Fast (Rust), highly customizable templates | CLI only, no PR/release automation |
-| **release-drafter** | Generates draft release notes from PR labels | GitHub-native, label-based categories | No version bumping, no CHANGELOG file, no tag creation |
+| Tool                        | Approach                                           | Pros                                                                              | Cons                                                                                                   |
+| --------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **release-please** (Google) | Scans conventional commits, creates Release PR     | Auto version from commits, editable Release PR, auto tags+releases, GitHub-native | Google-maintained (may change direction), less Python-specific                                         |
+| **python-semantic-release** | Parses commits, pushes tags directly               | Python-native, PyPI publishing built in                                           | No reviewable Release PR, pushes tags directly (no review step)                                        |
+| **towncrier**               | Fragment files per PR, assembled at release        | Per-PR granularity, no merge conflicts                                            | Cannot auto-determine version from commits, manual version decision, requires fragment file discipline |
+| **commitizen** (bump mode)  | Parses commits, bumps version                      | Python-native, also validates commits                                             | Overlaps with release-please, less GitHub integration                                                  |
+| **changesets**              | Fragment-based (like towncrier, from JS ecosystem) | Popular in JS projects                                                            | Node.js oriented, fragment-based                                                                       |
+| **git-cliff**               | Generates changelogs from commits                  | Fast (Rust), highly customizable templates                                        | CLI only, no PR/release automation                                                                     |
+| **release-drafter**         | Generates draft release notes from PR labels       | GitHub-native, label-based categories                                             | No version bumping, no CHANGELOG file, no tag creation                                                 |
 
 ### Version Management: hatch-vcs
 
@@ -37,6 +37,7 @@ Separately from release automation, the project uses **hatch-vcs** to derive the
 - The `__init__.py` fallback (`__version__ = "0.1.0"`) is updated by release-please for human readability
 
 **Why hatch-vcs instead of a static version?**
+
 - Single source of truth (git tags)
 - No "forgot to bump the version" bugs
 - Dev builds are distinguishable from releases
@@ -100,14 +101,14 @@ release-please generates entries from conventional commits. With rebase+merge, e
 
 ### Features
 
-* add user authentication module (#42)
-* add login CLI command (#42)
-* add password hashing utility (#43)
+- add user authentication module (#42)
+- add login CLI command (#42)
+- add password hashing utility (#43)
 
 ### Bug Fixes
 
-* handle empty username in auth flow (#44)
-* correct token expiration calculation (#44)
+- handle empty username in auth flow (#44)
+- correct token expiration calculation (#44)
 ```
 
 Only user-facing commit types appear (`feat:`, `fix:`, `perf:`, `revert:`). Internal types (`docs:`, `refactor:`, `test:`, `ci:`, `chore:`, `style:`, `build:`) are hidden by default — configured in `release-please-config.json`.
@@ -128,7 +129,7 @@ Only user-facing commit types appear (`feat:`, `fix:`, `perf:`, `revert:`). Inte
 - **Commit discipline required** — every commit message on main matters for CHANGELOG
 - **Additional workflow file** — release-please.yml added to CI
 - **Google dependency** — release-please is maintained by Google; could change direction
-- **Two version sources** — hatch-vcs (authoritative at build) vs __init__.py fallback (human-readable)
+- **Two version sources** — hatch-vcs (authoritative at build) vs **init**.py fallback (human-readable)
 - **Initial tag needed** — hatch-vcs needs a `v0.1.0` tag to derive version; without it, falls back to `0.0.0+unknown`
 
 ### Files Changed

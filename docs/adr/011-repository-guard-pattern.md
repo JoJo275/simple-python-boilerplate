@@ -35,11 +35,11 @@ if: >-
 
 ### Three ways to opt in
 
-| Method | How | Best for |
-|--------|-----|----------|
-| **Option A** | Replace `YOURNAME/YOURREPO` with your repo slug in the YAML (or run `scripts/customize.py`) | Simple, permanent |
-| **Option B** | Set `vars.ENABLE_WORKFLOWS = 'true'` repository variable | Enable **all** workflows at once with no YAML edits |
-| **Option C** | Set `vars.ENABLE_<WORKFLOW> = 'true'` repository variable | Granular control over individual workflows |
+| Method       | How                                                                                         | Best for                                            |
+| ------------ | ------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **Option A** | Replace `YOURNAME/YOURREPO` with your repo slug in the YAML (or run `scripts/customize.py`) | Simple, permanent                                   |
+| **Option B** | Set `vars.ENABLE_WORKFLOWS = 'true'` repository variable                                    | Enable **all** workflows at once with no YAML edits |
+| **Option C** | Set `vars.ENABLE_<WORKFLOW> = 'true'` repository variable                                   | Granular control over individual workflows          |
 
 Options B and C can be combined — `ENABLE_WORKFLOWS` activates everything,
 then individual `ENABLE_<WORKFLOW>` variables can be used if only some

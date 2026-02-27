@@ -80,11 +80,11 @@ The pre-commit hook `check-shebang-scripts-are-executable` enforces this.
 
 ### Exit codes
 
-| Code | Meaning |
-| :--- | :------ |
-| `0` | Success |
-| `1` | General error or check failure |
-| `2` | Usage error (argparse default for bad arguments) |
+| Code | Meaning                                          |
+| :--- | :----------------------------------------------- |
+| `0`  | Success                                          |
+| `1`  | General error or check failure                   |
+| `2`  | Usage error (argparse default for bad arguments) |
 
 ### Output conventions
 
@@ -112,12 +112,12 @@ and from each other (within `scripts/`).
 
 Scripts that are commonly used have Taskfile shortcuts:
 
-| Script | Taskfile command |
-| :----- | :--------------- |
-| `bootstrap.py` | `task setup` |
-| `customize.py` | `task customize` |
-| `clean.py` | `task clean` |
-| `dep_versions.py` | `task deps:versions` |
+| Script                 | Taskfile command        |
+| :--------------------- | :---------------------- |
+| `bootstrap.py`         | `task setup`            |
+| `customize.py`         | `task customize`        |
+| `clean.py`             | `task clean`            |
+| `dep_versions.py`      | `task deps:versions`    |
 | `workflow_versions.py` | `task actions:versions` |
 
 Not every script needs a Taskfile entry. The boundary: if a script is

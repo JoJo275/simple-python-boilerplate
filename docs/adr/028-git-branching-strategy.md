@@ -10,7 +10,7 @@ A defined branching strategy ensures contributors know where to work, how
 to propose changes, and what the release flow looks like. This complements
 [ADR 022 (rebase merge strategy)](022-rebase-merge-strategy.md) and
 [ADR 023 (branch protection)](023-branch-protection-rules.md), which cover
-*how* code lands on `main` and *what gates* it must pass.
+_how_ code lands on `main` and _what gates_ it must pass.
 
 This ADR addresses a higher-level question: what branches exist, what are
 they for, and when are they created?
@@ -31,11 +31,11 @@ Use a **trunk-based development** model with short-lived feature branches.
 
 ### Branch categories
 
-| Branch | Lifetime | Purpose | Convention |
-| :----- | :------- | :------ | :--------- |
-| `main` | Permanent | Integration branch; always deployable | Protected, requires PR |
-| Feature | Short-lived | New features, bug fixes, chores | `feat/short-description`, `fix/short-description`, `chore/short-description` |
-| Release PR | Automated | Created by release-please | `release-please--branches--main` |
+| Branch     | Lifetime    | Purpose                               | Convention                                                                   |
+| :--------- | :---------- | :------------------------------------ | :--------------------------------------------------------------------------- |
+| `main`     | Permanent   | Integration branch; always deployable | Protected, requires PR                                                       |
+| Feature    | Short-lived | New features, bug fixes, chores       | `feat/short-description`, `fix/short-description`, `chore/short-description` |
+| Release PR | Automated   | Created by release-please             | `release-please--branches--main`                                             |
 
 ### Rules
 

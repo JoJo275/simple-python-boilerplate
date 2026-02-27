@@ -55,16 +55,16 @@ fit your project.
 
 Search your project for these placeholders and replace them with your values:
 
-| Placeholder                     | Replace with                          | Key files                                                          |
-| :------------------------------ | :------------------------------------ | :----------------------------------------------------------------- |
-| `simple-python-boilerplate`     | Your project name (kebab-case)        | [README.md](../README.md), [pyproject.toml](../pyproject.toml), [SECURITY.md](../SECURITY.md) |
-| `simple_python_boilerplate`     | Your package name (snake_case)        | [src/](../src/), [pyproject.toml](../pyproject.toml)               |
-| `JoJo275`                       | Your GitHub username/org              | [SECURITY.md](../SECURITY.md), issue templates                     |
-| `YOURNAME/YOURREPO`             | Your `owner/repo` slug                | [.github/workflows/](../.github/workflows/), [README.md](../README.md) |
-| `security@example.com`          | Your security contact email           | [SECURITY.md](../SECURITY.md)                                     |
-| `[INSERT EMAIL ADDRESS]`        | Your contact email                    | Various files                                                      |
-| `[Your Name]`                   | Your name                             | [LICENSE](../LICENSE), [pyproject.toml](../pyproject.toml)         |
-| `YOUR_TOKEN`                    | Your Codecov token (or remove badge)  | [README.md](../README.md)                                         |
+| Placeholder                 | Replace with                         | Key files                                                                                     |
+| :-------------------------- | :----------------------------------- | :-------------------------------------------------------------------------------------------- |
+| `simple-python-boilerplate` | Your project name (kebab-case)       | [README.md](../README.md), [pyproject.toml](../pyproject.toml), [SECURITY.md](../SECURITY.md) |
+| `simple_python_boilerplate` | Your package name (snake_case)       | [src/](../src/), [pyproject.toml](../pyproject.toml)                                          |
+| `JoJo275`                   | Your GitHub username/org             | [SECURITY.md](../SECURITY.md), issue templates                                                |
+| `YOURNAME/YOURREPO`         | Your `owner/repo` slug               | [.github/workflows/](../.github/workflows/), [README.md](../README.md)                        |
+| `security@example.com`      | Your security contact email          | [SECURITY.md](../SECURITY.md)                                                                 |
+| `[INSERT EMAIL ADDRESS]`    | Your contact email                   | Various files                                                                                 |
+| `[Your Name]`               | Your name                            | [LICENSE](../LICENSE), [pyproject.toml](../pyproject.toml)                                    |
+| `YOUR_TOKEN`                | Your Codecov token (or remove badge) | [README.md](../README.md)                                                                     |
 
 ---
 
@@ -72,23 +72,23 @@ Search your project for these placeholders and replace them with your values:
 
 ### Required
 
-| File                                          | What to change                                              |
-| :-------------------------------------------- | :---------------------------------------------------------- |
-| [README.md](../README.md)                     | Project name, description, badges, installation instructions |
-| [pyproject.toml](../pyproject.toml)           | Package name, author, dependencies, URLs, entry points      |
-| [LICENSE](../LICENSE)                          | Year, author name (or choose a different license)           |
-| [SECURITY.md](../SECURITY.md)                 | Repository URL, contact email, PGP key (optional)           |
-| [mkdocs.yml](../mkdocs.yml)                   | `site_name`, `site_url`, `repo_url`                         |
+| File                                | What to change                                               |
+| :---------------------------------- | :----------------------------------------------------------- |
+| [README.md](../README.md)           | Project name, description, badges, installation instructions |
+| [pyproject.toml](../pyproject.toml) | Package name, author, dependencies, URLs, entry points       |
+| [LICENSE](../LICENSE)               | Year, author name (or choose a different license)            |
+| [SECURITY.md](../SECURITY.md)       | Repository URL, contact email, PGP key (optional)            |
+| [mkdocs.yml](../mkdocs.yml)         | `site_name`, `site_url`, `repo_url`                          |
 
 ### Optional
 
-| File                                                              | When to customize                                       |
-| :---------------------------------------------------------------- | :------------------------------------------------------ |
-| [.github/ISSUE_TEMPLATE/*.yml](../.github/ISSUE_TEMPLATE/)       | Adjust fields, labels, or remove templates you don't need |
-| [CONTRIBUTING.md](../CONTRIBUTING.md)                             | Add project-specific contribution guidelines            |
-| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)                      | Usually fine as-is (Contributor Covenant)                |
-| [labels/*.json](../labels/)                                       | Add custom labels for your workflow — see [labels.md](labels.md) |
-| [codecov.yml](../codecov.yml)                                     | Coverage thresholds, flags, path exclusions              |
+| File                                                        | When to customize                                                |
+| :---------------------------------------------------------- | :--------------------------------------------------------------- |
+| [.github/ISSUE_TEMPLATE/\*.yml](../.github/ISSUE_TEMPLATE/) | Adjust fields, labels, or remove templates you don't need        |
+| [CONTRIBUTING.md](../CONTRIBUTING.md)                       | Add project-specific contribution guidelines                     |
+| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)                 | Usually fine as-is (Contributor Covenant)                        |
+| [labels/\*.json](../labels/)                                | Add custom labels for your workflow — see [labels.md](labels.md) |
+| [codecov.yml](../codecov.yml)                               | Coverage thresholds, flags, path exclusions                      |
 
 ---
 
@@ -96,12 +96,12 @@ Search your project for these placeholders and replace them with your values:
 
 This template includes 3 issue templates plus a config file:
 
-| Template                                                               | Purpose                    | Keep?                                     |
-| :--------------------------------------------------------------------- | :------------------------- | :---------------------------------------- |
-| [bug_report.yml](../.github/ISSUE_TEMPLATE/bug_report.yml)            | Report confirmed bugs      | Always                                    |
-| [feature_request.yml](../.github/ISSUE_TEMPLATE/feature_request.yml)  | Suggest enhancements       | Always                                    |
-| [documentation.yml](../.github/ISSUE_TEMPLATE/documentation.yml)      | Docs issues/improvements   | If you maintain docs                      |
-| [config.yml](../.github/ISSUE_TEMPLATE/config.yml)                    | External links & Discussions | Customize link targets                   |
+| Template                                                             | Purpose                      | Keep?                  |
+| :------------------------------------------------------------------- | :--------------------------- | :--------------------- |
+| [bug_report.yml](../.github/ISSUE_TEMPLATE/bug_report.yml)           | Report confirmed bugs        | Always                 |
+| [feature_request.yml](../.github/ISSUE_TEMPLATE/feature_request.yml) | Suggest enhancements         | Always                 |
+| [documentation.yml](../.github/ISSUE_TEMPLATE/documentation.yml)     | Docs issues/improvements     | If you maintain docs   |
+| [config.yml](../.github/ISSUE_TEMPLATE/config.yml)                   | External links & Discussions | Customize link targets |
 
 Additional templates are available in [docs/templates/issue_templates/](templates/issue_templates/)
 if you need them (e.g., question, performance).
@@ -122,11 +122,11 @@ For the full label taxonomy, see [labels.md](labels.md).
 
 ## Security Policy
 
-| Scenario                        | Use                                                                         |
-| :------------------------------ | :-------------------------------------------------------------------------- |
-| No bug bounty (most projects)   | [SECURITY.md](../SECURITY.md) (default) or [SECURITY_no_bounty.md](templates/SECURITY_no_bounty.md) |
-| With bug bounty                 | [SECURITY_with_bounty.md](templates/SECURITY_with_bounty.md)                |
-| Standalone bounty policy        | [BUG_BOUNTY.md](templates/BUG_BOUNTY.md)                                   |
+| Scenario                      | Use                                                                                                 |
+| :---------------------------- | :-------------------------------------------------------------------------------------------------- |
+| No bug bounty (most projects) | [SECURITY.md](../SECURITY.md) (default) or [SECURITY_no_bounty.md](templates/SECURITY_no_bounty.md) |
+| With bug bounty               | [SECURITY_with_bounty.md](templates/SECURITY_with_bounty.md)                                        |
+| Standalone bounty policy      | [BUG_BOUNTY.md](templates/BUG_BOUNTY.md)                                                            |
 
 ### Enabling Private Vulnerability Reporting
 
@@ -154,19 +154,19 @@ After creating your repo, consider enabling:
 This template ships with ~225 files. After customizing, delete anything that
 doesn't apply:
 
-| Delete                                                | If you don't need…                                                        |
-| :---------------------------------------------------- | :------------------------------------------------------------------------ |
-| [docs/templates/](templates/)                         | File templates (copy what you need first)                                 |
-| [docs/adr/template.md](adr/template.md)              | ADR template (keep if you write ADRs)                                     |
-| [experiments/](../experiments/)                        | Example experiment scripts                                                |
-| [labels/extended.json](../labels/extended.json)       | Extended label set (baseline is enough)                                   |
-| [Containerfile](../Containerfile), [docker-compose.yml](../docker-compose.yml) | Container support                                    |
-| [.devcontainer/](../.devcontainer/)                   | VS Code Dev Container / Codespaces                                        |
-| [db/](../db/), `scripts/sql/`, [var/](../var/)        | Database scaffolding                                                      |
+| Delete                                                                                   | If you don't need…                                           |
+| :--------------------------------------------------------------------------------------- | :----------------------------------------------------------- |
+| [docs/templates/](templates/)                                                            | File templates (copy what you need first)                    |
+| [docs/adr/template.md](adr/template.md)                                                  | ADR template (keep if you write ADRs)                        |
+| [experiments/](../experiments/)                                                          | Example experiment scripts                                   |
+| [labels/extended.json](../labels/extended.json)                                          | Extended label set (baseline is enough)                      |
+| [Containerfile](../Containerfile), [docker-compose.yml](../docker-compose.yml)           | Container support                                            |
+| [.devcontainer/](../.devcontainer/)                                                      | VS Code Dev Container / Codespaces                           |
+| [db/](../db/), `scripts/sql/`, [var/](../var/)                                           | Database scaffolding                                         |
 | [requirements.txt](../requirements.txt), [requirements-dev.txt](../requirements-dev.txt) | If you only use Hatch (optional mirrors of `pyproject.toml`) |
-| `site/`                                               | Built docs output (regenerated by `mkdocs build`)                         |
-| [mkdocs.yml](../mkdocs.yml), `docs/` (selectively)   | If you don't need a documentation site                                    |
-| [codecov.yml](../codecov.yml)                         | If you don't use Codecov for coverage reporting                           |
+| `site/`                                                                                  | Built docs output (regenerated by `mkdocs build`)            |
+| [mkdocs.yml](../mkdocs.yml), `docs/` (selectively)                                       | If you don't need a documentation site                       |
+| [codecov.yml](../codecov.yml)                                                            | If you don't use Codecov for coverage reporting              |
 
 > **Don't forget dependent files**
 > Some files depend on others. If you remove container files, also remove
@@ -251,11 +251,11 @@ skip on forks and clones.
 
 **Three ways to enable:**
 
-| Method                             | How                                                                                                          | Best for                                    |
-| :--------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------ |
-| **Option A — Edit the YAML**       | Replace `YOURNAME/YOURREPO` with your repo slug in each workflow file                                         | Permanent, no external config               |
-| **Option B — Global variable**     | Set `vars.ENABLE_WORKFLOWS = 'true'` as a repository variable                                                 | Enable all workflows at once                |
-| **Option C — Per-workflow variable** | Set `vars.ENABLE_<WORKFLOW> = 'true'` (e.g., `ENABLE_TEST`, `ENABLE_STALE`)                                  | Granular control                            |
+| Method                               | How                                                                         | Best for                      |
+| :----------------------------------- | :-------------------------------------------------------------------------- | :---------------------------- |
+| **Option A — Edit the YAML**         | Replace `YOURNAME/YOURREPO` with your repo slug in each workflow file       | Permanent, no external config |
+| **Option B — Global variable**       | Set `vars.ENABLE_WORKFLOWS = 'true'` as a repository variable               | Enable all workflows at once  |
+| **Option C — Per-workflow variable** | Set `vars.ENABLE_<WORKFLOW> = 'true'` (e.g., `ENABLE_TEST`, `ENABLE_STALE`) | Granular control              |
 
 > **Fastest approach**
 > Run the customization script with the `--enable-workflows` flag:
@@ -277,15 +277,15 @@ skip on forks and clones.
 
 Not every project needs all 29 workflows:
 
-| If you don't need…         | Remove these workflows                                                    | Notes                                                                  |
-| :------------------------- | :------------------------------------------------------------------------ | :--------------------------------------------------------------------- |
-| Container support          | `container-build.yml`, `container-scan.yml`                               | Also delete [Containerfile](../Containerfile) and [docker-compose.yml](../docker-compose.yml) |
-| Documentation site         | `docs-deploy.yml`                                                         | Keep `docs-build.yml` for CI validation of docs                        |
-| Automated releases         | `release-please.yml`, `release.yml`, `sbom.yml`                          | Manual releases still work via git tags                                |
-| Security scanning          | `nightly-security.yml`, `container-scan.yml`, `scorecard.yml`            | Keep `security-audit.yml` and `dependency-review.yml` at minimum       |
-| Spell checking             | `spellcheck.yml`, `spellcheck-autofix.yml`                               | Also remove the typos/codespell pre-commit hooks                       |
-| Auto-merge Dependabot      | `auto-merge-dependabot.yml`                                              | Review Dependabot PRs manually instead                                 |
-| Stale issue cleanup        | `stale.yml`                                                              | Manage stale issues manually                                           |
+| If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
+| :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |
+| Container support     | `container-build.yml`, `container-scan.yml`                   | Also delete [Containerfile](../Containerfile) and [docker-compose.yml](../docker-compose.yml) |
+| Documentation site    | `docs-deploy.yml`                                             | Keep `docs-build.yml` for CI validation of docs                                               |
+| Automated releases    | `release-please.yml`, `release.yml`, `sbom.yml`               | Manual releases still work via git tags                                                       |
+| Security scanning     | `nightly-security.yml`, `container-scan.yml`, `scorecard.yml` | Keep `security-audit.yml` and `dependency-review.yml` at minimum                              |
+| Spell checking        | `spellcheck.yml`, `spellcheck-autofix.yml`                    | Also remove the typos/codespell pre-commit hooks                                              |
+| Auto-merge Dependabot | `auto-merge-dependabot.yml`                                   | Review Dependabot PRs manually instead                                                        |
+| Stale issue cleanup   | `stale.yml`                                                   | Manage stale issues manually                                                                  |
 
 > **Don't remove core quality workflows.**
 > These are in the CI gate and should stay unless you're replacing them:
@@ -300,16 +300,16 @@ Not every project needs all 29 workflows:
 
 ### Workflow Categories
 
-| Category          | Workflows                                                                                     | Always run?                    |
-| :---------------- | :-------------------------------------------------------------------------------------------- | :----------------------------- |
-| **Quality**       | test, lint-format, type-check, coverage, spellcheck                                           | Yes — in CI gate               |
-| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard          | Mixed — some path-filtered     |
-| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                | Yes — in CI gate               |
-| **Release**       | release-please, release, sbom                                                                 | Push to main / tags only       |
-| **Documentation** | docs-build, docs-deploy                                                                       | docs-build in gate; deploy is path-filtered |
-| **Container**     | container-build, container-scan                                                               | container-build in gate        |
-| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered    |
-| **Gate**          | ci-gate                                                                                       | Yes — the single required check |
+| Category          | Workflows                                                                                      | Always run?                                 |
+| :---------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------ |
+| **Quality**       | test, lint-format, type-check, coverage, spellcheck                                            | Yes — in CI gate                            |
+| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard          | Mixed — some path-filtered                  |
+| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                 | Yes — in CI gate                            |
+| **Release**       | release-please, release, sbom                                                                  | Push to main / tags only                    |
+| **Documentation** | docs-build, docs-deploy                                                                        | docs-build in gate; deploy is path-filtered |
+| **Container**     | container-build, container-scan                                                                | container-build in gate                     |
+| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered                 |
+| **Gate**          | ci-gate                                                                                        | Yes — the single required check             |
 
 ---
 
@@ -318,12 +318,12 @@ Not every project needs all 29 workflows:
 [Pre-commit hooks](https://pre-commit.com/) catch problems before code leaves
 your machine. This template includes **43 hooks** across four Git stages:
 
-| Stage            | When it runs          | Examples                                                                | Count |
-| :--------------- | :-------------------- | :---------------------------------------------------------------------- | ----: |
-| **pre-commit**   | Every `git commit`    | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks   |    35 |
-| **commit-msg**   | Every `git commit`    | Commitizen — validates Conventional Commits format                      |     1 |
-| **pre-push**     | Every `git push`      | pytest, pip-audit, gitleaks                                             |     3 |
-| **manual**       | On demand             | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules         |     4 |
+| Stage          | When it runs       | Examples                                                             | Count |
+| :------------- | :----------------- | :------------------------------------------------------------------- | ----: |
+| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |    35 |
+| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   |     1 |
+| **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          |     3 |
+| **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      |     4 |
 
 All hooks are configured in [.pre-commit-config.yaml](../.pre-commit-config.yaml).
 See [ADR 008](adr/008-pre-commit-hooks.md) for the full inventory and rationale.
@@ -350,12 +350,12 @@ pre-commit install --hook-type pre-push
 [docs/templates/](templates/) contains reusable file templates you can copy
 and adapt:
 
-| Template                                                             | Purpose                                    |
-| :------------------------------------------------------------------- | :----------------------------------------- |
-| [SECURITY_no_bounty.md](templates/SECURITY_no_bounty.md)            | Standard security policy (most projects)   |
-| [SECURITY_with_bounty.md](templates/SECURITY_with_bounty.md)        | Security policy with bug bounty program    |
-| [BUG_BOUNTY.md](templates/BUG_BOUNTY.md)                            | Standalone bug bounty policy               |
-| [pull-request-draft.md](templates/pull-request-draft.md)            | PR description template                    |
+| Template                                                     | Purpose                                  |
+| :----------------------------------------------------------- | :--------------------------------------- |
+| [SECURITY_no_bounty.md](templates/SECURITY_no_bounty.md)     | Standard security policy (most projects) |
+| [SECURITY_with_bounty.md](templates/SECURITY_with_bounty.md) | Security policy with bug bounty program  |
+| [BUG_BOUNTY.md](templates/BUG_BOUNTY.md)                     | Standalone bug bounty policy             |
+| [pull-request-draft.md](templates/pull-request-draft.md)     | PR description template                  |
 
 Copy what you need, then delete the `docs/templates/` directory.
 
@@ -380,20 +380,20 @@ project setup, maintenance, and diagnostics. Each script supports
 `--help` for full flag details (also documented in the docstring at
 the top of each file).
 
-| Script | Purpose | Key flags |
-| :----- | :------ | :-------- |
-| [`customize.py`](../scripts/customize.py) | Replace boilerplate placeholders, rename package, swap license | `--dry-run`, `--non-interactive`, `--enable-workflows SLUG` |
-| [`bootstrap.py`](../scripts/bootstrap.py) | One-command dev environment setup (Hatch envs, hooks, verify) | `--dry-run`, `--skip-hooks`, `--skip-test-matrix` |
-| [`clean.py`](../scripts/clean.py) | Remove build artifacts and caches | `--dry-run`, `--include-venv` |
-| [`doctor.py`](../scripts/doctor.py) | Diagnostics bundle for bug reports | `--markdown`, `--json`, `--output PATH` |
-| [`env_doctor.py`](../scripts/env_doctor.py) | Quick environment health check | `--strict`, `--json` |
-| [`repo_doctor.py`](../scripts/repo_doctor.py) | Repository structure health checks (configurable rules) | `--profile NAME`, `--fix`, `--category NAME` |
-| [`dep_versions.py`](../scripts/dep_versions.py) | Show/update/upgrade dependency versions | `show --offline`, `upgrade --dry-run` |
-| [`workflow_versions.py`](../scripts/workflow_versions.py) | Show/update/upgrade SHA-pinned GitHub Actions | `show --filter stale`, `upgrade --dry-run` |
-| [`check_todos.py`](../scripts/check_todos.py) | Scan for remaining TODO (template users) comments | `--count`, `--json` |
-| [`archive_todos.py`](../scripts/archive_todos.py) | Archive completed TODOs from notes | `--dry-run`, `--no-backup` |
-| [`changelog_check.py`](../scripts/changelog_check.py) | Verify CHANGELOG entries match git tags | `--verbose`, `--quiet` |
-| [`apply_labels.py`](../scripts/apply_labels.py) | Apply GitHub labels from JSON definitions | `--set {baseline,extended}`, `--dry-run` |
+| Script                                                    | Purpose                                                        | Key flags                                                   |
+| :-------------------------------------------------------- | :------------------------------------------------------------- | :---------------------------------------------------------- |
+| [`customize.py`](../scripts/customize.py)                 | Replace boilerplate placeholders, rename package, swap license | `--dry-run`, `--non-interactive`, `--enable-workflows SLUG` |
+| [`bootstrap.py`](../scripts/bootstrap.py)                 | One-command dev environment setup (Hatch envs, hooks, verify)  | `--dry-run`, `--skip-hooks`, `--skip-test-matrix`           |
+| [`clean.py`](../scripts/clean.py)                         | Remove build artifacts and caches                              | `--dry-run`, `--include-venv`                               |
+| [`doctor.py`](../scripts/doctor.py)                       | Diagnostics bundle for bug reports                             | `--markdown`, `--json`, `--output PATH`                     |
+| [`env_doctor.py`](../scripts/env_doctor.py)               | Quick environment health check                                 | `--strict`, `--json`                                        |
+| [`repo_doctor.py`](../scripts/repo_doctor.py)             | Repository structure health checks (configurable rules)        | `--profile NAME`, `--fix`, `--category NAME`                |
+| [`dep_versions.py`](../scripts/dep_versions.py)           | Show/update/upgrade dependency versions                        | `show --offline`, `upgrade --dry-run`                       |
+| [`workflow_versions.py`](../scripts/workflow_versions.py) | Show/update/upgrade SHA-pinned GitHub Actions                  | `show --filter stale`, `upgrade --dry-run`                  |
+| [`check_todos.py`](../scripts/check_todos.py)             | Scan for remaining TODO (template users) comments              | `--count`, `--json`                                         |
+| [`archive_todos.py`](../scripts/archive_todos.py)         | Archive completed TODOs from notes                             | `--dry-run`, `--no-backup`                                  |
+| [`changelog_check.py`](../scripts/changelog_check.py)     | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                      |
+| [`apply_labels.py`](../scripts/apply_labels.py)           | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                    |
 
 Full inventory with additional details: [`scripts/README.md`](../scripts/README.md)
 
@@ -404,11 +404,11 @@ Full inventory with additional details: [`scripts/README.md`](../scripts/README.
 This template includes three container-related files
 ([ADR 025](adr/025-container-strategy.md)):
 
-| File                                           | Purpose                                                                                                      | Usage                                                          |
-| :--------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------- |
-| [Containerfile](../Containerfile)              | **Production image** — multi-stage build, minimal runtime (~150 MB)                                           | `docker build -f Containerfile .`                              |
-| [docker-compose.yml](../docker-compose.yml)    | **Orchestration** — build + run locally, or multi-service setups                                              | `docker compose up --build`                                    |
-| [.devcontainer/](../.devcontainer/)            | **Dev environment** — VS Code Dev Container / Codespaces                                                      | Open in VS Code → "Reopen in Container"                        |
+| File                                        | Purpose                                                             | Usage                                   |
+| :------------------------------------------ | :------------------------------------------------------------------ | :-------------------------------------- |
+| [Containerfile](../Containerfile)           | **Production image** — multi-stage build, minimal runtime (~150 MB) | `docker build -f Containerfile .`       |
+| [docker-compose.yml](../docker-compose.yml) | **Orchestration** — build + run locally, or multi-service setups    | `docker compose up --build`             |
+| [.devcontainer/](../.devcontainer/)         | **Dev environment** — VS Code Dev Container / Codespaces            | Open in VS Code → "Reopen in Container" |
 
 If you don't need containers, delete `Containerfile`, `docker-compose.yml`,
 and `.devcontainer/`. If you only want production containers, delete
@@ -421,11 +421,11 @@ and `.devcontainer/`. If you only want production containers, delete
 Ready-to-use documentation site powered by MkDocs + Material theme +
 mkdocstrings ([ADR 020](adr/020-mkdocs-documentation-stack.md)).
 
-| File / Directory                   | Purpose                                              |
-| :--------------------------------- | :--------------------------------------------------- |
-| [mkdocs.yml](../mkdocs.yml)       | Site configuration (theme, nav, plugins)             |
-| `docs/`                           | Markdown source files                                |
-| `site/`                           | Built HTML output (regenerated by `mkdocs build`)    |
+| File / Directory            | Purpose                                           |
+| :-------------------------- | :------------------------------------------------ |
+| [mkdocs.yml](../mkdocs.yml) | Site configuration (theme, nav, plugins)          |
+| `docs/`                     | Markdown source files                             |
+| `site/`                     | Built HTML output (regenerated by `mkdocs build`) |
 
 ```bash
 task docs:serve    # Live-reload at http://localhost:8000
@@ -456,16 +456,16 @@ and the docs you don't need.
 
 ## Further Reading
 
-| Topic                     | Document                                                                            |
-| :------------------------ | :---------------------------------------------------------------------------------- |
-| Repo layout explained     | [repo-layout.md](repo-layout.md)                                                   |
-| All tools at a glance     | [tooling.md](tooling.md)                                                            |
-| Why each tool was chosen  | [tool-decisions.md](design/tool-decisions.md)                                       |
-| Architecture overview     | [architecture.md](design/architecture.md)                                           |
-| Learning resources        | [resources.md](notes/resources.md)                                                  |
-| Release policy            | [releasing.md](releasing.md)                                                        |
-| Contributing guide        | [CONTRIBUTING.md](../CONTRIBUTING.md)                                               |
-| ADR index                 | [docs/adr/](adr/)                                                                  |
+| Topic                    | Document                                      |
+| :----------------------- | :-------------------------------------------- |
+| Repo layout explained    | [repo-layout.md](repo-layout.md)              |
+| All tools at a glance    | [tooling.md](tooling.md)                      |
+| Why each tool was chosen | [tool-decisions.md](design/tool-decisions.md) |
+| Architecture overview    | [architecture.md](design/architecture.md)     |
+| Learning resources       | [resources.md](notes/resources.md)            |
+| Release policy           | [releasing.md](releasing.md)                  |
+| Contributing guide       | [CONTRIBUTING.md](../CONTRIBUTING.md)         |
+| ADR index                | [docs/adr/](adr/)                             |
 
 ---
 
@@ -476,101 +476,101 @@ built-in tooling — listed here so you know the alternatives.
 
 ### Web Frameworks
 
-| Tool | When to use |
-| :--- | :---------- |
-| [FastAPI](https://fastapi.tiangolo.com/) | Building an API (async, auto-generated OpenAPI docs) |
-| [Flask](https://flask.palletsprojects.com/) | Lightweight web apps and APIs |
-| [Django](https://www.djangoproject.com/) | Full-featured web framework (ORM, admin, auth built-in) |
-| [Litestar](https://litestar.dev/) | High-performance async API framework (alternative to FastAPI) |
-| [Starlette](https://www.starlette.io/) | Lightweight ASGI framework (FastAPI builds on this) |
+| Tool                                        | When to use                                                   |
+| :------------------------------------------ | :------------------------------------------------------------ |
+| [FastAPI](https://fastapi.tiangolo.com/)    | Building an API (async, auto-generated OpenAPI docs)          |
+| [Flask](https://flask.palletsprojects.com/) | Lightweight web apps and APIs                                 |
+| [Django](https://www.djangoproject.com/)    | Full-featured web framework (ORM, admin, auth built-in)       |
+| [Litestar](https://litestar.dev/)           | High-performance async API framework (alternative to FastAPI) |
+| [Starlette](https://www.starlette.io/)      | Lightweight ASGI framework (FastAPI builds on this)           |
 
 ### Database & ORM
 
-| Tool | When to use |
-| :--- | :---------- |
-| [SQLAlchemy](https://www.sqlalchemy.org/) | Relational DB with Python models (ORM or Core) |
-| [Alembic](https://alembic.sqlalchemy.org/) | Managing schema migrations (pairs with SQLAlchemy) |
-| [SQLModel](https://sqlmodel.tiangolo.com/) | Pydantic + SQLAlchemy models in one (good with FastAPI) |
-| [Tortoise ORM](https://tortoise.github.io/) | Django-like async ORM |
-| [Peewee](https://docs.peewee-orm.com/) | Minimalist ORM for small projects |
+| Tool                                        | When to use                                             |
+| :------------------------------------------ | :------------------------------------------------------ |
+| [SQLAlchemy](https://www.sqlalchemy.org/)   | Relational DB with Python models (ORM or Core)          |
+| [Alembic](https://alembic.sqlalchemy.org/)  | Managing schema migrations (pairs with SQLAlchemy)      |
+| [SQLModel](https://sqlmodel.tiangolo.com/)  | Pydantic + SQLAlchemy models in one (good with FastAPI) |
+| [Tortoise ORM](https://tortoise.github.io/) | Django-like async ORM                                   |
+| [Peewee](https://docs.peewee-orm.com/)      | Minimalist ORM for small projects                       |
 
 ### Testing & Quality
 
-| Tool | When to use |
-| :--- | :---------- |
-| [pytest-mock](https://pytest-mock.readthedocs.io/) | Thin wrapper around `unittest.mock` for pytest fixtures |
-| [pytest-asyncio](https://pytest-asyncio.readthedocs.io/) | Testing async code with pytest |
-| [Hypothesis](https://hypothesis.readthedocs.io/) | Property-based testing (finds edge cases automatically) |
-| [Nox](https://nox.thea.codes/) | Test automation across Python versions (alternative to tox/Hatch matrix) |
-| [tox](https://tox.wiki/) | Test automation (alternative to Hatch matrix) |
-| [Coverage.py](https://coverage.readthedocs.io/) | Code coverage (already used via pytest-cov, but can run standalone) |
-| [mutmut](https://mutmut.readthedocs.io/) | Mutation testing — verifies test suite quality |
+| Tool                                                     | When to use                                                              |
+| :------------------------------------------------------- | :----------------------------------------------------------------------- |
+| [pytest-mock](https://pytest-mock.readthedocs.io/)       | Thin wrapper around `unittest.mock` for pytest fixtures                  |
+| [pytest-asyncio](https://pytest-asyncio.readthedocs.io/) | Testing async code with pytest                                           |
+| [Hypothesis](https://hypothesis.readthedocs.io/)         | Property-based testing (finds edge cases automatically)                  |
+| [Nox](https://nox.thea.codes/)                           | Test automation across Python versions (alternative to tox/Hatch matrix) |
+| [tox](https://tox.wiki/)                                 | Test automation (alternative to Hatch matrix)                            |
+| [Coverage.py](https://coverage.readthedocs.io/)          | Code coverage (already used via pytest-cov, but can run standalone)      |
+| [mutmut](https://mutmut.readthedocs.io/)                 | Mutation testing — verifies test suite quality                           |
 
 ### HTTP & Networking
 
-| Tool | When to use |
-| :--- | :---------- |
-| [HTTPX](https://www.python-httpx.org/) | Modern async-capable HTTP client (replaces requests) |
-| [requests](https://requests.readthedocs.io/) | Simple synchronous HTTP client |
-| [aiohttp](https://docs.aiohttp.org/) | Async HTTP client and server |
+| Tool                                         | When to use                                          |
+| :------------------------------------------- | :--------------------------------------------------- |
+| [HTTPX](https://www.python-httpx.org/)       | Modern async-capable HTTP client (replaces requests) |
+| [requests](https://requests.readthedocs.io/) | Simple synchronous HTTP client                       |
+| [aiohttp](https://docs.aiohttp.org/)         | Async HTTP client and server                         |
 
 ### CLI & Configuration
 
-| Tool | When to use |
-| :--- | :---------- |
-| [Click](https://click.palletsprojects.com/) | Building CLI tools (decorator-based, composable) |
-| [Typer](https://typer.tiangolo.com/) | Building CLIs with type hints (built on Click) |
-| [Rich](https://rich.readthedocs.io/) | Pretty console output, tables, progress bars |
-| [Pydantic](https://docs.pydantic.dev/) | Data validation and settings management |
-| [python-dotenv](https://github.com/theskumar/python-dotenv) | Load `.env` files into environment variables |
-| [dynaconf](https://www.dynaconf.com/) | Multi-layer config management (env, files, vaults) |
+| Tool                                                        | When to use                                        |
+| :---------------------------------------------------------- | :------------------------------------------------- |
+| [Click](https://click.palletsprojects.com/)                 | Building CLI tools (decorator-based, composable)   |
+| [Typer](https://typer.tiangolo.com/)                        | Building CLIs with type hints (built on Click)     |
+| [Rich](https://rich.readthedocs.io/)                        | Pretty console output, tables, progress bars       |
+| [Pydantic](https://docs.pydantic.dev/)                      | Data validation and settings management            |
+| [python-dotenv](https://github.com/theskumar/python-dotenv) | Load `.env` files into environment variables       |
+| [dynaconf](https://www.dynaconf.com/)                       | Multi-layer config management (env, files, vaults) |
 
 ### Task Queues & Background Jobs
 
-| Tool | When to use |
-| :--- | :---------- |
-| [Celery](https://docs.celeryq.dev/) | Distributed task queue (Redis/RabbitMQ backend) |
-| [RQ (Redis Queue)](https://python-rq.org/) | Simple job queue backed by Redis |
-| [Dramatiq](https://dramatiq.io/) | Alternative to Celery with saner defaults |
-| [APScheduler](https://apscheduler.readthedocs.io/) | In-process job scheduling (cron-like) |
+| Tool                                               | When to use                                     |
+| :------------------------------------------------- | :---------------------------------------------- |
+| [Celery](https://docs.celeryq.dev/)                | Distributed task queue (Redis/RabbitMQ backend) |
+| [RQ (Redis Queue)](https://python-rq.org/)         | Simple job queue backed by Redis                |
+| [Dramatiq](https://dramatiq.io/)                   | Alternative to Celery with saner defaults       |
+| [APScheduler](https://apscheduler.readthedocs.io/) | In-process job scheduling (cron-like)           |
 
 ### Monitoring & Observability
 
-| Tool | When to use |
-| :--- | :---------- |
-| [Sentry](https://sentry.io/) | Production error tracking and performance monitoring |
-| [structlog](https://www.structlog.org/) | Structured logging (JSON output, context binding) |
-| [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) | Distributed tracing, metrics, and logs |
-| [Prometheus client](https://github.com/prometheus/client_python) | Expose metrics for Prometheus scraping |
+| Tool                                                             | When to use                                          |
+| :--------------------------------------------------------------- | :--------------------------------------------------- |
+| [Sentry](https://sentry.io/)                                     | Production error tracking and performance monitoring |
+| [structlog](https://www.structlog.org/)                          | Structured logging (JSON output, context binding)    |
+| [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) | Distributed tracing, metrics, and logs               |
+| [Prometheus client](https://github.com/prometheus/client_python) | Expose metrics for Prometheus scraping               |
 
 ### Development & Debugging
 
-| Tool | When to use |
-| :--- | :---------- |
-| [IPython](https://ipython.readthedocs.io/) | Enhanced interactive Python shell |
-| [icecream](https://github.com/gruns/icecream) | Better `print()` debugging: `ic(variable)` |
-| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` |
-| [pdb++](https://github.com/pdbpp/pdbpp) | Enhanced Python debugger (drop-in pdb replacement) |
+| Tool                                               | When to use                                        |
+| :------------------------------------------------- | :------------------------------------------------- |
+| [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                  |
+| [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`         |
+| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)`                 |
+| [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement) |
 
 ### Linting & Formatting (alternatives/additions)
 
-| Tool | When to use |
-| :--- | :---------- |
-| [Prettier](https://prettier.io/) | Markdown/YAML/JSON formatting (included as a manual pre-commit hook) |
-| [mdformat](https://github.com/hukkin/mdformat) | Python-native Markdown formatter (no Node.js needed) |
-| [Black](https://black.readthedocs.io/) | Python code formatter (Ruff's formatter is a drop-in replacement) |
-| [isort](https://pycqa.github.io/isort/) | Import sorting (Ruff includes this via `I` rules) |
-| [Pylint](https://pylint.readthedocs.io/) | Comprehensive Python linter (overlaps heavily with Ruff) |
+| Tool                                            | When to use                                                              |
+| :---------------------------------------------- | :----------------------------------------------------------------------- |
+| [Prettier](https://prettier.io/)                | Markdown/YAML/JSON formatting (included as a manual pre-commit hook)     |
+| [mdformat](https://github.com/hukkin/mdformat)  | Python-native Markdown formatter (no Node.js needed)                     |
+| [Black](https://black.readthedocs.io/)          | Python code formatter (Ruff's formatter is a drop-in replacement)        |
+| [isort](https://pycqa.github.io/isort/)         | Import sorting (Ruff includes this via `I` rules)                        |
+| [Pylint](https://pylint.readthedocs.io/)        | Comprehensive Python linter (overlaps heavily with Ruff)                 |
 | [pyright](https://microsoft.github.io/pyright/) | Alternative static type checker (faster than mypy, different trade-offs) |
 
 ### Packaging & Distribution
 
-| Tool | When to use |
-| :--- | :---------- |
-| [PyInstaller](https://pyinstaller.org/) | Bundle Python app into standalone executables |
-| [Nuitka](https://nuitka.net/) | Compile Python to C for performance / distribution |
-| [pipx](https://pipx.pypa.io/) | Install and run Python CLI tools in isolated environments |
-| [uv](https://github.com/astral-sh/uv) | Ultra-fast pip/venv replacement (from the Ruff team) |
+| Tool                                    | When to use                                               |
+| :-------------------------------------- | :-------------------------------------------------------- |
+| [PyInstaller](https://pyinstaller.org/) | Bundle Python app into standalone executables             |
+| [Nuitka](https://nuitka.net/)           | Compile Python to C for performance / distribution        |
+| [pipx](https://pipx.pypa.io/)           | Install and run Python CLI tools in isolated environments |
+| [uv](https://github.com/astral-sh/uv)   | Ultra-fast pip/venv replacement (from the Ruff team)      |
 
 ---
 

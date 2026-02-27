@@ -16,12 +16,14 @@ Please provide as much context as possible to help us understand
 and answer your question effectively.
 
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+
 ⚠️ **Before submitting**
+
 - **Most questions belong in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A)** rather than Issues.
 - If you're reporting a reproducible problem, use **Bug Report** instead.
 - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
 - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues), discussions, and documentation first.
--->
+  -->
 
 ## Question
 
@@ -72,11 +74,11 @@ and answer your question effectively.
 
 <!-- If relevant, provide details about your environment. Delete this section if not applicable. -->
 
-| Field               | Value                              |
-|---------------------|------------------------------------|
-| **OS**              | <!-- e.g., Windows 11 -->          |
-| **Python Version**  | <!-- e.g., 3.11.5 -->              |
-| **Package Version** | <!-- e.g., 0.1.0 -->               |
+| Field               | Value                     |
+| ------------------- | ------------------------- |
+| **OS**              | <!-- e.g., Windows 11 --> |
+| **Python Version**  | <!-- e.g., 3.11.5 -->     |
+| **Package Version** | <!-- e.g., 0.1.0 -->      |
 
 ### Additional Context
 

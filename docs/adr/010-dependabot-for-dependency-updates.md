@@ -24,14 +24,14 @@ Use GitHub Dependabot for automated dependency update PRs. Configure it in `.git
 
 ### Configuration choices
 
-| Setting | Value | Rationale |
-|---------|-------|-----------|
-| Schedule | Weekly (Monday 9am ET) | Batches updates without overwhelming reviewers |
-| Rebase strategy | Disabled | Avoids noisy force-pushes on open PRs |
-| PR limit (actions) | 5 | Actions update less frequently |
-| PR limit (pip) | 10 | More Python deps to track |
-| Grouping | Minor + patch together | Reduces PR volume; majors kept separate for breaking change review |
-| Commit prefix | `ci:` (actions), `chore:` (pip) | Aligns with Conventional Commits (ADR 009) |
+| Setting            | Value                           | Rationale                                                          |
+| ------------------ | ------------------------------- | ------------------------------------------------------------------ |
+| Schedule           | Weekly (Monday 9am ET)          | Batches updates without overwhelming reviewers                     |
+| Rebase strategy    | Disabled                        | Avoids noisy force-pushes on open PRs                              |
+| PR limit (actions) | 5                               | Actions update less frequently                                     |
+| PR limit (pip)     | 10                              | More Python deps to track                                          |
+| Grouping           | Minor + patch together          | Reduces PR volume; majors kept separate for breaking change review |
+| Commit prefix      | `ci:` (actions), `chore:` (pip) | Aligns with Conventional Commits (ADR 009)                         |
 
 ## Consequences
 

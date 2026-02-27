@@ -16,12 +16,14 @@ Good documentation helps everyone. Please provide as much detail
 as possible so we can understand and address the issue.
 
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+
 ⚠️ **Before submitting**
+
 - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
 - **Simple "how do I…?"** Use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A).
 - **Small doc fixes welcome:** see [CONTRIBUTING.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/CONTRIBUTING.md).
 - Search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) and discussions to avoid duplicates.
--->
+  -->
 
 ## Issue Type
 

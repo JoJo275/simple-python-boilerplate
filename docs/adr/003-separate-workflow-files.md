@@ -52,6 +52,7 @@ Use separate workflow files for distinct concerns:
 All jobs (test, lint, release) in one workflow file.
 
 **Rejected because:**
+
 - Can't disable individual concerns without editing the file
 - All jobs share the same trigger events
 - Harder to grant minimal permissions per job

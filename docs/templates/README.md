@@ -6,11 +6,11 @@ Reusable file templates that you can copy and adapt for your project.
 
 ## Security Policy Templates
 
-| Template | Use When |
-|----------|----------|
-| [SECURITY_no_bounty.md](SECURITY_no_bounty.md) | Standard security policy without bug bounty (most projects) |
-| [SECURITY_with_bounty.md](SECURITY_with_bounty.md) | Security policy that includes a bug bounty program |
-| [BUG_BOUNTY.md](BUG_BOUNTY.md) | Standalone bug bounty policy (link from SECURITY.md) |
+| Template                                           | Use When                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------- |
+| [SECURITY_no_bounty.md](SECURITY_no_bounty.md)     | Standard security policy without bug bounty (most projects) |
+| [SECURITY_with_bounty.md](SECURITY_with_bounty.md) | Security policy that includes a bug bounty program          |
+| [BUG_BOUNTY.md](BUG_BOUNTY.md)                     | Standalone bug bounty policy (link from SECURITY.md)        |
 
 ### How to Use
 
@@ -24,9 +24,9 @@ Reusable file templates that you can copy and adapt for your project.
 
 The `issue_templates/` directory contains GitHub issue template examples:
 
-| Directory | Format |
-|-----------|--------|
-| `issue_forms/` | YAML-based issue forms (recommended) |
+| Directory          | Format                                  |
+| ------------------ | --------------------------------------- |
+| `issue_forms/`     | YAML-based issue forms (recommended)    |
 | `legacy_markdown/` | Markdown-based templates (older format) |
 
 ### How to Use

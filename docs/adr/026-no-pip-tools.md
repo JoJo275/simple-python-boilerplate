@@ -26,13 +26,13 @@ dependencies in a lock file.
 
 ### Why that problem doesn't apply here
 
-| Concern | How this project handles it |
-|---------|-----------------------------|
-| **Reproducible dev environments** | Hatch environments auto-install from `pyproject.toml` extras. Developers get consistent envs without a lock file. |
-| **Reproducible CI** | CI workflows install from `pyproject.toml` extras via `pip install -e ".[test]"` or Hatch envs. Pinning would require lock-file maintenance without meaningful benefit for a template repo. |
-| **Reproducible builds** | Build artifacts (sdist/wheel) declare dependency ranges, not pins. End users resolve versions at install time — this is standard Python packaging behavior. A lock file doesn't affect built distributions. |
-| **Security auditing** | `pip-audit` (in CI and pre-push hook) scans the resolved environment regardless of whether versions are pinned. |
-| **Dependency drift** | Dependabot opens PRs for new dependency versions weekly. Hatch recreates envs from current specs on each invocation. |
+| Concern                           | How this project handles it                                                                                                                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Reproducible dev environments** | Hatch environments auto-install from `pyproject.toml` extras. Developers get consistent envs without a lock file.                                                                                           |
+| **Reproducible CI**               | CI workflows install from `pyproject.toml` extras via `pip install -e ".[test]"` or Hatch envs. Pinning would require lock-file maintenance without meaningful benefit for a template repo.                 |
+| **Reproducible builds**           | Build artifacts (sdist/wheel) declare dependency ranges, not pins. End users resolve versions at install time — this is standard Python packaging behavior. A lock file doesn't affect built distributions. |
+| **Security auditing**             | `pip-audit` (in CI and pre-push hook) scans the resolved environment regardless of whether versions are pinned.                                                                                             |
+| **Dependency drift**              | Dependabot opens PRs for new dependency versions weekly. Hatch recreates envs from current specs on each invocation.                                                                                        |
 
 ### What pip-tools would cost
 
@@ -43,7 +43,7 @@ dependencies in a lock file.
 - **Merge conflicts:** Lock files change frequently and produce large
   diffs that conflict across branches.
 - **Duplicate source of truth:** Dependencies would be declared in
-  `pyproject.toml` (for Hatch and packaging) *and* pinned in
+  `pyproject.toml` (for Hatch and packaging) _and_ pinned in
   `requirements*.txt` (for pip-tools). Keeping both in sync is error-prone.
 - **Hatch friction:** Hatch environments don't consume `requirements.txt`
   files natively — they read `pyproject.toml`. Using pip-tools would mean

@@ -21,8 +21,8 @@ correctly during the docs build.
 
 ## Sections
 
-| Page | Description |
-|------|-------------|
+| Page          | Description                          |
+| ------------- | ------------------------------------ |
 | [API](api.md) | Public modules: engine, api, and cli |
 
 ## Writing good docstrings

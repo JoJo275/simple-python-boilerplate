@@ -10,11 +10,11 @@ This repository is a template that users clone or generate via GitHub's "Use thi
 
 Several tools exist to automate this kind of template customisation:
 
-| Tool | Approach | Upstream sync | Notes |
-|------|----------|---------------|-------|
-| **Cookiecutter** | Jinja2 templating; prompts at generation time | None built-in | Most popular; one-shot generation, no update path |
-| **Cookiecutter + Cruft** | Cookiecutter for generation, Cruft for upstream updates | Yes (diff-based) | Adds update capability but couples users to the template repo |
-| **Copier** | Jinja2 templating with built-in update/migration support | Yes (native) | Modern alternative; supports answer files and migrations |
+| Tool                     | Approach                                                 | Upstream sync    | Notes                                                         |
+| ------------------------ | -------------------------------------------------------- | ---------------- | ------------------------------------------------------------- |
+| **Cookiecutter**         | Jinja2 templating; prompts at generation time            | None built-in    | Most popular; one-shot generation, no update path             |
+| **Cookiecutter + Cruft** | Cookiecutter for generation, Cruft for upstream updates  | Yes (diff-based) | Adds update capability but couples users to the template repo |
+| **Copier**               | Jinja2 templating with built-in update/migration support | Yes (native)     | Modern alternative; supports answer files and migrations      |
 
 ### Advantages of a template engine
 

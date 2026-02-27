@@ -4,14 +4,14 @@ Things to explore, implement, or learn more about.
 
 ## To Implement
 
-- [X] Final file check: taskfile.yml
-- [X] Final file check: SECURITY.md
-- [X] Final file check: requirements.txt
-- [X] Final file check: requirements-dev.txt
-- [X] Final file check: release-please-config.json
-- [X] Final file check: root-level README.md
-- [X] Final file check: pyproject.toml
-- [X] Final file check: architecture.md
+- [x] Final file check: taskfile.yml
+- [x] Final file check: SECURITY.md
+- [x] Final file check: requirements.txt
+- [x] Final file check: requirements-dev.txt
+- [x] Final file check: release-please-config.json
+- [x] Final file check: root-level README.md
+- [x] Final file check: pyproject.toml
+- [x] Final file check: architecture.md
 - [ ] Final file check: architecture.md
 - [ ] Final file check: entire docs/
 - [ ] Add in TODOs where warrented

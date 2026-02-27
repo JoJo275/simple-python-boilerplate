@@ -40,18 +40,18 @@ task test
 
 The same pattern applies to every command:
 
-| You type | Taskfile runs | Hatch script | Actual tool |
-|----------|---------------|--------------|-------------|
-| `task test` | `hatch run test` | `test` | `pytest` |
-| `task lint` | `hatch run lint` | `lint` | `ruff check .` |
-| `task lint:fix` | `hatch run lint-fix` | `lint-fix` | `ruff check --fix .` |
-| `task fmt` | `hatch run fmt` | `fmt` | `ruff format .` |
-| `task typecheck` | `hatch run typecheck` | `typecheck` | `mypy src/` |
-| `task security` | `hatch run security` | `security` | `bandit -r src/` |
-| `task check` | `hatch run check` | `check` | lint + fmt-check + typecheck + test |
-| `task test:matrix` | `hatch run test:run` | `test:run` | pytest across Python 3.11–3.13 |
-| `task docs:serve` | `hatch run docs:serve` | `docs:serve` | `mkdocs serve` |
-| `task docs:build` | `hatch run docs:build` | `docs:build` | `mkdocs build --strict` |
+| You type           | Taskfile runs          | Hatch script | Actual tool                         |
+| ------------------ | ---------------------- | ------------ | ----------------------------------- |
+| `task test`        | `hatch run test`       | `test`       | `pytest`                            |
+| `task lint`        | `hatch run lint`       | `lint`       | `ruff check .`                      |
+| `task lint:fix`    | `hatch run lint-fix`   | `lint-fix`   | `ruff check --fix .`                |
+| `task fmt`         | `hatch run fmt`        | `fmt`        | `ruff format .`                     |
+| `task typecheck`   | `hatch run typecheck`  | `typecheck`  | `mypy src/`                         |
+| `task security`    | `hatch run security`   | `security`   | `bandit -r src/`                    |
+| `task check`       | `hatch run check`      | `check`      | lint + fmt-check + typecheck + test |
+| `task test:matrix` | `hatch run test:run`   | `test:run`   | pytest across Python 3.11–3.13      |
+| `task docs:serve`  | `hatch run docs:serve` | `docs:serve` | `mkdocs serve`                      |
+| `task docs:build`  | `hatch run docs:build` | `docs:build` | `mkdocs build --strict`             |
 
 ---
 
@@ -113,24 +113,24 @@ task                            # list all available tasks
 
 ## Which Layer Should I Use?
 
-| Situation | Recommended layer |
-|-----------|-------------------|
-| Quick contribution, minimal setup | Layer 1 (pip + direct tools) |
-| Regular development | Layer 2 (Hatch) or Layer 3 (Task) |
-| CI/CD workflows | Layer 2 (Hatch) — Task is not installed in CI |
-| Multi-version testing | Layer 2 or 3 — Hatch manages the matrix |
-| First time, just want to run tests | Layer 3 if Task is installed, else Layer 2 |
+| Situation                          | Recommended layer                             |
+| ---------------------------------- | --------------------------------------------- |
+| Quick contribution, minimal setup  | Layer 1 (pip + direct tools)                  |
+| Regular development                | Layer 2 (Hatch) or Layer 3 (Task)             |
+| CI/CD workflows                    | Layer 2 (Hatch) — Task is not installed in CI |
+| Multi-version testing              | Layer 2 or 3 — Hatch manages the matrix       |
+| First time, just want to run tests | Layer 3 if Task is installed, else Layer 2    |
 
 ---
 
 ## Where Commands Are Defined
 
-| Layer | Config file | Section |
-|-------|-------------|---------|
-| Hatch scripts | `pyproject.toml` | `[tool.hatch.envs.default.scripts]` |
-| Hatch test matrix | `pyproject.toml` | `[tool.hatch.envs.test]` |
-| Hatch docs env | `pyproject.toml` | `[tool.hatch.envs.docs]` |
-| Task shortcuts | `Taskfile.yml` | `tasks:` |
+| Layer             | Config file      | Section                             |
+| ----------------- | ---------------- | ----------------------------------- |
+| Hatch scripts     | `pyproject.toml` | `[tool.hatch.envs.default.scripts]` |
+| Hatch test matrix | `pyproject.toml` | `[tool.hatch.envs.test]`            |
+| Hatch docs env    | `pyproject.toml` | `[tool.hatch.envs.docs]`            |
+| Task shortcuts    | `Taskfile.yml`   | `tasks:`                            |
 
 To see all available commands:
 

@@ -18,16 +18,16 @@ This template originally included `.github/README.md` to document GitHub-specifi
 
 ### The root cause
 
-GitHub treats `.github/README.md` as a **profile/landing README**, not as a directory-scoped README. This is consistent with how GitHub uses `.github/` for other special files (e.g., `FUNDING.yml`, `CODEOWNERS`, default community health files), but it is surprising because every other directory's `README.md` only renders when browsing *that* directory.
+GitHub treats `.github/README.md` as a **profile/landing README**, not as a directory-scoped README. This is consistent with how GitHub uses `.github/` for other special files (e.g., `FUNDING.yml`, `CODEOWNERS`, default community health files), but it is surprising because every other directory's `README.md` only renders when browsing _that_ directory.
 
 ## Alternatives Considered
 
-| Option | Outcome |
-|------|---------|
-| Keep `.github/README.md` | Root README not shown on repo page — confusing for visitors |
-| Rename to `.github/ABOUT.md` | Doesn't auto-render on GitHub; loses discoverability |
-| Move content to `docs/` | Content already covered by `docs/repo-layout.md` |
-| Delete `.github/README.md` | Root README displays correctly; no information lost |
+| Option                       | Outcome                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| Keep `.github/README.md`     | Root README not shown on repo page — confusing for visitors |
+| Rename to `.github/ABOUT.md` | Doesn't auto-render on GitHub; loses discoverability        |
+| Move content to `docs/`      | Content already covered by `docs/repo-layout.md`            |
+| Delete `.github/README.md`   | Root README displays correctly; no information lost         |
 
 ## Decision
 

@@ -17,12 +17,12 @@ Without branch protection, these decisions are advisory — anyone with write ac
 
 ### Options Considered
 
-| Option | Approach | Pros | Cons |
-|--------|----------|------|------|
-| **No protection** | Trust contributors to follow conventions | Zero friction | All other process ADRs are unenforceable |
-| **CODEOWNERS only** | Require specific reviewers for certain paths | Targeted review coverage | Doesn't prevent direct pushes or enforce CI |
-| **Branch protection rules** | GitHub-native enforcement of PRs, status checks, linear history | Platform-enforced, auditable, configurable | Adds friction for solo maintainers; admins can bypass |
-| **Rulesets (new GitHub feature)** | More granular than branch protection; supports tag rules | Finer control, org-level inheritance | Newer feature, more complex setup, not all plans support it |
+| Option                            | Approach                                                        | Pros                                       | Cons                                                        |
+| --------------------------------- | --------------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------- |
+| **No protection**                 | Trust contributors to follow conventions                        | Zero friction                              | All other process ADRs are unenforceable                    |
+| **CODEOWNERS only**               | Require specific reviewers for certain paths                    | Targeted review coverage                   | Doesn't prevent direct pushes or enforce CI                 |
+| **Branch protection rules**       | GitHub-native enforcement of PRs, status checks, linear history | Platform-enforced, auditable, configurable | Adds friction for solo maintainers; admins can bypass       |
+| **Rulesets (new GitHub feature)** | More granular than branch protection; supports tag rules        | Finer control, org-level inheritance       | Newer feature, more complex setup, not all plans support it |
 
 ### Why Branch Protection (Not Rulesets)
 
@@ -34,47 +34,47 @@ Configure branch protection rules on `main` with the following settings:
 
 ### Required Settings
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| **Require a pull request before merging** | Enabled | Prevents direct pushes; forces code review |
-| **Required approvals** | 1 (adjustable) | Ensures at least one reviewer sees every change |
-| **Require status checks to pass** | Enabled | CI must pass before merge is allowed |
-| **Require branches to be up to date** | Enabled | Prevents merging stale branches that may conflict |
-| **Require linear history** | Enabled | Enforces rebase+merge (ADR 022); blocks merge commits |
-| **Require conversation resolution** | Enabled | All review comments must be resolved before merge |
+| Setting                                   | Value          | Why                                                   |
+| ----------------------------------------- | -------------- | ----------------------------------------------------- |
+| **Require a pull request before merging** | Enabled        | Prevents direct pushes; forces code review            |
+| **Required approvals**                    | 1 (adjustable) | Ensures at least one reviewer sees every change       |
+| **Require status checks to pass**         | Enabled        | CI must pass before merge is allowed                  |
+| **Require branches to be up to date**     | Enabled        | Prevents merging stale branches that may conflict     |
+| **Require linear history**                | Enabled        | Enforces rebase+merge (ADR 022); blocks merge commits |
+| **Require conversation resolution**       | Enabled        | All review comments must be resolved before merge     |
 
 ### Required Status Checks
 
 These workflows must pass before a PR can be merged:
 
-| Check | Workflow |
-|-------|----------|
-| Lint + format | `lint-format` |
-| Tests | `test` |
-| Type checking | `type-check` |
+| Check           | Workflow      |
+| --------------- | ------------- |
+| Lint + format   | `lint-format` |
+| Tests           | `test`        |
+| Type checking   | `type-check`  |
 | Commit messages | `commit-lint` |
 
 The exact list should match the CI workflows that run on PRs. Add or remove checks as workflows are added or removed.
 
 ### Recommended (Optional) Settings
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| **Do not allow bypassing** | Enabled | Even admins go through PRs (disable for solo maintainers if needed) |
-| **Restrict who can push** | Disabled | Not needed when PRs are required |
-| **Allow force pushes** | Disabled | Protects history on `main` |
-| **Allow deletions** | Disabled | Prevents accidental branch deletion |
+| Setting                    | Value    | Why                                                                 |
+| -------------------------- | -------- | ------------------------------------------------------------------- |
+| **Do not allow bypassing** | Enabled  | Even admins go through PRs (disable for solo maintainers if needed) |
+| **Restrict who can push**  | Disabled | Not needed when PRs are required                                    |
+| **Allow force pushes**     | Disabled | Protects history on `main`                                          |
+| **Allow deletions**        | Disabled | Prevents accidental branch deletion                                 |
 
 ### Merge Strategy (Companion Settings)
 
 These are configured separately in Settings → General → Pull Requests, but work together with branch protection:
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| **Allow rebase merging** | Enabled | The only permitted strategy (ADR 022) |
-| **Allow merge commits** | Disabled | Would create non-linear history |
-| **Allow squash merging** | Disabled | Would lose individual commit detail |
-| **Auto-delete head branches** | Enabled | Cleans up after merge |
+| Setting                       | Value    | Why                                   |
+| ----------------------------- | -------- | ------------------------------------- |
+| **Allow rebase merging**      | Enabled  | The only permitted strategy (ADR 022) |
+| **Allow merge commits**       | Disabled | Would create non-linear history       |
+| **Allow squash merging**      | Disabled | Would lose individual commit detail   |
+| **Auto-delete head branches** | Enabled  | Cleans up after merge                 |
 
 ## Consequences
 

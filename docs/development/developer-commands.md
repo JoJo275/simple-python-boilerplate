@@ -97,6 +97,7 @@ pytest -v
 pytest tests/unit_test.py
 pytest --cov=simple_python_boilerplate --cov-report=term-missing
 ```
+
 </details>
 
 ## Linting & Formatting
@@ -124,6 +125,7 @@ ruff check --fix .
 ruff format --check .
 ruff format .
 ```
+
 </details>
 
 ## Type Checking
@@ -140,6 +142,7 @@ hatch run typecheck
 mypy src/
 mypy --strict src/
 ```
+
 </details>
 
 ## Building
@@ -159,6 +162,7 @@ hatch clean
 pip install build
 python -m build
 ```
+
 </details>
 
 ## Utility Scripts
@@ -335,6 +339,7 @@ hatch run check
 ```bash
 pytest && ruff check . && ruff format --check . && mypy src/
 ```
+
 </details>
 
 ## Hatch Reference

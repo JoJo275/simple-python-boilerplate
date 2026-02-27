@@ -14,6 +14,7 @@ Commit messages can follow various conventions:
 - **Project-specific** — Custom format (e.g., Jira ticket prefixes)
 
 Standardized commit messages enable:
+
 - Automated changelog generation
 - Semantic versioning automation
 - Easier code review and history navigation
@@ -33,17 +34,17 @@ Use Conventional Commits format for all commit messages:
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting, no code change |
+| Type       | Description                             |
+| ---------- | --------------------------------------- |
+| `feat`     | New feature                             |
+| `fix`      | Bug fix                                 |
+| `docs`     | Documentation only                      |
+| `style`    | Formatting, no code change              |
 | `refactor` | Code change that neither fixes nor adds |
-| `test` | Adding or updating tests |
-| `chore` | Maintenance, dependencies, tooling |
-| `ci` | CI/CD changes |
-| `perf` | Performance improvement |
+| `test`     | Adding or updating tests                |
+| `chore`    | Maintenance, dependencies, tooling      |
+| `ci`       | CI/CD changes                           |
+| `perf`     | Performance improvement                 |
 
 ### Examples
 

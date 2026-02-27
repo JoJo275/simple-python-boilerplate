@@ -11,6 +11,7 @@ This directory uses the **src-layout** pattern for Python packaging.
 ## Why src/?
 
 The `src/` directory is a container that:
+
 - Prevents accidental imports of uninstalled code
 - Forces you to install the package (`pip install -e .`)
 - Ensures tests run against the installed package, not local files
