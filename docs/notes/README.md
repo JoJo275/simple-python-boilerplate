@@ -6,13 +6,13 @@ This directory contains personal notes, learnings, and references captured while
 
 ## Contents
 
-| File | Description |
-|------|-------------|
-| [learning.md](learning.md) | Key concepts, gotchas, and things I keep forgetting |
-| [resources.md](resources.md) | Curated links to docs, tutorials, and references |
-| [tool-comparison.md](tool-comparison.md) | Quick reference for choosing between similar tools |
-| [todo.md](todo.md) | Ideas, things to explore, and bookmarks |
-| [archive.md](archive.md) | Completed items from todo.md |
+| File                                     | Description                                         |
+| ---------------------------------------- | --------------------------------------------------- |
+| [learning.md](learning.md)               | Key concepts, gotchas, and things I keep forgetting |
+| [resources.md](resources.md)             | Curated links to docs, tutorials, and references    |
+| [tool-comparison.md](tool-comparison.md) | Quick reference for choosing between similar tools  |
+| [todo.md](todo.md)                       | Ideas, things to explore, and bookmarks             |
+| [archive.md](archive.md)                 | Completed items from todo.md                        |
 
 ## Purpose
 

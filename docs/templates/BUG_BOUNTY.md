@@ -7,7 +7,6 @@
 >
 > To use this template: copy it to your own repository, replace all placeholders, and link it from your SECURITY.md.
 
-
 ## Overview
 
 We offer rewards for responsibly disclosed security vulnerabilities in [PROJECT NAME]. This program encourages security researchers to help us identify and fix vulnerabilities before they can be exploited.
@@ -32,23 +31,23 @@ The following are eligible for rewards:
 
 <!-- TODO: Specify which versions are in scope. See docs/RELEASE_POLICY.md (if available) for version support details. -->
 
-| Version | In Scope |
-|---------|----------|
-| Latest stable release | ✅ Yes |
-| Supported versions (per release policy) | ✅ Yes |
-| Unsupported / EOL versions | ❌ No |
-| Pre-release / beta | ❌ No (unless explicitly invited) |
+| Version                                 | In Scope                          |
+| --------------------------------------- | --------------------------------- |
+| Latest stable release                   | ✅ Yes                            |
+| Supported versions (per release policy) | ✅ Yes                            |
+| Unsupported / EOL versions              | ❌ No                             |
+| Pre-release / beta                      | ❌ No (unless explicitly invited) |
 
 ### Vulnerability Types
 
 <!-- TODO: Replace $X values with your actual reward amounts, or remove monetary rewards entirely -->
 
-| Severity | Examples | Reward Range |
-|----------|----------|--------------|
-| **Critical** | Remote code execution, authentication bypass, data breach | $[X] – $[Y] |
-| **High** | Privilege escalation, significant data exposure, injection attacks | $[X] – $[Y] |
-| **Medium** | Cross-site scripting (XSS), CSRF, information disclosure | $[X] – $[Y] |
-| **Low** | Minor information leaks, theoretical attacks | Recognition only |
+| Severity     | Examples                                                           | Reward Range     |
+| ------------ | ------------------------------------------------------------------ | ---------------- |
+| **Critical** | Remote code execution, authentication bypass, data breach          | $[X] – $[Y]      |
+| **High**     | Privilege escalation, significant data exposure, injection attacks | $[X] – $[Y]      |
+| **Medium**   | Cross-site scripting (XSS), CSRF, information disclosure           | $[X] – $[Y]      |
+| **Low**      | Minor information leaks, theoretical attacks                       | Recognition only |
 
 > **⚠️ Template Note:** Rewards are discretionary. Projects using this template may offer recognition only, swag, or no rewards at all. Adjust or remove this table based on your actual budget and commitment.
 
@@ -136,13 +135,13 @@ For general security information, see our [Security Policy](../../SECURITY.md).
 
 ## Response Timeline
 
-| Action | Timeframe |
-|--------|----------|
-| Acknowledgment | Target: within 72 hours |
-| Initial triage | Target: within 7 days |
-| Status update | Target: every 7 days during investigation |
-| Fix deployed | Varies by severity (target: 30–90 days) |
-| Reward issued (if applicable) | Target: within 30 days of fix deployment |
+| Action                        | Timeframe                                 |
+| ----------------------------- | ----------------------------------------- |
+| Acknowledgment                | Target: within 72 hours                   |
+| Initial triage                | Target: within 7 days                     |
+| Status update                 | Target: every 7 days during investigation |
+| Fix deployed                  | Varies by severity (target: 30–90 days)   |
+| Reward issued (if applicable) | Target: within 30 days of fix deployment  |
 
 > **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
 
@@ -192,9 +191,9 @@ We thank the following researchers for their contributions:
 
 <!-- Add researchers here as vulnerabilities are reported and fixed -->
 
-| Researcher | Vulnerability | Date |
-|------------|---------------|------|
-| *Be the first!* | — | — |
+| Researcher      | Vulnerability | Date |
+| --------------- | ------------- | ---- |
+| _Be the first!_ | —             | —    |
 
 ---
 

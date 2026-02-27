@@ -14,6 +14,7 @@ Python projects traditionally use multiple tools for code quality:
 - **Security:** bandit
 
 Managing multiple tools means:
+
 - Multiple configuration sections
 - Multiple CI steps
 - Potential conflicts between tools

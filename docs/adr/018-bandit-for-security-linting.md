@@ -10,30 +10,30 @@ ADR 012 established a multi-layer security scanning strategy covering dependenci
 
 Bandit is a purpose-built Python security linter that detects anti-patterns unique to the language:
 
-| Category | Examples |
-|----------|----------|
-| **Injection** | `subprocess` with `shell=True`, SQL string formatting |
-| **Cryptography** | Use of MD5/SHA1 for security, weak random generators |
-| **Credentials** | Hardcoded passwords, API keys in source |
+| Category             | Examples                                              |
+| -------------------- | ----------------------------------------------------- |
+| **Injection**        | `subprocess` with `shell=True`, SQL string formatting |
+| **Cryptography**     | Use of MD5/SHA1 for security, weak random generators  |
+| **Credentials**      | Hardcoded passwords, API keys in source               |
 | **Unsafe functions** | `eval()`, `exec()`, `yaml.load()` without safe loader |
-| **File handling** | Insecure temp file creation, path traversal risks |
+| **File handling**    | Insecure temp file creation, path traversal risks     |
 
 ## Alternatives Considered
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **CodeQL only** | Already in CI, general-purpose | Misses Python-specific anti-patterns |
-| **Safety** | Comprehensive CVE database | Requires paid license for full DB; dependency-focused, not code-focused |
-| **Semgrep** | Powerful pattern matching, custom rules | Heavier setup, commercial model for advanced features |
-| **Bandit** | Python-specific, fast, well-maintained, free | Narrower scope than Semgrep |
+| Option          | Pros                                         | Cons                                                                    |
+| --------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
+| **CodeQL only** | Already in CI, general-purpose               | Misses Python-specific anti-patterns                                    |
+| **Safety**      | Comprehensive CVE database                   | Requires paid license for full DB; dependency-focused, not code-focused |
+| **Semgrep**     | Powerful pattern matching, custom rules      | Heavier setup, commercial model for advanced features                   |
+| **Bandit**      | Python-specific, fast, well-maintained, free | Narrower scope than Semgrep                                             |
 
 ### Where Bandit runs in the pipeline
 
-| Layer | When | Purpose |
-|-------|------|---------|
-| **Pre-commit hook** | Before each commit | Immediate feedback, blocks insecure code locally |
-| **`task security`** | On-demand | Manual scan during development |
-| **Nightly workflow** | Daily at 03:00 UTC | Catches issues in code that bypassed pre-commit |
+| Layer                | When               | Purpose                                          |
+| -------------------- | ------------------ | ------------------------------------------------ |
+| **Pre-commit hook**  | Before each commit | Immediate feedback, blocks insecure code locally |
+| **`task security`**  | On-demand          | Manual scan during development                   |
+| **Nightly workflow** | Daily at 03:00 UTC | Catches issues in code that bypassed pre-commit  |
 
 ## Decision
 

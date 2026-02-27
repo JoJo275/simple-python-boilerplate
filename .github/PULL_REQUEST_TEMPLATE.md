@@ -18,16 +18,12 @@ Brief description of the changes in this PR.
 
 **What changes you made:**
 
-
 **Why you made them:**
-
 
 ## Related Issue
 
 <!-- Use one of: Fixes #123, Closes #123, Resolves #123, Related to #123 -->
 <!-- If no issue exists, write "N/A" and briefly explain (e.g., maintenance, small refactor) -->
-
-
 
 ## Type of Change
 
@@ -43,18 +39,20 @@ Brief description of the changes in this PR.
 <!-- Help reviewers verify your changes. Don't make them guess! -->
 
 **Steps:**
+
 1.
 2.
 3.
 
 **Test command(s):**
+
 ```bash
 # e.g., pytest tests/test_feature.py -v
 ```
 
 **Screenshots / Demo (if applicable):**
-<!-- Add screenshots, GIFs, or video links to help explain your changes -->
 
+<!-- Add screenshots, GIFs, or video links to help explain your changes -->
 
 ## Risk / Impact
 
@@ -64,10 +62,9 @@ Brief description of the changes in this PR.
 
 **What could break:**
 
-
 **Rollback plan:** Revert this PR
-<!-- Or: "Toggle feature flag X" / "Run migration Y" / etc. -->
 
+<!-- Or: "Toggle feature flag X" / "Run migration Y" / etc. -->
 
 ## Dependencies (if applicable)
 
@@ -77,7 +74,6 @@ Brief description of the changes in this PR.
 **Depends on:** <!-- e.g., #456, or org/other-repo#123 -->
 
 **Blocked by:** <!-- e.g., waiting for deployment of #456 -->
-
 
 ## Breaking Changes / Migrations (if applicable)
 
@@ -89,7 +85,6 @@ Brief description of the changes in this PR.
 - [ ] Dependency changes
 
 **Details:**
-
 
 ## Checklist
 
@@ -106,7 +101,6 @@ Brief description of the changes in this PR.
 ## Reviewer Focus (Optional)
 
 <!-- Save reviewer time: "Please pay close attention to X" -->
-
 
 ## Additional Notes
 

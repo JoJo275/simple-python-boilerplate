@@ -10,12 +10,12 @@ When merging pull requests into `main`, GitHub offers three strategies. The choi
 
 ### Strategies Compared
 
-| Strategy | Commits on main | History shape | Original SHAs | Merge event visible |
-|----------|----------------|---------------|----------------|---------------------|
-| **Merge commit** | All branch commits + 1 merge commit | Non-linear (graph) | Preserved | Yes (merge commit with two parents) |
-| **Squash and merge** | 1 commit (PR title) | Linear | Lost (all squashed) | No (single commit) |
-| **Rebase and merge** | All branch commits (replayed) | Linear | Changed (re-hashed) | No (linear replay) |
-| **Direct push** (no PR) | Commits pushed directly | Linear | Preserved | N/A (no PR) |
+| Strategy                | Commits on main                     | History shape      | Original SHAs       | Merge event visible                 |
+| ----------------------- | ----------------------------------- | ------------------ | ------------------- | ----------------------------------- |
+| **Merge commit**        | All branch commits + 1 merge commit | Non-linear (graph) | Preserved           | Yes (merge commit with two parents) |
+| **Squash and merge**    | 1 commit (PR title)                 | Linear             | Lost (all squashed) | No (single commit)                  |
+| **Rebase and merge**    | All branch commits (replayed)       | Linear             | Changed (re-hashed) | No (linear replay)                  |
+| **Direct push** (no PR) | Commits pushed directly             | Linear             | Preserved           | N/A (no PR)                         |
 
 ### What We Optimized For
 
@@ -33,10 +33,10 @@ With rebase+merge, the original branch commit SHAs change (rebased onto tip of m
 
 **Mitigation — two-layer record keeping:**
 
-| Layer | Purpose | What it captures |
-|-------|---------|-----------------|
-| **PR** (integration record) | Review context, discussion, approvals | WHY the change was made, design decisions, reviewer feedback |
-| **Commits** (technical audit trail) | Exact code changes, step by step | WHAT changed and in what order |
+| Layer                               | Purpose                               | What it captures                                             |
+| ----------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
+| **PR** (integration record)         | Review context, discussion, approvals | WHY the change was made, design decisions, reviewer feedback |
+| **Commits** (technical audit trail) | Exact code changes, step by step      | WHAT changed and in what order                               |
 
 The PR is preserved in GitHub's database and remains navigable. Commits reference the PR via `(#42)` in their message. GitHub's UI also links rebased commits back to the PR they came from.
 
@@ -73,6 +73,7 @@ test: add auth module unit tests (#42)
 ```
 
 This convention:
+
 - Links each commit back to its integration context (the PR)
 - Lets release-please include PR numbers in CHANGELOG entries
 - Preserves traceability in `git log` without needing `git log --merges`

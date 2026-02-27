@@ -67,13 +67,13 @@ incremental changes are tracked in [db/migrations/](../../db/migrations/).
 
 <!-- TODO (template users): Replace with your actual table definitions. -->
 
-| Column       | Type      | Constraints                | Description        |
-| ------------ | --------- | -------------------------- | ------------------ |
-| `id`         | INTEGER   | PK, AUTOINCREMENT          | Unique identifier  |
-| `user_id`    | INTEGER   | FK → users.id, NOT NULL    | Author reference   |
-| `title`      | TEXT      | NOT NULL                   | Post title         |
-| `content`    | TEXT      | NOT NULL                   | Post body          |
-| `created_at` | TIMESTAMP | DEFAULT NOW                | Creation timestamp |
+| Column       | Type      | Constraints             | Description        |
+| ------------ | --------- | ----------------------- | ------------------ |
+| `id`         | INTEGER   | PK, AUTOINCREMENT       | Unique identifier  |
+| `user_id`    | INTEGER   | FK → users.id, NOT NULL | Author reference   |
+| `title`      | TEXT      | NOT NULL                | Post title         |
+| `content`    | TEXT      | NOT NULL                | Post body          |
+| `created_at` | TIMESTAMP | DEFAULT NOW             | Creation timestamp |
 
 ### comments
 
@@ -106,10 +106,10 @@ incremental changes are tracked in [db/migrations/](../../db/migrations/).
 
 ## Related Files
 
-| Path                                         | Purpose             |
-| -------------------------------------------- | ------------------- |
-| [db/schema.sql](../../db/schema.sql)         | Canonical schema    |
-| [db/migrations/](../../db/migrations/)       | Migration files     |
-| [db/seeds/](../../db/seeds/)                 | Seed / fixture data |
-| [db/queries/](../../db/queries/)             | Reusable queries    |
-| [Architecture](architecture.md)              | System overview     |
+| Path                                   | Purpose             |
+| -------------------------------------- | ------------------- |
+| [db/schema.sql](../../db/schema.sql)   | Canonical schema    |
+| [db/migrations/](../../db/migrations/) | Migration files     |
+| [db/seeds/](../../db/seeds/)           | Seed / fixture data |
+| [db/queries/](../../db/queries/)       | Reusable queries    |
+| [Architecture](architecture.md)        | System overview     |

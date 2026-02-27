@@ -17,16 +17,16 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 
 ## Quick links
 
-| Resource | Description |
-|----------|-------------|
-| [Getting Started](guide/getting-started.md) | Installation and local development |
-| [Using This Template](USING_THIS_TEMPLATE.md) | Customizing the boilerplate for your project |
-| [Development Guide](development/development.md) | Developer tools and workflows |
-| [API Reference](reference/api.md) | Auto-generated from source docstrings |
-| [Architecture](design/architecture.md) | System overview and module responsibilities |
-| [ADRs](adr/README.md) | Architecture Decision Records |
-| [Workflows](workflows.md) | GitHub Actions inventory |
-| [Tooling](tooling.md) | All repo tools at a glance |
+| Resource                                        | Description                                  |
+| ----------------------------------------------- | -------------------------------------------- |
+| [Getting Started](guide/getting-started.md)     | Installation and local development           |
+| [Using This Template](USING_THIS_TEMPLATE.md)   | Customizing the boilerplate for your project |
+| [Development Guide](development/development.md) | Developer tools and workflows                |
+| [API Reference](reference/api.md)               | Auto-generated from source docstrings        |
+| [Architecture](design/architecture.md)          | System overview and module responsibilities  |
+| [ADRs](adr/README.md)                           | Architecture Decision Records                |
+| [Workflows](workflows.md)                       | GitHub Actions inventory                     |
+| [Tooling](tooling.md)                           | All repo tools at a glance                   |
 
 ## Project layout
 

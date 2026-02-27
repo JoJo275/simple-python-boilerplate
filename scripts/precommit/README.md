@@ -6,6 +6,6 @@ These scripts are called from `.pre-commit-config.yaml` under the `repo: local` 
 
 ## Contents
 
-| Script | Hook ID | Description |
-|--------|---------|-------------|
+| Script                                   | Hook ID        | Description                                       |
+| ---------------------------------------- | -------------- | ------------------------------------------------- |
 | [check_nul_bytes.py](check_nul_bytes.py) | `no-nul-bytes` | Fail if any staged file contains NUL (0x00) bytes |

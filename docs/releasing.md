@@ -130,13 +130,13 @@ git switch -c feature/add-login origin/main     # create + switch to a new branc
 
 **Common branch naming patterns:**
 
-| Prefix | Use for | Example |
-|--------|---------|---------|
-| `feature/` | New functionality | `feature/add-login` |
-| `fix/` | Bug fixes | `fix/null-byte-check` |
-| `chore/` | Maintenance, deps | `chore/update-ruff` |
-| `docs/` | Documentation | `docs/release-guide` |
-| `spike/` | Experimental / exploratory | `spike/try-fastapi` |
+| Prefix     | Use for                    | Example               |
+| ---------- | -------------------------- | --------------------- |
+| `feature/` | New functionality          | `feature/add-login`   |
+| `fix/`     | Bug fixes                  | `fix/null-byte-check` |
+| `chore/`   | Maintenance, deps          | `chore/update-ruff`   |
+| `docs/`    | Documentation              | `docs/release-guide`  |
+| `spike/`   | Experimental / exploratory | `spike/try-fastapi`   |
 
 > **For more branch prefixes** (including `wip/`, `hotfix/`, `release/`, and others), see the [Branch Prefixes table in learning.md](notes/learning.md#branch-prefixes).
 >
@@ -170,15 +170,16 @@ The commitizen pre-commit hook validates each commit message automatically. If a
 
 > **Why pre-commit hooks matter:** CI workflows only run when you open a PR targeting `main` — not on every push to a feature branch. Hooks are your **early feedback loop**, catching lint errors, type issues, security problems, and bad commit messages before code ever leaves your machine. Without hooks, you'd only discover these issues after opening a PR. See the [CONTRIBUTING guide](../CONTRIBUTING.md#quality-pipeline-overview) for the full quality pipeline.
 
-| Stage | When it runs | What it catches |
-|-------|-------------|-----------------|
-| **Pre-commit hooks** | Every `git commit` | Ruff lint/format, mypy types, bandit security, spellcheck, file checks |
-| **Commit-msg hook** | Every `git commit` | Conventional commit format (commitizen) |
-| **Pre-push hook** | Every `git push` | Test suite (pytest) — catches test failures before opening a PR |
-| **CI workflows** | PR opened/updated targeting `main` | Full matrix: lint, test (3.11–3.13), typecheck, security, coverage, spellcheck |
-| **PR-specific checks** | PR only | PR title format, dependency review, auto-labeling |
+| Stage                  | When it runs                       | What it catches                                                                |
+| ---------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| **Pre-commit hooks**   | Every `git commit`                 | Ruff lint/format, mypy types, bandit security, spellcheck, file checks         |
+| **Commit-msg hook**    | Every `git commit`                 | Conventional commit format (commitizen)                                        |
+| **Pre-push hook**      | Every `git push`                   | Test suite (pytest) — catches test failures before opening a PR                |
+| **CI workflows**       | PR opened/updated targeting `main` | Full matrix: lint, test (3.11–3.13), typecheck, security, coverage, spellcheck |
+| **PR-specific checks** | PR only                            | PR title format, dependency review, auto-labeling                              |
 
 > **Setup reminder:** All three hook stages must be installed for full local coverage:
+>
 > ```bash
 > pre-commit install                          # pre-commit stage
 > pre-commit install --hook-type commit-msg    # commit-msg stage
@@ -197,24 +198,24 @@ After pushing, go to your repository on GitHub and create a pull request:
 
 1. **Navigate to the repo** — Go to `https://github.com/OWNER/REPO` (or click the link Git prints after pushing).
 
-2. **Start the PR** — GitHub usually shows a banner: *"your-branch had recent pushes — Compare & pull request"*. Click it. If the banner is gone, go to the **Pull requests** tab → **New pull request** → set base: `main` and compare: `your-branch`.
+2. **Start the PR** — GitHub usually shows a banner: _"your-branch had recent pushes — Compare & pull request"_. Click it. If the banner is gone, go to the **Pull requests** tab → **New pull request** → set base: `main` and compare: `your-branch`.
 
 3. **Write the PR title** — Use conventional commit format. This is validated by the `pr-title` workflow.
 
-    | Element | Format | Example |
-    |---------|--------|---------|
-    | **PR title** | Conventional commit format | `feat: add user authentication` |
-    | **PR body** | Free-form for human reviewers | Describe what, why, and any context |
-    | **Commits** | Conventional commit messages | The commits are what matter for releases |
+   | Element      | Format                        | Example                                  |
+   | ------------ | ----------------------------- | ---------------------------------------- |
+   | **PR title** | Conventional commit format    | `feat: add user authentication`          |
+   | **PR body**  | Free-form for human reviewers | Describe what, why, and any context      |
+   | **Commits**  | Conventional commit messages  | The commits are what matter for releases |
 
 4. **Fill in the PR description** — The repo includes a [PR template](../.github/PULL_REQUEST_TEMPLATE.md) that pre-fills the body with a structured checklist. Fill in:
-    - **Description** — what you changed and why
-    - **Related Issue** — link to an issue (`Fixes #123`) or write "N/A"
-    - **Type of Change** — check the relevant box (bug fix, feature, docs, etc.)
-    - **How to Test** — steps and commands so reviewers can verify your changes
-    - **Checklist** — confirm you've run tests, updated docs, etc.
+   - **Description** — what you changed and why
+   - **Related Issue** — link to an issue (`Fixes #123`) or write "N/A"
+   - **Type of Change** — check the relevant box (bug fix, feature, docs, etc.)
+   - **How to Test** — steps and commands so reviewers can verify your changes
+   - **Checklist** — confirm you've run tests, updated docs, etc.
 
-    > **Tip:** Copilot can help draft your PR description. When filling in the PR body on GitHub, click the **Copilot** sparkle icon in the description editor to generate a summary from your commits and diff. You can then edit the output to add context Copilot can't infer (motivation, testing notes, related issues). This is especially useful for large PRs where summarizing changes manually is tedious.
+   > **Tip:** Copilot can help draft your PR description. When filling in the PR body on GitHub, click the **Copilot** sparkle icon in the description editor to generate a summary from your commits and diff. You can then edit the output to add context Copilot can't infer (motivation, testing notes, related issues). This is especially useful for large PRs where summarizing changes manually is tedious.
 
 5. **Add labels** — In the right sidebar, click **Labels** and apply relevant ones (e.g., `enhancement`, `bug`, `documentation`). The `labeler` workflow also auto-applies labels based on changed file paths, but manual labels help with filtering and triage.
 
@@ -268,21 +269,21 @@ flowchart TD
 
 1. **Identify the failure** — On the PR page, failed checks show a red ✗. Click **Details** next to the failed check to open the workflow run logs.
 2. **Read the logs** — Expand the failed step to see the error. Common failures:
-    - **Ruff (lint/format)** — style or lint violation → run `task lint:fix` and `task fmt` locally
-    - **mypy (type check)** — type error → fix type annotations or add `# type: ignore` with justification
-    - **pytest (test)** — test failure → fix the test or the code under test
-    - **Bandit (security)** — security issue in Python source → fix the flagged pattern
-    - **pr-title** — PR title doesn't follow conventional format → edit the PR title on GitHub
-    - **commit-lint** — commit messages don't follow conventional format → amend or rebase commits
-    - **OpenSSF Scorecard** — repository security practices issue (see example below)
+   - **Ruff (lint/format)** — style or lint violation → run `task lint:fix` and `task fmt` locally
+   - **mypy (type check)** — type error → fix type annotations or add `# type: ignore` with justification
+   - **pytest (test)** — test failure → fix the test or the code under test
+   - **Bandit (security)** — security issue in Python source → fix the flagged pattern
+   - **pr-title** — PR title doesn't follow conventional format → edit the PR title on GitHub
+   - **commit-lint** — commit messages don't follow conventional format → amend or rebase commits
+   - **OpenSSF Scorecard** — repository security practices issue (see example below)
 3. **Fix and push** — Make the fix locally, commit, and push to the same branch. CI re-runs automatically on every push to a PR branch. No need to close and reopen the PR.
 
-    ```bash
-    # Fix the issue locally, then:
-    git add -A
-    git commit -m "fix: resolve lint errors from CI"
-    git push
-    ```
+   ```bash
+   # Fix the issue locally, then:
+   git add -A
+   git commit -m "fix: resolve lint errors from CI"
+   git push
+   ```
 
 4. **Repeat** — Keep fixing until all checks are green. Each push triggers a fresh CI run.
 
@@ -301,6 +302,7 @@ After your commits land on `main`, release-please scans them on each push.
 - **If only non-releasable commits** (`docs:`, `chore:`, `ci:`, `test:`, etc.): nothing happens
 
 The Release PR contains auto-generated changes to:
+
 - **CHANGELOG.md** — new entries from commit messages
 - **`__init__.py`** — updated `__version__` fallback string
 - **`.release-please-manifest.json`** — version tracker
@@ -327,11 +329,13 @@ chore(main): release 1.2.0
 ```
 
 This PR contains:
+
 - **CHANGELOG.md** — new entries generated from commit messages
 - **`__init__.py`** — updated `__version__` fallback
 - **`.release-please-manifest.json`** — updated version tracker
 
 **You can edit this PR before merging.** This is your chance to:
+
 - Clean up redundant CHANGELOG entries
 - Reword entries for clarity
 - Add context that commit messages didn't capture
@@ -340,19 +344,20 @@ This PR contains:
 
 release-please reads conventional commit prefixes to determine the version bump:
 
-| Commit type | Version bump | Example |
-|-------------|-------------|---------|
-| `fix:` | **Patch** (0.0.X) | `fix: handle null input` |
-| `feat:` | **Minor** (0.X.0) | `feat: add user login` |
-| `feat!:` or `BREAKING CHANGE:` footer | **Major** (X.0.0) | `feat!: remove deprecated API` |
-| `perf:` | **Patch** (0.0.X) | `perf: cache DB queries` |
-| `docs:`, `chore:`, `ci:`, etc. | **No release** | Only releasable types trigger a Release PR |
+| Commit type                           | Version bump      | Example                                    |
+| ------------------------------------- | ----------------- | ------------------------------------------ |
+| `fix:`                                | **Patch** (0.0.X) | `fix: handle null input`                   |
+| `feat:`                               | **Minor** (0.X.0) | `feat: add user login`                     |
+| `feat!:` or `BREAKING CHANGE:` footer | **Major** (X.0.0) | `feat!: remove deprecated API`             |
+| `perf:`                               | **Patch** (0.0.X) | `perf: cache DB queries`                   |
+| `docs:`, `chore:`, `ci:`, etc.        | **No release**    | Only releasable types trigger a Release PR |
 
 > While the project is pre-1.0 (`major_version_zero: true`), breaking changes bump minor instead of major.
 
 ### What Triggers a Release
 
 A Release PR is created/updated when **any** of these commit types land on `main`:
+
 - `feat:` — new features
 - `fix:` — bug fixes
 - `perf:` — performance improvements
@@ -370,14 +375,14 @@ The CHANGELOG is automatically generated. With rebase+merge, each conventional c
 
 ### Features
 
-* add user authentication module (#42)
-* add login CLI command (#42)
-* add password hashing utility (#43)
+- add user authentication module (#42)
+- add login CLI command (#42)
+- add password hashing utility (#43)
 
 ### Bug Fixes
 
-* handle empty username in auth flow (#44)
-* correct token expiration calculation (#44)
+- handle empty username in auth flow (#44)
+- correct token expiration calculation (#44)
 ```
 
 ### After Merging the Release PR
@@ -399,13 +404,13 @@ The tag then triggers the [release.yml](../.github/workflows/release.yml) workfl
 
 ## Tools in This Workflow
 
-| Tool | Role | Configuration |
-|------|------|---------------|
-| **release-please** | Creates Release PR, bumps version, generates CHANGELOG, creates tags + GitHub Releases | `release-please-config.json`, `.release-please-manifest.json` |
-| **hatch-vcs** | Derives Python package version from git tags at build time | `pyproject.toml` `[tool.hatch.version]` |
-| **commitizen** | Validates commit messages locally (pre-commit hook) + interactive `cz commit` | `pyproject.toml` `[tool.commitizen]` |
-| **commit-lint.yml** | CI safety net — validates all PR commits follow conventional format | `.github/workflows/commit-lint.yml` |
-| **release.yml** | Builds, publishes, generates SBOMs on tag push | `.github/workflows/release.yml` |
+| Tool                | Role                                                                                   | Configuration                                                 |
+| ------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **release-please**  | Creates Release PR, bumps version, generates CHANGELOG, creates tags + GitHub Releases | `release-please-config.json`, `.release-please-manifest.json` |
+| **hatch-vcs**       | Derives Python package version from git tags at build time                             | `pyproject.toml` `[tool.hatch.version]`                       |
+| **commitizen**      | Validates commit messages locally (pre-commit hook) + interactive `cz commit`          | `pyproject.toml` `[tool.commitizen]`                          |
+| **commit-lint.yml** | CI safety net — validates all PR commits follow conventional format                    | `.github/workflows/commit-lint.yml`                           |
+| **release.yml**     | Builds, publishes, generates SBOMs on tag push                                         | `.github/workflows/release.yml`                               |
 
 ---
 
@@ -424,6 +429,7 @@ How tested: Unit tests for auth module, integration test for login flow.
 ```
 
 **Key conventions:**
+
 - Use conventional prefix (`feat:`, `fix:`, etc.) for meaningful changes
 - The `(#PR)` reference is added automatically by GitHub (see below)
 - Use non-conventional messages for WIP/iteration (they won't appear in CHANGELOG)
@@ -485,17 +491,21 @@ Add `PUBLISH_TOKEN` in Settings → Secrets and variables → Actions → Secret
 Configure these settings to enforce the release workflow:
 
 ### Merge Strategy
+
 - **Enable:** "Allow rebase merging"
 - **Disable:** "Allow merge commits" and "Allow squash merging"
 - **Enable:** "Automatically delete head branches"
 
 ### Branch Protection (main)
+
 - Require status checks to pass before merging
 - Require pull request reviews before merging
 - Require linear history
 
 ### Repository Variables
+
 Enable the workflows by setting these in Settings → Variables:
+
 - `ENABLE_RELEASE_PLEASE = true`
 - `ENABLE_RELEASE = true`
 - `ENABLE_COMMIT_LINT = true`
@@ -504,14 +514,14 @@ Enable the workflows by setting these in Settings → Variables:
 
 What runs, what doesn't, and why:
 
-| Trigger | Workflow | Guard (must be set) | What happens |
-|---------|----------|--------------------|--------------|
-| Push to `main` | `release-please.yml` | `ENABLE_RELEASE_PLEASE` variable | Creates/updates a Release PR with CHANGELOG + version bump |
-| PR targeting `main` | `commit-lint.yml` | `ENABLE_COMMIT_LINT` variable | Validates all PR commits follow conventional format |
-| Tag push `v*.*.*` | `release.yml` → **build** job | `ENABLE_RELEASE` variable | Builds sdist + wheel, generates SLSA attestations |
-| Tag push `v*.*.*` | `release.yml` → **publish** job | `PUBLISH_TOKEN` **secret** | Publishes to PyPI. **If secret is missing, skips gracefully** (workflow stays green) |
-| Tag push `v*.*.*` | `release.yml` → **sbom** job | `ENABLE_RELEASE` variable | Generates SPDX + CycloneDX SBOMs |
-| Tag push `v*.*.*` | `release.yml` → **upload-assets** job | `ENABLE_RELEASE` variable | Uploads dist + SBOMs to the GitHub Release |
+| Trigger             | Workflow                              | Guard (must be set)              | What happens                                                                         |
+| ------------------- | ------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------ |
+| Push to `main`      | `release-please.yml`                  | `ENABLE_RELEASE_PLEASE` variable | Creates/updates a Release PR with CHANGELOG + version bump                           |
+| PR targeting `main` | `commit-lint.yml`                     | `ENABLE_COMMIT_LINT` variable    | Validates all PR commits follow conventional format                                  |
+| Tag push `v*.*.*`   | `release.yml` → **build** job         | `ENABLE_RELEASE` variable        | Builds sdist + wheel, generates SLSA attestations                                    |
+| Tag push `v*.*.*`   | `release.yml` → **publish** job       | `PUBLISH_TOKEN` **secret**       | Publishes to PyPI. **If secret is missing, skips gracefully** (workflow stays green) |
+| Tag push `v*.*.*`   | `release.yml` → **sbom** job          | `ENABLE_RELEASE` variable        | Generates SPDX + CycloneDX SBOMs                                                     |
+| Tag push `v*.*.*`   | `release.yml` → **upload-assets** job | `ENABLE_RELEASE` variable        | Uploads dist + SBOMs to the GitHub Release                                           |
 
 **Key point:** Setting `ENABLE_RELEASE = true` does **not** publish to PyPI. It builds artifacts and uploads them to the GitHub Release. PyPI publishing only happens if you also add the `PUBLISH_TOKEN` secret. Without it, the publish step shows a notice and passes.
 
@@ -521,11 +531,11 @@ What runs, what doesn't, and why:
 
 This project follows [Semantic Versioning](https://semver.org/):
 
-| Version Part | When to Increment |
-|--------------|-------------------|
-| **MAJOR** (1.x.x) | Breaking API changes |
+| Version Part      | When to Increment                 |
+| ----------------- | --------------------------------- |
+| **MAJOR** (1.x.x) | Breaking API changes              |
 | **MINOR** (x.1.x) | New features, backward compatible |
-| **PATCH** (x.x.1) | Bug fixes, backward compatible |
+| **PATCH** (x.x.1) | Bug fixes, backward compatible    |
 
 ### Pre-release Versions
 
@@ -539,12 +549,12 @@ For pre-releases, use suffixes:
 
 The package version comes from **git tags** via hatch-vcs:
 
-| Context | Version source | Example |
-|---------|---------------|---------|
-| Tagged release | Git tag | `1.2.0` |
-| Dev build (after tag) | Tag + distance + hash | `1.2.1.dev3+gabcdef` |
-| No tags exist | Fallback in `__init__.py` | `0.1.0` |
-| Outside git repo | Fallback | `0.0.0+unknown` |
+| Context               | Version source            | Example              |
+| --------------------- | ------------------------- | -------------------- |
+| Tagged release        | Git tag                   | `1.2.0`              |
+| Dev build (after tag) | Tag + distance + hash     | `1.2.1.dev3+gabcdef` |
+| No tags exist         | Fallback in `__init__.py` | `0.1.0`              |
+| Outside git repo      | Fallback                  | `0.0.0+unknown`      |
 
 ---
 
@@ -602,12 +612,12 @@ git push origin :refs/tags/v1.0.0
 
 ### Alternative Workflows That Could Replace Parts
 
-| Tool | What it could replace | Trade-off |
-|------|----------------------|-----------|
-| **python-semantic-release** | release-please | No reviewable Release PR; pushes tags directly |
-| **towncrier** | CHANGELOG generation | Fragment files per PR; can't auto-determine version |
-| **git-cliff** | CHANGELOG generation | CLI only; no PR/release automation |
-| **squash+merge** | rebase+merge | Cleaner but loses individual commit detail |
+| Tool                        | What it could replace | Trade-off                                           |
+| --------------------------- | --------------------- | --------------------------------------------------- |
+| **python-semantic-release** | release-please        | No reviewable Release PR; pushes tags directly      |
+| **towncrier**               | CHANGELOG generation  | Fragment files per PR; can't auto-determine version |
+| **git-cliff**               | CHANGELOG generation  | CLI only; no PR/release automation                  |
+| **squash+merge**            | rebase+merge          | Cleaner but loses individual commit detail          |
 
 ---
 

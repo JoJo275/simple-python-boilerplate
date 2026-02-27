@@ -29,12 +29,12 @@ browser-based development environment with zero local setup.
 
 ## Dev Container vs Containerfile
 
-| Aspect | Dev Container (`.devcontainer/`) | Containerfile (repo root) |
-|--------|----------------------------------|---------------------------|
-| **Purpose** | Development environment | Production runtime |
-| **Contains** | All dev tools, editors, linters | Minimal app only |
-| **Image size** | Large (~1GB+) | Small (~150MB) |
-| **User** | Interactive development | Run the application |
+| Aspect          | Dev Container (`.devcontainer/`) | Containerfile (repo root)     |
+| --------------- | -------------------------------- | ----------------------------- |
+| **Purpose**     | Development environment          | Production runtime            |
+| **Contains**    | All dev tools, editors, linters  | Minimal app only              |
+| **Image size**  | Large (~1GB+)                    | Small (~150MB)                |
+| **User**        | Interactive development          | Run the application           |
 | **When to use** | `code .` → "Reopen in Container" | `docker build` → `docker run` |
 
 They serve completely different purposes and don't share configuration.

@@ -13,7 +13,9 @@ Design proposals help us make thoughtful architectural decisions.
 Please provide as much context as possible to facilitate discussion.
 
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+
 ⚠️ **Before submitting**
+
 - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md).
 - **Small enhancement?** Use the [Feature Request](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=feature_request.yml) template instead.
 - **Early-stage idea?** Start in [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Ideas/Proposals) first.
@@ -119,7 +121,7 @@ Please provide as much context as possible to facilitate discussion.
 <!-- What could go wrong? How would you mitigate those risks? Strongly recommended if this is a breaking change. -->
 
 | Risk | Mitigation |
-|------|------------|
+| ---- | ---------- |
 |      |            |
 
 ### Open Questions (Optional)

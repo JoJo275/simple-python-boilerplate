@@ -15,13 +15,15 @@ Thanks for taking the time to report a bug! 🐛
 Please provide the **smallest possible example** that **reliably** reproduces the issue.
 
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+
 ⚠️ **Before submitting**
+
 - **Security vulnerability?** Do **not** open a public issue. See [SECURITY.md](https://github.com/JoJo275/simple-python-boilerplate/blob/main/SECURITY.md) and (if enabled) report privately via [Security Advisory](https://github.com/JoJo275/simple-python-boilerplate/security/advisories/new).
 - **"How do I…?" / advice** → Use [Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions) (Q&A category).
 - **Docs first:** check [README](https://github.com/JoJo275/simple-python-boilerplate#readme) and project documentation.
 - **Search first:** please search [existing issues](https://github.com/JoJo275/simple-python-boilerplate/issues) before filing a new one.
 - If this is **not** a confirmed, reproducible bug, please use Discussions instead.
--->
+  -->
 
 ## Description
 
@@ -69,13 +71,13 @@ Please provide the **smallest possible example** that **reliably** reproduces th
 
 ## Environment
 
-| Field                   | Value                                                        |
-|-------------------------|--------------------------------------------------------------|
-| **OS**                  | <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 -->            |
-| **Python Version**      | <!-- e.g., 3.11.5 -->                                        |
-| **Package Version**     | <!-- e.g., 0.1.0 -->                                         |
-| **Install Method**      | <!-- pip, pip -e, uv, poetry, pdm, conda, source, other -->  |
-| **Execution Context**   | <!-- CLI, library, tests, REPL, notebook, other -->          |
+| Field                 | Value                                                       |
+| --------------------- | ----------------------------------------------------------- |
+| **OS**                | <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 -->           |
+| **Python Version**    | <!-- e.g., 3.11.5 -->                                       |
+| **Package Version**   | <!-- e.g., 0.1.0 -->                                        |
+| **Install Method**    | <!-- pip, pip -e, uv, poetry, pdm, conda, source, other --> |
+| **Execution Context** | <!-- CLI, library, tests, REPL, notebook, other -->         |
 
 ## Error Messages / Logs
 

@@ -16,11 +16,11 @@
 
 > **Note:** Update this table per release; otherwise assume only the latest version is supported.
 
-| Version | Supported          |
-|---------|--------------------|
-| 2.x.x   | :white_check_mark: |
+| Version | Supported                                |
+| ------- | ---------------------------------------- |
+| 2.x.x   | :white_check_mark:                       |
 | 1.x.x   | :white_check_mark: (security fixes only) |
-| < 1.0   | :x:                |
+| < 1.0   | :x:                                      |
 
 ---
 
@@ -78,13 +78,13 @@ Please provide as much information as possible:
 
 > **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
 
-| Action | Timeframe |
-|--------|-----------|
-| Acknowledgment of report | Target: within 72 hours |
-| Initial assessment | Target: within 7 days |
-| Status updates | Target: every 7 days during investigation |
-| Resolution or mitigation | Varies by severity (target: 30–90 days) |
-| Public disclosure | After fix is released |
+| Action                   | Timeframe                                 |
+| ------------------------ | ----------------------------------------- |
+| Acknowledgment of report | Target: within 72 hours                   |
+| Initial assessment       | Target: within 7 days                     |
+| Status updates           | Target: every 7 days during investigation |
+| Resolution or mitigation | Varies by severity (target: 30–90 days)   |
+| Public disclosure        | After fix is released                     |
 
 ---
 
@@ -119,6 +119,7 @@ We support responsible security research. To the extent permitted by law, we wil
 - Report vulnerabilities promptly
 
 > **⚠️ Important:** Safe harbor applies only to authorized testing within the scope of this policy. The following activities are explicitly excluded from safe harbor:
+>
 > - Unauthorized access to systems or data exfiltration
 > - Service disruption, including DoS/DDoS attacks
 > - Aggressive or repeated automated scanning
@@ -180,9 +181,9 @@ We thank the following individuals for responsibly disclosing security issues:
 
 <!-- Add names/handles here as vulnerabilities are reported and fixed -->
 
-| Researcher | Vulnerability | Severity | Date |
-|------------|---------------|----------|------|
-| *Be the first!* | — | — | — |
+| Researcher      | Vulnerability | Severity | Date |
+| --------------- | ------------- | -------- | ---- |
+| _Be the first!_ | —             | —        | —    |
 
 ---
 

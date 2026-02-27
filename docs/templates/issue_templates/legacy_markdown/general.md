@@ -14,7 +14,6 @@ title: "[ISSUE] Short description"
 labels: ["status: needs-triage"]
 assignees: ""
 # type: (Optionally set specific issue types for issues created with this template (only works if your org has issue types configured; it’s org-level))
-
 ---
 
 <!--

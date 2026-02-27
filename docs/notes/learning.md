@@ -8,7 +8,7 @@ Personal notes and learnings captured while building this project.
 
 **Problem:** Tests fail with `ModuleNotFoundError` even though code is right there.
 
-**Why:** Python doesn't automatically look inside `src/`. The `src/` layout is *intentionally* strict — it forces you to install the package properly.
+**Why:** Python doesn't automatically look inside `src/`. The `src/` layout is _intentionally_ strict — it forces you to install the package properly.
 
 **Solution:** Always run `pip install -e .` after cloning. The `-e` (editable) flag links your source so changes reflect immediately.
 
@@ -26,44 +26,45 @@ These two names kept confusing me. The key distinction:
 - **Hatchling** = "how to build the package" (build backend, like setuptools)
 - **Hatch** = "how to work on the project" (project manager, like tox/nox + venv)
 
-| Tool | What it does | Config section |
-|------|-------------|----------------|
-| **Hatchling** | Builds sdist/wheel when you `pip install .` or `python -m build` | `[build-system]`, `[tool.hatch.build.*]` |
-| **Hatch** | Manages envs, runs scripts, bumps versions, triggers builds | `[tool.hatch.envs.*]`, `[tool.hatch.version]` |
+| Tool          | What it does                                                     | Config section                                |
+| ------------- | ---------------------------------------------------------------- | --------------------------------------------- |
+| **Hatchling** | Builds sdist/wheel when you `pip install .` or `python -m build` | `[build-system]`, `[tool.hatch.build.*]`      |
+| **Hatch**     | Manages envs, runs scripts, bumps versions, triggers builds      | `[tool.hatch.envs.*]`, `[tool.hatch.version]` |
 
 **Why use both?** A single `pyproject.toml` defines everything:
+
 - Build backend (Hatchling)
 - What goes into distributions (include/exclude rules)
 - Version source/bumping rules
 - Dev/test/lint environments and scripts (Hatch)
 
-**Important:** Hatchling works *without* Hatch installed. Anyone can `pip install .` and Hatchling handles the build. Hatch is optional — it's a convenience CLI for developers.
+**Important:** Hatchling works _without_ Hatch installed. Anyone can `pip install .` and Hatchling handles the build. Hatch is optional — it's a convenience CLI for developers.
 
 See: [ADR 016](../adr/016-hatchling-and-hatch.md)
 
 ### Lockfiles and Transitive Dependencies — pip-tools vs uv vs Poetry
 
-**The problem:** When you declare `requests>=2.28` in `pyproject.toml`, pip resolves it to *some* version at install time, along with transitive deps like `urllib3`, `certifi`, etc. Different machines at different times can end up with different versions — "works on my machine" bugs.
+**The problem:** When you declare `requests>=2.28` in `pyproject.toml`, pip resolves it to _some_ version at install time, along with transitive deps like `urllib3`, `certifi`, etc. Different machines at different times can end up with different versions — "works on my machine" bugs.
 
-**The solution:** A lockfile pins *every* dependency (direct + transitive) to exact versions+hashes, ensuring reproducible environments.
+**The solution:** A lockfile pins _every_ dependency (direct + transitive) to exact versions+hashes, ensuring reproducible environments.
 
 #### The Three Main Approaches
 
-| Tool | Lockfile | How it works | Best for |
-|------|----------|--------------|----------|
-| **pip-tools** | `requirements.txt` (generated) | `pip-compile` reads your loose deps and outputs pinned `requirements.txt`. `pip-sync` installs exactly what's in the file. | Existing pip-based workflows, minimal learning curve |
-| **uv** | `uv.lock` | Rust-based, drop-in pip replacement. `uv lock` generates lockfile, `uv sync` installs from it. 10-100x faster than pip. | Speed-critical workflows, modern replacement for pip+venv |
-| **Poetry** | `poetry.lock` | Full project manager. `poetry install` reads `pyproject.toml`, generates/uses `poetry.lock`. Also handles builds and publishing. | All-in-one solution, teams wanting integrated tooling |
+| Tool          | Lockfile                       | How it works                                                                                                                     | Best for                                                  |
+| ------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| **pip-tools** | `requirements.txt` (generated) | `pip-compile` reads your loose deps and outputs pinned `requirements.txt`. `pip-sync` installs exactly what's in the file.       | Existing pip-based workflows, minimal learning curve      |
+| **uv**        | `uv.lock`                      | Rust-based, drop-in pip replacement. `uv lock` generates lockfile, `uv sync` installs from it. 10-100x faster than pip.          | Speed-critical workflows, modern replacement for pip+venv |
+| **Poetry**    | `poetry.lock`                  | Full project manager. `poetry install` reads `pyproject.toml`, generates/uses `poetry.lock`. Also handles builds and publishing. | All-in-one solution, teams wanting integrated tooling     |
 
 #### How They Compare
 
-| Aspect | pip-tools | uv | Poetry |
-|--------|-----------|-----|--------|
-| **Speed** | Slow (pip resolver) | Blazing fast (Rust) | Moderate |
-| **Config file** | `pyproject.toml` or `requirements.in` | `pyproject.toml` | `pyproject.toml` (but `[tool.poetry]`, not PEP 621) |
-| **Learning curve** | Minimal — familiar pip workflow | Low — pip-compatible commands | Moderate — own CLI and concepts |
-| **Hatch compatibility** | Works alongside (but awkward) | Can replace Hatch entirely | Replaces Hatch (different philosophy) |
-| **Maturity** | Very mature | Newer but rapidly adopted | Mature, large community |
+| Aspect                  | pip-tools                             | uv                            | Poetry                                              |
+| ----------------------- | ------------------------------------- | ----------------------------- | --------------------------------------------------- |
+| **Speed**               | Slow (pip resolver)                   | Blazing fast (Rust)           | Moderate                                            |
+| **Config file**         | `pyproject.toml` or `requirements.in` | `pyproject.toml`              | `pyproject.toml` (but `[tool.poetry]`, not PEP 621) |
+| **Learning curve**      | Minimal — familiar pip workflow       | Low — pip-compatible commands | Moderate — own CLI and concepts                     |
+| **Hatch compatibility** | Works alongside (but awkward)         | Can replace Hatch entirely    | Replaces Hatch (different philosophy)               |
+| **Maturity**            | Very mature                           | Newer but rapidly adopted     | Mature, large community                             |
 
 #### Why This Project Uses Hatch (Without Lockfiles)
 
@@ -105,146 +106,146 @@ There are a lot of overlapping tools in the Python ecosystem. This table groups 
 
 #### Build Backends (what `pip install .` uses)
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **Hatchling** | Modern build backend by the Hatch project | Build sdist/wheel, auto-discover packages, include/exclude rules, plugins | Fast, minimal config, auto-discovers src/ layout | Newer, smaller ecosystem than setuptools |
-| **setuptools** | The original build backend | Build sdist/wheel, C extensions, entry points, data files, find_packages | Ubiquitous, massive community, battle-tested | Verbose config, legacy baggage (`setup.py`, `setup.cfg`) |
-| **Flit-core** | Minimalist build backend | Build sdist/wheel for pure-Python packages | Dead simple for pure-Python packages | No compiled extensions, fewer features |
-| **PDM-backend** | Build backend from the PDM project | Build sdist/wheel, PEP 621 metadata, editable installs | PEP 621 native, supports lock files | Tied to PDM ecosystem |
-| **Maturin** | Build backend for Rust+Python (PyO3) | Build wheels with compiled Rust extensions, cross-compile | First-class Rust FFI support | Only for Rust extensions |
+| Tool            | Description                               | Capabilities                                                              | Pros                                             | Cons                                                     |
+| --------------- | ----------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------- |
+| **Hatchling**   | Modern build backend by the Hatch project | Build sdist/wheel, auto-discover packages, include/exclude rules, plugins | Fast, minimal config, auto-discovers src/ layout | Newer, smaller ecosystem than setuptools                 |
+| **setuptools**  | The original build backend                | Build sdist/wheel, C extensions, entry points, data files, find_packages  | Ubiquitous, massive community, battle-tested     | Verbose config, legacy baggage (`setup.py`, `setup.cfg`) |
+| **Flit-core**   | Minimalist build backend                  | Build sdist/wheel for pure-Python packages                                | Dead simple for pure-Python packages             | No compiled extensions, fewer features                   |
+| **PDM-backend** | Build backend from the PDM project        | Build sdist/wheel, PEP 621 metadata, editable installs                    | PEP 621 native, supports lock files              | Tied to PDM ecosystem                                    |
+| **Maturin**     | Build backend for Rust+Python (PyO3)      | Build wheels with compiled Rust extensions, cross-compile                 | First-class Rust FFI support                     | Only for Rust extensions                                 |
 
 #### Project/Environment Managers (create envs, run tasks)
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **Hatch** | Project manager + env manager | Create/manage envs, run scripts, test matrices, version bumping, build, publish | Env management, test matrices, scripts, version bumping — all in `pyproject.toml` | Less established than tox in older codebases |
-| **tox** | Test automation / environment manager | Multi-env test runs, dependency isolation, CI integration, plugin system | Very mature, widely adopted in CI, plugin ecosystem | Separate `tox.ini` config, can be verbose |
-| **nox** | Like tox but config is Python code | Session-based test runs, parametrize, reuse venvs, conda support | Full Python flexibility, easy to debug sessions | Requires writing Python (pro or con), no declarative config |
-| **PDM** | Package + project manager | Dependency resolution, lock files, scripts, env management, publish | PEP 582 support, lock files, scripts | Different philosophy (centralised tool), smaller community |
-| **uv** | Fast package installer + env manager (Rust) | Install packages, create venvs, resolve dependencies, run scripts | Extremely fast, drop-in pip/venv replacement | Newer tool, still evolving rapidly |
-| **Poetry** | Dependency manager + build tool | Dependency resolution, lock files, env management, build, publish | Lock files, dependency resolution, publish built in | Own config format (`[tool.poetry]`), doesn't follow PEP 621 fully |
-| **Pipenv** | pip + virtualenv wrapper | Pipfile/Pipfile.lock, auto-create venvs, `.env` loading | Lock files, `.env` support | Slow dependency resolution, less active development |
+| Tool       | Description                                 | Capabilities                                                                    | Pros                                                                              | Cons                                                              |
+| ---------- | ------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Hatch**  | Project manager + env manager               | Create/manage envs, run scripts, test matrices, version bumping, build, publish | Env management, test matrices, scripts, version bumping — all in `pyproject.toml` | Less established than tox in older codebases                      |
+| **tox**    | Test automation / environment manager       | Multi-env test runs, dependency isolation, CI integration, plugin system        | Very mature, widely adopted in CI, plugin ecosystem                               | Separate `tox.ini` config, can be verbose                         |
+| **nox**    | Like tox but config is Python code          | Session-based test runs, parametrize, reuse venvs, conda support                | Full Python flexibility, easy to debug sessions                                   | Requires writing Python (pro or con), no declarative config       |
+| **PDM**    | Package + project manager                   | Dependency resolution, lock files, scripts, env management, publish             | PEP 582 support, lock files, scripts                                              | Different philosophy (centralised tool), smaller community        |
+| **uv**     | Fast package installer + env manager (Rust) | Install packages, create venvs, resolve dependencies, run scripts               | Extremely fast, drop-in pip/venv replacement                                      | Newer tool, still evolving rapidly                                |
+| **Poetry** | Dependency manager + build tool             | Dependency resolution, lock files, env management, build, publish               | Lock files, dependency resolution, publish built in                               | Own config format (`[tool.poetry]`), doesn't follow PEP 621 fully |
+| **Pipenv** | pip + virtualenv wrapper                    | Pipfile/Pipfile.lock, auto-create venvs, `.env` loading                         | Lock files, `.env` support                                                        | Slow dependency resolution, less active development               |
 
 #### Task Runners (run commands/scripts)
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **Hatch scripts** | Scripts defined in `pyproject.toml` | Run commands, chain scripts, pass args, env-aware | Zero extra tools, integrated with Hatch envs | Only available through Hatch |
-| **Make** | Classic build automation (Makefile) | Targets, dependencies, variables, shell commands, parallel builds | Universal, available everywhere, well understood | Not Python-native, Windows requires extra setup, tab-sensitive syntax |
-| **just** | Modern command runner (Justfile) | Recipes, arguments, variables, dotenv loading, cross-platform | Simple syntax, cross-platform, no tab issues | Extra binary to install, not Python-specific |
-| **Task (go-task)** | Task runner using `Taskfile.yml` | Tasks, dependencies, variables, watch mode, cross-platform | YAML-based, cross-platform, dependency graphs | Extra binary, Go ecosystem tool |
-| **invoke** | Python-based task runner | Tasks as Python functions, namespaces, auto-parsing args | Pure Python, good for complex logic | Another dependency, less popular now |
-| **nox** | Also works as a task runner | Session-based commands, parametrize, venv per session | Python-based, session isolation | Heavier than a simple task runner |
-| **tox** | Also works as a task runner | Env-isolated command runs, dependency pinning | Mature, env isolation | Verbose for simple tasks |
+| Tool               | Description                         | Capabilities                                                      | Pros                                             | Cons                                                                  |
+| ------------------ | ----------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| **Hatch scripts**  | Scripts defined in `pyproject.toml` | Run commands, chain scripts, pass args, env-aware                 | Zero extra tools, integrated with Hatch envs     | Only available through Hatch                                          |
+| **Make**           | Classic build automation (Makefile) | Targets, dependencies, variables, shell commands, parallel builds | Universal, available everywhere, well understood | Not Python-native, Windows requires extra setup, tab-sensitive syntax |
+| **just**           | Modern command runner (Justfile)    | Recipes, arguments, variables, dotenv loading, cross-platform     | Simple syntax, cross-platform, no tab issues     | Extra binary to install, not Python-specific                          |
+| **Task (go-task)** | Task runner using `Taskfile.yml`    | Tasks, dependencies, variables, watch mode, cross-platform        | YAML-based, cross-platform, dependency graphs    | Extra binary, Go ecosystem tool                                       |
+| **invoke**         | Python-based task runner            | Tasks as Python functions, namespaces, auto-parsing args          | Pure Python, good for complex logic              | Another dependency, less popular now                                  |
+| **nox**            | Also works as a task runner         | Session-based commands, parametrize, venv per session             | Python-based, session isolation                  | Heavier than a simple task runner                                     |
+| **tox**            | Also works as a task runner         | Env-isolated command runs, dependency pinning                     | Mature, env isolation                            | Verbose for simple tasks                                              |
 
 #### CLI Frameworks (building user-facing CLIs)
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **argparse** | Standard library CLI parser | Positional/optional args, subcommands, type conversion, help generation | No dependencies, always available | Verbose, manual help formatting |
-| **click** | Decorator-based CLI framework | Commands, groups, options, prompts, file handling, colour output, plugins | Clean API, composable commands, excellent docs | Extra dependency |
-| **typer** | Click-based, uses type hints for CLI args | Auto CLI from type hints, auto-completion, rich help | Minimal boilerplate, auto-generates help | Depends on click, newer |
-| **rich-click** | Click + Rich for beautiful help output | Rich-formatted help, panels, syntax highlighting, tables | Pretty terminal output, drop-in for click | Extra dependency on top of click |
-| **fire** | Auto-generates CLI from any Python object | Auto CLI from functions/classes/objects, no decorators needed | Zero boilerplate | Less control over help text and validation |
+| Tool           | Description                               | Capabilities                                                              | Pros                                           | Cons                                       |
+| -------------- | ----------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------ |
+| **argparse**   | Standard library CLI parser               | Positional/optional args, subcommands, type conversion, help generation   | No dependencies, always available              | Verbose, manual help formatting            |
+| **click**      | Decorator-based CLI framework             | Commands, groups, options, prompts, file handling, colour output, plugins | Clean API, composable commands, excellent docs | Extra dependency                           |
+| **typer**      | Click-based, uses type hints for CLI args | Auto CLI from type hints, auto-completion, rich help                      | Minimal boilerplate, auto-generates help       | Depends on click, newer                    |
+| **rich-click** | Click + Rich for beautiful help output    | Rich-formatted help, panels, syntax highlighting, tables                  | Pretty terminal output, drop-in for click      | Extra dependency on top of click           |
+| **fire**       | Auto-generates CLI from any Python object | Auto CLI from functions/classes/objects, no decorators needed             | Zero boilerplate                               | Less control over help text and validation |
 
 #### Linting & Formatting
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **Ruff** | Linter + formatter (Rust) | 800+ lint rules, auto-fix, import sorting, formatting, pyupgrade | Blazing fast, replaces flake8+isort+black+pyupgrade+more | Newer, not 100% rule parity with all tools |
-| **flake8** | Linter | Style checks, error detection, plugin system (200+ plugins) | Mature, huge plugin ecosystem | Slower, Python-based, being superseded by Ruff |
-| **Black** | Opinionated formatter | Deterministic formatting, magic trailing comma, string normalisation | Zero config, consistent | No flexibility, being superseded by Ruff |
-| **isort** | Import sorter | Sort imports, configurable sections, profiles (black-compatible) | Focused, configurable | Separate tool, Ruff handles this now |
-| **autopep8** | PEP 8 formatter | Fix PEP 8 violations, conservative by default | Conservative formatting | Less opinionated than Black, less popular |
+| Tool         | Description               | Capabilities                                                         | Pros                                                     | Cons                                           |
+| ------------ | ------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| **Ruff**     | Linter + formatter (Rust) | 800+ lint rules, auto-fix, import sorting, formatting, pyupgrade     | Blazing fast, replaces flake8+isort+black+pyupgrade+more | Newer, not 100% rule parity with all tools     |
+| **flake8**   | Linter                    | Style checks, error detection, plugin system (200+ plugins)          | Mature, huge plugin ecosystem                            | Slower, Python-based, being superseded by Ruff |
+| **Black**    | Opinionated formatter     | Deterministic formatting, magic trailing comma, string normalisation | Zero config, consistent                                  | No flexibility, being superseded by Ruff       |
+| **isort**    | Import sorter             | Sort imports, configurable sections, profiles (black-compatible)     | Focused, configurable                                    | Separate tool, Ruff handles this now           |
+| **autopep8** | PEP 8 formatter           | Fix PEP 8 violations, conservative by default                        | Conservative formatting                                  | Less opinionated than Black, less popular      |
 
 #### Type Checkers
 
-| Tool | Description | Capabilities | Pros | Cons |
-|------|-------------|-------------|------|------|
-| **mypy** | The original Python type checker | Strict mode, incremental checks, stubs, plugins, daemon mode | Most mature, wide adoption, plugin ecosystem | Slower, can be strict to configure |
-| **Pyright** | Type checker (powers VS Code Pylance) | Full type inference, watch mode, multi-root workspaces, strict mode | Fast, excellent IDE integration | Node.js dependency, different strictness defaults |
-| **pytype** | Google's type checker | Type inference without annotations, cross-function analysis | Infers types even without annotations | Less widely used outside Google |
+| Tool        | Description                           | Capabilities                                                        | Pros                                         | Cons                                              |
+| ----------- | ------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------------- |
+| **mypy**    | The original Python type checker      | Strict mode, incremental checks, stubs, plugins, daemon mode        | Most mature, wide adoption, plugin ecosystem | Slower, can be strict to configure                |
+| **Pyright** | Type checker (powers VS Code Pylance) | Full type inference, watch mode, multi-root workspaces, strict mode | Fast, excellent IDE integration              | Node.js dependency, different strictness defaults |
+| **pytype**  | Google's type checker                 | Type inference without annotations, cross-function analysis         | Infers types even without annotations        | Less widely used outside Google                   |
 
 #### Dependency & Security Tools
 
-| Tool | Install | Capabilities | Pros | Cons |
-|------|---------|-------------|------|------|
-| **pip-tools** | `pip install pip-tools` | `pip-compile` pins deps to a lock file, `pip-sync` installs exactly those pins | Reproducible builds, minimal lock file, works with pip | Extra step in workflow, no auto-update |
-| **pip-audit** | `pip install pip-audit` | Scan installed packages against known vulnerability databases (OSV, PyPI) | Fast, integrates with CI, supports requirements.txt and pyproject.toml | Only checks known CVEs, not code-level issues |
-| **pipdeptree** | `pip install pipdeptree` | Visualise dependency tree, detect conflicts, show reverse deps | Great for debugging dependency issues, simple output | Read-only — doesn't fix problems |
+| Tool           | Install                  | Capabilities                                                                   | Pros                                                                   | Cons                                          |
+| -------------- | ------------------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------- |
+| **pip-tools**  | `pip install pip-tools`  | `pip-compile` pins deps to a lock file, `pip-sync` installs exactly those pins | Reproducible builds, minimal lock file, works with pip                 | Extra step in workflow, no auto-update        |
+| **pip-audit**  | `pip install pip-audit`  | Scan installed packages against known vulnerability databases (OSV, PyPI)      | Fast, integrates with CI, supports requirements.txt and pyproject.toml | Only checks known CVEs, not code-level issues |
+| **pipdeptree** | `pip install pipdeptree` | Visualise dependency tree, detect conflicts, show reverse deps                 | Great for debugging dependency issues, simple output                   | Read-only — doesn't fix problems              |
 
 #### Debugging & Developer Experience Tools
 
-| Tool | Install | Capabilities | Pros | Cons |
-|------|---------|-------------|------|------|
-| **rich** | `pip install rich` | Pretty tables, tracebacks, progress bars, syntax highlighting, logging, markdown rendering | Beautiful console output, drop-in traceback handler | Extra dependency, large package |
-| **icecream** | `pip install icecream` | `ic(variable)` — prints variable name + value + file/line, auto-formats | Much better than `print()` debugging, zero-config | Debug-only — must remove before committing |
-| **ipython** | `pip install ipython` | Enhanced REPL with tab completion, syntax highlighting, magic commands, `%timeit`, `%debug` | Far better than default Python shell, auto-reload modules | Heavier dependency, not for production |
-| **devtools** | `pip install devtools` | `debug(variable)` — pretty-prints with type info, file/line, colour output | Clean debug output, type-aware formatting | Less known than icecream, similar purpose |
+| Tool         | Install                | Capabilities                                                                                | Pros                                                      | Cons                                       |
+| ------------ | ---------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ |
+| **rich**     | `pip install rich`     | Pretty tables, tracebacks, progress bars, syntax highlighting, logging, markdown rendering  | Beautiful console output, drop-in traceback handler       | Extra dependency, large package            |
+| **icecream** | `pip install icecream` | `ic(variable)` — prints variable name + value + file/line, auto-formats                     | Much better than `print()` debugging, zero-config         | Debug-only — must remove before committing |
+| **ipython**  | `pip install ipython`  | Enhanced REPL with tab completion, syntax highlighting, magic commands, `%timeit`, `%debug` | Far better than default Python shell, auto-reload modules | Heavier dependency, not for production     |
+| **devtools** | `pip install devtools` | `debug(variable)` — pretty-prints with type info, file/line, colour output                  | Clean debug output, type-aware formatting                 | Less known than icecream, similar purpose  |
 
 #### Commit Convention & Versioning Tools
 
-| Tool | Install | Capabilities | Pros | Cons |
-|------|---------|-------------|------|------|
-| **commitizen** | `pip install commitizen` | Interactive commit prompts enforcing Conventional Commits, auto-bump version, auto-generate changelog, pre-commit hook, CI validation | All-in-one: commit format + version bump + changelog, configurable via `pyproject.toml`, supports custom commit schemas | Python dependency, learning curve for custom rules |
-| **commitlint** | `npm install @commitlint/cli` | Lint commit messages against Conventional Commits (or custom) rules, integrates with husky | Huge ecosystem, very configurable rules | Node.js dependency, doesn't bump versions or generate changelogs |
-| **semantic-release** | `pip install python-semantic-release` | Auto-determine next version from commits, generate changelog, create Git tags, publish to PyPI | Fully automated release pipeline, CI-friendly | Opinionated workflow, less control over individual steps |
-| **towncrier** | `pip install towncrier` | Fragment-based changelog generation — each PR adds a news fragment file, assembled at release | Avoids merge conflicts in CHANGELOG, per-PR granularity | Extra workflow step (create fragment file per change), not commit-based |
-| **standard-version** | `npm install standard-version` | Bump version, generate changelog from Conventional Commits, create Git tag | Simple, focused on versioning + changelog | Node.js dependency, archived/maintenance-only |
-| **bump2version** | `pip install bump2version` | Find-and-replace version strings across files, create Git tag | Simple, language-agnostic, config file driven | No commit message parsing, no changelog generation, maintenance mode |
+| Tool                 | Install                               | Capabilities                                                                                                                          | Pros                                                                                                                    | Cons                                                                    |
+| -------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **commitizen**       | `pip install commitizen`              | Interactive commit prompts enforcing Conventional Commits, auto-bump version, auto-generate changelog, pre-commit hook, CI validation | All-in-one: commit format + version bump + changelog, configurable via `pyproject.toml`, supports custom commit schemas | Python dependency, learning curve for custom rules                      |
+| **commitlint**       | `npm install @commitlint/cli`         | Lint commit messages against Conventional Commits (or custom) rules, integrates with husky                                            | Huge ecosystem, very configurable rules                                                                                 | Node.js dependency, doesn't bump versions or generate changelogs        |
+| **semantic-release** | `pip install python-semantic-release` | Auto-determine next version from commits, generate changelog, create Git tags, publish to PyPI                                        | Fully automated release pipeline, CI-friendly                                                                           | Opinionated workflow, less control over individual steps                |
+| **towncrier**        | `pip install towncrier`               | Fragment-based changelog generation — each PR adds a news fragment file, assembled at release                                         | Avoids merge conflicts in CHANGELOG, per-PR granularity                                                                 | Extra workflow step (create fragment file per change), not commit-based |
+| **standard-version** | `npm install standard-version`        | Bump version, generate changelog from Conventional Commits, create Git tag                                                            | Simple, focused on versioning + changelog                                                                               | Node.js dependency, archived/maintenance-only                           |
+| **bump2version**     | `pip install bump2version`            | Find-and-replace version strings across files, create Git tag                                                                         | Simple, language-agnostic, config file driven                                                                           | No commit message parsing, no changelog generation, maintenance mode    |
 
 #### Commit Message Prefixes (Conventional Commits)
 
-| Prefix | Meaning | When to use | Version bump | Example |
-|--------|---------|-------------|--------------|---------|
-| `feat:` | New feature | Adding new user-facing functionality | Minor | `feat: add user login endpoint` |
-| `fix:` | Bug fix | Fixing a defect or incorrect behavior | Patch | `fix: correct null check in parser` |
-| `docs:` | Documentation | Changes to documentation only | None | `docs: update API usage guide` |
-| `style:` | Code style | Formatting, whitespace — no logic change | None | `style: fix indentation in models` |
-| `refactor:` | Refactoring | Restructuring code without changing behavior | None | `refactor: extract validation into helper` |
-| `perf:` | Performance | Improving performance without changing behavior | Patch | `perf: cache database query results` |
-| `test:` | Tests | Adding or updating tests only | None | `test: add unit tests for auth module` |
-| `build:` | Build system | Changes to build config or dependencies | None | `build: upgrade hatchling to 1.25` |
-| `ci:` | CI/CD | Changes to CI/CD configuration or scripts | None | `ci: add mypy check to PR workflow` |
-| `chore:` | Maintenance | Routine tasks, tooling, no production code change | None | `chore: update .gitignore` |
-| `revert:` | Revert | Reverting a previous commit | Varies | `revert: undo feat: add login endpoint` |
-| `feat!:` / `fix!:` | Breaking change | Append `!` after any type for incompatible API changes | Major | `feat!: remove deprecated login endpoint` |
+| Prefix             | Meaning         | When to use                                            | Version bump | Example                                    |
+| ------------------ | --------------- | ------------------------------------------------------ | ------------ | ------------------------------------------ |
+| `feat:`            | New feature     | Adding new user-facing functionality                   | Minor        | `feat: add user login endpoint`            |
+| `fix:`             | Bug fix         | Fixing a defect or incorrect behavior                  | Patch        | `fix: correct null check in parser`        |
+| `docs:`            | Documentation   | Changes to documentation only                          | None         | `docs: update API usage guide`             |
+| `style:`           | Code style      | Formatting, whitespace — no logic change               | None         | `style: fix indentation in models`         |
+| `refactor:`        | Refactoring     | Restructuring code without changing behavior           | None         | `refactor: extract validation into helper` |
+| `perf:`            | Performance     | Improving performance without changing behavior        | Patch        | `perf: cache database query results`       |
+| `test:`            | Tests           | Adding or updating tests only                          | None         | `test: add unit tests for auth module`     |
+| `build:`           | Build system    | Changes to build config or dependencies                | None         | `build: upgrade hatchling to 1.25`         |
+| `ci:`              | CI/CD           | Changes to CI/CD configuration or scripts              | None         | `ci: add mypy check to PR workflow`        |
+| `chore:`           | Maintenance     | Routine tasks, tooling, no production code change      | None         | `chore: update .gitignore`                 |
+| `revert:`          | Revert          | Reverting a previous commit                            | Varies       | `revert: undo feat: add login endpoint`    |
+| `feat!:` / `fix!:` | Breaking change | Append `!` after any type for incompatible API changes | Major        | `feat!: remove deprecated login endpoint`  |
 
 > **Tip:** Use a `BREAKING CHANGE:` footer in the commit body for longer breaking change explanations.
 
 #### Branch Prefixes
 
-| Branch prefix | Meaning | When to use | Typical merge expectation | Example |
-|---------------|---------|-------------|---------------------------|---------|
-| `wip/` | Work in progress | Incomplete work, not ready for review | Draft PR or no PR yet | `wip/user-auth-flow` |
-| `spike/` | Technical spike | Time-boxed research or proof of concept | May not merge — results documented | `spike/graphql-feasibility` |
-| `explore/` | Exploration | Experimenting with an idea or library | May not merge — learning exercise | `explore/htmx-integration` |
-| `chore/` | Maintenance | Routine tasks, config, tooling changes | Merge after review | `chore/update-gitignore` |
-| `feat/` | Feature | New user-facing functionality | Merge after review + tests pass | `feat/user-login` |
-| `fix/` | Bug fix | Fixing a defect or incorrect behavior | Merge after review + tests pass | `fix/null-pointer-in-parser` |
-| `docs/` | Documentation | Changes to documentation only | Merge after review | `docs/update-readme` |
-| `refactor/` | Refactoring | Restructuring code without changing behavior | Merge after review + tests pass | `refactor/extract-auth-service` |
-| `test/` | Tests | Adding or updating tests only | Merge after review | `test/add-auth-unit-tests` |
-| `ci/` | CI/CD | Changes to CI/CD configuration | Merge after review | `ci/add-mypy-workflow` |
-| `build/` | Build system | Build config, packaging, dependencies | Merge after review | `build/upgrade-hatchling` |
-| `perf/` | Performance | Performance improvements | Merge after review + benchmarks | `perf/cache-db-queries` |
-| `style/` | Code style | Formatting, whitespace — no logic change | Merge after review | `style/fix-indentation` |
-| `release/` | Release | Preparing a release (version bump, changelog) | Merge to main, tag, deploy | `release/v1.2.0` |
-| `hotfix/` | Hotfix | Urgent production fix | Fast-track merge + deploy | `hotfix/fix-login-crash` |
-| `deps/` | Dependencies | Dependency updates (manual or grouped) | Merge after CI passes | `deps/bump-requests-2.32` |
-| `sec/` | Security | Security-related fix or hardening | Merge after review (may be private) | `sec/patch-ssrf-vulnerability` |
+| Branch prefix | Meaning          | When to use                                   | Typical merge expectation           | Example                         |
+| ------------- | ---------------- | --------------------------------------------- | ----------------------------------- | ------------------------------- |
+| `wip/`        | Work in progress | Incomplete work, not ready for review         | Draft PR or no PR yet               | `wip/user-auth-flow`            |
+| `spike/`      | Technical spike  | Time-boxed research or proof of concept       | May not merge — results documented  | `spike/graphql-feasibility`     |
+| `explore/`    | Exploration      | Experimenting with an idea or library         | May not merge — learning exercise   | `explore/htmx-integration`      |
+| `chore/`      | Maintenance      | Routine tasks, config, tooling changes        | Merge after review                  | `chore/update-gitignore`        |
+| `feat/`       | Feature          | New user-facing functionality                 | Merge after review + tests pass     | `feat/user-login`               |
+| `fix/`        | Bug fix          | Fixing a defect or incorrect behavior         | Merge after review + tests pass     | `fix/null-pointer-in-parser`    |
+| `docs/`       | Documentation    | Changes to documentation only                 | Merge after review                  | `docs/update-readme`            |
+| `refactor/`   | Refactoring      | Restructuring code without changing behavior  | Merge after review + tests pass     | `refactor/extract-auth-service` |
+| `test/`       | Tests            | Adding or updating tests only                 | Merge after review                  | `test/add-auth-unit-tests`      |
+| `ci/`         | CI/CD            | Changes to CI/CD configuration                | Merge after review                  | `ci/add-mypy-workflow`          |
+| `build/`      | Build system     | Build config, packaging, dependencies         | Merge after review                  | `build/upgrade-hatchling`       |
+| `perf/`       | Performance      | Performance improvements                      | Merge after review + benchmarks     | `perf/cache-db-queries`         |
+| `style/`      | Code style       | Formatting, whitespace — no logic change      | Merge after review                  | `style/fix-indentation`         |
+| `release/`    | Release          | Preparing a release (version bump, changelog) | Merge to main, tag, deploy          | `release/v1.2.0`                |
+| `hotfix/`     | Hotfix           | Urgent production fix                         | Fast-track merge + deploy           | `hotfix/fix-login-crash`        |
+| `deps/`       | Dependencies     | Dependency updates (manual or grouped)        | Merge after CI passes               | `deps/bump-requests-2.32`       |
+| `sec/`        | Security         | Security-related fix or hardening             | Merge after review (may be private) | `sec/patch-ssrf-vulnerability`  |
 
 #### What this project uses
 
-| Category | Tool | Why |
-|----------|------|-----|
-| Build backend | Hatchling | Auto-discovers src/ layout, minimal config |
-| Project manager | Hatch | Envs, scripts, test matrices — one `pyproject.toml` |
-| Task runner | Hatch scripts | No extra tools needed |
-| CLI framework | argparse | No dependencies for a simple boilerplate |
-| Linter + formatter | Ruff | Fast, replaces multiple tools |
-| Type checker | mypy | Most mature, strict mode |
-| Testing | pytest | De facto standard |
+| Category           | Tool          | Why                                                 |
+| ------------------ | ------------- | --------------------------------------------------- |
+| Build backend      | Hatchling     | Auto-discovers src/ layout, minimal config          |
+| Project manager    | Hatch         | Envs, scripts, test matrices — one `pyproject.toml` |
+| Task runner        | Hatch scripts | No extra tools needed                               |
+| CLI framework      | argparse      | No dependencies for a simple boilerplate            |
+| Linter + formatter | Ruff          | Fast, replaces multiple tools                       |
+| Type checker       | mypy          | Most mature, strict mode                            |
+| Testing            | pytest        | De facto standard                                   |
 
 ---
 
@@ -261,6 +262,7 @@ uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 ### Workflow Organization
 
 Separate files > one giant file:
+
 - Easier to disable (just rename to `_workflow.yml`)
 - Each gets its own permissions
 - Failures are isolated
@@ -269,24 +271,24 @@ Separate files > one giant file:
 
 GitHub Actions has two ways to store configuration values:
 
-| Aspect | Secrets | Variables |
-|--------|---------|-----------|
-| **Visibility** | Hidden forever after creation | Visible to anyone with repo access |
-| **In logs** | Auto-masked if printed (`***`) | Printed in plain text |
-| **Storage** | Encrypted at rest | Plain text |
-| **Access** | `${{ secrets.NAME }}` | `${{ vars.NAME }}` |
-| **Use for** | Tokens, passwords, API keys | Feature flags, non-sensitive config |
+| Aspect         | Secrets                        | Variables                           |
+| -------------- | ------------------------------ | ----------------------------------- |
+| **Visibility** | Hidden forever after creation  | Visible to anyone with repo access  |
+| **In logs**    | Auto-masked if printed (`***`) | Printed in plain text               |
+| **Storage**    | Encrypted at rest              | Plain text                          |
+| **Access**     | `${{ secrets.NAME }}`          | `${{ vars.NAME }}`                  |
+| **Use for**    | Tokens, passwords, API keys    | Feature flags, non-sensitive config |
 
 **Rule of thumb:** If it's a token, key, or credential — use **Secrets**. If it's a
 simple on/off flag or display value — use **Variables**.
 
 **Example uses in this project:**
 
-| Value | Type | Why |
-|-------|------|-----|
-| `CODECOV_TOKEN` | Secret | Authenticates coverage uploads — leak = account compromise |
-| `ENABLE_WORKFLOWS` | Variable | Just a feature flag — no security impact |
-| `NPM_TOKEN` | Secret | Publish access to npm registry |
+| Value              | Type     | Why                                                        |
+| ------------------ | -------- | ---------------------------------------------------------- |
+| `CODECOV_TOKEN`    | Secret   | Authenticates coverage uploads — leak = account compromise |
+| `ENABLE_WORKFLOWS` | Variable | Just a feature flag — no security impact                   |
+| `NPM_TOKEN`        | Secret   | Publish access to npm registry                             |
 
 **Setting them:**
 
@@ -298,12 +300,12 @@ simple on/off flag or display value — use **Variables**.
 
 ## Static Analysis Tools
 
-| Tool | Purpose | Speed |
-|------|---------|-------|
-| **Ruff** | Linting + formatting | ⚡ Very fast (Rust) |
-| **Mypy** | Type checking | 🐢 Slower |
-| **Pyright** | Type checking (VS Code) | ⚡ Fast |
-| **Bandit** | Security scanning | 🐢 Moderate |
+| Tool        | Purpose                 | Speed               |
+| ----------- | ----------------------- | ------------------- |
+| **Ruff**    | Linting + formatting    | ⚡ Very fast (Rust) |
+| **Mypy**    | Type checking           | 🐢 Slower           |
+| **Pyright** | Type checking (VS Code) | ⚡ Fast             |
+| **Bandit**  | Security scanning       | 🐢 Moderate         |
 
 **Ruff** replaces: flake8, isort, black, pyupgrade, and more. One tool, one config.
 
@@ -315,16 +317,16 @@ A **quality gate** is a checkpoint that code must pass before moving forward (e.
 
 ### Common Quality Gates in CI
 
-| Gate | What It Checks | Tool |
-|------|----------------|------|
-| **Tests pass** | Code works as expected | pytest |
-| **Linting passes** | Code style, bugs | Ruff |
-| **Type checking passes** | Type correctness | Mypy/Pyright |
-| **Coverage threshold** | Enough tests exist | pytest-cov |
-| **Security scan** | No vulnerabilities | Bandit, pip-audit |
-| **Spell check** | No typos | codespell |
+| Gate                     | What It Checks         | Tool              |
+| ------------------------ | ---------------------- | ----------------- |
+| **Tests pass**           | Code works as expected | pytest            |
+| **Linting passes**       | Code style, bugs       | Ruff              |
+| **Type checking passes** | Type correctness       | Mypy/Pyright      |
+| **Coverage threshold**   | Enough tests exist     | pytest-cov        |
+| **Security scan**        | No vulnerabilities     | Bandit, pip-audit |
+| **Spell check**          | No typos               | codespell         |
 
-> **codespell: report-only by default.** codespell does *not* auto-fix typos unless you pass `--write-changes` (or `-w`). Without that flag it reports the misspelling and a suggested fix, then exits non-zero — which blocks your commit. You have two options:
+> **codespell: report-only by default.** codespell does _not_ auto-fix typos unless you pass `--write-changes` (or `-w`). Without that flag it reports the misspelling and a suggested fix, then exits non-zero — which blocks your commit. You have two options:
 >
 > 1. **Auto-fix:** Add `-w` to the hook args in `.pre-commit-config.yaml`:
 >    ```yaml
@@ -332,7 +334,6 @@ A **quality gate** is a checkpoint that code must pass before moving forward (e.
 >      args: [-w, --skip, ".git,.venv,dist,build,..."]
 >    ```
 >    codespell will rewrite the file in-place. The commit still fails (the file changed), but re-running `git add` + `git commit` picks up the fix.
->
 > 2. **Manual fix:** Read the output, fix the typo yourself, then re-commit. This is safer when codespell's suggestion is wrong (it happens with domain-specific terms).
 >
 > **Tip:** If codespell flags a word that's correct (e.g., a variable name or technical term), add it to an ignore list: `args: [-L, "word1,word2", --skip, "..."]` or set `[tool.codespell]` in `pyproject.toml` with `ignore-words-list = "word1,word2"`.
@@ -383,13 +384,13 @@ Understanding the distinction is important.
 
 ### Comparison Table
 
-| Aspect | Containerfile | Dev Container | Docker Compose |
-|--------|---------------|---------------|----------------|
-| **Location** | `Containerfile` (repo root) | `.devcontainer/` | `docker-compose.yml` |
-| **Purpose** | Build production image | Development environment | Run/orchestrate containers |
-| **Contains** | Minimal app only (~150MB) | Full dev tools (~1GB+) | References other images |
-| **User** | Run the application | Write code interactively | Manage multi-service setups |
-| **When to use** | CI/CD, deployment | Daily development | Local testing, multi-container |
+| Aspect          | Containerfile               | Dev Container            | Docker Compose                 |
+| --------------- | --------------------------- | ------------------------ | ------------------------------ |
+| **Location**    | `Containerfile` (repo root) | `.devcontainer/`         | `docker-compose.yml`           |
+| **Purpose**     | Build production image      | Development environment  | Run/orchestrate containers     |
+| **Contains**    | Minimal app only (~150MB)   | Full dev tools (~1GB+)   | References other images        |
+| **User**        | Run the application         | Write code interactively | Manage multi-service setups    |
+| **When to use** | CI/CD, deployment           | Daily development        | Local testing, multi-container |
 
 ### 1. Containerfile (Production)
 
@@ -397,6 +398,7 @@ A recipe for building a minimal **production** container image. Contains only yo
 installed application — no dev tools, no tests, no source code.
 
 **How to use:**
+
 ```bash
 # Build the image
 docker build -t simple-python-boilerplate -f Containerfile .
@@ -406,6 +408,7 @@ docker run --rm simple-python-boilerplate
 ```
 
 **Key features:**
+
 - Multi-stage build (builder stage + runtime stage)
 - Non-root user for security
 - Pinned base image digest for reproducibility
@@ -417,6 +420,7 @@ A VS Code feature that runs your entire development environment inside a contain
 Everything is pre-configured: Python, Node.js, pre-commit hooks, extensions.
 
 **How to use:**
+
 1. Install Docker Desktop (or Podman)
 2. Install VS Code extension: "Dev Containers"
 3. Open repo in VS Code
@@ -425,6 +429,7 @@ Everything is pre-configured: Python, Node.js, pre-commit hooks, extensions.
 Alternatively, use GitHub Codespaces — the config works there automatically.
 
 **Key features:**
+
 - Zero-setup onboarding for new contributors
 - Consistent environment across machines
 - All extensions and settings pre-configured
@@ -436,6 +441,7 @@ A declarative way to build/run containers with all options specified in a file.
 Useful for local testing and multi-service setups (app + database, etc.).
 
 **How to use:**
+
 ```bash
 # Build and run
 docker compose up --build
@@ -451,30 +457,31 @@ docker compose logs -f
 ```
 
 **Key features:**
+
 - Version-controlled run configuration
 - Easy to add services (database, cache, etc.)
 - Simpler than remembering `docker run` flags
 
 ### When to Use Which
 
-| Scenario | Use |
-|----------|-----|
-| "I want to deploy this app" | Containerfile → build image → push to registry |
-| "I want to develop this project" | Dev Container → VS Code "Reopen in Container" |
-| "I want to test the production build locally" | Docker Compose → `docker compose up --build` |
-| "I want to run app + database together" | Docker Compose with multiple services |
-| "I'm a new contributor, how do I start?" | Dev Container or Codespaces |
+| Scenario                                      | Use                                            |
+| --------------------------------------------- | ---------------------------------------------- |
+| "I want to deploy this app"                   | Containerfile → build image → push to registry |
+| "I want to develop this project"              | Dev Container → VS Code "Reopen in Container"  |
+| "I want to test the production build locally" | Docker Compose → `docker compose up --build`   |
+| "I want to run app + database together"       | Docker Compose with multiple services          |
+| "I'm a new contributor, how do I start?"      | Dev Container or Codespaces                    |
 
 ### Docker vs Podman
 
 Both are container runtimes that can execute all three configurations above:
 
-| Aspect | Docker | Podman |
-|--------|--------|--------|
-| **Architecture** | Client-server (daemon) | Daemonless |
-| **Root required** | Historically yes | Rootless by default |
-| **Compatibility** | Industry standard | Docker CLI-compatible |
-| **License** | Docker Desktop requires license for enterprises | Fully open source |
+| Aspect            | Docker                                          | Podman                |
+| ----------------- | ----------------------------------------------- | --------------------- |
+| **Architecture**  | Client-server (daemon)                          | Daemonless            |
+| **Root required** | Historically yes                                | Rootless by default   |
+| **Compatibility** | Industry standard                               | Docker CLI-compatible |
+| **License**       | Docker Desktop requires license for enterprises | Fully open source     |
 
 For most purposes, they're interchangeable. This project uses "Containerfile" (Podman's
 preferred name) instead of "Dockerfile" but both tools understand both names.
@@ -599,11 +606,11 @@ issues or customizing workflows.
 
 ### Three Ways to Run the Same Thing
 
-| Command | What happens |
-|---------|--------------|
-| `task test` | Taskfile finds `test:` task → runs `hatch run test` |
-| `hatch run test` | Hatch activates `default` env → runs `pytest` |
-| `pytest` | Direct call — only works if you're already in a venv with deps installed |
+| Command          | What happens                                                             |
+| ---------------- | ------------------------------------------------------------------------ |
+| `task test`      | Taskfile finds `test:` task → runs `hatch run test`                      |
+| `hatch run test` | Hatch activates `default` env → runs `pytest`                            |
+| `pytest`         | Direct call — only works if you're already in a venv with deps installed |
 
 All three ultimately run pytest. The layers add convenience:
 
@@ -613,12 +620,12 @@ All three ultimately run pytest. The layers add convenience:
 
 ### Where Each Layer Is Configured
 
-| Layer | Config file | What it defines |
-|-------|-------------|-----------------|
-| **Task** | `Taskfile.yml` | Task names, descriptions, which `hatch run` commands to call |
-| **Hatch envs** | `pyproject.toml` `[tool.hatch.envs.*]` | Environment names, features, Python versions |
-| **Hatch scripts** | `pyproject.toml` `[tool.hatch.envs.*.scripts]` | Script names → actual CLI commands |
-| **Tools** | `pyproject.toml` `[tool.*]` | Tool-specific config (pytest, ruff, mypy, coverage) |
+| Layer             | Config file                                    | What it defines                                              |
+| ----------------- | ---------------------------------------------- | ------------------------------------------------------------ |
+| **Task**          | `Taskfile.yml`                                 | Task names, descriptions, which `hatch run` commands to call |
+| **Hatch envs**    | `pyproject.toml` `[tool.hatch.envs.*]`         | Environment names, features, Python versions                 |
+| **Hatch scripts** | `pyproject.toml` `[tool.hatch.envs.*.scripts]` | Script names → actual CLI commands                           |
+| **Tools**         | `pyproject.toml` `[tool.*]`                    | Tool-specific config (pytest, ruff, mypy, coverage)          |
 
 ### Example: Tracing `task lint`
 
@@ -640,7 +647,7 @@ GitHub Actions workflows call `hatch run` directly, not `task`. Why?
 
 ```yaml
 # CI workflow
-- run: hatch run test    # Direct, not `task test`
+- run: hatch run test # Direct, not `task test`
 ```
 
 ### Direct Execution (Skip All Layers)
@@ -658,12 +665,12 @@ This is faster for quick checks but bypasses Hatch's environment guarantees.
 
 ### Debugging Tips
 
-| Problem | Check |
-|---------|-------|
-| "Command not found" | Are you in a venv? Run `hatch shell` or activate manually |
-| "Task not found" | Is Task installed? `task --version` or use `hatch run` directly |
-| "hatch run X fails" | Does the script exist in `[tool.hatch.envs.default.scripts]`? |
-| "Works locally, fails in CI" | CI uses `hatch run`, not `task`. Check if they match. |
+| Problem                      | Check                                                           |
+| ---------------------------- | --------------------------------------------------------------- |
+| "Command not found"          | Are you in a venv? Run `hatch shell` or activate manually       |
+| "Task not found"             | Is Task installed? `task --version` or use `hatch run` directly |
+| "hatch run X fails"          | Does the script exist in `[tool.hatch.envs.default.scripts]`?   |
+| "Works locally, fails in CI" | CI uses `hatch run`, not `task`. Check if they match.           |
 
 ### Why Not Just Use Make?
 
@@ -679,7 +686,7 @@ See: [ADR 017](../adr/017-task-runner.md)
 
 ## Pre-commit Hooks
 
-Pre-commit hooks run checks *before* code is committed, catching issues locally before they reach CI.
+Pre-commit hooks run checks _before_ code is committed, catching issues locally before they reach CI.
 
 ### Setup
 
@@ -695,9 +702,9 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.6
     hooks:
-      - id: ruff          # Linting
+      - id: ruff # Linting
         args: [--fix]
-      - id: ruff-format   # Formatting
+      - id: ruff-format # Formatting
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.14.1
@@ -716,12 +723,12 @@ repos:
 
 ### Key Commands
 
-| Command | Purpose |
-|---------|---------|
-| `pre-commit install` | Enable hooks for this repo |
+| Command                      | Purpose                            |
+| ---------------------------- | ---------------------------------- |
+| `pre-commit install`         | Enable hooks for this repo         |
 | `pre-commit run --all-files` | Run on all files (not just staged) |
-| `pre-commit autoupdate` | Update hook versions |
-| `git commit --no-verify` | Skip hooks (emergency only!) |
+| `pre-commit autoupdate`      | Update hook versions               |
+| `git commit --no-verify`     | Skip hooks (emergency only!)       |
 
 ### Why Pre-commit > Manual Checks
 
@@ -745,27 +752,27 @@ Beyond using existing hooks, you can author your own and publish them for others
 
 The `.pre-commit-hooks.yaml` file is a list of hook definitions. Each entry supports these fields:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `id` | Yes | Unique identifier for the hook (used in consumers' `hooks:` list) |
-| `name` | Yes | Human-readable name shown during execution |
-| `entry` | Yes | The executable to run (script path, command, or console_script) |
-| `language` | Yes | How to install/run the hook (`python`, `node`, `system`, `script`, `docker`, etc.) |
-| `files` | No | Regex pattern for filenames to pass to the hook (default: `''` — all files) |
-| `exclude` | No | Regex pattern for filenames to exclude |
-| `types` | No | File types to filter on (e.g., `[python]`, `[yaml]`) — uses `identify` library types |
-| `types_or` | No | Like `types` but matches if *any* type matches (OR logic instead of AND) |
-| `exclude_types` | No | File types to exclude |
-| `always_run` | No | If `true`, run even when no matching files are staged (default: `false`) |
-| `pass_filenames` | No | If `true`, staged filenames are passed as arguments (default: `true`) |
-| `require_serial` | No | If `true`, disable parallel execution for this hook (default: `false`) |
-| `args` | No | Default arguments passed to `entry` (consumers can override via `args` in their config) |
-| `description` | No | Short description of what the hook does |
-| `minimum_pre_commit_version` | No | Minimum pre-commit version required (e.g., `'3.0.0'`) |
-| `stages` | No | Which git hook stages to run in (e.g., `[pre-commit]`, `[pre-push]`, `[commit-msg]`) |
-| `verbose` | No | If `true`, force hook output to be printed even on success (default: `false`) |
-| `additional_dependencies` | No | Extra packages to install alongside the hook |
-| `language_version` | No | Version of the language runtime to use (e.g., `python3.11`) |
+| Field                        | Required | Description                                                                             |
+| ---------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `id`                         | Yes      | Unique identifier for the hook (used in consumers' `hooks:` list)                       |
+| `name`                       | Yes      | Human-readable name shown during execution                                              |
+| `entry`                      | Yes      | The executable to run (script path, command, or console_script)                         |
+| `language`                   | Yes      | How to install/run the hook (`python`, `node`, `system`, `script`, `docker`, etc.)      |
+| `files`                      | No       | Regex pattern for filenames to pass to the hook (default: `''` — all files)             |
+| `exclude`                    | No       | Regex pattern for filenames to exclude                                                  |
+| `types`                      | No       | File types to filter on (e.g., `[python]`, `[yaml]`) — uses `identify` library types    |
+| `types_or`                   | No       | Like `types` but matches if _any_ type matches (OR logic instead of AND)                |
+| `exclude_types`              | No       | File types to exclude                                                                   |
+| `always_run`                 | No       | If `true`, run even when no matching files are staged (default: `false`)                |
+| `pass_filenames`             | No       | If `true`, staged filenames are passed as arguments (default: `true`)                   |
+| `require_serial`             | No       | If `true`, disable parallel execution for this hook (default: `false`)                  |
+| `args`                       | No       | Default arguments passed to `entry` (consumers can override via `args` in their config) |
+| `description`                | No       | Short description of what the hook does                                                 |
+| `minimum_pre_commit_version` | No       | Minimum pre-commit version required (e.g., `'3.0.0'`)                                   |
+| `stages`                     | No       | Which git hook stages to run in (e.g., `[pre-commit]`, `[pre-push]`, `[commit-msg]`)    |
+| `verbose`                    | No       | If `true`, force hook output to be printed even on success (default: `false`)           |
+| `additional_dependencies`    | No       | Extra packages to install alongside the hook                                            |
+| `language_version`           | No       | Version of the language runtime to use (e.g., `python3.11`)                             |
 
 #### Minimal Example
 
@@ -797,7 +804,7 @@ my-hooks/
 # .pre-commit-hooks.yaml
 - id: check-something
   name: Check something custom
-  entry: check-something       # console_scripts entry point
+  entry: check-something # console_scripts entry point
   language: python
   types: [python]
 ```
@@ -808,18 +815,18 @@ The `language: python` setting tells pre-commit to create an isolated virtualenv
 
 Git supports multiple hook points. Pre-commit can target different stages:
 
-| Stage | Git Hook | When It Runs |
-|-------|----------|--------------|
-| `pre-commit` | `pre-commit` | Before commit is created (default) |
-| `pre-merge-commit` | `pre-merge-commit` | Before merge commit is created |
-| `pre-push` | `pre-push` | Before push to remote |
-| `commit-msg` | `commit-msg` | After commit message is entered (can validate or modify it) |
-| `post-checkout` | `post-checkout` | After `git checkout` or `git switch` |
-| `post-commit` | `post-commit` | After commit is created |
-| `post-merge` | `post-merge` | After a merge completes |
-| `post-rewrite` | `post-rewrite` | After `git rebase` or `git commit --amend` |
-| `prepare-commit-msg` | `prepare-commit-msg` | Before the commit message editor opens |
-| `manual` | — | Only runs via `pre-commit run --hook-stage manual` |
+| Stage                | Git Hook             | When It Runs                                                |
+| -------------------- | -------------------- | ----------------------------------------------------------- |
+| `pre-commit`         | `pre-commit`         | Before commit is created (default)                          |
+| `pre-merge-commit`   | `pre-merge-commit`   | Before merge commit is created                              |
+| `pre-push`           | `pre-push`           | Before push to remote                                       |
+| `commit-msg`         | `commit-msg`         | After commit message is entered (can validate or modify it) |
+| `post-checkout`      | `post-checkout`      | After `git checkout` or `git switch`                        |
+| `post-commit`        | `post-commit`        | After commit is created                                     |
+| `post-merge`         | `post-merge`         | After a merge completes                                     |
+| `post-rewrite`       | `post-rewrite`       | After `git rebase` or `git commit --amend`                  |
+| `prepare-commit-msg` | `prepare-commit-msg` | Before the commit message editor opens                      |
+| `manual`             | —                    | Only runs via `pre-commit run --hook-stage manual`          |
 
 To install hooks for non-default stages: `pre-commit install --hook-type commit-msg`
 
@@ -829,70 +836,70 @@ To install hooks for non-default stages: `pre-commit install --hook-type commit-
 
 **`pre-commit`** — Fast checks that run on every commit (the default stage):
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
-| `trailing-whitespace` | pre-commit/pre-commit-hooks | Strip trailing whitespace |
-| `end-of-file-fixer` | pre-commit/pre-commit-hooks | Ensure files end with a newline |
-| `check-yaml` | pre-commit/pre-commit-hooks | Validate YAML syntax |
-| `check-toml` | pre-commit/pre-commit-hooks | Validate TOML syntax |
-| `check-json` | pre-commit/pre-commit-hooks | Validate JSON syntax |
-| `check-ast` | pre-commit/pre-commit-hooks | Validate Python syntax |
-| `check-added-large-files` | pre-commit/pre-commit-hooks | Block oversized files |
-| `check-merge-conflict` | pre-commit/pre-commit-hooks | Detect conflict markers (`<<<<<<<`) |
-| `debug-statements` | pre-commit/pre-commit-hooks | Catch leftover `breakpoint()` / debugger imports |
-| `detect-private-key` | pre-commit/pre-commit-hooks | Block private key files |
-| `mixed-line-ending` | pre-commit/pre-commit-hooks | Normalize line endings |
-| `ruff` | astral-sh/ruff-pre-commit | Lint Python (replaces flake8, isort, pyupgrade) |
-| `ruff-format` | astral-sh/ruff-pre-commit | Format Python (replaces black) |
-| `mypy` | pre-commit/mirrors-mypy | Type check Python |
-| `bandit` | PyCQA/bandit | Security linting for Python |
-| `codespell` | codespell-project/codespell | Catch common typos in code and docs |
-| `validate-pyproject` | abravalheri/validate-pyproject | Validate pyproject.toml schema |
-| `actionlint` | rhysd/actionlint | Lint GitHub Actions workflows |
-| `check-github-workflows` | python-jsonschema/check-jsonschema | Validate workflow YAML against schema |
+| Hook                      | Repo                               | What It Does                                     |
+| ------------------------- | ---------------------------------- | ------------------------------------------------ |
+| `trailing-whitespace`     | pre-commit/pre-commit-hooks        | Strip trailing whitespace                        |
+| `end-of-file-fixer`       | pre-commit/pre-commit-hooks        | Ensure files end with a newline                  |
+| `check-yaml`              | pre-commit/pre-commit-hooks        | Validate YAML syntax                             |
+| `check-toml`              | pre-commit/pre-commit-hooks        | Validate TOML syntax                             |
+| `check-json`              | pre-commit/pre-commit-hooks        | Validate JSON syntax                             |
+| `check-ast`               | pre-commit/pre-commit-hooks        | Validate Python syntax                           |
+| `check-added-large-files` | pre-commit/pre-commit-hooks        | Block oversized files                            |
+| `check-merge-conflict`    | pre-commit/pre-commit-hooks        | Detect conflict markers (`<<<<<<<`)              |
+| `debug-statements`        | pre-commit/pre-commit-hooks        | Catch leftover `breakpoint()` / debugger imports |
+| `detect-private-key`      | pre-commit/pre-commit-hooks        | Block private key files                          |
+| `mixed-line-ending`       | pre-commit/pre-commit-hooks        | Normalize line endings                           |
+| `ruff`                    | astral-sh/ruff-pre-commit          | Lint Python (replaces flake8, isort, pyupgrade)  |
+| `ruff-format`             | astral-sh/ruff-pre-commit          | Format Python (replaces black)                   |
+| `mypy`                    | pre-commit/mirrors-mypy            | Type check Python                                |
+| `bandit`                  | PyCQA/bandit                       | Security linting for Python                      |
+| `codespell`               | codespell-project/codespell        | Catch common typos in code and docs              |
+| `validate-pyproject`      | abravalheri/validate-pyproject     | Validate pyproject.toml schema                   |
+| `actionlint`              | rhysd/actionlint                   | Lint GitHub Actions workflows                    |
+| `check-github-workflows`  | python-jsonschema/check-jsonschema | Validate workflow YAML against schema            |
 
 **`commit-msg`** — Validate or modify the commit message after the user writes it:
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
-| `conventional-pre-commit` | compilerla/conventional-pre-commit | Enforce Conventional Commits format |
-| `commitizen` | commitizen-tools/commitizen | Validate commit message against commitizen rules |
-| `commitlint` | alessandrojcm/commitlint-pre-commit-hook | Lint commit messages (Node-based) |
-| `gitlint` | jorisroovers/gitlint | Configurable commit message linter |
+| Hook                      | Repo                                     | What It Does                                     |
+| ------------------------- | ---------------------------------------- | ------------------------------------------------ |
+| `conventional-pre-commit` | compilerla/conventional-pre-commit       | Enforce Conventional Commits format              |
+| `commitizen`              | commitizen-tools/commitizen              | Validate commit message against commitizen rules |
+| `commitlint`              | alessandrojcm/commitlint-pre-commit-hook | Lint commit messages (Node-based)                |
+| `gitlint`                 | jorisroovers/gitlint                     | Configurable commit message linter               |
 
 **`pre-push`** — Slower checks that run before pushing to remote:
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
-| `pytest` (local) | local | Run full test suite |
-| `gitleaks` | gitleaks/gitleaks | Secret detection across git history |
-| `trufflehog` | trufflesecurity/trufflehog | Deep secret scanning |
-| `mypy` | pre-commit/mirrors-mypy | Type check (if too slow for pre-commit) |
-| `bandit` | PyCQA/bandit | Security scan (if too slow for pre-commit) |
+| Hook             | Repo                       | What It Does                               |
+| ---------------- | -------------------------- | ------------------------------------------ |
+| `pytest` (local) | local                      | Run full test suite                        |
+| `gitleaks`       | gitleaks/gitleaks          | Secret detection across git history        |
+| `trufflehog`     | trufflesecurity/trufflehog | Deep secret scanning                       |
+| `mypy`           | pre-commit/mirrors-mypy    | Type check (if too slow for pre-commit)    |
+| `bandit`         | PyCQA/bandit               | Security scan (if too slow for pre-commit) |
 
 **`prepare-commit-msg`** — Modify the commit message before the editor opens:
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
-| `commitizen` (cz) | commitizen-tools/commitizen | Interactive commit message prompts |
-| Custom template hook | local | Pre-fill commit message from a template |
+| Hook                 | Repo                        | What It Does                            |
+| -------------------- | --------------------------- | --------------------------------------- |
+| `commitizen` (cz)    | commitizen-tools/commitizen | Interactive commit message prompts      |
+| Custom template hook | local                       | Pre-fill commit message from a template |
 
 **`post-checkout` / `post-merge`** — Run setup tasks after branch changes:
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
+| Hook               | Repo  | What It Does                             |
+| ------------------ | ----- | ---------------------------------------- |
 | Auto `pip install` | local | Re-install deps after switching branches |
-| Auto `npm install` | local | Re-install Node deps |
-| DB migration check | local | Warn if unapplied migrations exist |
+| Auto `npm install` | local | Re-install Node deps                     |
+| DB migration check | local | Warn if unapplied migrations exist       |
 
 **`manual`** — Opt-in only, run explicitly with `pre-commit run <id> --hook-stage manual`:
 
-| Hook | Repo | What It Does |
-|------|------|--------------|
-| `typos` | crate-ci/typos | Rust-based spellchecker (stricter than codespell) |
-| `markdownlint-cli2` | DavidAnson/markdownlint-cli2 | Markdown linting (Node-based) |
-| `hadolint-docker` | hadolint/hadolint | Dockerfile/Containerfile linter |
-| `gitleaks` | gitleaks/gitleaks | Secret detection (when not on pre-push) |
+| Hook                | Repo                         | What It Does                                      |
+| ------------------- | ---------------------------- | ------------------------------------------------- |
+| `typos`             | crate-ci/typos               | Rust-based spellchecker (stricter than codespell) |
+| `markdownlint-cli2` | DavidAnson/markdownlint-cli2 | Markdown linting (Node-based)                     |
+| `hadolint-docker`   | hadolint/hadolint            | Dockerfile/Containerfile linter                   |
+| `gitleaks`          | gitleaks/gitleaks            | Secret detection (when not on pre-push)           |
 
 #### References
 
@@ -910,22 +917,22 @@ To install hooks for non-default stages: `pre-commit install --hook-type commit-
 ### Anatomy of a Workflow
 
 ```yaml
-name: Tests                        # Display name
+name: Tests # Display name
 
-on:                                # Triggers
+on: # Triggers
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
-permissions:                       # Least-privilege access
+permissions: # Least-privilege access
   contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@...  # Pinned SHA
+      - uses: actions/checkout@... # Pinned SHA
       - uses: actions/setup-python@...
         with:
           python-version: "3.11"
@@ -935,11 +942,11 @@ jobs:
 
 ### Common Workflow Patterns
 
-| Workflow | Triggers | Purpose |
-|----------|----------|---------|
-| `test.yml` | push, PR | Run tests |
-| `lint.yml` | push, PR | Ruff, mypy |
-| `release.yml` | tag push | Publish to PyPI |
+| Workflow       | Triggers     | Purpose           |
+| -------------- | ------------ | ----------------- |
+| `test.yml`     | push, PR     | Run tests         |
+| `lint.yml`     | push, PR     | Ruff, mypy        |
+| `release.yml`  | tag push     | Publish to PyPI   |
 | `security.yml` | schedule, PR | Dependency audits |
 
 ### Matrix Testing
@@ -966,13 +973,13 @@ Speed up workflows by caching pip:
 
 ### Useful Actions
 
-| Action | Purpose |
-|--------|---------|
-| `actions/checkout` | Clone repo |
-| `actions/setup-python` | Install Python |
-| `actions/cache` | Cache dependencies |
-| `codecov/codecov-action` | Upload coverage |
-| `pypa/gh-action-pypi-publish` | Publish to PyPI |
+| Action                        | Purpose            |
+| ----------------------------- | ------------------ |
+| `actions/checkout`            | Clone repo         |
+| `actions/setup-python`        | Install Python     |
+| `actions/cache`               | Cache dependencies |
+| `codecov/codecov-action`      | Upload coverage    |
+| `pypa/gh-action-pypi-publish` | Publish to PyPI    |
 
 ### How to Configure Workflow YAML Files
 
@@ -981,14 +988,14 @@ Speed up workflows by caching pip:
 The authoritative reference is [GitHub Actions documentation](https://docs.github.com/en/actions).
 Key pages:
 
-| Topic | URL |
-|-------|-----|
-| Workflow syntax | `docs.github.com/en/actions/reference/workflow-syntax-for-github-actions` |
-| Events that trigger workflows | `docs.github.com/en/actions/reference/events-that-trigger-workflows` |
-| Contexts & expressions | `docs.github.com/en/actions/learn-github-actions/contexts` |
-| Permissions | `docs.github.com/en/actions/security-guides/automatic-token-authentication` |
-| Encrypted secrets | `docs.github.com/en/actions/security-guides/encrypted-secrets` |
-| Variables | `docs.github.com/en/actions/learn-github-actions/variables` |
+| Topic                         | URL                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| Workflow syntax               | `docs.github.com/en/actions/reference/workflow-syntax-for-github-actions`   |
+| Events that trigger workflows | `docs.github.com/en/actions/reference/events-that-trigger-workflows`        |
+| Contexts & expressions        | `docs.github.com/en/actions/learn-github-actions/contexts`                  |
+| Permissions                   | `docs.github.com/en/actions/security-guides/automatic-token-authentication` |
+| Encrypted secrets             | `docs.github.com/en/actions/security-guides/encrypted-secrets`              |
+| Variables                     | `docs.github.com/en/actions/learn-github-actions/variables`                 |
 
 Each action's own repo README documents its inputs/outputs (e.g., `actions/checkout`, `peter-evans/create-pull-request`).
 
@@ -997,35 +1004,35 @@ Each action's own repo README documents its inputs/outputs (e.g., `actions/check
 A workflow file lives in `.github/workflows/` and has four main sections:
 
 ```yaml
-name: Human-readable name          # Shows in the Actions tab
+name: Human-readable name # Shows in the Actions tab
 
-on:                                 # 1. TRIGGERS — when does this run?
+on: # 1. TRIGGERS — when does this run?
   push: ...
   pull_request: ...
   schedule: ...
   workflow_dispatch: ...
 
-permissions:                        # 2. PERMISSIONS — least-privilege GITHUB_TOKEN scope
+permissions: # 2. PERMISSIONS — least-privilege GITHUB_TOKEN scope
   contents: read
 
-jobs:                               # 3. JOBS — what to run (each gets its own runner)
+jobs: # 3. JOBS — what to run (each gets its own runner)
   my-job:
     runs-on: ubuntu-latest
-    if: <condition>                  # 4. GUARDS — should this job run at all?
+    if: <condition> # 4. GUARDS — should this job run at all?
     steps:
-      - uses: owner/action@sha      # Use a published action
-      - run: echo "shell command"    # Run a shell command
+      - uses: owner/action@sha # Use a published action
+      - run: echo "shell command" # Run a shell command
 ```
 
 #### Triggers (`on:`)
 
-| Trigger | When it fires | Notes |
-|---------|--------------|-------|
-| `push` | Code pushed to matching branches | Can filter by `branches:` and `paths:` |
-| `pull_request` | PR opened/synced against matching branches | Uses the **PR head branch's** workflow file |
-| `schedule` | Cron expression (UTC) | **Only runs from default branch** (usually `main`) |
-| `workflow_dispatch` | Manual "Run workflow" button | Uses the workflow file from the **selected branch** |
-| `workflow_run` | After another workflow completes | Useful for chaining workflows |
+| Trigger             | When it fires                              | Notes                                               |
+| ------------------- | ------------------------------------------ | --------------------------------------------------- |
+| `push`              | Code pushed to matching branches           | Can filter by `branches:` and `paths:`              |
+| `pull_request`      | PR opened/synced against matching branches | Uses the **PR head branch's** workflow file         |
+| `schedule`          | Cron expression (UTC)                      | **Only runs from default branch** (usually `main`)  |
+| `workflow_dispatch` | Manual "Run workflow" button               | Uses the workflow file from the **selected branch** |
+| `workflow_run`      | After another workflow completes           | Useful for chaining workflows                       |
 
 **Key gotcha:** `schedule:` always uses the workflow file on `main`. If you
 change a cron schedule on a branch, it won't take effect until merged.
@@ -1039,11 +1046,11 @@ has broad access; narrowing it limits blast radius if a dependency is compromise
 
 ```yaml
 permissions:
-  contents: read              # Read repo contents (most workflows)
-  pull-requests: write        # Create/comment on PRs
-  security-events: write      # Upload SARIF to Security tab
-  issues: write               # Comment on / close issues
-  id-token: write             # OIDC token (OpenSSF Scorecard, cloud auth)
+  contents: read # Read repo contents (most workflows)
+  pull-requests: write # Create/comment on PRs
+  security-events: write # Upload SARIF to Security tab
+  issues: write # Comment on / close issues
+  id-token: write # OIDC token (OpenSSF Scorecard, cloud auth)
 ```
 
 **Repo-level setting:** Some permissions also require a repo setting toggle.
@@ -1073,13 +1080,13 @@ per-workflow variables.
 
 #### Repository Variables vs Secrets
 
-| Feature | Variables (`vars.*`) | Secrets (`secrets.*`) |
-|---------|---------------------|----------------------|
-| Visible in logs | Yes | Masked (never printed) |
-| Use case | Feature flags, config | API keys, tokens |
-| Set at | Settings → Variables | Settings → Secrets |
-| Access in YAML | `${{ vars.MY_VAR }}` | `${{ secrets.MY_SECRET }}` |
-| Case-sensitive values | Yes (`'true'` ≠ `'True'`) | N/A |
+| Feature               | Variables (`vars.*`)      | Secrets (`secrets.*`)      |
+| --------------------- | ------------------------- | -------------------------- |
+| Visible in logs       | Yes                       | Masked (never printed)     |
+| Use case              | Feature flags, config     | API keys, tokens           |
+| Set at                | Settings → Variables      | Settings → Secrets         |
+| Access in YAML        | `${{ vars.MY_VAR }}`      | `${{ secrets.MY_SECRET }}` |
+| Case-sensitive values | Yes (`'true'` ≠ `'True'`) | N/A                        |
 
 **Gotcha:** Variable comparisons are case-sensitive. `vars.ENABLE_FOO == 'true'`
 will not match if the variable is set to `'True'` or `'TRUE'`.
@@ -1099,6 +1106,7 @@ Cron uses five fields, all in **UTC**:
 ```
 
 Examples:
+
 - `"0 3 * * *"` — daily at 03:00 UTC
 - `"0 9 * * 1"` — every Monday at 09:00 UTC
 - `"0 13 * * 1"` — every Monday at 13:00 UTC
@@ -1124,9 +1132,10 @@ uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 The version comment (`# v4.2.2`) is just for humans — GitHub resolves the SHA.
 If an action maintainer force-pushes or deletes the commit, the SHA becomes
 invalid and the workflow will fail at "Set up job" with an error like:
-*"An action could not be found at the URI"*.
+_"An action could not be found at the URI"_.
 
 To find the correct SHA for a release:
+
 1. Go to the action's GitHub releases page
 2. Click the tag → click the commit hash
 3. Copy the **full 40-character SHA** from the URL
@@ -1172,18 +1181,19 @@ Branch protection prevents direct pushes to important branches and enforces qual
 
 ### Recommended Settings for `main`
 
-| Setting | Purpose |
-|---------|---------|
-| ✅ Require PR before merging | No direct pushes |
-| ✅ Require status checks | CI must pass |
-| ✅ Require branches up to date | Must merge main first |
+| Setting                            | Purpose                |
+| ---------------------------------- | ---------------------- |
+| ✅ Require PR before merging       | No direct pushes       |
+| ✅ Require status checks           | CI must pass           |
+| ✅ Require branches up to date     | Must merge main first  |
 | ✅ Require conversation resolution | All comments addressed |
-| ⬜ Require approvals | Set to 1+ for teams |
-| ⬜ Restrict who can push | Limit to admins |
+| ⬜ Require approvals               | Set to 1+ for teams    |
+| ⬜ Restrict who can push           | Limit to admins        |
 
 ### Required Status Checks
 
 Add these as required checks:
+
 - `test` — Tests pass
 - `lint` — Linting passes
 - `type-check` — Types are correct
@@ -1198,19 +1208,20 @@ Admins can bypass, but it's logged. Use sparingly!
 
 ### Tools Overview
 
-| Tool | What It Does | When to Run |
-|------|--------------|-------------|
-| **pip-audit** | Checks deps for CVEs | CI, pre-release |
-| **Bandit** | Finds security bugs in code | CI, pre-commit |
-| **Safety** | Dependency vulnerabilities | CI |
-| **Trivy** | Container scanning | CI (Docker builds) |
-| **Dependabot** | Auto-creates upgrade PRs | Scheduled |
+| Tool           | What It Does                | When to Run        |
+| -------------- | --------------------------- | ------------------ |
+| **pip-audit**  | Checks deps for CVEs        | CI, pre-release    |
+| **Bandit**     | Finds security bugs in code | CI, pre-commit     |
+| **Safety**     | Dependency vulnerabilities  | CI                 |
+| **Trivy**      | Container scanning          | CI (Docker builds) |
+| **Dependabot** | Auto-creates upgrade PRs    | Scheduled          |
 
 ### What Is SARIF?
 
 **SARIF** (Static Analysis Results Interchange Format) is a standardized JSON format for the output of static analysis tools. It's an [OASIS standard](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) designed so that different tools (linters, security scanners, type checkers) can all produce results in the same shape.
 
 **Why it matters:**
+
 - **GitHub Security tab** — When a CI workflow uploads a `.sarif` file via `github/codeql-action/upload-sarif`, the findings appear as **Code scanning alerts** in the repository's Security tab. This gives a unified view of vulnerabilities across tools.
 - **Tool-agnostic** — Whether results come from Trivy, Grype, Bandit, CodeQL, or Scorecard, SARIF normalises them into one format.
 - **IDE integration** — VS Code extensions (e.g., SARIF Viewer) can display SARIF results inline, showing issues right where the code is.
@@ -1271,14 +1282,14 @@ updates:
 
 ### What to Run Where
 
-| Check | Pre-commit | CI | Why |
-|-------|------------|-----|-----|
-| Formatting | ✅ | ✅ | Fast, catches everything |
-| Linting | ✅ | ✅ | Fast, catches everything |
-| Type checking | ⚠️ Optional | ✅ | Can be slow locally |
-| Tests | ❌ | ✅ | Too slow for commit hook |
-| Security scan | ❌ | ✅ | Needs network, slow |
-| Coverage | ❌ | ✅ | Needs full test run |
+| Check         | Pre-commit  | CI  | Why                      |
+| ------------- | ----------- | --- | ------------------------ |
+| Formatting    | ✅          | ✅  | Fast, catches everything |
+| Linting       | ✅          | ✅  | Fast, catches everything |
+| Type checking | ⚠️ Optional | ✅  | Can be slow locally      |
+| Tests         | ❌          | ✅  | Too slow for commit hook |
+| Security scan | ❌          | ✅  | Needs network, slow      |
+| Coverage      | ❌          | ✅  | Needs full test run      |
 
 ### Progressive Adoption
 
@@ -1299,7 +1310,7 @@ GitHub has a hidden priority order for which README displays on the repo landing
 
 **The gotcha:** If you put a `README.md` in `.github/` to document your workflows and templates, it **silently replaces** your root `README.md` on the repository page. Visitors see your internal `.github/` docs instead of your project README — with no warning.
 
-This is unique to `.github/`. Every other directory's `README.md` only renders when browsing *that* directory. But `.github/README.md` is treated as a profile-level README, similar to how `<username>/<username>/README.md` shows on your GitHub profile.
+This is unique to `.github/`. Every other directory's `README.md` only renders when browsing _that_ directory. But `.github/README.md` is treated as a profile-level README, similar to how `<username>/<username>/README.md` shows on your GitHub profile.
 
 **Fix:** Don't put a `README.md` in `.github/`. Document that directory's contents elsewhere (e.g., `docs/repo-layout.md`).
 
@@ -1314,15 +1325,15 @@ They're generated dynamically by external services and rendered as inline images
 
 ### Common Badge Types
 
-| Badge | What it shows | Service |
-|-------|---------------|---------|
-| CI Status | Whether tests/checks pass | GitHub Actions |
-| Coverage | Test coverage percentage | Codecov, Coveralls |
-| License | Project license | Shields.io |
-| Python Version | Supported versions | Shields.io |
-| Code Style | Formatter/linter used | Shields.io |
-| Downloads | PyPI download count | PyPI, pepy.tech |
-| Version | Latest release | GitHub, PyPI |
+| Badge          | What it shows             | Service            |
+| -------------- | ------------------------- | ------------------ |
+| CI Status      | Whether tests/checks pass | GitHub Actions     |
+| Coverage       | Test coverage percentage  | Codecov, Coveralls |
+| License        | Project license           | Shields.io         |
+| Python Version | Supported versions        | Shields.io         |
+| Code Style     | Formatter/linter used     | Shields.io         |
+| Downloads      | PyPI download count       | PyPI, pepy.tech    |
+| Version        | Latest release            | GitHub, PyPI       |
 
 ### How Badges Work
 
@@ -1335,9 +1346,9 @@ They're generated dynamically by external services and rendered as inline images
 
 ```markdown
 [![CI](https://github.com/OWNER/REPO/actions/workflows/ci-gate.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci-gate.yml)
- │    │                                                                        │
- │    └── Image URL (returns SVG)                                              └── Click URL (where badge links to)
- └── Alt text (shown if image fails)
+│ │ │
+│ └── Image URL (returns SVG) └── Click URL (where badge links to)
+└── Alt text (shown if image fails)
 ```
 
 ### GitHub Actions Badge
@@ -1366,9 +1377,11 @@ Shields.io generates badges for almost anything:
 
 ```markdown
 <!-- Static badge (hardcoded values) -->
+
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 
 <!-- Dynamic badge (fetches from GitHub API) -->
+
 [![License](https://img.shields.io/github/license/OWNER/REPO)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/OWNER/REPO)](https://github.com/OWNER/REPO)
 [![Issues](https://img.shields.io/github/issues/OWNER/REPO)](https://github.com/OWNER/REPO/issues)
@@ -1384,19 +1397,20 @@ Shields.io generates badges for almost anything:
 
 ### Troubleshooting
 
-| Problem | Cause | Fix |
-|---------|-------|-----|
-| Badge shows "no status" | Workflow never ran | Push to main to trigger workflow |
-| Badge shows old data | Caching | Add `?cache=no` or wait ~5 min |
-| Coverage badge broken | No Codecov setup | Sign up at codecov.io, add token |
-| Badge looks pixelated | Using PNG | Use SVG URL instead |
-| Badge 404 | Wrong URL | Check owner/repo spelling and case |
+| Problem                 | Cause              | Fix                                |
+| ----------------------- | ------------------ | ---------------------------------- |
+| Badge shows "no status" | Workflow never ran | Push to main to trigger workflow   |
+| Badge shows old data    | Caching            | Add `?cache=no` or wait ~5 min     |
+| Coverage badge broken   | No Codecov setup   | Sign up at codecov.io, add token   |
+| Badge looks pixelated   | Using PNG          | Use SVG URL instead                |
+| Badge 404               | Wrong URL          | Check owner/repo spelling and case |
 
 ### Codecov Setup
 
 Codecov is **free for public repos** and has a free tier for private repos.
 
 **Sign up:**
+
 1. Go to [codecov.io](https://codecov.io)
 2. Click "Sign up" → "Sign up with GitHub"
 3. Authorize Codecov to access your repos
@@ -1440,16 +1454,17 @@ Notes and conventions gathered from popular Python boilerplate/template reposito
 
 A reference for cutting-edge Python tooling. Accompanied by a detailed blog series.
 
-| Convention | Details |
-|------------|---------|
-| **Build tool** | Poetry (now Hatch is also popular) |
-| **Task runner** | Nox (multi-Python testing) |
-| **Type checker** | Mypy with strict mode |
-| **Docs** | Sphinx + Read the Docs |
-| **Pre-commit** | Extensive hooks |
-| **CLI** | Click |
+| Convention       | Details                            |
+| ---------------- | ---------------------------------- |
+| **Build tool**   | Poetry (now Hatch is also popular) |
+| **Task runner**  | Nox (multi-Python testing)         |
+| **Type checker** | Mypy with strict mode              |
+| **Docs**         | Sphinx + Read the Docs             |
+| **Pre-commit**   | Extensive hooks                    |
+| **CLI**          | Click                              |
 
 **Key Takeaways:**
+
 - Uses Nox for consistent test environments across Python versions
 - Separates "sessions" (lint, tests, docs, safety) in `noxfile.py`
 - Coverage enforced with pytest-cov
@@ -1464,15 +1479,16 @@ A reference for cutting-edge Python tooling. Accompanied by a detailed blog seri
 
 One of the most popular Python package templates. Uses Cookiecutter for project generation.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | `src/` layout (optional, flat by default) |
-| **Testing** | pytest + tox |
-| **Docs** | Sphinx |
-| **CI** | Travis CI (older), GitHub Actions (forks) |
-| **Versioning** | bumpversion |
+| Convention     | Details                                   |
+| -------------- | ----------------------------------------- |
+| **Layout**     | `src/` layout (optional, flat by default) |
+| **Testing**    | pytest + tox                              |
+| **Docs**       | Sphinx                                    |
+| **CI**         | Travis CI (older), GitHub Actions (forks) |
+| **Versioning** | bumpversion                               |
 
 **Key Takeaways:**
+
 - Generates CONTRIBUTING.rst, HISTORY.rst, AUTHORS.rst
 - Includes Makefile with common targets (`make test`, `make docs`)
 - Supports multiple open source licenses via prompts
@@ -1487,15 +1503,16 @@ One of the most popular Python package templates. Uses Cookiecutter for project 
 
 Modern template with Copier (alternative to Cookiecutter).
 
-| Convention | Details |
-|------------|---------|
-| **Build tool** | Poetry or setuptools |
-| **Linting** | Ruff (replaced flake8, isort, black) |
-| **Type checker** | Mypy |
-| **Task runner** | Make |
-| **Docs** | MkDocs (Material theme) |
+| Convention       | Details                              |
+| ---------------- | ------------------------------------ |
+| **Build tool**   | Poetry or setuptools                 |
+| **Linting**      | Ruff (replaced flake8, isort, black) |
+| **Type checker** | Mypy                                 |
+| **Task runner**  | Make                                 |
+| **Docs**         | MkDocs (Material theme)              |
 
 **Key Takeaways:**
+
 - Uses Copier for template updates (can pull in template changes later)
 - Containerfile for OCI/Docker builds
 - GitHub Actions with reusable workflows
@@ -1510,15 +1527,16 @@ Modern template with Copier (alternative to Cookiecutter).
 
 While not a general template, FastAPI projects set conventions for modern Python.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | `app/` package (not `src/`) |
-| **Async** | Native async/await |
-| **Config** | Pydantic Settings |
-| **Database** | SQLAlchemy + Alembic |
-| **Testing** | pytest + httpx |
+| Convention   | Details                     |
+| ------------ | --------------------------- |
+| **Layout**   | `app/` package (not `src/`) |
+| **Async**    | Native async/await          |
+| **Config**   | Pydantic Settings           |
+| **Database** | SQLAlchemy + Alembic        |
+| **Testing**  | pytest + httpx              |
 
 **Key Takeaways:**
+
 - Pydantic for settings/config management with `.env` files
 - Alembic for database migrations (instead of raw SQL)
 - Docker Compose for local development
@@ -1533,14 +1551,15 @@ While not a general template, FastAPI projects set conventions for modern Python
 
 Template for scikit-learn compatible packages.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | Flat (package at root) |
-| **Testing** | pytest-cov |
-| **Docs** | Sphinx + sphinx-gallery |
-| **CI** | GitHub Actions + CircleCI |
+| Convention  | Details                   |
+| ----------- | ------------------------- |
+| **Layout**  | Flat (package at root)    |
+| **Testing** | pytest-cov                |
+| **Docs**    | Sphinx + sphinx-gallery   |
+| **CI**      | GitHub Actions + CircleCI |
 
 **Key Takeaways:**
+
 - Strict scikit-learn API compatibility (estimator checks)
 - Example gallery generated from scripts
 - Extensive docstring format (NumPy style)
@@ -1554,15 +1573,16 @@ Template for scikit-learn compatible packages.
 
 CLI tool that generates Python projects. Very opinionated.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | `src/` layout (enforced) |
-| **Config** | `pyproject.toml` + `setup.cfg` hybrid |
-| **Versioning** | setuptools-scm (git tags) |
-| **Docs** | Sphinx |
-| **Extensions** | Plugin system |
+| Convention     | Details                               |
+| -------------- | ------------------------------------- |
+| **Layout**     | `src/` layout (enforced)              |
+| **Config**     | `pyproject.toml` + `setup.cfg` hybrid |
+| **Versioning** | setuptools-scm (git tags)             |
+| **Docs**       | Sphinx                                |
+| **Extensions** | Plugin system                         |
 
 **Key Takeaways:**
+
 - Version derived from git tags (no manual version bumping)
 - setuptools-scm for automatic versioning
 - Extensions for Django, pre-commit, CI templates
@@ -1573,51 +1593,57 @@ CLI tool that generates Python projects. Very opinionated.
 
 ### Packaging Conventions Comparison
 
-| Aspect | This Template | Hypermodern | Cookiecutter | PyScaffold |
-|--------|---------------|-------------|--------------|------------|
-| **Layout** | `src/` | `src/` | flat (default) | `src/` |
-| **Config** | pyproject.toml only | pyproject.toml | setup.py/cfg | hybrid |
-| **Linting** | Ruff | flake8 + plugins | flake8 | flake8 |
-| **Formatting** | Ruff | Black | Black | Black |
-| **Types** | Mypy | Mypy strict | optional | optional |
-| **Task runner** | Make/scripts | Nox | Make + tox | tox |
-| **Docs** | Markdown | Sphinx | Sphinx | Sphinx |
-| **Versioning** | manual | bump2version | bumpversion | setuptools-scm |
+| Aspect          | This Template       | Hypermodern      | Cookiecutter   | PyScaffold     |
+| --------------- | ------------------- | ---------------- | -------------- | -------------- |
+| **Layout**      | `src/`              | `src/`           | flat (default) | `src/`         |
+| **Config**      | pyproject.toml only | pyproject.toml   | setup.py/cfg   | hybrid         |
+| **Linting**     | Ruff                | flake8 + plugins | flake8         | flake8         |
+| **Formatting**  | Ruff                | Black            | Black          | Black          |
+| **Types**       | Mypy                | Mypy strict      | optional       | optional       |
+| **Task runner** | Make/scripts        | Nox              | Make + tox     | tox            |
+| **Docs**        | Markdown            | Sphinx           | Sphinx         | Sphinx         |
+| **Versioning**  | manual              | bump2version     | bumpversion    | setuptools-scm |
 
 ---
 
 ### Common Patterns Observed
 
 **Project Structure:**
+
 - `src/` layout gaining popularity (isolation benefits)
 - `tests/` at root level (not inside `src/`)
 - `docs/` for documentation source files
 - Flat configs in root (pyproject.toml, tox.ini, etc.)
 
 **Configuration:**
+
 - pyproject.toml as single source (PEP 518/621)
 - Tool configs in `[tool.X]` sections
 - `.env` + `.env.example` for secrets
 
 **CI/CD:**
+
 - GitHub Actions dominant (Travis CI declining)
 - Matrix testing (Python 3.10, 3.11, 3.12, etc.)
 - Separate workflows per concern
 - Dependabot or Renovate for dependency updates
 
 **Documentation:**
+
 - Sphinx still dominant for libraries
 - MkDocs + Material gaining traction
 - README.md as landing page
 - CHANGELOG.md with Keep a Changelog format
 
 **Testing:**
+
 - pytest universal
 - pytest-cov for coverage
 - tox or nox for multi-version
 - conftest.py for shared fixtures
 
 **Developer Experience:**
+
 - Pre-commit hooks standard
 - Makefile or justfile for common tasks
 - Editorconfig for cross-editor consistency
@@ -1629,15 +1655,15 @@ CLI tool that generates Python projects. Very opinionated.
 
 From researching these templates, potential additions:
 
-| Idea | Benefit | Complexity |
-|------|---------|------------|
-| **setuptools-scm** | No manual version bumping | Low |
-| **Nox** | Better than tox, Python-based | Medium |
-| **MkDocs** | Simpler than Sphinx, Markdown-native | Low |
-| **Copier** | Template updates after adoption | Medium |
-| **justfile** | Modern Makefile alternative | Low |
-| **CITATION.cff** | Academic citation support | Low |
-| **.editorconfig** | Cross-editor consistency | Low |
+| Idea               | Benefit                              | Complexity |
+| ------------------ | ------------------------------------ | ---------- |
+| **setuptools-scm** | No manual version bumping            | Low        |
+| **Nox**            | Better than tox, Python-based        | Medium     |
+| **MkDocs**         | Simpler than Sphinx, Markdown-native | Low        |
+| **Copier**         | Template updates after adoption      | Medium     |
+| **justfile**       | Modern Makefile alternative          | Low        |
+| **CITATION.cff**   | Academic citation support            | Low        |
+| **.editorconfig**  | Cross-editor consistency             | Low        |
 
 ---
 
@@ -1653,16 +1679,17 @@ Additional template and boilerplate repositories worth studying:
 
 The official sample project from the Python Packaging Authority (PyPA). Exists as a companion to the [PyPUG Tutorial on Packaging and Distributing Projects](https://packaging.python.org/tutorials/packaging-projects/). Intentionally minimal — focuses purely on packaging, not project development practices.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | `src/` layout (`src/sample/`) |
-| **Config** | `pyproject.toml` only |
-| **Testing** | Nox |
-| **CI** | GitHub Actions |
-| **Docs** | None (README only) |
-| **Versioning** | Manual in `pyproject.toml` |
+| Convention     | Details                       |
+| -------------- | ----------------------------- |
+| **Layout**     | `src/` layout (`src/sample/`) |
+| **Config**     | `pyproject.toml` only         |
+| **Testing**    | Nox                           |
+| **CI**         | GitHub Actions                |
+| **Docs**       | None (README only)            |
+| **Versioning** | Manual in `pyproject.toml`    |
 
 **Key Takeaways:**
+
 - The most authoritative reference for pyproject.toml packaging metadata
 - Deliberately does not cover linting, formatting, type checking, or CI beyond testing
 - `src/` layout used as the recommended default
@@ -1678,16 +1705,17 @@ The official sample project from the Python Packaging Authority (PyPA). Exists a
 
 A 100% Kotlin template for Android projects with static analysis and CI baked in. Useful as a cross-language comparison for how non-Python ecosystems approach project templates.
 
-| Convention | Details |
-|------------|---------|
-| **Language** | Kotlin (100%) |
-| **Build tool** | Gradle (Kotlin DSL) |
-| **Static analysis** | Detekt + ktlint |
-| **CI** | GitHub Actions (pre-merge, publish-snapshot, publish-release) |
-| **Dependency management** | Gradle Version Catalog (`libs.versions.toml`) + Renovate |
-| **Publishing** | Maven Central via Nexus |
+| Convention                | Details                                                       |
+| ------------------------- | ------------------------------------------------------------- |
+| **Language**              | Kotlin (100%)                                                 |
+| **Build tool**            | Gradle (Kotlin DSL)                                           |
+| **Static analysis**       | Detekt + ktlint                                               |
+| **CI**                    | GitHub Actions (pre-merge, publish-snapshot, publish-release) |
+| **Dependency management** | Gradle Version Catalog (`libs.versions.toml`) + Renovate      |
+| **Publishing**            | Maven Central via Nexus                                       |
 
 **Key Takeaways:**
+
 - Multi-module structure: `app/`, `library-android/`, `library-kotlin/`, `library-compose/`
 - Shared build logic lives in `buildSrc/` as precompiled script plugins
 - Renovate (not Dependabot) for automated dependency updates with auto-merge
@@ -1705,16 +1733,17 @@ A 100% Kotlin template for Android projects with static analysis and CI baked in
 
 A minimal, opinionated Electron starter from sindresorhus. Now archived but still a good reference for how a "less is more" boilerplate can work.
 
-| Convention | Details |
-|------------|---------|
-| **Language** | JavaScript (84%), CSS, HTML |
-| **Build tool** | electron-builder |
-| **CI** | GitHub Actions (cross-platform builds) |
-| **Config** | electron-store |
-| **Error handling** | electron-unhandled |
-| **Editor** | `.editorconfig` |
+| Convention         | Details                                |
+| ------------------ | -------------------------------------- |
+| **Language**       | JavaScript (84%), CSS, HTML            |
+| **Build tool**     | electron-builder                       |
+| **CI**             | GitHub Actions (cross-platform builds) |
+| **Config**         | electron-store                         |
+| **Error handling** | electron-unhandled                     |
+| **Editor**         | `.editorconfig`                        |
 
 **Key Takeaways:**
+
 - Extremely minimal — only the files you actually need (no over-engineering)
 - electron-builder configured for cross-platform builds (macOS, Linux, Windows)
 - Silent auto-updates built in
@@ -1732,16 +1761,17 @@ A minimal, opinionated Electron starter from sindresorhus. Now archived but stil
 
 A language-agnostic GitHub template focused on community health files, issue templates, labels, and repository automation. Not about code structure — about the GitHub repo wrapper around a project.
 
-| Convention | Details |
-|------------|---------|
-| **Language** | Language-agnostic (Shell for setup script) |
-| **Setup** | `SETUP_TEMPLATE.sh` script auto-detects and replaces placeholders |
+| Convention          | Details                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| **Language**        | Language-agnostic (Shell for setup script)                                             |
+| **Setup**           | `SETUP_TEMPLATE.sh` script auto-detects and replaces placeholders                      |
 | **Issue templates** | 8 templates (bug, failing test, docs, feature, enhancement, security, question, blank) |
-| **Labels** | 20+ labels auto-created via `settings.yml` bot |
-| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, SUPPORT, CODEOWNERS |
-| **Bots** | issue-label-bot, probot-settings, welcome-bot, todo-bot |
+| **Labels**          | 20+ labels auto-created via `settings.yml` bot                                         |
+| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, SUPPORT, CODEOWNERS                           |
+| **Bots**            | issue-label-bot, probot-settings, welcome-bot, todo-bot                                |
 
 **Key Takeaways:**
+
 - Strongest emphasis on community health files of any template reviewed
 - Shell script for initial personalisation (replaces placeholders in all files)
 - Uses GitHub Probot ecosystem heavily for automation
@@ -1758,18 +1788,19 @@ A language-agnostic GitHub template focused on community health files, issue tem
 
 A Python template that uses **Cookiecutter** for project generation. Focused on CI/CD automation with semantic release and comprehensive GitHub Actions pipelines.
 
-| Convention | Details |
-|------------|---------|
-| **Layout** | `src/{{cookiecutter.repository}}/` (Cookiecutter-templated) |
-| **Build tool** | Poetry |
-| **Linting** | Ruff |
-| **Pre-commit** | Yes (with commitlint for conventional commits) |
-| **CI** | GitHub Actions (extensive pipeline) |
-| **Docs** | MkDocs |
-| **Dependency updates** | Renovate |
-| **Versioning** | Semantic release (automated) |
+| Convention             | Details                                                     |
+| ---------------------- | ----------------------------------------------------------- |
+| **Layout**             | `src/{{cookiecutter.repository}}/` (Cookiecutter-templated) |
+| **Build tool**         | Poetry                                                      |
+| **Linting**            | Ruff                                                        |
+| **Pre-commit**         | Yes (with commitlint for conventional commits)              |
+| **CI**                 | GitHub Actions (extensive pipeline)                         |
+| **Docs**               | MkDocs                                                      |
+| **Dependency updates** | Renovate                                                    |
+| **Versioning**         | Semantic release (automated)                                |
 
 **Key Takeaways:**
+
 - Uses Cookiecutter — source files have `{{cookiecutter.repository}}` placeholders throughout
 - This means the template repo itself is not directly runnable or testable
 - Heavy Renovate usage — bot commits dominate the commit history
@@ -1787,16 +1818,17 @@ A Python template that uses **Cookiecutter** for project generation. Focused on 
 
 A feature-rich, language-agnostic GitHub template with heavy automation via GitHub Actions workflows that run at template setup time.
 
-| Convention | Details |
-|------------|---------|
-| **Language** | Language-agnostic (HTML landing page) |
-| **Setup** | GitHub Actions workflow auto-replaces links, emails, and metadata |
-| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, CODEOWNERS, CHANGE_LOG, TO_DO |
-| **Issue templates** | Bug report and feature request (YAML-based forms) |
-| **Automation** | Image compression, TOC generation, stargazer metrics SVG, SEO index.html |
-| **Bots** | issue-label-bot, probot-settings, welcome-bot |
+| Convention          | Details                                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| **Language**        | Language-agnostic (HTML landing page)                                    |
+| **Setup**           | GitHub Actions workflow auto-replaces links, emails, and metadata        |
+| **Community files** | CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, CODEOWNERS, CHANGE_LOG, TO_DO   |
+| **Issue templates** | Bug report and feature request (YAML-based forms)                        |
+| **Automation**      | Image compression, TOC generation, stargazer metrics SVG, SEO index.html |
+| **Bots**            | issue-label-bot, probot-settings, welcome-bot                            |
 
 **Key Takeaways:**
+
 - Unique approach: uses a GitHub Actions workflow to auto-configure the repo after creation
 - Generates a markdown-styled `index.html` with SEO metadata
 - Auto-generates a table of contents in the README
@@ -1823,12 +1855,12 @@ api.py    → defines callable interface (HTTP/REST, optional)
 
 ### File Responsibilities
 
-| File | Purpose | Contains |
-|------|---------|----------|
-| `main.py` | Entry points | Thin wrappers that call cli/engine |
-| `cli.py` | CLI contract | Argument parser, command definitions |
-| `engine.py` | Behavior | Pure logic, no I/O, easily testable |
-| `api.py` | API interface | HTTP routes, request/response handling |
+| File        | Purpose       | Contains                               |
+| ----------- | ------------- | -------------------------------------- |
+| `main.py`   | Entry points  | Thin wrappers that call cli/engine     |
+| `cli.py`    | CLI contract  | Argument parser, command definitions   |
+| `engine.py` | Behavior      | Pure logic, no I/O, easily testable    |
+| `api.py`    | API interface | HTTP routes, request/response handling |
 
 ### Data Flow
 
@@ -1884,12 +1916,12 @@ def main():
 
 ---
 
-| File             | Primary role                  | What it contains                                                            | What it must **not** contain                                     | Who calls it                        | When to use it                                     | Common mistakes                                          |
-|------------------|-------------------------------|-----------------------------------------------------------------------------|------------------------------------------------------------------|-------------------------------------|----------------------------------------------------|----------------------------------------------------------|
-| **`engine.py`**  | Source of truth (core logic)  | Pure functions/classes that implement real behavior                         | CLI parsing, printing, shell commands, repo-specific assumptions | `api.py`, tests, other Python code  | Always when behavior is non-trivial or reusable    | Mixing I/O or argument parsing into core logic           |
-| **`api.py`**     | Stable internal interface     | Thin wrappers that expose intentional operations (e.g. `run_lint`, `build`) | Implementation details, argument parsing                         | `cli.py`, `main.py`, other tools    | When you want a clean boundary and refactor safety | Making it a duplicate of `engine.py` with no added value |
-| **`cli.py`**     | Command-line interface        | Argument parsing, subcommands, help text                                    | Business logic, complex workflows                                | End users, developers, Just, CI     | When providing an installable CLI                  | Putting real logic directly in CLI handlers              |
-| **`main.py`**    | Entry point / bootstrap       | Calls into `api.py` or `engine.py` to start execution                       | Logic, configuration rules                                       | Python runtime (`python main.py`)   | Optional; useful for quick execution or demos      | Letting it grow into the main implementation file        |
+| File            | Primary role                 | What it contains                                                            | What it must **not** contain                                     | Who calls it                       | When to use it                                     | Common mistakes                                          |
+| --------------- | ---------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- | ---------------------------------- | -------------------------------------------------- | -------------------------------------------------------- |
+| **`engine.py`** | Source of truth (core logic) | Pure functions/classes that implement real behavior                         | CLI parsing, printing, shell commands, repo-specific assumptions | `api.py`, tests, other Python code | Always when behavior is non-trivial or reusable    | Mixing I/O or argument parsing into core logic           |
+| **`api.py`**    | Stable internal interface    | Thin wrappers that expose intentional operations (e.g. `run_lint`, `build`) | Implementation details, argument parsing                         | `cli.py`, `main.py`, other tools   | When you want a clean boundary and refactor safety | Making it a duplicate of `engine.py` with no added value |
+| **`cli.py`**    | Command-line interface       | Argument parsing, subcommands, help text                                    | Business logic, complex workflows                                | End users, developers, Just, CI    | When providing an installable CLI                  | Putting real logic directly in CLI handlers              |
+| **`main.py`**   | Entry point / bootstrap      | Calls into `api.py` or `engine.py` to start execution                       | Logic, configuration rules                                       | Python runtime (`python main.py`)  | Optional; useful for quick execution or demos      | Letting it grow into the main implementation file        |
 
 ### Key Rule
 
@@ -1908,46 +1940,46 @@ def main():
 
 ### Canonical Decision Table
 
-| Question                                                        | Yes → Do this                                       | No → Do this |
-|-----------------------------------------------------------------|-----------------------------------------------------|--------------|
-| Does this define real behavior (rules, algorithms, decisions)?  | Put it in **core logic** (`engine.py` / `core/`)    | Continue     |
-| Should this behavior be callable by other code or tools?        | Expose via **installable CLI** (and/or API)         | Continue     |
-| Is this meant to be run outside this repo?                      | **Installable CLI command**                         | Continue     |
-| Is this only for contributors working on this repo?             | **Just task**                                       | Continue     |
-| Is this repo-specific glue (order of steps, flags, paths)?      | **Just task or script**                             | Continue     |
-| Is this a one-off or disposable automation?                     | **Script**                                          | Re-evaluate  |
+| Question                                                       | Yes → Do this                                    | No → Do this |
+| -------------------------------------------------------------- | ------------------------------------------------ | ------------ |
+| Does this define real behavior (rules, algorithms, decisions)? | Put it in **core logic** (`engine.py` / `core/`) | Continue     |
+| Should this behavior be callable by other code or tools?       | Expose via **installable CLI** (and/or API)      | Continue     |
+| Is this meant to be run outside this repo?                     | **Installable CLI command**                      | Continue     |
+| Is this only for contributors working on this repo?            | **Just task**                                    | Continue     |
+| Is this repo-specific glue (order of steps, flags, paths)?     | **Just task or script**                          | Continue     |
+| Is this a one-off or disposable automation?                    | **Script**                                       | Re-evaluate  |
 
 ### What Each Bucket Is Responsible For
 
-| Tool / Layer       | Purpose                  | Source of truth? | Versioned? | Audience     |
-|--------------------|--------------------------|------------------|------------|-------------|
-| Core logic         | Implements behavior      | ✅ Yes            | With code  | Everyone     |
-| Installable CLI    | Defines public commands  | ✅ Yes            | Yes        | Users / devs |
-| Just (task runner) | Orchestrates commands    | ❌ No             | With repo  | Contributors |
-| Scripts            | One-off helpers          | ❌ No             | Optional   | Maintainers  |
-| CI workflows       | Automation               | ❌ No             | With repo  | CI only      |
+| Tool / Layer       | Purpose                 | Source of truth? | Versioned? | Audience     |
+| ------------------ | ----------------------- | ---------------- | ---------- | ------------ |
+| Core logic         | Implements behavior     | ✅ Yes           | With code  | Everyone     |
+| Installable CLI    | Defines public commands | ✅ Yes           | Yes        | Users / devs |
+| Just (task runner) | Orchestrates commands   | ❌ No            | With repo  | Contributors |
+| Scripts            | One-off helpers         | ❌ No            | Optional   | Maintainers  |
+| CI workflows       | Automation              | ❌ No            | With repo  | CI only      |
 
 ### Concrete Examples (grounding the rules)
 
-| Action                       | Correct place                    | Why                          |
-|------------------------------|----------------------------------|------------------------------|
-| Lint Python files            | Installable CLI (`mytool lint`)  | Reusable, meaningful behavior |
-| Run lint + format + tests    | Just (`just check`)              | Repo workflow                |
-| Build and publish release    | CLI (`mytool release`)           | Stable, versioned behavior   |
-| Clean `.pytest_cache`        | Just or script                   | Repo-specific cleanup        |
-| Bootstrap venv               | Just                             | Developer convenience        |
-| Parse config file            | Core logic                       | Behavior, not orchestration  |
-| Call multiple tools in order | Just                             | Pure glue                    |
+| Action                       | Correct place                   | Why                           |
+| ---------------------------- | ------------------------------- | ----------------------------- |
+| Lint Python files            | Installable CLI (`mytool lint`) | Reusable, meaningful behavior |
+| Run lint + format + tests    | Just (`just check`)             | Repo workflow                 |
+| Build and publish release    | CLI (`mytool release`)          | Stable, versioned behavior    |
+| Clean `.pytest_cache`        | Just or script                  | Repo-specific cleanup         |
+| Bootstrap venv               | Just                            | Developer convenience         |
+| Parse config file            | Core logic                      | Behavior, not orchestration   |
+| Call multiple tools in order | Just                            | Pure glue                     |
 
 ### Anti-patterns (what not to do)
 
-| Smell                                  | Why it's wrong                   |
-|----------------------------------------|----------------------------------|
-| Logic lives in `justfile`              | Not testable or reusable         |
-| CI runs `just something`               | CI now depends on dev tooling    |
-| CLI calls shell pipelines              | Logic trapped in strings         |
-| Scripts are the only interface         | No stable API                    |
-| Just command documented as "the way"   | Just became the API              |
+| Smell                                | Why it's wrong                |
+| ------------------------------------ | ----------------------------- |
+| Logic lives in `justfile`            | Not testable or reusable      |
+| CI runs `just something`             | CI now depends on dev tooling |
+| CLI calls shell pipelines            | Logic trapped in strings      |
+| Scripts are the only interface       | No stable API                 |
+| Just command documented as "the way" | Just became the API           |
 
 ### One-sentence Rule (worth memorizing)
 
@@ -1974,19 +2006,19 @@ You are not just writing code—you are teaching architecture.
 
 ## Common Python Cache & Artifact Directories
 
-| Path               | Created by          | Purpose                                            | Safe to delete? | Commit to git? |
-|--------------------|---------------------|----------------------------------------------------|-----------------|----------------|
-| `__pycache__/`     | Python interpreter  | Stores compiled `.pyc` bytecode for faster imports | ✅ Yes           | ❌ Never        |
-| `.pytest_cache/`   | pytest              | Remembers test state (last failed, node IDs)       | ✅ Yes           | ❌ Never        |
-| `.mypy_cache/`     | mypy                | Type-checking cache                                | ✅ Yes           | ❌ Never        |
-| `.ruff_cache/`     | ruff                | Linting cache                                      | ✅ Yes           | ❌ Never        |
-| `.coverage`        | coverage.py         | Coverage data file                                 | ✅ Yes           | ❌ Never        |
-| `htmlcov/`         | coverage.py         | HTML coverage report                               | ✅ Yes           | ❌ Never        |
-| `.tox/`            | tox                 | Virtualenvs + test environments                    | ✅ Yes           | ❌ Never        |
-| `.nox/`            | nox                 | Virtualenvs + sessions                             | ✅ Yes           | ❌ Never        |
-| `.venv/`           | venv / uv / poetry  | Local virtual environment                          | ✅ Yes           | ❌ Never        |
-| `dist/`            | build tools         | Built distributions (wheel/sdist)                  | ✅ Yes           | ❌ Never        |
-| `build/`           | build tools         | Temporary build artifacts                          | ✅ Yes           | ❌ Never        |
+| Path             | Created by         | Purpose                                            | Safe to delete? | Commit to git? |
+| ---------------- | ------------------ | -------------------------------------------------- | --------------- | -------------- |
+| `__pycache__/`   | Python interpreter | Stores compiled `.pyc` bytecode for faster imports | ✅ Yes          | ❌ Never       |
+| `.pytest_cache/` | pytest             | Remembers test state (last failed, node IDs)       | ✅ Yes          | ❌ Never       |
+| `.mypy_cache/`   | mypy               | Type-checking cache                                | ✅ Yes          | ❌ Never       |
+| `.ruff_cache/`   | ruff               | Linting cache                                      | ✅ Yes          | ❌ Never       |
+| `.coverage`      | coverage.py        | Coverage data file                                 | ✅ Yes          | ❌ Never       |
+| `htmlcov/`       | coverage.py        | HTML coverage report                               | ✅ Yes          | ❌ Never       |
+| `.tox/`          | tox                | Virtualenvs + test environments                    | ✅ Yes          | ❌ Never       |
+| `.nox/`          | nox                | Virtualenvs + sessions                             | ✅ Yes          | ❌ Never       |
+| `.venv/`         | venv / uv / poetry | Local virtual environment                          | ✅ Yes          | ❌ Never       |
+| `dist/`          | build tools        | Built distributions (wheel/sdist)                  | ✅ Yes          | ❌ Never       |
+| `build/`         | build tools        | Temporary build artifacts                          | ✅ Yes          | ❌ Never       |
 
 ### Why Python Creates So Many Caches
 
@@ -2004,15 +2036,15 @@ Yes — absolutely. Every serious ecosystem does.
 
 **Comparison across ecosystems:**
 
-| Language    | Examples of cache / artifact dirs                              |
-|-------------|----------------------------------------------------------------|
-| Python      | `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.venv/`     |
-| JavaScript  | `node_modules/`, `.next/`, `.turbo/`, `.parcel-cache/`         |
-| Rust        | `target/`                                                      |
-| Java        | `target/`, `.gradle/`                                          |
-| Go          | `pkg/`, `bin/`, module cache                                   |
-| C/C++       | `build/`, `*.o`, `*.a`, `*.out`                                |
-| .NET        | `bin/`, `obj/`                                                 |
+| Language   | Examples of cache / artifact dirs                          |
+| ---------- | ---------------------------------------------------------- |
+| Python     | `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.venv/` |
+| JavaScript | `node_modules/`, `.next/`, `.turbo/`, `.parcel-cache/`     |
+| Rust       | `target/`                                                  |
+| Java       | `target/`, `.gradle/`                                      |
+| Go         | `pkg/`, `bin/`, module cache                               |
+| C/C++      | `build/`, `*.o`, `*.a`, `*.out`                            |
+| .NET       | `bin/`, `obj/`                                             |
 
 The names differ; the idea is identical.
 
@@ -2135,12 +2167,12 @@ Add to `.gitignore`:
 These are not caches, but build/install artifacts.
 
 | Artifact              | Created by  | Purpose                     | Commit? |
-|-----------------------|-------------|-----------------------------|:-------:|
-| `*.egg-info/`         | setuptools  | Installed package metadata  | ❌       |
-| `*.dist-info/`        | pip         | Wheel installation metadata | ❌       |
-| `dist/`               | build tools | Built wheels / sdists       | ❌       |
-| `build/`              | build tools | Temporary build output      | ❌       |
-| `pip-wheel-metadata/` | pip         | Intermediate wheel metadata | ❌       |
+| --------------------- | ----------- | --------------------------- | :-----: |
+| `*.egg-info/`         | setuptools  | Installed package metadata  |   ❌    |
+| `*.dist-info/`        | pip         | Wheel installation metadata |   ❌    |
+| `dist/`               | build tools | Built wheels / sdists       |   ❌    |
+| `build/`              | build tools | Temporary build output      |   ❌    |
+| `pip-wheel-metadata/` | pip         | Intermediate wheel metadata |   ❌    |
 
 **Rule:** If it only exists after install or build, it does not belong in git.
 
@@ -2162,13 +2194,13 @@ Both serve the same role: describe what’s installed, not what you wrote.
 
 These exist in many ecosystems and are not caches, but tooling state.
 
-| Ecosystem   | Examples                              |
-|-------------|---------------------------------------|
-| Python      | `*.egg-info/`, `*.dist-info/`         |
-| JavaScript  | `package-lock.json`, `pnpm-lock.yaml` |
-| Rust        | `Cargo.lock`                          |
-| Java        | `pom.xml`, `.classpath`               |
-| .NET        | `.csproj`, `.deps.json`               |
+| Ecosystem  | Examples                              |
+| ---------- | ------------------------------------- |
+| Python     | `*.egg-info/`, `*.dist-info/`         |
+| JavaScript | `package-lock.json`, `pnpm-lock.yaml` |
+| Rust       | `Cargo.lock`                          |
+| Java       | `pom.xml`, `.classpath`               |
+| .NET       | `.csproj`, `.deps.json`               |
 
 **Key difference:**
 
@@ -2206,13 +2238,13 @@ It is a tool byproduct, managed by the packaging system.
 ### Quick Reference: When to Use What
 
 | Scenario              | Installable CLI | Just | Script |
-|-----------------------|-----------------|------|--------|
-| Reusable logic        | ✅               | ❌    | ❌      |
-| Distributed tool      | ✅               | ❌    | ❌      |
-| Repo glue             | ❌               | ✅    | ⚠️     |
-| One-off automation    | ❌               | ⚠️   | ✅      |
-| User-facing command   | ✅               | ❌    | ❌      |
-| Developer convenience | ⚠️              | ✅    | ⚠️     |
+| --------------------- | --------------- | ---- | ------ |
+| Reusable logic        | ✅              | ❌   | ❌     |
+| Distributed tool      | ✅              | ❌   | ❌     |
+| Repo glue             | ❌              | ✅   | ⚠️     |
+| One-off automation    | ❌              | ⚠️   | ✅     |
+| User-facing command   | ✅              | ❌   | ❌     |
+| Developer convenience | ⚠️              | ✅   | ⚠️     |
 
 ---
 
@@ -2224,12 +2256,12 @@ Before `pyproject.toml`, Python projects needed multiple config files (`setup.py
 
 ### The Standards Behind It
 
-| PEP | What It Defines | Year |
-|-----|----------------|------|
-| [PEP 518](https://peps.python.org/pep-0518/) | `[build-system]` table — how to build the project | 2016 |
+| PEP                                          | What It Defines                                                  | Year |
+| -------------------------------------------- | ---------------------------------------------------------------- | ---- |
+| [PEP 518](https://peps.python.org/pep-0518/) | `[build-system]` table — how to build the project                | 2016 |
 | [PEP 621](https://peps.python.org/pep-0621/) | `[project]` table — project metadata (name, version, deps, etc.) | 2020 |
-| [PEP 517](https://peps.python.org/pep-0517/) | Build backend interface (how pip talks to build tools) | 2017 |
-| [PEP 660](https://peps.python.org/pep-0660/) | Editable installs via build backends | 2021 |
+| [PEP 517](https://peps.python.org/pep-0517/) | Build backend interface (how pip talks to build tools)           | 2017 |
+| [PEP 660](https://peps.python.org/pep-0660/) | Editable installs via build backends                             | 2021 |
 
 These PEPs made `pyproject.toml` the **standard** way to configure Python projects. Any PEP 621-compliant tool (pip, Hatch, setuptools, Flit, PDM, Dependabot, etc.) can read the `[project]` table.
 
@@ -2268,10 +2300,10 @@ requires = ["hatchling"]           # What to download to build
 build-backend = "hatchling.build"  # The Python object that does the build
 ```
 
-| Field | Purpose | Example Values |
-|-------|---------|----------------|
-| `requires` | Build-time dependencies (downloaded by pip) | `["hatchling"]`, `["setuptools>=68"]`, `["flit_core>=3.9"]` |
-| `build-backend` | Python callable that builds sdist/wheel | `"hatchling.build"`, `"setuptools.build_meta"`, `"flit_core.api"` |
+| Field           | Purpose                                     | Example Values                                                    |
+| --------------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| `requires`      | Build-time dependencies (downloaded by pip) | `["hatchling"]`, `["setuptools>=68"]`, `["flit_core>=3.9"]`       |
+| `build-backend` | Python callable that builds sdist/wheel     | `"hatchling.build"`, `"setuptools.build_meta"`, `"flit_core.api"` |
 
 **Key insight:** You don't need Hatch installed to `pip install .` your project. pip downloads `hatchling` automatically based on `requires`. Hatch (the CLI) is a separate, optional developer tool.
 
@@ -2292,18 +2324,18 @@ authors = [{name = "You"}]           # Author(s)
 
 #### Subfields of `[project]`
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| `name` | string | Package name on PyPI, used with `pip install <name>` |
-| `version` | string | SemVer version (or `dynamic = ["version"]` for auto) |
-| `description` | string | One-line summary shown on PyPI |
-| `readme` | string/table | Path to long description (usually README.md) |
-| `requires-python` | string | Minimum Python version specifier |
-| `license` | table | SPDX license identifier or file path |
-| `authors` | array of tables | Name and/or email of author(s) |
-| `keywords` | array of strings | PyPI search keywords |
-| `classifiers` | array of strings | [PyPI classifiers](https://pypi.org/classifiers/) (maturity, license, Python versions) |
-| `dependencies` | array of strings | **Runtime** dependencies (installed by `pip install .`) |
+| Field             | Type             | Purpose                                                                                |
+| ----------------- | ---------------- | -------------------------------------------------------------------------------------- |
+| `name`            | string           | Package name on PyPI, used with `pip install <name>`                                   |
+| `version`         | string           | SemVer version (or `dynamic = ["version"]` for auto)                                   |
+| `description`     | string           | One-line summary shown on PyPI                                                         |
+| `readme`          | string/table     | Path to long description (usually README.md)                                           |
+| `requires-python` | string           | Minimum Python version specifier                                                       |
+| `license`         | table            | SPDX license identifier or file path                                                   |
+| `authors`         | array of tables  | Name and/or email of author(s)                                                         |
+| `keywords`        | array of strings | PyPI search keywords                                                                   |
+| `classifiers`     | array of strings | [PyPI classifiers](https://pypi.org/classifiers/) (maturity, license, Python versions) |
+| `dependencies`    | array of strings | **Runtime** dependencies (installed by `pip install .`)                                |
 
 #### `[project.scripts]` — CLI Entry Points
 
@@ -2391,15 +2423,15 @@ packages = ["src/my_package"]
 
 TOML has a few syntax patterns that can trip you up:
 
-| Syntax | Meaning | Example |
-|--------|---------|---------|
-| `[section]` | Table (like a dict) | `[project]` |
-| `[section.subsection]` | Nested table | `[tool.ruff.lint]` |
-| `[[section]]` | Array of tables (list of dicts) | `[[tool.hatch.envs.test.matrix]]` |
-| `key = "value"` | String | `name = "my-project"` |
-| `key = ["a", "b"]` | Array | `dependencies = ["click"]` |
-| `key = {a = "b"}` | Inline table | `license = {text = "MIT"}` |
-| `key = [{a = "b"}]` | Array of inline tables | `authors = [{name = "You"}]` |
+| Syntax                 | Meaning                         | Example                           |
+| ---------------------- | ------------------------------- | --------------------------------- |
+| `[section]`            | Table (like a dict)             | `[project]`                       |
+| `[section.subsection]` | Nested table                    | `[tool.ruff.lint]`                |
+| `[[section]]`          | Array of tables (list of dicts) | `[[tool.hatch.envs.test.matrix]]` |
+| `key = "value"`        | String                          | `name = "my-project"`             |
+| `key = ["a", "b"]`     | Array                           | `dependencies = ["click"]`        |
+| `key = {a = "b"}`      | Inline table                    | `license = {text = "MIT"}`        |
+| `key = [{a = "b"}]`    | Array of inline tables          | `authors = [{name = "You"}]`      |
 
 ### How Tools Discover `pyproject.toml`
 
@@ -2503,9 +2535,9 @@ Unix (AT&T Bell Labs, 1969)
       └── Android (Linux kernel)
 ```
 
-> **Key distinction:** Linux is *Unix-like* (implements the same concepts and
+> **Key distinction:** Linux is _Unix-like_ (implements the same concepts and
 > mostly follows POSIX standards) but is not descended from AT&T Unix code.
-> macOS *is* certified Unix (POSIX-compliant, descended from BSD).
+> macOS _is_ certified Unix (POSIX-compliant, descended from BSD).
 
 #### POSIX — The Compatibility Standard
 
@@ -2517,38 +2549,38 @@ name was suggested by Richard Stallman in the late 1980s.
 commercial variants — AT&T System V, BSD, Sun's SunOS, HP-UX, IBM's AIX.
 Each had slightly different system calls, utility flags, shell syntax, and
 file layouts. Code written for one often broke on another. POSIX was created
-to define a *common baseline* so that software written to the standard would
+to define a _common baseline_ so that software written to the standard would
 work on any conforming system.
 
 In plain terms: POSIX is a written specification that says "if you call
-yourself a Unix-like operating system, you must support *at least* these
+yourself a Unix-like operating system, you must support _at least_ these
 system calls, these shell features, these command-line utilities, and these
 behaviors." It's a contract between OS vendors and software developers.
 
 ##### What POSIX Actually Defines
 
-| Area | What the standard specifies | Examples |
-|------|----------------------------|----------|
-| **Shell language** | Syntax, builtins, control flow, variable expansion, quoting rules | `sh` grammar, `if`/`for`/`while`/`case`, `$VAR`, `$(cmd)` |
-| **Core utilities** | Required commands and their flags/behavior | `ls`, `cp`, `mv`, `rm`, `grep`, `sed`, `awk`, `find`, `sort`, `test`, `chmod`, `mkdir` |
-| **C library API** | System call wrappers and standard functions | `open()`, `read()`, `write()`, `close()`, `fork()`, `exec()`, `pipe()`, `malloc()` |
-| **File system** | Path resolution, permissions, symlinks, directory structure | `/`, `/dev`, `/tmp`, permission bits (rwx), `.` and `..` |
-| **Environment variables** | Required variables and how they work | `PATH`, `HOME`, `USER`, `SHELL`, `TERM`, `LANG` |
-| **Process model** | How processes are created and managed | PIDs, parent/child, signals (`SIGINT`, `SIGTERM`, `SIGKILL`), exit codes, job control |
-| **Regular expressions** | Two flavors: Basic (BRE) and Extended (ERE) | BRE for `grep`, ERE for `grep -E` / `egrep` |
-| **I/O model** | File descriptors, stdin/stdout/stderr, pipes, redirection | fd 0/1/2, `|`, `>`, `<`, `2>&1` |
-| **Threading** | POSIX threads (pthreads) API | `pthread_create()`, `pthread_join()`, mutexes, condition variables |
+| Area                      | What the standard specifies                                       | Examples                                                                               |
+| ------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------- |
+| **Shell language**        | Syntax, builtins, control flow, variable expansion, quoting rules | `sh` grammar, `if`/`for`/`while`/`case`, `$VAR`, `$(cmd)`                              |
+| **Core utilities**        | Required commands and their flags/behavior                        | `ls`, `cp`, `mv`, `rm`, `grep`, `sed`, `awk`, `find`, `sort`, `test`, `chmod`, `mkdir` |
+| **C library API**         | System call wrappers and standard functions                       | `open()`, `read()`, `write()`, `close()`, `fork()`, `exec()`, `pipe()`, `malloc()`     |
+| **File system**           | Path resolution, permissions, symlinks, directory structure       | `/`, `/dev`, `/tmp`, permission bits (rwx), `.` and `..`                               |
+| **Environment variables** | Required variables and how they work                              | `PATH`, `HOME`, `USER`, `SHELL`, `TERM`, `LANG`                                        |
+| **Process model**         | How processes are created and managed                             | PIDs, parent/child, signals (`SIGINT`, `SIGTERM`, `SIGKILL`), exit codes, job control  |
+| **Regular expressions**   | Two flavors: Basic (BRE) and Extended (ERE)                       | BRE for `grep`, ERE for `grep -E` / `egrep`                                            |
+| **I/O model**             | File descriptors, stdin/stdout/stderr, pipes, redirection         | fd 0/1/2, `                                                                            | `, `>`, `<`, `2>&1` |
+| **Threading**             | POSIX threads (pthreads) API                                      | `pthread_create()`, `pthread_join()`, mutexes, condition variables                     |
 
 ##### Who Is and Isn't POSIX-Compliant
 
-| System | POSIX status | Notes |
-|--------|-------------|-------|
-| **macOS** | Certified POSIX-compliant | Apple pays for the certification. macOS is *officially* Unix. |
-| **Solaris / illumos** | Certified | Commercial Unix from Sun/Oracle |
-| **Linux** | Mostly compliant, not certified | Follows POSIX closely but distros don't pay for certification. In practice, nearly everything works. |
-| **FreeBSD / OpenBSD** | Mostly compliant, not certified | BSD heritage, very close to the standard |
-| **Windows** | Not POSIX-compliant | Has compatibility layers: WSL (full Linux kernel), Cygwin, MSYS2/Git Bash |
-| **Alpine Linux** | POSIX via musl libc | Uses `musl` instead of `glibc`, which is stricter — scripts relying on glibc quirks may break |
+| System                | POSIX status                    | Notes                                                                                                |
+| --------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **macOS**             | Certified POSIX-compliant       | Apple pays for the certification. macOS is _officially_ Unix.                                        |
+| **Solaris / illumos** | Certified                       | Commercial Unix from Sun/Oracle                                                                      |
+| **Linux**             | Mostly compliant, not certified | Follows POSIX closely but distros don't pay for certification. In practice, nearly everything works. |
+| **FreeBSD / OpenBSD** | Mostly compliant, not certified | BSD heritage, very close to the standard                                                             |
+| **Windows**           | Not POSIX-compliant             | Has compatibility layers: WSL (full Linux kernel), Cygwin, MSYS2/Git Bash                            |
+| **Alpine Linux**      | POSIX via musl libc             | Uses `musl` instead of `glibc`, which is stricter — scripts relying on glibc quirks may break        |
 
 ##### POSIX in Practice — What It Means for You
 
@@ -2567,19 +2599,20 @@ fi
 
 **Common POSIX vs bash differences that bite people:**
 
-| Feature | POSIX `sh` | `bash` |
-|---------|-----------|--------|
-| Test syntax | `[ -f file ]` | `[[ -f file ]]` (extended, safer) |
-| Arrays | Not available | `arr=(a b c)`, `${arr[@]}` |
-| String replace | Not available | `${var//old/new}` |
-| Process substitution | Not available | `<(command)`, `>(command)` |
-| Brace expansion | Not available | `{1..10}`, `{a,b,c}` |
-| `source` command | `. file` (dot-space) | `source file` (or `. file`) |
-| `function` keyword | `myfunc() { ... }` | `function myfunc() { ... }` (also) |
-| `echo` flags | Behavior varies | `-e`, `-n` (but still inconsistent) |
-| `local` variables | Not standardised | `local var=value` |
+| Feature              | POSIX `sh`           | `bash`                              |
+| -------------------- | -------------------- | ----------------------------------- |
+| Test syntax          | `[ -f file ]`        | `[[ -f file ]]` (extended, safer)   |
+| Arrays               | Not available        | `arr=(a b c)`, `${arr[@]}`          |
+| String replace       | Not available        | `${var//old/new}`                   |
+| Process substitution | Not available        | `<(command)`, `>(command)`          |
+| Brace expansion      | Not available        | `{1..10}`, `{a,b,c}`                |
+| `source` command     | `. file` (dot-space) | `source file` (or `. file`)         |
+| `function` keyword   | `myfunc() { ... }`   | `function myfunc() { ... }` (also)  |
+| `echo` flags         | Behavior varies      | `-e`, `-n` (but still inconsistent) |
+| `local` variables    | Not standardised     | `local var=value`                   |
 
 **The practical rule:** Use `#!/bin/sh` and POSIX-only syntax for:
+
 - Git hooks (contributors may use any OS)
 - Docker `RUN` commands (Alpine only has `sh`)
 - CI scripts that might run on minimal images
@@ -2593,14 +2626,14 @@ macOS pre-Catalina, CI runners with `bash` specified).
 
 You'll hear "POSIX" in several contexts:
 
-| Context | What they mean |
-|---------|----------------|
-| "Write POSIX-compliant scripts" | Use `#!/bin/sh` syntax only — no bashisms |
-| "POSIX filesystem semantics" | Forward slashes, case-sensitivity, permission bits |
-| "POSIX signals" | `SIGINT` (Ctrl+C), `SIGTERM` (graceful stop), `SIGKILL` (force stop) |
-| "POSIX threads" (pthreads) | The standard threading API for C/C++ |
-| "POSIX regular expressions" | BRE and ERE — the regex flavors `grep` and `sed` use |
-| "POSIX line endings" | `LF` (`\n`), as opposed to Windows `CRLF` (`\r\n`) |
+| Context                         | What they mean                                                       |
+| ------------------------------- | -------------------------------------------------------------------- |
+| "Write POSIX-compliant scripts" | Use `#!/bin/sh` syntax only — no bashisms                            |
+| "POSIX filesystem semantics"    | Forward slashes, case-sensitivity, permission bits                   |
+| "POSIX signals"                 | `SIGINT` (Ctrl+C), `SIGTERM` (graceful stop), `SIGKILL` (force stop) |
+| "POSIX threads" (pthreads)      | The standard threading API for C/C++                                 |
+| "POSIX regular expressions"     | BRE and ERE — the regex flavors `grep` and `sed` use                 |
+| "POSIX line endings"            | `LF` (`\n`), as opposed to Windows `CRLF` (`\r\n`)                   |
 
 **Why it matters for this project:** CI runners, Docker containers, and
 contributor machines may run different Unix-like systems. Writing
@@ -2611,40 +2644,40 @@ scripts (`#!/bin/bash`) are fine when you know bash is available.
 
 Even if you develop on Windows, Unix concepts show up everywhere:
 
-| Where | Unix concept |
-|-------|-------------|
-| **Git** | Built on Unix tools — `diff`, `patch`, file permissions, symlinks, line endings (LF vs CRLF) |
-| **CI/CD** | GitHub Actions runners are Ubuntu Linux by default |
-| **Docker** | Container images are Linux (Alpine, Debian, Ubuntu) |
-| **pip / venv** | Virtual environments use Unix-style directory layouts (`bin/`, not `Scripts/` on Linux/macOS) |
-| **Shebangs** | `#!/usr/bin/env python3` — a Unix convention for executable scripts |
-| **File paths** | Forward slashes `/`, case-sensitive names, no drive letters |
-| **Package managers** | `apt`, `brew`, `pacman` — all Unix-native tools |
-| **SSH** | Key-based auth to GitHub, servers — a Unix tool (`openssh`) |
-| **Permissions** | `chmod +x script.sh` — Unix file permission model |
-| **Signals** | `Ctrl+C` sends `SIGINT`, `kill -9` sends `SIGKILL` — Unix process signals |
+| Where                | Unix concept                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| **Git**              | Built on Unix tools — `diff`, `patch`, file permissions, symlinks, line endings (LF vs CRLF)  |
+| **CI/CD**            | GitHub Actions runners are Ubuntu Linux by default                                            |
+| **Docker**           | Container images are Linux (Alpine, Debian, Ubuntu)                                           |
+| **pip / venv**       | Virtual environments use Unix-style directory layouts (`bin/`, not `Scripts/` on Linux/macOS) |
+| **Shebangs**         | `#!/usr/bin/env python3` — a Unix convention for executable scripts                           |
+| **File paths**       | Forward slashes `/`, case-sensitive names, no drive letters                                   |
+| **Package managers** | `apt`, `brew`, `pacman` — all Unix-native tools                                               |
+| **SSH**              | Key-based auth to GitHub, servers — a Unix tool (`openssh`)                                   |
+| **Permissions**      | `chmod +x script.sh` — Unix file permission model                                             |
+| **Signals**          | `Ctrl+C` sends `SIGINT`, `kill -9` sends `SIGKILL` — Unix process signals                     |
 
 #### Unix vs Windows — Key Differences
 
-| Concept | Unix / Linux / macOS | Windows |
-|---------|---------------------|---------|
-| Path separator | `/` (forward slash) | `\` (backslash) |
-| Root | `/` | `C:\` (drive letters) |
-| Case sensitivity | Case-sensitive (`File.txt` ≠ `file.txt`) | Case-insensitive (usually) |
-| Line endings | `LF` (`\n`) | `CRLF` (`\r\n`) |
-| Executable marker | File permission bit (`chmod +x`) | File extension (`.exe`, `.bat`, `.ps1`) |
-| Shell | `sh`, `bash`, `zsh` | `cmd.exe`, PowerShell |
-| Package manager | `apt`, `brew`, `pacman` | `winget`, `choco`, `scoop` |
-| Hidden files | Prefix with `.` (`.gitignore`) | File attribute flag |
-| Process model | `fork()` + `exec()` | `CreateProcess()` |
-| Filesystem | ext4, APFS, ZFS | NTFS |
-| User model | Root (`uid 0`) + normal users | Administrator + normal users |
+| Concept           | Unix / Linux / macOS                     | Windows                                 |
+| ----------------- | ---------------------------------------- | --------------------------------------- |
+| Path separator    | `/` (forward slash)                      | `\` (backslash)                         |
+| Root              | `/`                                      | `C:\` (drive letters)                   |
+| Case sensitivity  | Case-sensitive (`File.txt` ≠ `file.txt`) | Case-insensitive (usually)              |
+| Line endings      | `LF` (`\n`)                              | `CRLF` (`\r\n`)                         |
+| Executable marker | File permission bit (`chmod +x`)         | File extension (`.exe`, `.bat`, `.ps1`) |
+| Shell             | `sh`, `bash`, `zsh`                      | `cmd.exe`, PowerShell                   |
+| Package manager   | `apt`, `brew`, `pacman`                  | `winget`, `choco`, `scoop`              |
+| Hidden files      | Prefix with `.` (`.gitignore`)           | File attribute flag                     |
+| Process model     | `fork()` + `exec()`                      | `CreateProcess()`                       |
+| Filesystem        | ext4, APFS, ZFS                          | NTFS                                    |
+| User model        | Root (`uid 0`) + normal users            | Administrator + normal users            |
 
 ### What is a Terminal?
 
 A **terminal** (or **terminal emulator**) is a program that provides a
 text-based window where you type commands and see output. That's it — it's
-the *window*, not the thing interpreting your commands.
+the _window_, not the thing interpreting your commands.
 
 #### Historical Context
 
@@ -2678,30 +2711,30 @@ These three terms are often used interchangeably, but they're different layers:
 └─────────────────────────────────────────────────────┘
 ```
 
-| Layer | What it is | Examples | Analogy |
-|-------|-----------|----------|---------|
-| **Terminal** | The window / display surface | Windows Terminal, iTerm2, VS Code integrated terminal, GNOME Terminal | A TV screen |
-| **Shell** | The command interpreter that runs inside the terminal | bash, zsh, PowerShell, fish, sh | The channel you're watching |
-| **Command** | The program the shell runs | `git commit`, `python main.py`, `ls -la` | The show on the channel |
+| Layer        | What it is                                            | Examples                                                              | Analogy                     |
+| ------------ | ----------------------------------------------------- | --------------------------------------------------------------------- | --------------------------- |
+| **Terminal** | The window / display surface                          | Windows Terminal, iTerm2, VS Code integrated terminal, GNOME Terminal | A TV screen                 |
+| **Shell**    | The command interpreter that runs inside the terminal | bash, zsh, PowerShell, fish, sh                                       | The channel you're watching |
+| **Command**  | The program the shell runs                            | `git commit`, `python main.py`, `ls -la`                              | The show on the channel     |
 
-**Key insight:** You can run *any* shell inside *any* terminal. The terminal
+**Key insight:** You can run _any_ shell inside _any_ terminal. The terminal
 doesn't care — it just sends keystrokes to the shell and displays characters
 back. You can open Windows Terminal and run bash (via WSL), or open iTerm2 on
 macOS and run PowerShell.
 
 #### Common Terminal Emulators
 
-| Terminal | Platform | Key Features |
-|----------|----------|-------------|
-| **Windows Terminal** | Windows | Tabs, GPU-accelerated, profiles for cmd/PowerShell/WSL |
-| **VS Code Integrated Terminal** | Cross-platform | Built into editor, multiple shells, split panes |
-| **iTerm2** | macOS | Split panes, hotkey window, search, profiles |
-| **GNOME Terminal** | Linux (GNOME) | Default on Ubuntu/Fedora GNOME, tabs, profiles |
-| **Alacritty** | Cross-platform | GPU-accelerated, minimal, config-file driven (TOML) |
-| **WezTerm** | Cross-platform | GPU-accelerated, Lua config, multiplexer built in |
-| **kitty** | Linux / macOS | GPU-accelerated, image display, extensible |
-| **Konsole** | Linux (KDE) | KDE default, tabs, profiles, bookmarks |
-| **cmd.exe** | Windows | Legacy Windows shell host — not really a modern terminal |
+| Terminal                        | Platform       | Key Features                                             |
+| ------------------------------- | -------------- | -------------------------------------------------------- |
+| **Windows Terminal**            | Windows        | Tabs, GPU-accelerated, profiles for cmd/PowerShell/WSL   |
+| **VS Code Integrated Terminal** | Cross-platform | Built into editor, multiple shells, split panes          |
+| **iTerm2**                      | macOS          | Split panes, hotkey window, search, profiles             |
+| **GNOME Terminal**              | Linux (GNOME)  | Default on Ubuntu/Fedora GNOME, tabs, profiles           |
+| **Alacritty**                   | Cross-platform | GPU-accelerated, minimal, config-file driven (TOML)      |
+| **WezTerm**                     | Cross-platform | GPU-accelerated, Lua config, multiplexer built in        |
+| **kitty**                       | Linux / macOS  | GPU-accelerated, image display, extensible               |
+| **Konsole**                     | Linux (KDE)    | KDE default, tabs, profiles, bookmarks                   |
+| **cmd.exe**                     | Windows        | Legacy Windows shell host — not really a modern terminal |
 
 #### The VS Code Integrated Terminal
 
@@ -2709,15 +2742,15 @@ The VS Code terminal is a full terminal emulator embedded in the editor. It
 runs a real shell process (bash, zsh, PowerShell, cmd) — it's not a
 simplified or sandboxed version.
 
-| Feature | Details |
-|---------|---------|
-| Default shell | Inherits system default (PowerShell on Windows, bash/zsh on Linux/macOS) |
-| Switch shells | `Terminal: Select Default Profile` command or dropdown in terminal panel |
-| Multiple terminals | Create new ones with `+`, name them, colour-code them |
-| Split terminals | Run side-by-side in the same panel |
-| Linked to workspace | Working directory defaults to the workspace root |
-| Environment | Inherits VS Code's environment variables + activated venv |
-| Tasks | Can run registered tasks (`Terminal > Run Task`) |
+| Feature             | Details                                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| Default shell       | Inherits system default (PowerShell on Windows, bash/zsh on Linux/macOS) |
+| Switch shells       | `Terminal: Select Default Profile` command or dropdown in terminal panel |
+| Multiple terminals  | Create new ones with `+`, name them, colour-code them                    |
+| Split terminals     | Run side-by-side in the same panel                                       |
+| Linked to workspace | Working directory defaults to the workspace root                         |
+| Environment         | Inherits VS Code's environment variables + activated venv                |
+| Tasks               | Can run registered tasks (`Terminal > Run Task`)                         |
 
 **Practical tip:** When VS Code activates a Python virtual environment, it
 modifies the terminal's `PATH` so `python` and `pip` resolve to the venv's
@@ -2727,6 +2760,7 @@ shell indicating the venv is active, not the terminal doing it.
 ### What is a Shell? (Conceptual Overview)
 
 A **shell** is a program that:
+
 1. Displays a prompt
 2. Reads a line of input (a command)
 3. Parses the command
@@ -2741,26 +2775,26 @@ Python's interactive interpreter (`>>>` prompt).
 
 Beyond running commands, the shell handles:
 
-| Responsibility | What it does | Example |
-|---------------|-------------|---------|
-| **Variable expansion** | Replaces `$VAR` with its value | `echo $HOME` → `/home/user` |
-| **Glob expansion** | Expands wildcards into matching filenames | `ls *.py` → `ls main.py utils.py` |
-| **Pipes** | Connects stdout of one command to stdin of the next | `cat log.txt \| grep ERROR \| wc -l` |
-| **Redirection** | Sends output to a file or reads input from a file | `echo "hello" > out.txt` |
-| **Job control** | Runs processes in background, foreground, suspend | `sleep 100 &`, `fg`, `Ctrl+Z` |
-| **Environment** | Maintains environment variables passed to child processes | `export PATH="$PATH:/usr/local/bin"` |
-| **Scripting** | Conditionals, loops, functions — it's a programming language | `if [ -f .env ]; then source .env; fi` |
-| **History** | Remembers previous commands (arrow keys, `Ctrl+R` search) | `history`, `!!` (rerun last command) |
-| **Tab completion** | Completes filenames, commands, arguments | Type `git com` + Tab → `git commit` |
-| **Signal handling** | Catches `Ctrl+C` (SIGINT), `Ctrl+D` (EOF), etc. | `trap 'cleanup' EXIT` |
+| Responsibility         | What it does                                                 | Example                                |
+| ---------------------- | ------------------------------------------------------------ | -------------------------------------- |
+| **Variable expansion** | Replaces `$VAR` with its value                               | `echo $HOME` → `/home/user`            |
+| **Glob expansion**     | Expands wildcards into matching filenames                    | `ls *.py` → `ls main.py utils.py`      |
+| **Pipes**              | Connects stdout of one command to stdin of the next          | `cat log.txt \| grep ERROR \| wc -l`   |
+| **Redirection**        | Sends output to a file or reads input from a file            | `echo "hello" > out.txt`               |
+| **Job control**        | Runs processes in background, foreground, suspend            | `sleep 100 &`, `fg`, `Ctrl+Z`          |
+| **Environment**        | Maintains environment variables passed to child processes    | `export PATH="$PATH:/usr/local/bin"`   |
+| **Scripting**          | Conditionals, loops, functions — it's a programming language | `if [ -f .env ]; then source .env; fi` |
+| **History**            | Remembers previous commands (arrow keys, `Ctrl+R` search)    | `history`, `!!` (rerun last command)   |
+| **Tab completion**     | Completes filenames, commands, arguments                     | Type `git com` + Tab → `git commit`    |
+| **Signal handling**    | Catches `Ctrl+C` (SIGINT), `Ctrl+D` (EOF), etc.              | `trap 'cleanup' EXIT`                  |
 
 #### Interactive vs Non-Interactive Shells
 
-| Mode | When | Config loaded | Use case |
-|------|------|--------------|----------|
-| **Interactive login** | SSH, first terminal after boot | `.bash_profile` (or `.zprofile`) then `.bashrc` | User's main session |
-| **Interactive non-login** | Open a new terminal tab | `.bashrc` (or `.zshrc`) | Daily use |
-| **Non-interactive** | Running a script (`bash script.sh`) | Usually none (or `BASH_ENV` if set) | Automation, CI, cron |
+| Mode                      | When                                | Config loaded                                   | Use case             |
+| ------------------------- | ----------------------------------- | ----------------------------------------------- | -------------------- |
+| **Interactive login**     | SSH, first terminal after boot      | `.bash_profile` (or `.zprofile`) then `.bashrc` | User's main session  |
+| **Interactive non-login** | Open a new terminal tab             | `.bashrc` (or `.zshrc`)                         | Daily use            |
+| **Non-interactive**       | Running a script (`bash script.sh`) | Usually none (or `BASH_ENV` if set)             | Automation, CI, cron |
 
 **Why this matters:** If you set an alias in `.bashrc` but your CI script runs
 non-interactively, that alias won't exist. Environment setup for scripts
@@ -2788,7 +2822,7 @@ This `fork + exec` model is fundamental to Unix. Every command you run
 (except shell builtins like `cd`, `echo`, `export`) goes through this cycle.
 
 **Builtins are special:** Commands like `cd`, `export`, `source`, and `alias`
-must run *inside* the shell process (not in a child) because they modify the
+must run _inside_ the shell process (not in a child) because they modify the
 shell's own state. `cd` changes the shell's working directory — if it ran as
 a child process, only the child would change directories, and the parent shell
 would be unaffected.
@@ -2800,7 +2834,7 @@ would be unaffected.
 When people say "raw SQL" they mean writing SQL statements directly as
 strings in your code, as opposed to using an abstraction layer that generates
 SQL for you. Both approaches talk to the same database — the difference is
-*who writes the SQL*: you, or a library.
+_who writes the SQL_: you, or a library.
 
 ### What "Raw SQL" Actually Means
 
@@ -2847,13 +2881,13 @@ ORDER BY name` query. The ORM just writes it for you.
 
 It's not just "raw SQL" vs "full ORM" — there's a spectrum:
 
-| Level | Approach | Library Examples | You Write SQL? |
-|-------|---------|-----------------|----------------|
-| **1. Raw SQL** | Strings + database driver | `sqlite3`, `psycopg2`, `mysql-connector` | Yes — full SQL |
-| **2. SQL builder / query builder** | Python objects that compose SQL pieces | `pypika`, `sqlbuilder` | Partially — Python API, SQL output |
-| **3. Core SQL toolkit** | Expression language that maps closely to SQL | SQLAlchemy Core, `databases` | Sort of — SQL-like Python expressions |
-| **4. Lightweight ORM** | Thin models, minimal magic | Peewee, PonyORM, SQLModel | No — but you see the SQL shape |
-| **5. Full ORM** | Models, relationships, identity map, unit of work | SQLAlchemy ORM, Django ORM, Tortoise | No — heavily abstracted |
+| Level                              | Approach                                          | Library Examples                         | You Write SQL?                        |
+| ---------------------------------- | ------------------------------------------------- | ---------------------------------------- | ------------------------------------- |
+| **1. Raw SQL**                     | Strings + database driver                         | `sqlite3`, `psycopg2`, `mysql-connector` | Yes — full SQL                        |
+| **2. SQL builder / query builder** | Python objects that compose SQL pieces            | `pypika`, `sqlbuilder`                   | Partially — Python API, SQL output    |
+| **3. Core SQL toolkit**            | Expression language that maps closely to SQL      | SQLAlchemy Core, `databases`             | Sort of — SQL-like Python expressions |
+| **4. Lightweight ORM**             | Thin models, minimal magic                        | Peewee, PonyORM, SQLModel                | No — but you see the SQL shape        |
+| **5. Full ORM**                    | Models, relationships, identity map, unit of work | SQLAlchemy ORM, Django ORM, Tortoise     | No — heavily abstracted               |
 
 Many experienced developers land at levels 2–3: they want composable queries
 without the overhead and complexity of a full ORM.
@@ -2909,7 +2943,7 @@ session.query(User).filter(User.name == user_input).all()
 With raw SQL, your database schema and your Python code are two separate
 things that can drift apart. If you add a column to the database, nothing in
 your Python code knows about it until you manually update your queries. ORMs
-keep the schema definition *in* the Python code, often with migration tools
+keep the schema definition _in_ the Python code, often with migration tools
 that auto-detect changes.
 
 **4. Relationships and lazy loading**
@@ -2946,6 +2980,7 @@ connection string and (mostly) the same code works on a different database.
 
 The biggest Python web frameworks ship with ORMs built in or strongly
 recommended:
+
 - **Django** → Django ORM (built in, tightly integrated)
 - **Flask** → SQLAlchemy (via Flask-SQLAlchemy)
 - **FastAPI** → SQLAlchemy or SQLModel
@@ -2957,44 +2992,47 @@ learn ORMs first and may never write raw SQL in Python.
 
 Despite the above, there are solid reasons to use raw SQL:
 
-| Scenario | Why raw SQL wins |
-|----------|------------------|
-| **Complex queries** | Multi-table joins, window functions, CTEs, recursive queries — ORMs struggle with these or produce inefficient SQL |
-| **Performance-critical paths** | You know exactly what query runs, no ORM overhead or N+1 surprises |
-| **Reporting / analytics** | Aggregations, GROUP BY, HAVING — often cleaner in SQL |
-| **Database-specific features** | Full-text search, JSON operators, PostGIS, SQLite FTS5 — ORMs may not expose these |
-| **Simple scripts** | A 50-line script doesn't need an ORM setup |
-| **Learning** | Understanding SQL directly makes you a better developer, even if you later use an ORM |
-| **Existing schema** | Working with a database you didn't design — raw SQL adapts easier than mapping an ORM |
-| **Data migrations** | Schema changes, backfills, one-off fixes — raw SQL is the right tool |
+| Scenario                       | Why raw SQL wins                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| **Complex queries**            | Multi-table joins, window functions, CTEs, recursive queries — ORMs struggle with these or produce inefficient SQL |
+| **Performance-critical paths** | You know exactly what query runs, no ORM overhead or N+1 surprises                                                 |
+| **Reporting / analytics**      | Aggregations, GROUP BY, HAVING — often cleaner in SQL                                                              |
+| **Database-specific features** | Full-text search, JSON operators, PostGIS, SQLite FTS5 — ORMs may not expose these                                 |
+| **Simple scripts**             | A 50-line script doesn't need an ORM setup                                                                         |
+| **Learning**                   | Understanding SQL directly makes you a better developer, even if you later use an ORM                              |
+| **Existing schema**            | Working with a database you didn't design — raw SQL adapts easier than mapping an ORM                              |
+| **Data migrations**            | Schema changes, backfills, one-off fixes — raw SQL is the right tool                                               |
 
 ### The ORM Drawbacks People Don't Mention Upfront
 
-| Problem | What happens |
-|---------|-------------|
-| **N+1 queries** | ORM lazy-loads related objects one at a time — 100 users with orders = 101 queries instead of 1 join |
-| **Opaque SQL** | Hard to see what SQL the ORM generates; performance debugging requires logging SQL output |
-| **Migration complexity** | ORM migration tools (Alembic, Django migrations) can generate incorrect or inefficient migrations |
-| **Learning the ORM ≠ learning SQL** | ORMs have their own API, quirks, and mental model — you're learning *the ORM*, not *databases* |
-| **Abstraction leaks** | Eventually you hit something the ORM can't do and drop to raw SQL anyway |
-| **Heavyweight** | SQLAlchemy is ~45k lines of code. For a script that runs 3 queries, that's a lot of machinery |
+| Problem                             | What happens                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **N+1 queries**                     | ORM lazy-loads related objects one at a time — 100 users with orders = 101 queries instead of 1 join |
+| **Opaque SQL**                      | Hard to see what SQL the ORM generates; performance debugging requires logging SQL output            |
+| **Migration complexity**            | ORM migration tools (Alembic, Django migrations) can generate incorrect or inefficient migrations    |
+| **Learning the ORM ≠ learning SQL** | ORMs have their own API, quirks, and mental model — you're learning _the ORM_, not _databases_       |
+| **Abstraction leaks**               | Eventually you hit something the ORM can't do and drop to raw SQL anyway                             |
+| **Heavyweight**                     | SQLAlchemy is ~45k lines of code. For a script that runs 3 queries, that's a lot of machinery        |
 
 ### What This Project Does
 
 This template uses the `db/` directory with raw SQL files:
+
 - `db/schema.sql` — full schema definition
 - `db/migrations/` — incremental changes as numbered `.sql` files
 - `db/seeds/` — test/dev data
 - `db/queries/` — reusable query snippets
 
 This is the **raw SQL** approach. The template doesn't include an ORM because:
-1. It's a *template* — template users choose their own data layer
+
+1. It's a _template_ — template users choose their own data layer
 2. Not every Python project needs a database at all
 3. Raw `.sql` files are database-agnostic in structure (even if the SQL
    dialect varies)
 4. It keeps the template dependency-free for database concerns
 
 If you add a database to a project based on this template, you'd choose:
+
 - **Raw SQL** (`sqlite3` / `psycopg2`) for simple cases or when you want full control
 - **SQLAlchemy Core** for composable queries without full ORM overhead
 - **SQLAlchemy ORM** / **Django ORM** for web apps with lots of CRUD
@@ -3002,27 +3040,28 @@ If you add a database to a project based on this template, you'd choose:
 
 ### Python Database Libraries at a Glance
 
-| Library | Type | Database | When to use |
-|---------|------|----------|-------------|
-| **sqlite3** | Raw SQL (stdlib) | SQLite | Scripts, prototypes, single-user apps, testing |
-| **psycopg2** / **psycopg3** | Raw SQL driver | PostgreSQL | Direct Postgres access, performance-critical |
-| **mysql-connector** / **PyMySQL** | Raw SQL driver | MySQL/MariaDB | Direct MySQL access |
-| **SQLAlchemy Core** | SQL toolkit | Any (via dialects) | Composable queries, multi-DB support |
-| **SQLAlchemy ORM** | Full ORM | Any (via dialects) | Web apps, complex domain models |
-| **Django ORM** | Full ORM (Django only) | PostgreSQL, MySQL, SQLite | Django projects |
-| **Peewee** | Lightweight ORM | SQLite, PostgreSQL, MySQL | Small projects, scripts |
-| **SQLModel** | ORM + validation | Any (SQLAlchemy backend) | FastAPI projects |
-| **Tortoise ORM** | Async ORM | PostgreSQL, MySQL, SQLite | Async web apps |
-| **databases** | Async raw SQL | PostgreSQL, MySQL, SQLite | Async apps with raw queries |
+| Library                           | Type                   | Database                  | When to use                                    |
+| --------------------------------- | ---------------------- | ------------------------- | ---------------------------------------------- |
+| **sqlite3**                       | Raw SQL (stdlib)       | SQLite                    | Scripts, prototypes, single-user apps, testing |
+| **psycopg2** / **psycopg3**       | Raw SQL driver         | PostgreSQL                | Direct Postgres access, performance-critical   |
+| **mysql-connector** / **PyMySQL** | Raw SQL driver         | MySQL/MariaDB             | Direct MySQL access                            |
+| **SQLAlchemy Core**               | SQL toolkit            | Any (via dialects)        | Composable queries, multi-DB support           |
+| **SQLAlchemy ORM**                | Full ORM               | Any (via dialects)        | Web apps, complex domain models                |
+| **Django ORM**                    | Full ORM (Django only) | PostgreSQL, MySQL, SQLite | Django projects                                |
+| **Peewee**                        | Lightweight ORM        | SQLite, PostgreSQL, MySQL | Small projects, scripts                        |
+| **SQLModel**                      | ORM + validation       | Any (SQLAlchemy backend)  | FastAPI projects                               |
+| **Tortoise ORM**                  | Async ORM              | PostgreSQL, MySQL, SQLite | Async web apps                                 |
+| **databases**                     | Async raw SQL          | PostgreSQL, MySQL, SQLite | Async apps with raw queries                    |
 
 ### The Pragmatic Take
 
 SQL itself is one of the most valuable skills you can learn as a developer.
 It's been around for 50 years and isn't going anywhere. The question isn't
-"raw SQL vs ORM" — it's *where in the spectrum do you want to operate for
-this particular project*.
+"raw SQL vs ORM" — it's _where in the spectrum do you want to operate for
+this particular project_.
 
 Many experienced developers:
+
 1. **Learn SQL properly first** — understand SELECT, JOIN, GROUP BY, window
    functions, indexing, query plans
 2. **Use an ORM/toolkit for application code** — reduces boilerplate, handles
@@ -3044,13 +3083,13 @@ choose (raw SQL, ORM, or somewhere in between).
 
 If you keep schema, migrations, and queries as `.sql` files:
 
-| Check | Tool | Where to run | What it catches |
-|-------|------|--------------|-----------------|
-| **Syntax validation** | `sqlite3 :memory: < db/schema.sql` | CI workflow, pre-commit hook | Malformed SQL that won't parse |
-| **Lint + format** | [SQLFluff](https://sqlfluff.com/) | CI workflow, pre-commit hook | Style violations, anti-patterns, inconsistent formatting |
-| **Migration order** | Custom script (`scripts/`) | CI workflow | Duplicate or out-of-order migration numbers |
-| **Migration apply** | Apply migrations sequentially to empty DB | CI workflow | Migrations that fail, conflict, or don't compose |
-| **Seed data** | Apply seeds after schema | CI workflow | Seeds that violate constraints |
+| Check                 | Tool                                      | Where to run                 | What it catches                                          |
+| --------------------- | ----------------------------------------- | ---------------------------- | -------------------------------------------------------- |
+| **Syntax validation** | `sqlite3 :memory: < db/schema.sql`        | CI workflow, pre-commit hook | Malformed SQL that won't parse                           |
+| **Lint + format**     | [SQLFluff](https://sqlfluff.com/)         | CI workflow, pre-commit hook | Style violations, anti-patterns, inconsistent formatting |
+| **Migration order**   | Custom script (`scripts/`)                | CI workflow                  | Duplicate or out-of-order migration numbers              |
+| **Migration apply**   | Apply migrations sequentially to empty DB | CI workflow                  | Migrations that fail, conflict, or don't compose         |
+| **Seed data**         | Apply seeds after schema                  | CI workflow                  | Seeds that violate constraints                           |
 
 **Pre-commit hook example (SQLFluff):**
 
@@ -3058,10 +3097,10 @@ If you keep schema, migrations, and queries as `.sql` files:
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.3.1  # check for latest
+    rev: 3.3.1 # check for latest
     hooks:
       - id: sqlfluff-lint
-        args: [--dialect, sqlite]  # or postgres, mysql, etc.
+        args: [--dialect, sqlite] # or postgres, mysql, etc.
         files: \.sql$
       - id: sqlfluff-fix
         args: [--dialect, sqlite]
@@ -3094,12 +3133,12 @@ jobs:
 
 If you use an ORM, SQL validation happens differently:
 
-| Check | Tool | What it catches |
-|-------|------|-----------------|
-| **Model validation** | pytest + ORM setup | Models that don't map to valid schema |
-| **Migration generation** | `alembic check` / `python manage.py makemigrations --check` | Missing migrations |
-| **Migration apply** | `alembic upgrade head` against a test DB | Migrations that fail |
-| **Integration tests** | pytest with a test database | Queries that fail at runtime |
+| Check                    | Tool                                                        | What it catches                       |
+| ------------------------ | ----------------------------------------------------------- | ------------------------------------- |
+| **Model validation**     | pytest + ORM setup                                          | Models that don't map to valid schema |
+| **Migration generation** | `alembic check` / `python manage.py makemigrations --check` | Missing migrations                    |
+| **Migration apply**      | `alembic upgrade head` against a test DB                    | Migrations that fail                  |
+| **Integration tests**    | pytest with a test database                                 | Queries that fail at runtime          |
 
 ORMs handle SQL generation, so you lint Python code (Ruff, mypy) rather than
 SQL files. But you should still test that migrations apply cleanly and that
@@ -3109,6 +3148,7 @@ your models match the actual database.
 
 Many projects use an ORM for CRUD and drop to raw SQL for complex queries,
 reports, or performance-critical paths. In that case, combine both approaches:
+
 - Lint `.sql` files with SQLFluff
 - Test ORM models and migrations with pytest
 - Integration tests that exercise both code paths
@@ -3116,6 +3156,7 @@ reports, or performance-critical paths. In that case, combine both approaches:
 #### What to Start With
 
 For a new project using this template:
+
 1. **Immediately:** Add a `task db:check` shortcut that runs
    `sqlite3 :memory: < db/schema.sql` — zero dependencies, instant sanity check
 2. **When you have real SQL files:** Add SQLFluff as a pre-commit hook
@@ -3145,14 +3186,14 @@ csh (C Shell, 1978)         ← separate lineage
 
 ### Shell Comparison
 
-| Shell | Full Name | Default On | Best For | Key Trait |
-|-------|-----------|-----------|----------|-----------|
-| **sh** | Bourne Shell | POSIX systems, Docker `alpine` | Portable scripts, git hooks, CI | Minimal — works everywhere |
-| **bash** | Bourne Again Shell | Most Linux distros, older macOS | General scripting, interactive use | Arrays, `[[ ]]`, `$()`, rich scripting |
-| **zsh** | Z Shell | macOS (since Catalina), many devs | Interactive daily use | Plugins (Oh My Zsh), autocomplete, glob |
-| **dash** | Debian Almquist Shell | Debian/Ubuntu (`/bin/sh` → dash) | System scripts | Extremely fast, strict POSIX |
-| **fish** | Friendly Interactive Shell | — (opt-in) | Interactive use, beginners | Syntax highlighting, autosuggestions |
-| **PowerShell** | PowerShell | Windows | Windows automation, .NET | Object pipeline (not text), cmdlets |
+| Shell          | Full Name                  | Default On                        | Best For                           | Key Trait                               |
+| -------------- | -------------------------- | --------------------------------- | ---------------------------------- | --------------------------------------- |
+| **sh**         | Bourne Shell               | POSIX systems, Docker `alpine`    | Portable scripts, git hooks, CI    | Minimal — works everywhere              |
+| **bash**       | Bourne Again Shell         | Most Linux distros, older macOS   | General scripting, interactive use | Arrays, `[[ ]]`, `$()`, rich scripting  |
+| **zsh**        | Z Shell                    | macOS (since Catalina), many devs | Interactive daily use              | Plugins (Oh My Zsh), autocomplete, glob |
+| **dash**       | Debian Almquist Shell      | Debian/Ubuntu (`/bin/sh` → dash)  | System scripts                     | Extremely fast, strict POSIX            |
+| **fish**       | Friendly Interactive Shell | — (opt-in)                        | Interactive use, beginners         | Syntax highlighting, autosuggestions    |
+| **PowerShell** | PowerShell                 | Windows                           | Windows automation, .NET           | Object pipeline (not text), cmdlets     |
 
 ### sh — The Portable Baseline
 
@@ -3165,6 +3206,7 @@ echo "Hello from sh"
 ```
 
 **Key limitations** (things sh does NOT have):
+
 - No arrays (`arr=(a b c)` is bash)
 - No `[[ ]]` (use `[ ]` instead)
 - No `$(( ))` for arithmetic in all implementations
@@ -3190,15 +3232,15 @@ done
 
 **Bash vs sh — common "bashisms" that break in sh:**
 
-| Feature | bash | sh (POSIX) |
-|---------|------|-----------|
-| Test syntax | `[[ -f file ]]` | `[ -f file ]` |
-| Arrays | `arr=(a b c)` | Not available |
-| String substitution | `${var//old/new}` | Not available |
-| Process substitution | `<(command)` | Not available |
-| Brace expansion | `{1..5}` | Not available |
-| `source` command | `source file` | `. file` |
-| Function keyword | `function foo()` | `foo()` |
+| Feature              | bash              | sh (POSIX)    |
+| -------------------- | ----------------- | ------------- |
+| Test syntax          | `[[ -f file ]]`   | `[ -f file ]` |
+| Arrays               | `arr=(a b c)`     | Not available |
+| String substitution  | `${var//old/new}` | Not available |
+| Process substitution | `<(command)`      | Not available |
+| Brace expansion      | `{1..5}`          | Not available |
+| `source` command     | `source file`     | `. file`      |
+| Function keyword     | `function foo()`  | `foo()`       |
 
 ### zsh — The Interactive Powerhouse
 
@@ -3220,15 +3262,15 @@ print -l *.py(om)                   # list .py files sorted by modification time
 
 ### Which Shell for What?
 
-| Use Case | Recommended Shell | Why |
-|----------|------------------|-----|
-| **Git hooks** | `#!/bin/sh` | Portability — hooks must work on every contributor's machine |
-| **CI/CD scripts** | `#!/bin/sh` or `#!/bin/bash` | CI runners have bash, but sh is safer for Docker alpine |
-| **Complex automation scripts** | `#!/bin/bash` | Need arrays, string ops, or conditionals |
-| **Daily terminal use** | zsh or fish | Better autocomplete, history, plugins |
-| **Makefiles / Taskfiles** | sh (implicit) | Make uses `/bin/sh` by default |
-| **Docker `RUN` commands** | sh | Alpine images only have sh, not bash |
-| **Windows scripts** | PowerShell | Native, object-based pipeline |
+| Use Case                       | Recommended Shell            | Why                                                          |
+| ------------------------------ | ---------------------------- | ------------------------------------------------------------ |
+| **Git hooks**                  | `#!/bin/sh`                  | Portability — hooks must work on every contributor's machine |
+| **CI/CD scripts**              | `#!/bin/sh` or `#!/bin/bash` | CI runners have bash, but sh is safer for Docker alpine      |
+| **Complex automation scripts** | `#!/bin/bash`                | Need arrays, string ops, or conditionals                     |
+| **Daily terminal use**         | zsh or fish                  | Better autocomplete, history, plugins                        |
+| **Makefiles / Taskfiles**      | sh (implicit)                | Make uses `/bin/sh` by default                               |
+| **Docker `RUN` commands**      | sh                           | Alpine images only have sh, not bash                         |
+| **Windows scripts**            | PowerShell                   | Native, object-based pipeline                                |
 
 ### Shells and Git Hooks
 
@@ -3246,12 +3288,14 @@ python -m ruff check src/ || exit 1
 **Why pre-commit (the framework) helps:** Instead of writing raw shell hook scripts, `pre-commit` manages hooks via `.pre-commit-config.yaml`. It handles shebang lines, virtual environments, and cross-platform compatibility — you never need to think about which shell the hook uses.
 
 **Without pre-commit** (raw hooks):
+
 - You write shell scripts directly in `.git/hooks/`
 - You choose the shell (`#!/bin/sh`, `#!/bin/bash`, etc.)
 - You handle portability yourself
 - Hooks aren't versioned (`.git/hooks/` is not committed)
 
 **With pre-commit** (framework):
+
 - Hooks are defined in `.pre-commit-config.yaml` (versioned)
 - The framework generates the actual hook scripts
 - Each hook tool runs in its own isolated environment
@@ -3276,6 +3320,7 @@ Git hooks don't have to be shell scripts. Any executable file with a valid sheba
 #### Language Examples for Hooks
 
 **Python:**
+
 ```python
 #!/usr/bin/env python3
 """pre-commit hook: check for TODO comments with no issue reference."""
@@ -3297,20 +3342,23 @@ for filepath in staged_files:
 ```
 
 **Node.js:**
+
 ```javascript
 #!/usr/bin/env node
 // pre-commit hook: validate JSON files
-const fs = require('fs');
-const { execSync } = require('child_process');
+const fs = require("fs");
+const { execSync } = require("child_process");
 
-const staged = execSync('git diff --cached --name-only --diff-filter=ACM')
-  .toString().trim().split('\n')
-  .filter(f => f.endsWith('.json'));
+const staged = execSync("git diff --cached --name-only --diff-filter=ACM")
+  .toString()
+  .trim()
+  .split("\n")
+  .filter((f) => f.endsWith(".json"));
 
 let failed = false;
 for (const file of staged) {
   try {
-    JSON.parse(fs.readFileSync(file, 'utf8'));
+    JSON.parse(fs.readFileSync(file, "utf8"));
   } catch (e) {
     console.error(`Invalid JSON: ${file} — ${e.message}`);
     failed = true;
@@ -3320,6 +3368,7 @@ process.exit(failed ? 1 : 0);
 ```
 
 **Ruby:**
+
 ```ruby
 #!/usr/bin/env ruby
 # pre-commit hook: check for binding.pry left in code
@@ -3335,6 +3384,7 @@ end
 ```
 
 **Perl:**
+
 ```perl
 #!/usr/bin/env perl
 # pre-commit hook: check for trailing whitespace
@@ -3363,38 +3413,39 @@ exec .git/hooks/bin/my-hook "$@"
 ```
 
 Notable tools written in compiled languages that serve as hook systems:
+
 - **lefthook** (Go) — fast, parallel hook runner with YAML config
 - **rusty-hook** (Rust) — lightweight hook runner for Node projects
 - **overcommit** (Ruby) — full-featured hook manager
 
 #### Shells vs Programming Languages for Hooks
 
-| Factor | Shell (sh/bash) | Python | Node.js | Compiled (Go/Rust) |
-|--------|----------------|--------|---------|-------------------|
-| **Startup speed** | Instant (~5ms) | Slow (~50-100ms) | Slow (~100ms) | Instant (~5ms) |
-| **Portability** | sh is everywhere | Needs Python installed | Needs Node installed | Binary runs anywhere |
-| **String/text processing** | Awkward (sed, awk, grep) | Excellent | Good | Good |
-| **Error handling** | Fragile (`set -e`, exit codes) | try/except, robust | try/catch, robust | Strong type system |
-| **File system operations** | Basic (test, find, ls) | `pathlib`, `os` — powerful | `fs` module — decent | Full stdlib |
-| **JSON/YAML parsing** | Needs `jq` or similar | Built-in `json` module | Built-in `JSON` | Serde (Rust), encoding/json |
-| **Git integration** | Native (`git` commands) | Subprocess calls | Subprocess or libraries | Subprocess or `git2` |
-| **Complexity ceiling** | Low (~50 lines max) | Unlimited | Unlimited | Unlimited |
-| **Dependencies** | None | pip/venv | npm/node_modules | Compile step |
-| **Debugging** | Painful (`set -x`) | Proper debugger (pdb) | Proper debugger | Proper debugger |
-| **Windows support** | Needs Git Bash/WSL | Native | Native | Native |
+| Factor                     | Shell (sh/bash)                | Python                     | Node.js                 | Compiled (Go/Rust)          |
+| -------------------------- | ------------------------------ | -------------------------- | ----------------------- | --------------------------- |
+| **Startup speed**          | Instant (~5ms)                 | Slow (~50-100ms)           | Slow (~100ms)           | Instant (~5ms)              |
+| **Portability**            | sh is everywhere               | Needs Python installed     | Needs Node installed    | Binary runs anywhere        |
+| **String/text processing** | Awkward (sed, awk, grep)       | Excellent                  | Good                    | Good                        |
+| **Error handling**         | Fragile (`set -e`, exit codes) | try/except, robust         | try/catch, robust       | Strong type system          |
+| **File system operations** | Basic (test, find, ls)         | `pathlib`, `os` — powerful | `fs` module — decent    | Full stdlib                 |
+| **JSON/YAML parsing**      | Needs `jq` or similar          | Built-in `json` module     | Built-in `JSON`         | Serde (Rust), encoding/json |
+| **Git integration**        | Native (`git` commands)        | Subprocess calls           | Subprocess or libraries | Subprocess or `git2`        |
+| **Complexity ceiling**     | Low (~50 lines max)            | Unlimited                  | Unlimited               | Unlimited                   |
+| **Dependencies**           | None                           | pip/venv                   | npm/node_modules        | Compile step                |
+| **Debugging**              | Painful (`set -x`)             | Proper debugger (pdb)      | Proper debugger         | Proper debugger             |
+| **Windows support**        | Needs Git Bash/WSL             | Native                     | Native                  | Native                      |
 
 #### When to Use What
 
-| Scenario | Best Choice | Why |
-|----------|------------|-----|
-| Simple file checks (whitespace, merge markers) | **Shell (sh)** | 2-5 lines, no dependencies, instant |
-| Check staged file contents or patterns | **Python** | Easy file I/O, regex, readable |
-| Validate JSON/YAML/config files | **Python or Node** | Built-in parsers |
-| Complex multi-step validation | **Python** | Best balance of power and readability |
-| Enforce commit message format | **Shell or Python** | Shell for simple regex, Python for complex rules |
-| Performance-critical (huge repos) | **Compiled (Go/Rust)** | Sub-millisecond execution |
-| Team with mixed OS (Windows + Mac + Linux) | **Python or Node** | Cross-platform without shell quirks |
-| You already use pre-commit framework | **Doesn't matter** | pre-commit abstracts the language away |
+| Scenario                                       | Best Choice            | Why                                              |
+| ---------------------------------------------- | ---------------------- | ------------------------------------------------ |
+| Simple file checks (whitespace, merge markers) | **Shell (sh)**         | 2-5 lines, no dependencies, instant              |
+| Check staged file contents or patterns         | **Python**             | Easy file I/O, regex, readable                   |
+| Validate JSON/YAML/config files                | **Python or Node**     | Built-in parsers                                 |
+| Complex multi-step validation                  | **Python**             | Best balance of power and readability            |
+| Enforce commit message format                  | **Shell or Python**    | Shell for simple regex, Python for complex rules |
+| Performance-critical (huge repos)              | **Compiled (Go/Rust)** | Sub-millisecond execution                        |
+| Team with mixed OS (Windows + Mac + Linux)     | **Python or Node**     | Cross-platform without shell quirks              |
+| You already use pre-commit framework           | **Doesn't matter**     | pre-commit abstracts the language away           |
 
 #### The Reality: pre-commit Framework Handles This
 
@@ -3402,46 +3453,47 @@ In practice, choosing a language for hooks is mostly academic if you use the `pr
 
 ```yaml
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit  # Rust binary
+  - repo: https://github.com/astral-sh/ruff-pre-commit # Rust binary
     hooks:
-      - id: ruff           # ← you don't care that Ruff is written in Rust
-  - repo: https://github.com/pre-commit/mirrors-mypy     # Python tool
+      - id: ruff # ← you don't care that Ruff is written in Rust
+  - repo: https://github.com/pre-commit/mirrors-mypy # Python tool
     hooks:
-      - id: mypy           # ← you don't care that mypy is Python
+      - id: mypy # ← you don't care that mypy is Python
   - repo: https://github.com/pre-commit/pre-commit-hooks # Python scripts
     hooks:
-      - id: check-yaml     # ← you don't care about the implementation
+      - id: check-yaml # ← you don't care about the implementation
 ```
 
 The framework:
+
 - Downloads and installs each hook's dependencies automatically
 - Creates isolated environments (virtualenvs for Python, node_modules for Node, etc.)
 - Handles shebang lines and shell compatibility
 - Works identically on macOS, Linux, and Windows
 
-**Bottom line:** The pre-commit framework lets you use the *best tool for the job* regardless of what language it's written in. You pick hooks by *what they check*, not *what language they use*.
+**Bottom line:** The pre-commit framework lets you use the _best tool for the job_ regardless of what language it's written in. You pick hooks by _what they check_, not _what language they use_.
 
 ### Quick Reference: Shell Config Files
 
-| Shell | Login Shell | Interactive (non-login) | Notes |
-|-------|------------|------------------------|-------|
-| **bash** | `~/.bash_profile` or `~/.profile` | `~/.bashrc` | `.bash_profile` often sources `.bashrc` |
-| **zsh** | `~/.zprofile` then `~/.zshrc` | `~/.zshrc` | Oh My Zsh configures this |
-| **sh** | `~/.profile` | — | Minimal config |
-| **fish** | `~/.config/fish/config.fish` | Same file | No login/non-login split |
+| Shell    | Login Shell                       | Interactive (non-login) | Notes                                   |
+| -------- | --------------------------------- | ----------------------- | --------------------------------------- |
+| **bash** | `~/.bash_profile` or `~/.profile` | `~/.bashrc`             | `.bash_profile` often sources `.bashrc` |
+| **zsh**  | `~/.zprofile` then `~/.zshrc`     | `~/.zshrc`              | Oh My Zsh configures this               |
+| **sh**   | `~/.profile`                      | —                       | Minimal config                          |
+| **fish** | `~/.config/fish/config.fish`      | Same file               | No login/non-login split                |
 
 ---
 
 ## Repo Versioning — Manual vs Automatic
 
-Every repo needs a version number, but *where* that number lives and *how* it gets updated varies. This is the fundamental decision that shapes your release workflow.
+Every repo needs a version number, but _where_ that number lives and _how_ it gets updated varies. This is the fundamental decision that shapes your release workflow.
 
 ### The Core Question: Who Decides the Version?
 
-| Approach | Who/what sets the version | Where the version lives | When it changes |
-|----------|--------------------------|------------------------|-----------------|
-| **Manual** | Developer edits a file | Hardcoded in source | When you remember to update it |
-| **Semi-automatic** | Developer triggers a tool | Tool updates source file(s) | When you run the bump command |
+| Approach            | Who/what sets the version    | Where the version lives            | When it changes                |
+| ------------------- | ---------------------------- | ---------------------------------- | ------------------------------ |
+| **Manual**          | Developer edits a file       | Hardcoded in source                | When you remember to update it |
+| **Semi-automatic**  | Developer triggers a tool    | Tool updates source file(s)        | When you run the bump command  |
 | **Fully automatic** | CI derives from commits/tags | Git tags or computed at build time | Every qualifying merge to main |
 
 ### Manual Versioning
@@ -3496,7 +3548,7 @@ git push origin main --tags
 
 ### Automatic Versioning
 
-The version is *derived* — either from git tags at build time, or from commit messages by a CI tool.
+The version is _derived_ — either from git tags at build time, or from commit messages by a CI tool.
 
 #### Approach A: Tag-derived (build-time versioning)
 
@@ -3529,12 +3581,12 @@ After tagging:
 
 **Tools that do this:**
 
-| Tool | Build backend | Config |
-|------|--------------|--------|
-| **hatch-vcs** | Hatchling | `[tool.hatch.version] source = "vcs"` |
-| **setuptools-scm** | Setuptools | `[tool.setuptools_scm]` |
-| **versioningit** | Any (Hatchling, setuptools, etc.) | `[tool.versioningit]` |
-| **dunamai** | Any (library/CLI) | CLI flags or API calls |
+| Tool               | Build backend                     | Config                                |
+| ------------------ | --------------------------------- | ------------------------------------- |
+| **hatch-vcs**      | Hatchling                         | `[tool.hatch.version] source = "vcs"` |
+| **setuptools-scm** | Setuptools                        | `[tool.setuptools_scm]`               |
+| **versioningit**   | Any (Hatchling, setuptools, etc.) | `[tool.versioningit]`                 |
+| **dunamai**        | Any (library/CLI)                 | CLI flags or API calls                |
 
 **Pros:**
 
@@ -3563,12 +3615,12 @@ chore: update deps               →  no release
 
 **Tools that do this:**
 
-| Tool | How it manages versions |
-|------|------------------------|
-| **release-please** | Opens a Release PR tracking pending changes; merging bumps version, updates CHANGELOG, creates GitHub Release + tag |
-| **python-semantic-release** | Runs in CI, parses commits, bumps version in source, tags, publishes to PyPI |
-| **commitizen** | `cz bump` reads commits and bumps version; can run locally or in CI |
-| **semantic-release** (JS) | The original Node.js version — full plugin pipeline |
+| Tool                        | How it manages versions                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **release-please**          | Opens a Release PR tracking pending changes; merging bumps version, updates CHANGELOG, creates GitHub Release + tag |
+| **python-semantic-release** | Runs in CI, parses commits, bumps version in source, tags, publishes to PyPI                                        |
+| **commitizen**              | `cz bump` reads commits and bumps version; can run locally or in CI                                                 |
+| **semantic-release** (JS)   | The original Node.js version — full plugin pipeline                                                                 |
 
 **Pros:**
 
@@ -3586,7 +3638,7 @@ chore: update deps               →  no release
 
 ### Combining Both Approaches (What This Project Does)
 
-This project uses **tag-derived versioning** (hatch-vcs) for the package version and **commit-derived releases** (release-please) for deciding *when* to create tags:
+This project uses **tag-derived versioning** (hatch-vcs) for the package version and **commit-derived releases** (release-please) for deciding _when_ to create tags:
 
 ```text
 Developer writes conventional commits
@@ -3605,14 +3657,14 @@ This gives you:
 
 ### Decision Matrix: Which Approach to Choose
 
-| Factor | Manual | Semi-auto (bump tools) | Tag-derived | Commit-derived | Both (this project) |
-|--------|--------|----------------------|-------------|----------------|---------------------|
-| **Effort per release** | High | Medium | None | None | None |
-| **Risk of version drift** | High | Medium | None | Low | None |
-| **Changelog** | Manual | Manual | Manual | Automatic | Automatic |
-| **Commit discipline needed** | No | No | No | Yes | Yes |
-| **Setup complexity** | None | Low | Low | Medium | Medium |
-| **Best for** | Learning, solo | Small teams | Libraries | Apps, teams | Template repos, mature projects |
+| Factor                       | Manual         | Semi-auto (bump tools) | Tag-derived | Commit-derived | Both (this project)             |
+| ---------------------------- | -------------- | ---------------------- | ----------- | -------------- | ------------------------------- |
+| **Effort per release**       | High           | Medium                 | None        | None           | None                            |
+| **Risk of version drift**    | High           | Medium                 | None        | Low            | None                            |
+| **Changelog**                | Manual         | Manual                 | Manual      | Automatic      | Automatic                       |
+| **Commit discipline needed** | No             | No                     | No          | Yes            | Yes                             |
+| **Setup complexity**         | None           | Low                    | Low         | Medium         | Medium                          |
+| **Best for**                 | Learning, solo | Small teams            | Libraries   | Apps, teams    | Template repos, mature projects |
 
 See also: [Release Workflows](#release-workflows) below for the full tool comparison, and [ADR 021](../adr/021-automated-release-pipeline.md) for this project's specific choices.
 
@@ -3654,18 +3706,18 @@ Use a tool to bump the version, tag, and commit — but you trigger it manually.
 
 #### Version Bumping Tools
 
-| Tool | How it works | Version source | Pros | Cons |
-|------|-------------|----------------|------|------|
-| **hatch version** | `hatch version minor` bumps in pyproject.toml | `[project] version` or `[tool.hatch.version]` | Integrated with Hatch, supports dynamic versioning | Requires Hatch |
-| **bump2version / bump-my-version** | Reads `.bumpversion.cfg` or `pyproject.toml`, updates version strings across multiple files | Any file with version strings | Multi-file support, regex-based find/replace | Extra config file (or `[tool.bumpversion]`), can be fiddly |
-| **tbump** | `tbump 1.2.3` updates version, commits, tags, pushes | `[tool.tbump]` in pyproject.toml | Single command does commit+tag+push, regex-based | Must pass the exact version (no `major`/`minor` keywords) |
-| **setuptools-scm** | Derives version from Git tags at build time — no version in source | Git tags | Zero maintenance, always matches Git | Harder to reason about, import-time overhead, needs `[tool.setuptools_scm]` |
-| **versioningit** | Like setuptools-scm but for other backends | Git tags + configurable format | Backend-agnostic, flexible format strings | More config than setuptools-scm |
-| **hatch-vcs** | Hatchling plugin that reads version from VCS (Git tags) | Git tags via `[tool.hatch.version]` | Integrates with Hatchling builds | Requires Hatch ecosystem |
-| **incremental** | Twisted project's versioning tool | `_version.py` file | Used by Twisted/large projects | Less popular outside that ecosystem |
-| **dunamai** | Library + CLI for dynamic versions from VCS | Git/Mercurial tags | Language-agnostic, composable with other tools | CLI-only or library — not a full release tool |
-| **poetry version** | `poetry version minor` | `[tool.poetry] version` | Integrated into Poetry workflow | Poetry-only |
-| **pdm bump** | `pdm bump minor` | `[project] version` | Integrated into PDM | PDM-only |
+| Tool                               | How it works                                                                                | Version source                                | Pros                                               | Cons                                                                        |
+| ---------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| **hatch version**                  | `hatch version minor` bumps in pyproject.toml                                               | `[project] version` or `[tool.hatch.version]` | Integrated with Hatch, supports dynamic versioning | Requires Hatch                                                              |
+| **bump2version / bump-my-version** | Reads `.bumpversion.cfg` or `pyproject.toml`, updates version strings across multiple files | Any file with version strings                 | Multi-file support, regex-based find/replace       | Extra config file (or `[tool.bumpversion]`), can be fiddly                  |
+| **tbump**                          | `tbump 1.2.3` updates version, commits, tags, pushes                                        | `[tool.tbump]` in pyproject.toml              | Single command does commit+tag+push, regex-based   | Must pass the exact version (no `major`/`minor` keywords)                   |
+| **setuptools-scm**                 | Derives version from Git tags at build time — no version in source                          | Git tags                                      | Zero maintenance, always matches Git               | Harder to reason about, import-time overhead, needs `[tool.setuptools_scm]` |
+| **versioningit**                   | Like setuptools-scm but for other backends                                                  | Git tags + configurable format                | Backend-agnostic, flexible format strings          | More config than setuptools-scm                                             |
+| **hatch-vcs**                      | Hatchling plugin that reads version from VCS (Git tags)                                     | Git tags via `[tool.hatch.version]`           | Integrates with Hatchling builds                   | Requires Hatch ecosystem                                                    |
+| **incremental**                    | Twisted project's versioning tool                                                           | `_version.py` file                            | Used by Twisted/large projects                     | Less popular outside that ecosystem                                         |
+| **dunamai**                        | Library + CLI for dynamic versions from VCS                                                 | Git/Mercurial tags                            | Language-agnostic, composable with other tools     | CLI-only or library — not a full release tool                               |
+| **poetry version**                 | `poetry version minor`                                                                      | `[tool.poetry] version`                       | Integrated into Poetry workflow                    | Poetry-only                                                                 |
+| **pdm bump**                       | `pdm bump minor`                                                                            | `[project] version`                           | Integrated into PDM                                | PDM-only                                                                    |
 
 #### Typical semi-automated workflow
 
@@ -3698,17 +3750,17 @@ docs: fix typo in README          →  no release
 
 #### Tools that consume conventional commits
 
-| Tool | Language | What it does | Outputs | Pros | Cons |
-|------|----------|-------------|---------|------|------|
-| **python-semantic-release** | Python | Parses commits, bumps version, updates changelog, creates GitHub Release, publishes to PyPI | Version bump, CHANGELOG.md, GitHub Release, PyPI publish | Full pipeline for Python, GitHub Actions friendly | Config can be complex, opinionated defaults |
-| **semantic-release** (JS) | Node.js | The original — parses commits, bumps, publishes, releases | Version bump, changelog, npm publish, GitHub Release | Massive plugin ecosystem, very mature | Node dependency in a Python project |
-| **release-please** (Google) | GitHub Action | Creates a "Release PR" that tracks pending changes; merging the PR triggers the release | Release PR, version bump, CHANGELOG.md, GitHub Release | No local tooling needed, PR-based review of release, monorepo support | Google-maintained (bus factor), opinionated PR flow |
-| **commitizen** | Python | Commit message prompting (`cz commit`), version bump, changelog generation | Guided commits, version bump, CHANGELOG.md | Interactive commit helper + release tool in one, Python native | Two jobs in one tool — some prefer separation |
-| **standard-version** | Node.js | Bump version, generate changelog from conventional commits, tag | Version bump, CHANGELOG.md, Git tag | Simple, focused | Deprecated in favour of release-please |
-| **cocogitto** | Rust | Validate conventional commits, bump version, generate changelog | Version bump, CHANGELOG.md, Git tag | Fast, strict validation, good CI integration | Rust binary, smaller community |
-| **git-cliff** | Rust | Highly configurable changelog generator (not a full release tool) | CHANGELOG.md | Extremely customisable templates, fast, any commit convention | Changelog only — doesn't bump versions or create releases |
-| **auto** (Intuit) | Node.js | Label-based releases — uses PR labels instead of commit messages | Version bump, changelog, GitHub Release, npm publish | PR-label approach is more accessible than commit conventions | Node dependency, label-driven (different paradigm) |
-| **changelogithub** | Node.js | Generate changelog from GitHub PR titles/commits | Changelog, GitHub Release body | Uses GitHub API, pretty output | Changelog only, Node dependency |
+| Tool                        | Language      | What it does                                                                                | Outputs                                                  | Pros                                                                  | Cons                                                      |
+| --------------------------- | ------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| **python-semantic-release** | Python        | Parses commits, bumps version, updates changelog, creates GitHub Release, publishes to PyPI | Version bump, CHANGELOG.md, GitHub Release, PyPI publish | Full pipeline for Python, GitHub Actions friendly                     | Config can be complex, opinionated defaults               |
+| **semantic-release** (JS)   | Node.js       | The original — parses commits, bumps, publishes, releases                                   | Version bump, changelog, npm publish, GitHub Release     | Massive plugin ecosystem, very mature                                 | Node dependency in a Python project                       |
+| **release-please** (Google) | GitHub Action | Creates a "Release PR" that tracks pending changes; merging the PR triggers the release     | Release PR, version bump, CHANGELOG.md, GitHub Release   | No local tooling needed, PR-based review of release, monorepo support | Google-maintained (bus factor), opinionated PR flow       |
+| **commitizen**              | Python        | Commit message prompting (`cz commit`), version bump, changelog generation                  | Guided commits, version bump, CHANGELOG.md               | Interactive commit helper + release tool in one, Python native        | Two jobs in one tool — some prefer separation             |
+| **standard-version**        | Node.js       | Bump version, generate changelog from conventional commits, tag                             | Version bump, CHANGELOG.md, Git tag                      | Simple, focused                                                       | Deprecated in favour of release-please                    |
+| **cocogitto**               | Rust          | Validate conventional commits, bump version, generate changelog                             | Version bump, CHANGELOG.md, Git tag                      | Fast, strict validation, good CI integration                          | Rust binary, smaller community                            |
+| **git-cliff**               | Rust          | Highly configurable changelog generator (not a full release tool)                           | CHANGELOG.md                                             | Extremely customisable templates, fast, any commit convention         | Changelog only — doesn't bump versions or create releases |
+| **auto** (Intuit)           | Node.js       | Label-based releases — uses PR labels instead of commit messages                            | Version bump, changelog, GitHub Release, npm publish     | PR-label approach is more accessible than commit conventions          | Node dependency, label-driven (different paradigm)        |
+| **changelogithub**          | Node.js       | Generate changelog from GitHub PR titles/commits                                            | Changelog, GitHub Release body                           | Uses GitHub API, pretty output                                        | Changelog only, Node dependency                           |
 
 ### Strategy 4: Release PR Pattern (release-please Style)
 
@@ -3731,11 +3783,11 @@ This is a higher-level pattern where the tool **opens a PR** that represents the
 
 #### Tools supporting the Release PR pattern
 
-| Tool | How the Release PR works | Monorepo | Multi-language |
-|------|-------------------------|----------|----------------|
-| **release-please** | GitHub Action watches pushes to main, opens/updates a Release PR automatically | Yes (workspace plugins) | Yes (Python, Node, Java, Go, Rust, etc.) |
-| **changesets** | CLI generates "changeset" files in PRs; a bot opens a "Version Packages" PR that combines them | Yes (native) | Mainly JS/TS but adaptable |
-| **knope** | Rust-based, uses changeset files or conventional commits to generate a Release PR | Yes | Yes (any language) |
+| Tool               | How the Release PR works                                                                       | Monorepo                | Multi-language                           |
+| ------------------ | ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------------------- |
+| **release-please** | GitHub Action watches pushes to main, opens/updates a Release PR automatically                 | Yes (workspace plugins) | Yes (Python, Node, Java, Go, Rust, etc.) |
+| **changesets**     | CLI generates "changeset" files in PRs; a bot opens a "Version Packages" PR that combines them | Yes (native)            | Mainly JS/TS but adaptable               |
+| **knope**          | Rust-based, uses changeset files or conventional commits to generate a Release PR              | Yes                     | Yes (any language)                       |
 
 ### Strategy 5: Tag-Driven Releases (CI Does Everything)
 
@@ -3764,53 +3816,53 @@ Changelogs can be generated from multiple sources. The tools differ in what they
 
 #### Changelog Source Material
 
-| Source | Tools that use it | Pros | Cons |
-|--------|------------------|------|------|
-| **Conventional commit messages** | python-semantic-release, commitizen, cocogitto, standard-version | Automated, structured, links to commits | Requires discipline from all contributors |
-| **PR titles / PR bodies** | release-please, auto, changelogithub | Easier for contributors (just write good PR titles) | Less granular than per-commit |
-| **PR labels** | auto (Intuit), release-drafter | Visual, easy to apply retroactively | Extra manual step (labelling), labels can be forgotten |
-| **Changeset files** | changesets, knope, towncrier | Each PR includes a human-written changelog fragment | Extra file per PR, merge conflicts possible |
-| **Git log (any format)** | git-cliff, gitmoji-changelog | Works with any commit format | Noisy unless commits are clean |
-| **Manual** | Keep a Changelog format | Full control, human-quality writing | Easy to forget, drifts from actual changes |
+| Source                           | Tools that use it                                                | Pros                                                | Cons                                                   |
+| -------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| **Conventional commit messages** | python-semantic-release, commitizen, cocogitto, standard-version | Automated, structured, links to commits             | Requires discipline from all contributors              |
+| **PR titles / PR bodies**        | release-please, auto, changelogithub                             | Easier for contributors (just write good PR titles) | Less granular than per-commit                          |
+| **PR labels**                    | auto (Intuit), release-drafter                                   | Visual, easy to apply retroactively                 | Extra manual step (labelling), labels can be forgotten |
+| **Changeset files**              | changesets, knope, towncrier                                     | Each PR includes a human-written changelog fragment | Extra file per PR, merge conflicts possible            |
+| **Git log (any format)**         | git-cliff, gitmoji-changelog                                     | Works with any commit format                        | Noisy unless commits are clean                         |
+| **Manual**                       | Keep a Changelog format                                          | Full control, human-quality writing                 | Easy to forget, drifts from actual changes             |
 
 #### Changelog Fragment / Towncrier Pattern
 
 Some projects use **changelog fragments** — small files added per-PR that are combined at release time.
 
-| Tool | Fragment format | How it works | Pros | Cons |
-|------|----------------|-------------|------|------|
-| **towncrier** | `changes/123.feature.md` | Each PR adds a fragment file; `towncrier build` combines them into CHANGELOG | Human-written entries, categorised | Extra file per change, merge conflicts on the directory |
-| **changesets** | `.changeset/cool-feature.md` | CLI generates a changeset file; bot combines on release | Interactive CLI, monorepo support | JS-ecosystem origin |
-| **knope** | `.changeset/*.md` | Similar to changesets but Rust-based | Cross-language, fast | Newer tool |
-| **scriv** | `changelog.d/*.md` | Fragment-based, configurable, Python-native | Flexible templates, Python-friendly | Smaller community |
+| Tool           | Fragment format              | How it works                                                                 | Pros                                | Cons                                                    |
+| -------------- | ---------------------------- | ---------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
+| **towncrier**  | `changes/123.feature.md`     | Each PR adds a fragment file; `towncrier build` combines them into CHANGELOG | Human-written entries, categorised  | Extra file per change, merge conflicts on the directory |
+| **changesets** | `.changeset/cool-feature.md` | CLI generates a changeset file; bot combines on release                      | Interactive CLI, monorepo support   | JS-ecosystem origin                                     |
+| **knope**      | `.changeset/*.md`            | Similar to changesets but Rust-based                                         | Cross-language, fast                | Newer tool                                              |
+| **scriv**      | `changelog.d/*.md`           | Fragment-based, configurable, Python-native                                  | Flexible templates, Python-friendly | Smaller community                                       |
 
 ### PR Automation Tools
 
 Tools that help manage the PR lifecycle itself — auto-labelling, auto-merge, auto-assign, etc.
 
-| Tool | What it does | How it works |
-|------|-------------|-------------|
-| **release-drafter** | Drafts GitHub Release notes from PR labels; auto-labels PRs based on file paths | GitHub Action, reads `.github/release-drafter.yml` |
-| **auto-approve** | Auto-approves PRs from trusted bots (Dependabot, Renovate) | GitHub Action with conditions |
-| **mergify** | Auto-merge, priority queues, auto-label, CI retries | SaaS with `.mergify.yml` config |
-| **kodiak** | Auto-merge when checks pass and PR is approved | GitHub App with `.kodiak.toml` |
-| **bulldozer** | Auto-merge + auto-delete branch after merge | GitHub App by Palantir |
-| **probot-auto-merge** | Auto-merge based on labels and check status | GitHub App (Probot framework) |
-| **actions/labeler** | Auto-label PRs based on changed file paths | GitHub Action with `.github/labeler.yml` |
-| **action-automatic-releases** | Create GitHub Releases automatically on tag push | GitHub Action |
-| **pr-agent** (CodiumAI) | AI-powered PR review, auto-describe, auto-label | GitHub App or Action |
-| **danger-js / danger-python** | Programmable PR review rules (check PR size, missing tests, etc.) | CI step, reads `Dangerfile` |
+| Tool                          | What it does                                                                    | How it works                                       |
+| ----------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **release-drafter**           | Drafts GitHub Release notes from PR labels; auto-labels PRs based on file paths | GitHub Action, reads `.github/release-drafter.yml` |
+| **auto-approve**              | Auto-approves PRs from trusted bots (Dependabot, Renovate)                      | GitHub Action with conditions                      |
+| **mergify**                   | Auto-merge, priority queues, auto-label, CI retries                             | SaaS with `.mergify.yml` config                    |
+| **kodiak**                    | Auto-merge when checks pass and PR is approved                                  | GitHub App with `.kodiak.toml`                     |
+| **bulldozer**                 | Auto-merge + auto-delete branch after merge                                     | GitHub App by Palantir                             |
+| **probot-auto-merge**         | Auto-merge based on labels and check status                                     | GitHub App (Probot framework)                      |
+| **actions/labeler**           | Auto-label PRs based on changed file paths                                      | GitHub Action with `.github/labeler.yml`           |
+| **action-automatic-releases** | Create GitHub Releases automatically on tag push                                | GitHub Action                                      |
+| **pr-agent** (CodiumAI)       | AI-powered PR review, auto-describe, auto-label                                 | GitHub App or Action                               |
+| **danger-js / danger-python** | Programmable PR review rules (check PR size, missing tests, etc.)               | CI step, reads `Dangerfile`                        |
 
 ### Dependency Update Bots
 
 These open PRs to keep dependencies current — relevant because they feed into the release pipeline.
 
-| Tool | What it updates | How it works | Pros | Cons |
-|------|----------------|-------------|------|------|
-| **Dependabot** | pip, npm, GitHub Actions, Docker, Bundler, etc. | GitHub-native, `.github/dependabot.yml` | Zero setup, built into GitHub | Limited grouping, no lock file merging strategy |
-| **Renovate** | 50+ package managers | Self-hosted or Mend.io App, `renovate.json` | Extremely configurable, auto-merge rules, grouping, scheduling | Complex config, can be noisy |
-| **pyup** | Python (pip, pipenv, poetry) | GitHub App or CLI | Python-focused, safety DB integration | Smaller scope than Renovate |
-| **depfu** | npm, Yarn, Bundler | GitHub App | Clean PRs, grouped updates | Limited language support |
+| Tool           | What it updates                                 | How it works                                | Pros                                                           | Cons                                            |
+| -------------- | ----------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------- | ----------------------------------------------- |
+| **Dependabot** | pip, npm, GitHub Actions, Docker, Bundler, etc. | GitHub-native, `.github/dependabot.yml`     | Zero setup, built into GitHub                                  | Limited grouping, no lock file merging strategy |
+| **Renovate**   | 50+ package managers                            | Self-hosted or Mend.io App, `renovate.json` | Extremely configurable, auto-merge rules, grouping, scheduling | Complex config, can be noisy                    |
+| **pyup**       | Python (pip, pipenv, poetry)                    | GitHub App or CLI                           | Python-focused, safety DB integration                          | Smaller scope than Renovate                     |
+| **depfu**      | npm, Yarn, Bundler                              | GitHub App                                  | Clean PRs, grouped updates                                     | Limited language support                        |
 
 ### Putting It All Together — Example Workflows
 
@@ -3869,12 +3921,12 @@ These open PRs to keep dependencies current — relevant because they feed into 
 
 Not all projects use SemVer. Here are the common schemes and which tools support them.
 
-| Scheme | Format | When to use | Tools that support it |
-|--------|--------|------------|----------------------|
-| **SemVer** | `MAJOR.MINOR.PATCH` | Libraries, APIs, anything with a public contract | All of the above |
-| **CalVer** | `YYYY.MM.DD` or `YY.MM.MICRO` | Applications, data pipelines, things without API stability promises | bump-my-version, hatch-calver, commitizen (custom), setuptools-scm |
-| **PEP 440** | `1.2.3`, `1.2.3.dev4`, `1.2.3a1`, `1.2.3rc1` | Python packages (required for PyPI) | All Python tools enforce this |
-| **ZeroVer** | `0.x.y` forever | Projects that never commit to stability (half-joking) | Any tool — just never bump major |
+| Scheme      | Format                                       | When to use                                                         | Tools that support it                                              |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **SemVer**  | `MAJOR.MINOR.PATCH`                          | Libraries, APIs, anything with a public contract                    | All of the above                                                   |
+| **CalVer**  | `YYYY.MM.DD` or `YY.MM.MICRO`                | Applications, data pipelines, things without API stability promises | bump-my-version, hatch-calver, commitizen (custom), setuptools-scm |
+| **PEP 440** | `1.2.3`, `1.2.3.dev4`, `1.2.3a1`, `1.2.3rc1` | Python packages (required for PyPI)                                 | All Python tools enforce this                                      |
+| **ZeroVer** | `0.x.y` forever                              | Projects that never commit to stability (half-joking)               | Any tool — just never bump major                                   |
 
 ### What This Project Uses
 
@@ -3990,16 +4042,16 @@ The `'` marks indicate new SHAs — the commits are re-hashed because their pare
 
 ### Comparison Summary
 
-| | Merge Commit | Squash+Merge | Rebase+Merge | Direct Push |
-|---|---|---|---|---|
-| History shape | Graph | Linear | Linear | Linear |
-| Commits on main per PR | All + merge | 1 | All | All |
-| Original SHAs | Kept | Lost | Changed | Kept |
-| Revert entire PR | Easy (`revert -m 1`) | Easy (one commit) | Hard (revert each commit) | N/A |
-| `git bisect` | Awkward with merges | Good (coarse) | Good (fine) | Good |
-| CHANGELOG granularity | Per commit | Per PR | Per commit | Per commit |
-| Commit message enforcement | Per commit | PR title only | Per commit | Per commit |
-| Merge event visible | Yes | No | No | N/A |
+|                            | Merge Commit         | Squash+Merge      | Rebase+Merge              | Direct Push |
+| -------------------------- | -------------------- | ----------------- | ------------------------- | ----------- |
+| History shape              | Graph                | Linear            | Linear                    | Linear      |
+| Commits on main per PR     | All + merge          | 1                 | All                       | All         |
+| Original SHAs              | Kept                 | Lost              | Changed                   | Kept        |
+| Revert entire PR           | Easy (`revert -m 1`) | Easy (one commit) | Hard (revert each commit) | N/A         |
+| `git bisect`               | Awkward with merges  | Good (coarse)     | Good (fine)               | Good        |
+| CHANGELOG granularity      | Per commit           | Per PR            | Per commit                | Per commit  |
+| Commit message enforcement | Per commit           | PR title only     | Per commit                | Per commit  |
+| Merge event visible        | Yes                  | No                | No                        | N/A         |
 
 ### Mental Model for Rebase+Merge
 
@@ -4038,6 +4090,7 @@ feature-b:                 F ─ G
 **Potential issue:** If Bob rebases `feature-b` onto `main`, git may get confused about which commits are already applied. The merge commit's two-parent structure can cause unexpected conflicts during rebase.
 
 **Solution:**
+
 ```bash
 # Bob rebases onto main, skipping Alice's already-merged commits
 git checkout feature-b
@@ -4120,11 +4173,11 @@ git rebase --onto main feature-a
 
 #### Summary: Stacked Branch Risk by Strategy
 
-| Strategy | Risk level | Why | Best fix |
-|----------|-----------|-----|----------|
-| **Merge commit** | Low | Original SHAs preserved, git knows they're on main | `git rebase --onto main feature-a` if needed |
-| **Squash+merge** | High | All original commits replaced with one new SHA, git can't detect duplicates | `git rebase --onto main feature-a` (mandatory) |
-| **Rebase+merge** | Medium | New SHAs but identical patches — git can often auto-detect | `git rebase main` (try first), fall back to `--onto` |
+| Strategy         | Risk level | Why                                                                         | Best fix                                             |
+| ---------------- | ---------- | --------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **Merge commit** | Low        | Original SHAs preserved, git knows they're on main                          | `git rebase --onto main feature-a` if needed         |
+| **Squash+merge** | High       | All original commits replaced with one new SHA, git can't detect duplicates | `git rebase --onto main feature-a` (mandatory)       |
+| **Rebase+merge** | Medium     | New SHAs but identical patches — git can often auto-detect                  | `git rebase main` (try first), fall back to `--onto` |
 
 #### The Universal Fix: `git rebase --onto`
 
@@ -4181,17 +4234,17 @@ Tags don't move. Unlike branches (which advance with each new commit), a tag sta
 
 ### Types of Tags
 
-| Type | Command | What it stores | Use case |
-|------|---------|---------------|----------|
-| **Lightweight** | `git tag v1.0.0` | Just a pointer to a commit (like a branch that never moves) | Quick labels, local markers |
-| **Annotated** | `git tag -a v1.0.0 -m "Release 1.0.0"` | Full git object: tagger name, email, date, message, optional GPG signature | Releases (preferred for public tags) |
+| Type            | Command                                | What it stores                                                             | Use case                             |
+| --------------- | -------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------ |
+| **Lightweight** | `git tag v1.0.0`                       | Just a pointer to a commit (like a branch that never moves)                | Quick labels, local markers          |
+| **Annotated**   | `git tag -a v1.0.0 -m "Release 1.0.0"` | Full git object: tagger name, email, date, message, optional GPG signature | Releases (preferred for public tags) |
 
 ### Where Do Tags Live?
 
-| Location | Path | How to see |
-|----------|------|-----------|
-| **Local** | `.git/refs/tags/` (one file per tag, containing the SHA) | `git tag` or `git tag -l "v1.*"` |
-| **Remote** | `refs/tags/` on the remote server | `git ls-remote --tags origin` |
+| Location   | Path                                                     | How to see                       |
+| ---------- | -------------------------------------------------------- | -------------------------------- |
+| **Local**  | `.git/refs/tags/` (one file per tag, containing the SHA) | `git tag` or `git tag -l "v1.*"` |
+| **Remote** | `refs/tags/` on the remote server                        | `git ls-remote --tags origin`    |
 
 **Important:** Tags are **NOT pushed by default.** You must explicitly push them:
 
@@ -4242,12 +4295,12 @@ git rev-parse v1.0.0
 
 ### Tags vs Branches
 
-| | Tags | Branches |
-|---|---|---|
-| Moves? | No — fixed to one commit | Yes — advances with each new commit |
-| Purpose | Mark a point in time (release, milestone) | Track ongoing work |
-| Storage | `.git/refs/tags/` | `.git/refs/heads/` |
-| Auto-pushed? | No — must explicitly push | Yes — with `git push` |
+|              | Tags                                      | Branches                            |
+| ------------ | ----------------------------------------- | ----------------------------------- |
+| Moves?       | No — fixed to one commit                  | Yes — advances with each new commit |
+| Purpose      | Mark a point in time (release, milestone) | Track ongoing work                  |
+| Storage      | `.git/refs/tags/`                         | `.git/refs/heads/`                  |
+| Auto-pushed? | No — must explicitly push                 | Yes — with `git push`               |
 
 ---
 
@@ -4272,14 +4325,15 @@ GitHub's rebase+merge automatically appends `(#PR)` to each commit's subject lin
 ```markdown
 ### Features
 
-* add user authentication (#42)
-* add login CLI command (#42)
-* add password hashing utility (#43)
+- add user authentication (#42)
+- add login CLI command (#42)
+- add password hashing utility (#43)
 ```
 
 Each `(#42)` links to the full PR with review comments, approvals, and design discussion.
 
 **Why this works well:**
+
 - Zero friction — you don't think about it locally, the linkage just appears on `main`
 - Commitizen already accepts the `(#PR)` suffix — the commit-msg hook won't reject these
 - The PR number is always correct (GitHub appends it, not a human)
@@ -4327,6 +4381,7 @@ To strictly enforce issue references, you'd need a custom commitizen plugin or a
 ```
 
 **Trade-offs:**
+
 - More friction — developers must know the issue number before committing
 - Not all commits map neatly to one issue
 - PR linkage (Option A) is already automatic and often sufficient
@@ -4343,6 +4398,7 @@ Refs: #15
 ```
 
 This gives three layers of traceability:
+
 1. **Commit message** — what changed and why
 2. **`(#42)`** — links to the PR (review, discussion, approval)
 3. **`Refs: #15`** — links to the issue (requirements, user story, bug report)
@@ -4354,6 +4410,7 @@ GitHub's `(#PR)` append behavior is controlled at the repository level:
 **Settings → General → Pull Requests → "Pull Request default commit message"**
 
 For each merge strategy, you can choose what GitHub puts in the default commit message:
+
 - **Default message** — uses the commit message as-is, appends `(#PR)`
 - **Pull request title** — uses the PR title as the commit subject
 - **Pull request title and description** — uses the PR title and body
@@ -4368,45 +4425,45 @@ Common programming and development terminology, including informal terms you'll 
 
 ### General Development Jargon
 
-| Term | Meaning | Example usage |
-|------|---------|--------------|
-| **Landing** / **Landing a branch** | Getting your changes merged into the main branch. "Landed" = "merged and now on main." | "I landed my feature branch" = "my PR was merged" |
-| **Landing on main** | Same as above — emphasizes that the changes arrived at their destination. | "Once this lands on main, we can release" |
-| **Ship it** | Approve and merge/deploy. Implies confidence that it's ready. | "LGTM, ship it" (in a PR review) |
-| **LGTM** | "Looks Good To Me" — approval shorthand in code reviews. | Comment on a PR: "LGTM" |
-| **Nit** | A nitpick — minor style or preference feedback, not a blocker. | "nit: prefer `snake_case` here" |
-| **Bikeshedding** | Spending disproportionate time on trivial decisions (color of the bikeshed). | "Let's not bikeshed the variable name — either is fine" |
-| **Yak shaving** | A series of nested tasks you must complete before doing the original task. | "I needed to fix the linter to fix the import to fix the test to add the feature" |
-| **Rubber ducking** | Explaining a problem out loud (even to an inanimate object) to understand it better. | "I rubber-ducked it and realized the bug was in the loop" |
-| **Dogfooding** | Using your own product internally before releasing to users. | "We're dogfooding the new API before v2 launch" |
-| **Greenfield** | A brand-new project with no existing code or constraints. | "This is a greenfield project — no legacy to worry about" |
-| **Brownfield** | Working within an existing codebase with established patterns and constraints. | "It's a brownfield project — we have to work around the existing schema" |
-| **Tech debt** | Shortcuts or suboptimal code that works now but will cost more to maintain later. | "We're accruing tech debt by skipping tests" |
-| **Foot gun** | A feature or API that makes it easy to accidentally cause problems. | "`eval()` is a foot gun — too easy to introduce security vulnerabilities" |
-| **Escape hatch** | A way to bypass normal rules or abstractions when you need to. | "`--no-verify` is the escape hatch for pre-commit hooks" |
-| **Happy path** | The expected, error-free flow through code. | "The happy path works, but we need to handle edge cases" |
-| **Sad path** | Error or failure scenarios. | "What happens on the sad path — when the API is down?" |
-| **Blast radius** | How much is affected if something goes wrong. | "The blast radius of this change is small — only affects the CLI" |
-| **Upstream** / **Downstream** | Upstream = the original source you forked from or depend on. Downstream = consumers of your code. | "We need to submit the fix upstream" |
-| **Vendoring** | Copying a dependency's source code directly into your project instead of installing it. | "We vendored the library to avoid the pip dependency" |
-| **Shim** | A thin adapter layer that translates between two interfaces. | "We added a shim to support both the old and new API" |
-| **Tombstone** | Code or data that's been logically deleted but physically retained (marked as dead). | "The method is a tombstone — it exists but is never called" |
-| **DX** | Developer Experience — how easy, pleasant, and efficient it is for developers to work with a tool, project, or codebase. The developer-facing equivalent of UX. | "Good error messages and fast CI improve DX" |
-| **UX** | User Experience — how easy, pleasant, and efficient a product is to use from the end user's perspective. Covers usability, accessibility, and overall satisfaction. | "The UX of this CLI is confusing — too many flags" |
-| **GHCR** | GitHub Container Registry — GitHub's built-in container image registry at `ghcr.io`. Stores OCI/Docker container images alongside your source code. Free for public repos. | "The container-build workflow pushes images to GHCR" |
+| Term                               | Meaning                                                                                                                                                                    | Example usage                                                                     |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Landing** / **Landing a branch** | Getting your changes merged into the main branch. "Landed" = "merged and now on main."                                                                                     | "I landed my feature branch" = "my PR was merged"                                 |
+| **Landing on main**                | Same as above — emphasizes that the changes arrived at their destination.                                                                                                  | "Once this lands on main, we can release"                                         |
+| **Ship it**                        | Approve and merge/deploy. Implies confidence that it's ready.                                                                                                              | "LGTM, ship it" (in a PR review)                                                  |
+| **LGTM**                           | "Looks Good To Me" — approval shorthand in code reviews.                                                                                                                   | Comment on a PR: "LGTM"                                                           |
+| **Nit**                            | A nitpick — minor style or preference feedback, not a blocker.                                                                                                             | "nit: prefer `snake_case` here"                                                   |
+| **Bikeshedding**                   | Spending disproportionate time on trivial decisions (color of the bikeshed).                                                                                               | "Let's not bikeshed the variable name — either is fine"                           |
+| **Yak shaving**                    | A series of nested tasks you must complete before doing the original task.                                                                                                 | "I needed to fix the linter to fix the import to fix the test to add the feature" |
+| **Rubber ducking**                 | Explaining a problem out loud (even to an inanimate object) to understand it better.                                                                                       | "I rubber-ducked it and realized the bug was in the loop"                         |
+| **Dogfooding**                     | Using your own product internally before releasing to users.                                                                                                               | "We're dogfooding the new API before v2 launch"                                   |
+| **Greenfield**                     | A brand-new project with no existing code or constraints.                                                                                                                  | "This is a greenfield project — no legacy to worry about"                         |
+| **Brownfield**                     | Working within an existing codebase with established patterns and constraints.                                                                                             | "It's a brownfield project — we have to work around the existing schema"          |
+| **Tech debt**                      | Shortcuts or suboptimal code that works now but will cost more to maintain later.                                                                                          | "We're accruing tech debt by skipping tests"                                      |
+| **Foot gun**                       | A feature or API that makes it easy to accidentally cause problems.                                                                                                        | "`eval()` is a foot gun — too easy to introduce security vulnerabilities"         |
+| **Escape hatch**                   | A way to bypass normal rules or abstractions when you need to.                                                                                                             | "`--no-verify` is the escape hatch for pre-commit hooks"                          |
+| **Happy path**                     | The expected, error-free flow through code.                                                                                                                                | "The happy path works, but we need to handle edge cases"                          |
+| **Sad path**                       | Error or failure scenarios.                                                                                                                                                | "What happens on the sad path — when the API is down?"                            |
+| **Blast radius**                   | How much is affected if something goes wrong.                                                                                                                              | "The blast radius of this change is small — only affects the CLI"                 |
+| **Upstream** / **Downstream**      | Upstream = the original source you forked from or depend on. Downstream = consumers of your code.                                                                          | "We need to submit the fix upstream"                                              |
+| **Vendoring**                      | Copying a dependency's source code directly into your project instead of installing it.                                                                                    | "We vendored the library to avoid the pip dependency"                             |
+| **Shim**                           | A thin adapter layer that translates between two interfaces.                                                                                                               | "We added a shim to support both the old and new API"                             |
+| **Tombstone**                      | Code or data that's been logically deleted but physically retained (marked as dead).                                                                                       | "The method is a tombstone — it exists but is never called"                       |
+| **DX**                             | Developer Experience — how easy, pleasant, and efficient it is for developers to work with a tool, project, or codebase. The developer-facing equivalent of UX.            | "Good error messages and fast CI improve DX"                                      |
+| **UX**                             | User Experience — how easy, pleasant, and efficient a product is to use from the end user's perspective. Covers usability, accessibility, and overall satisfaction.        | "The UX of this CLI is confusing — too many flags"                                |
+| **GHCR**                           | GitHub Container Registry — GitHub's built-in container image registry at `ghcr.io`. Stores OCI/Docker container images alongside your source code. Free for public repos. | "The container-build workflow pushes images to GHCR"                              |
 
 ### Git-Specific Jargon
 
-| Term | Meaning | Example usage |
-|------|---------|--------------|
-| **Trunk** | The main development branch (`main` or `master`). From "trunk-based development." | "We develop on trunk — no long-lived feature branches" |
-| **HEAD** | The current commit your working directory is on. Usually the tip of a branch. | "HEAD is at abc1234" |
-| **Detached HEAD** | When HEAD points to a specific commit, not a branch. Commits here aren't on any branch. | "git checkout v1.0.0 puts you in detached HEAD state" |
-| **Fast-forward** | When a branch can be moved forward without creating a merge commit (no divergence). | "Pull with `--ff-only` to ensure a clean fast-forward" |
-| **Force-push** | Overwriting remote history. Dangerous on shared branches, normal after rebase. | "After rebasing, force-push with `--force-with-lease`" |
-| **Cherry-pick** | Applying a single commit from one branch onto another. | "Cherry-pick the hotfix onto the release branch" |
-| **Stash** | Temporarily shelving uncommitted changes. | "Stash your changes, switch branches, then pop them back" |
-| **Reflog** | Git's safety net — a log of every HEAD position change, even after resets or rebases. | "I lost my commit but found it in `git reflog`" |
+| Term                          | Meaning                                                                                              | Example usage                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **Trunk**                     | The main development branch (`main` or `master`). From "trunk-based development."                    | "We develop on trunk — no long-lived feature branches"         |
+| **HEAD**                      | The current commit your working directory is on. Usually the tip of a branch.                        | "HEAD is at abc1234"                                           |
+| **Detached HEAD**             | When HEAD points to a specific commit, not a branch. Commits here aren't on any branch.              | "git checkout v1.0.0 puts you in detached HEAD state"          |
+| **Fast-forward**              | When a branch can be moved forward without creating a merge commit (no divergence).                  | "Pull with `--ff-only` to ensure a clean fast-forward"         |
+| **Force-push**                | Overwriting remote history. Dangerous on shared branches, normal after rebase.                       | "After rebasing, force-push with `--force-with-lease`"         |
+| **Cherry-pick**               | Applying a single commit from one branch onto another.                                               | "Cherry-pick the hotfix onto the release branch"               |
+| **Stash**                     | Temporarily shelving uncommitted changes.                                                            | "Stash your changes, switch branches, then pop them back"      |
+| **Reflog**                    | Git's safety net — a log of every HEAD position change, even after resets or rebases.                | "I lost my commit but found it in `git reflog`"                |
 | **Porcelain** vs **Plumbing** | Porcelain = user-friendly git commands (`git log`). Plumbing = low-level internals (`git cat-file`). | "For scripts, use plumbing commands — they have stable output" |
 
 ---
@@ -4446,13 +4503,13 @@ shared with: your current file, open files, conversation history, and any
 files Copilot reads during the session. A bloated instructions file crowds
 out the actual code Copilot needs to reason about.
 
-| Range | Verdict | Notes |
-|-------|---------|-------|
-| **< 100 lines** | Too thin | Likely missing key conventions. Copilot will guess at things you'd rather it know. |
-| **100–300 lines** | Good starting point | Covers project overview, conventions, review priorities, and key files. Good for small-to-medium projects. |
+| Range             | Verdict                         | Notes                                                                                                                          |
+| ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **< 100 lines**   | Too thin                        | Likely missing key conventions. Copilot will guess at things you'd rather it know.                                             |
+| **100–300 lines** | Good starting point             | Covers project overview, conventions, review priorities, and key files. Good for small-to-medium projects.                     |
 | **300–500 lines** | Sweet spot for complex projects | Room for workflow tables, commit format, tool inventories, and architecture pointers. This boilerplate sits here (~350 lines). |
-| **500–800 lines** | Caution zone | Still workable if every section pulls its weight. Audit quarterly — remove anything that duplicates what's in dedicated docs. |
-| **800+ lines** | Diminishing returns | Context window pressure becomes real. Copilot may miss instructions buried in the noise. Split detail into referenced docs. |
+| **500–800 lines** | Caution zone                    | Still workable if every section pulls its weight. Audit quarterly — remove anything that duplicates what's in dedicated docs.  |
+| **800+ lines**    | Diminishing returns             | Context window pressure becomes real. Copilot may miss instructions buried in the noise. Split detail into referenced docs.    |
 
 **Rule of thumb:** If you can't skim the whole file in 2 minutes, it's
 too long. Prefer linking out to detailed docs (ADRs, architecture.md,
@@ -4471,36 +4528,54 @@ Guidelines for GitHub Copilot when working in this repository.
 
 ---
 
-## How This Project Works          ← What the project IS
-### Overview                        (1-2 paragraphs)
-### Build & Environment             (how to build/run)
-### Key Configuration Files         (table of important files)
-### CI/CD                           (workflow summary if relevant)
+## How This Project Works ← What the project IS
 
-## Working Style                   ← How Copilot should BEHAVE
-### Keep Related Files in Sync      (cross-reference rules)
-### Leave TODOs for Template Users  (if template repo)
-### Provide Feedback and Pushback   (don't be a yes-machine)
-### Session Recap                   (end-of-session summary format)
+### Overview (1-2 paragraphs)
 
-## Review Priorities               ← What to WATCH FOR
-### High Priority                   (type hints, tests, security)
-### Medium Priority                 (docstrings, error handling)
-### Low Priority                    (comments, style)
-### General Guidance                (minimal diffs, don't churn)
+### Build & Environment (how to build/run)
 
-## Conventions                     ← Project RULES
-### Language                        (imports, naming, style)
-### Project Structure               (where things go)
-### Git & PRs                       (commit format, branch rules)
+### Key Configuration Files (table of important files)
 
-## Ignore / Don't Flag             ← What to SKIP
+### CI/CD (workflow summary if relevant)
+
+## Working Style ← How Copilot should BEHAVE
+
+### Keep Related Files in Sync (cross-reference rules)
+
+### Leave TODOs for Template Users (if template repo)
+
+### Provide Feedback and Pushback (don't be a yes-machine)
+
+### Session Recap (end-of-session summary format)
+
+## Review Priorities ← What to WATCH FOR
+
+### High Priority (type hints, tests, security)
+
+### Medium Priority (docstrings, error handling)
+
+### Low Priority (comments, style)
+
+### General Guidance (minimal diffs, don't churn)
+
+## Conventions ← Project RULES
+
+### Language (imports, naming, style)
+
+### Project Structure (where things go)
+
+### Git & PRs (commit format, branch rules)
+
+## Ignore / Don't Flag ← What to SKIP
+
                                     (disabled rules, generated files)
 
-## Architecture & Design Refs      ← Where to find DEPTH
+## Architecture & Design Refs ← Where to find DEPTH
+
                                     (links to ADRs, architecture.md, etc.)
 
-## Common Issues to Catch          ← Known PITFALLS
+## Common Issues to Catch ← Known PITFALLS
+
                                     (src/ layout, mutable defaults, etc.)
 ```
 
@@ -4524,14 +4599,14 @@ Guidelines for GitHub Copilot when working in this repository.
 
 The goal is **fast orientation**, not exhaustive documentation.
 
-| Include in instructions file | Link out to separate docs |
-|------------------------------|--------------------------|
-| Project overview (2-3 sentences) | Full architecture (architecture.md) |
-| Tool names and how to run them | Tool comparison reasoning (tool-decisions.md) |
-| Convention summary (1-2 lines each) | Detailed ADRs (docs/adr/) |
-| Workflow table (name + trigger + purpose) | Individual workflow files |
-| Commit message format | Full contributing guide |
-| What to ignore (disabled rules) | Ruff/mypy full config (pyproject.toml) |
+| Include in instructions file              | Link out to separate docs                     |
+| ----------------------------------------- | --------------------------------------------- |
+| Project overview (2-3 sentences)          | Full architecture (architecture.md)           |
+| Tool names and how to run them            | Tool comparison reasoning (tool-decisions.md) |
+| Convention summary (1-2 lines each)       | Detailed ADRs (docs/adr/)                     |
+| Workflow table (name + trigger + purpose) | Individual workflow files                     |
+| Commit message format                     | Full contributing guide                       |
+| What to ignore (disabled rules)           | Ruff/mypy full config (pyproject.toml)        |
 
 ### Maintenance
 
@@ -4558,15 +4633,15 @@ are worse than no instructions — they actively mislead Copilot.
 This boilerplate's `.github/copilot-instructions.md` is ~350 lines and
 covers:
 
-| Section | Purpose | ~Lines |
-|---------|---------|--------|
-| How This Project Works | Build, hooks, workflows, config | ~130 |
-| Working Style | TODOs, sync, pushback, recaps | ~70 |
-| Review Priorities | What to check at high/med/low priority | ~30 |
-| Conventions | Python, project structure, git, CI | ~50 |
-| Ignore / Don't Flag | Disabled rules, generated files | ~10 |
-| Architecture & Design Refs | Links to deep docs + ADR table | ~40 |
-| Common Issues | Known pitfalls | ~10 |
+| Section                    | Purpose                                | ~Lines |
+| -------------------------- | -------------------------------------- | ------ |
+| How This Project Works     | Build, hooks, workflows, config        | ~130   |
+| Working Style              | TODOs, sync, pushback, recaps          | ~70    |
+| Review Priorities          | What to check at high/med/low priority | ~30    |
+| Conventions                | Python, project structure, git, CI     | ~50    |
+| Ignore / Don't Flag        | Disabled rules, generated files        | ~10    |
+| Architecture & Design Refs | Links to deep docs + ADR table         | ~40    |
+| Common Issues              | Known pitfalls                         | ~10    |
 
 It sits comfortably in the 300–500 sweet spot for a project of this
 complexity. The heaviest section is "How This Project Works" — which is

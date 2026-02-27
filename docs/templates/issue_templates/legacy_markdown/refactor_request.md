@@ -14,6 +14,7 @@ Please provide enough context to understand the value of this change.
 -->
 
 <!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+
 ## ⚠️ Before submitting
 
 - [ ] **Not a bug** – Use the [Bug Report](https://github.com/JoJo275/simple-python-boilerplate/issues/new?template=bug_report.yml) template for bugs
@@ -28,6 +29,7 @@ Please provide enough context to understand the value of this change.
 ### Refactor Type
 
 <!-- Select one: -->
+
 - [ ] Code cleanup / Simplification
 - [ ] Extract / Split (function, class, module)
 - [ ] Consolidate / Merge duplicates
@@ -42,10 +44,10 @@ Please provide enough context to understand the value of this change.
 
 **If "Other," please describe:**
 
-
 ### Affected Area
 
 <!-- Select one: -->
+
 - [ ] Core library / API
 - [ ] CLI
 - [ ] Configuration
@@ -57,25 +59,23 @@ Please provide enough context to understand the value of this change.
 
 **If "Other," please describe:**
 
-
 ### Location
 
 **Package / Module / File Path(s):**
+
 <!-- e.g., src/utils.py, src/auth/, or the config module -->
 
-
 **Function / Class Names:**
+
 <!-- e.g., MyClass, process_data(), AuthHandler.validate() -->
 
-
 **Links to Lines (optional):**
-<!-- Permalinks to specific lines on GitHub (use "Copy permalink" from the file view) -->
 
+<!-- Permalinks to specific lines on GitHub (use "Copy permalink" from the file view) -->
 
 ### Description
 
 <!-- Describe the current state of the code and what needs improvement. -->
-
 
 ---
 
@@ -85,15 +85,14 @@ Please provide enough context to understand the value of this change.
 
 <!-- What problems does the current code cause? Why is refactoring needed? -->
 
-
 ### Expected Benefits
 
 <!-- What improvements will this refactoring bring? -->
 
-
 ### Priority
 
 <!-- Select one: -->
+
 - [ ] High – Blocking other work or causing issues
 - [ ] Medium – Would significantly improve maintainability
 - [ ] Low – Nice to have cleanup
@@ -105,10 +104,10 @@ Please provide enough context to understand the value of this change.
 
 <!-- If you have ideas about how to refactor this, describe your approach. -->
 
-
 ### Breaking Change?
 
 <!-- Select one: -->
+
 - [ ] No – Internal only, no public API changes
 - [ ] Yes – Public API changes required
 - [ ] Unsure
@@ -120,6 +119,7 @@ Please provide enough context to understand the value of this change.
 ### Who will implement?
 
 <!-- Select one: -->
+
 - [ ] Maintainers – I'm requesting the team handle this
 - [ ] I can implement – I'm proposing to do this myself (with approval)
 - [ ] Not sure – Open to discussion
@@ -143,7 +143,6 @@ Please provide enough context to understand the value of this change.
 
 <!-- What could break? How will we test and roll out safely? -->
 
-
 ---
 
 ## Acceptance Criteria / Definition of Done
@@ -151,6 +150,7 @@ Please provide enough context to understand the value of this change.
 <!-- When is this refactor complete? What must be true to close this issue? -->
 
 **Done when:**
+
 - [ ]
 - [ ]
 - [ ]

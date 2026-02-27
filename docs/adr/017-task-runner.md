@@ -10,20 +10,20 @@ Developer workflows involve many commands: running tests, linting, formatting, b
 
 Options considered:
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **Makefile** | Ubiquitous on Unix, well-known | Poor Windows support, tab-sensitivity, shell quirks |
-| **Just** | Simple syntax, cross-platform | Less mature ecosystem, fewer features |
-| **Nox / tox** | Python-native, good for test matrices | Heavier, overlaps with Hatch's env management |
-| **npm scripts / package.json** | Familiar to JS developers | Wrong ecosystem for a Python project |
-| **Taskfile** | YAML syntax, true cross-platform, variables, prompts, dependencies | Less well-known than Make |
-| **Shell scripts** | No extra tool needed | Not cross-platform, scattered across files |
+| Option                         | Pros                                                               | Cons                                                |
+| ------------------------------ | ------------------------------------------------------------------ | --------------------------------------------------- |
+| **Makefile**                   | Ubiquitous on Unix, well-known                                     | Poor Windows support, tab-sensitivity, shell quirks |
+| **Just**                       | Simple syntax, cross-platform                                      | Less mature ecosystem, fewer features               |
+| **Nox / tox**                  | Python-native, good for test matrices                              | Heavier, overlaps with Hatch's env management       |
+| **npm scripts / package.json** | Familiar to JS developers                                          | Wrong ecosystem for a Python project                |
+| **Taskfile**                   | YAML syntax, true cross-platform, variables, prompts, dependencies | Less well-known than Make                           |
+| **Shell scripts**              | No extra tool needed                                               | Not cross-platform, scattered across files          |
 
 ### Why not just use Hatch scripts directly?
 
 Hatch scripts (`hatch run <script>`) are excellent for tool invocations but lack features like:
 
-- Task dependencies (run lint *before* test)
+- Task dependencies (run lint _before_ test)
 - Confirmation prompts for destructive operations
 - Grouping non-Hatch commands (e.g., `sqlite3`, `gh`, git operations)
 - Discoverability via `task --list`

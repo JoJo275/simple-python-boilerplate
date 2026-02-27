@@ -50,11 +50,11 @@ tests/
 
 ### Test categories
 
-| Category | Directory | Marker | Characteristics |
-| :------- | :-------- | :----- | :-------------- |
-| Unit | `tests/unit/` | (none — default) | No I/O, no network, no database. Fast. Mocked dependencies. |
-| Integration | `tests/integration/` | `@pytest.mark.integration` | May use real files, databases, or subprocesses. Slower. |
-| Slow | Any | `@pytest.mark.slow` | Long-running tests. Deselect with `-m "not slow"`. |
+| Category    | Directory            | Marker                     | Characteristics                                             |
+| :---------- | :------------------- | :------------------------- | :---------------------------------------------------------- |
+| Unit        | `tests/unit/`        | (none — default)           | No I/O, no network, no database. Fast. Mocked dependencies. |
+| Integration | `tests/integration/` | `@pytest.mark.integration` | May use real files, databases, or subprocesses. Slower.     |
+| Slow        | Any                  | `@pytest.mark.slow`        | Long-running tests. Deselect with `-m "not slow"`.          |
 
 ### Custom markers
 

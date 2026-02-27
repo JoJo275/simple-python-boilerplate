@@ -12,12 +12,12 @@ This project needs a reproducible way to build, test, and deploy the application
 
 The file is named `Containerfile` (not `Dockerfile`) for OCI compatibility:
 
-| Aspect | Dockerfile | Containerfile |
-|--------|-----------|---------------|
-| **Standard** | Docker-specific convention | OCI-standard name |
-| **Docker support** | Native | Supported via `-f Containerfile` |
-| **Podman support** | Supported via `-f Dockerfile` | Native |
-| **Syntax** | Identical | Identical |
+| Aspect             | Dockerfile                    | Containerfile                    |
+| ------------------ | ----------------------------- | -------------------------------- |
+| **Standard**       | Docker-specific convention    | OCI-standard name                |
+| **Docker support** | Native                        | Supported via `-f Containerfile` |
+| **Podman support** | Supported via `-f Dockerfile` | Native                           |
+| **Syntax**         | Identical                     | Identical                        |
 
 The syntax is the same — only the filename differs. Using `Containerfile` signals that the project is not locked to Docker and works with any OCI-compliant runtime (Podman, Docker, Buildah, etc.).
 
@@ -25,10 +25,10 @@ The syntax is the same — only the filename differs. Using `Containerfile` sign
 
 The `Containerfile` uses a **multi-stage build**:
 
-| Stage | Purpose | Contents |
-|-------|---------|----------|
-| **builder** | Build the wheel | Python, pip, build tools, source code |
-| **runtime** | Run the application | Python (slim), installed wheel only |
+| Stage       | Purpose             | Contents                              |
+| ----------- | ------------------- | ------------------------------------- |
+| **builder** | Build the wheel     | Python, pip, build tools, source code |
+| **runtime** | Run the application | Python (slim), installed wheel only   |
 
 This produces a minimal final image with no build tooling, source code, or development dependencies.
 
@@ -41,12 +41,12 @@ This produces a minimal final image with no build tooling, source code, or devel
 
 ## Alternatives Considered
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **No container** | Simpler, fewer files | No deployment story, environment inconsistency |
-| **Docker Compose** | Multi-service orchestration | Overkill for a single-service app |
-| **Nix / Guix** | Fully reproducible builds | Very steep learning curve, niche adoption |
-| **Containerfile (multi-stage)** | Minimal image, OCI-standard, wide tooling support | Requires container runtime for local use |
+| Option                          | Pros                                              | Cons                                           |
+| ------------------------------- | ------------------------------------------------- | ---------------------------------------------- |
+| **No container**                | Simpler, fewer files                              | No deployment story, environment inconsistency |
+| **Docker Compose**              | Multi-service orchestration                       | Overkill for a single-service app              |
+| **Nix / Guix**                  | Fully reproducible builds                         | Very steep learning curve, niche adoption      |
+| **Containerfile (multi-stage)** | Minimal image, OCI-standard, wide tooling support | Requires container runtime for local use       |
 
 ## Decision
 

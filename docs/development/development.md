@@ -70,16 +70,19 @@ GitHub CLI (`gh`) is required to run the label management scripts in `scripts/`.
 Install GitHub CLI:
 
 - **Windows (winget):**
+
   ```bash
   winget install --id GitHub.cli
   ```
 
 - **Windows (Chocolatey):**
+
   ```bash
   choco install gh
   ```
 
 - **macOS (Homebrew):**
+
   ```bash
   brew install gh
   ```
@@ -117,19 +120,19 @@ Commit messages follow the [Conventional Commits](https://www.conventionalcommit
 
 #### Types
 
-| Type | When to Use |
-|------|-------------|
-| `feat` | New feature or capability |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Whitespace, formatting (no logic changes) |
-| `refactor` | Code restructuring (no feature/fix) |
-| `perf` | Performance improvement |
-| `test` | Adding or fixing tests |
-| `build` | Build system, dependencies |
-| `ci` | CI/CD configuration |
-| `chore` | Maintenance, tooling, config |
-| `revert` | Reverting a previous commit |
+| Type       | When to Use                               |
+| ---------- | ----------------------------------------- |
+| `feat`     | New feature or capability                 |
+| `fix`      | Bug fix                                   |
+| `docs`     | Documentation only                        |
+| `style`    | Whitespace, formatting (no logic changes) |
+| `refactor` | Code restructuring (no feature/fix)       |
+| `perf`     | Performance improvement                   |
+| `test`     | Adding or fixing tests                    |
+| `build`    | Build system, dependencies                |
+| `ci`       | CI/CD configuration                       |
+| `chore`    | Maintenance, tooling, config              |
+| `revert`   | Reverting a previous commit               |
 
 #### Breaking Changes
 
@@ -211,16 +214,16 @@ python -m pipdeptree --json
 
 Tools I found helpful during development:
 
-| Tool | Install | Description |
-|------|---------|-------------|
-| `pip-tools` | `pip install pip-tools` | Pin dependencies with `pip-compile` |
-| `pip-audit` | `pip install pip-audit` | Check for security vulnerabilities |
-| `rich` | `pip install rich` | Pretty console output and tables |
-| `typer` | `pip install typer` | Build CLI apps with type hints |
-| `click` | `pip install click` | Composable command-line toolkit |
-| `icecream` | `pip install icecream` | Better debug printing: `ic(variable)` |
-| `ipython` | `pip install ipython` | Enhanced interactive Python shell |
-| `devtools` | `pip install devtools` | Debug utilities: `debug(variable)` |
+| Tool        | Install                 | Description                           |
+| ----------- | ----------------------- | ------------------------------------- |
+| `pip-tools` | `pip install pip-tools` | Pin dependencies with `pip-compile`   |
+| `pip-audit` | `pip install pip-audit` | Check for security vulnerabilities    |
+| `rich`      | `pip install rich`      | Pretty console output and tables      |
+| `typer`     | `pip install typer`     | Build CLI apps with type hints        |
+| `click`     | `pip install click`     | Composable command-line toolkit       |
+| `icecream`  | `pip install icecream`  | Better debug printing: `ic(variable)` |
+| `ipython`   | `pip install ipython`   | Enhanced interactive Python shell     |
+| `devtools`  | `pip install devtools`  | Debug utilities: `debug(variable)`    |
 
 ---
 
@@ -271,22 +274,22 @@ cat .pre-commit-config.yaml
 
 Each `- id:` entry under `hooks:` in `.pre-commit-config.yaml` is an enabled hook. This project uses:
 
-| Hook | Source | Purpose |
-|------|--------|---------|
-| `trailing-whitespace` | pre-commit-hooks | Remove trailing whitespace |
-| `end-of-file-fixer` | pre-commit-hooks | Ensure files end with newline |
-| `check-yaml` | pre-commit-hooks | Validate YAML syntax |
-| `check-toml` | pre-commit-hooks | Validate TOML syntax |
-| `check-json` | pre-commit-hooks | Validate JSON syntax |
-| `check-added-large-files` | pre-commit-hooks | Prevent giant files (>1 MB) |
-| `check-merge-conflict` | pre-commit-hooks | Detect merge conflict markers |
-| `check-case-conflict` | pre-commit-hooks | Detect case-insensitive filename clashes |
-| `debug-statements` | pre-commit-hooks | Find leftover debugger imports |
-| `detect-private-key` | pre-commit-hooks | Detect committed private keys |
-| `ruff` | ruff-pre-commit | Lint Python code (with auto-fix) |
-| `ruff-format` | ruff-pre-commit | Format Python code |
-| `mypy` | mirrors-mypy | Type checking (`src/` only) |
-| `bandit` | bandit | Security linting (excludes `tests/`) |
+| Hook                      | Source           | Purpose                                  |
+| ------------------------- | ---------------- | ---------------------------------------- |
+| `trailing-whitespace`     | pre-commit-hooks | Remove trailing whitespace               |
+| `end-of-file-fixer`       | pre-commit-hooks | Ensure files end with newline            |
+| `check-yaml`              | pre-commit-hooks | Validate YAML syntax                     |
+| `check-toml`              | pre-commit-hooks | Validate TOML syntax                     |
+| `check-json`              | pre-commit-hooks | Validate JSON syntax                     |
+| `check-added-large-files` | pre-commit-hooks | Prevent giant files (>1 MB)              |
+| `check-merge-conflict`    | pre-commit-hooks | Detect merge conflict markers            |
+| `check-case-conflict`     | pre-commit-hooks | Detect case-insensitive filename clashes |
+| `debug-statements`        | pre-commit-hooks | Find leftover debugger imports           |
+| `detect-private-key`      | pre-commit-hooks | Detect committed private keys            |
+| `ruff`                    | ruff-pre-commit  | Lint Python code (with auto-fix)         |
+| `ruff-format`             | ruff-pre-commit  | Format Python code                       |
+| `mypy`                    | mirrors-mypy     | Type checking (`src/` only)              |
+| `bandit`                  | bandit           | Security linting (excludes `tests/`)     |
 
 #### Without pre-commit (raw Git hooks)
 

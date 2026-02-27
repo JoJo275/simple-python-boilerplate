@@ -8,11 +8,12 @@ This document describes when and how releases are made.
 
 This project follows [Semantic Versioning](https://semver.org/) (SemVer):
 
-| Version | When to Increment | Example |
-|---------|-------------------|---------|
-| **MAJOR** (X.0.0) | Breaking changes to public API | `1.0.0` → `2.0.0` |
+| Version           | When to Increment                 | Example           |
+| ----------------- | --------------------------------- | ----------------- |
+| **MAJOR** (X.0.0) | Breaking changes to public API    | `1.0.0` → `2.0.0` |
 | **MINOR** (0.X.0) | New features, backward compatible | `1.0.0` → `1.1.0` |
-| **PATCH** (0.0.X) | Bug fixes, backward compatible | `1.0.0` → `1.0.1` |
+| **PATCH** (0.0.X) | Bug fixes, backward compatible    | `1.0.0` → `1.0.1` |
+
 Version bumps are **determined automatically** by [release-please](https://github.com/googleapis/release-please) from conventional commit prefixes — no manual version decisions needed.
 
 ### How the Version Is Derived
@@ -28,20 +29,21 @@ The package version comes from **git tags** via [hatch-vcs](https://github.com/o
 
 `bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means:
 
-| Commit type | Version bump | Example |
-|------------|--------------|--------|
-| `fix:` / `perf:` | Patch | `0.6.0` → `0.6.1` |
-| `feat:` | Minor | `0.6.0` → `0.7.0` |
+| Commit type       | Version bump      | Example           |
+| ----------------- | ----------------- | ----------------- |
+| `fix:` / `perf:`  | Patch             | `0.6.0` → `0.6.1` |
+| `feat:`           | Minor             | `0.6.0` → `0.7.0` |
 | `BREAKING CHANGE` | Minor (not major) | `0.6.0` → `0.7.0` |
 
 Reaching `1.0.0` is a **manual decision** — edit the Release PR to set the version.
 After `1.0.0`, breaking changes bump major as expected by SemVer.
+
 ### Pre-release Versions
 
-| Suffix | Meaning | Stability |
-|--------|---------|-----------|
-| `1.0.0a1` | Alpha | Incomplete, may change significantly |
-| `1.0.0b1` | Beta | Feature complete, may have bugs |
+| Suffix     | Meaning           | Stability                             |
+| ---------- | ----------------- | ------------------------------------- |
+| `1.0.0a1`  | Alpha             | Incomplete, may change significantly  |
+| `1.0.0b1`  | Beta              | Feature complete, may have bugs       |
 | `1.0.0rc1` | Release candidate | Ready for release unless issues found |
 
 ---
@@ -61,26 +63,26 @@ This project does **not** follow a fixed release schedule. Releases are made whe
 release-please scans conventional commits on `main` and creates (or updates) a
 Release PR when it finds **releasable** commit types:
 
-| Commit Prefix | Version Bump | Appears in CHANGELOG |
-|---------------|--------------|---------------------|
-| `fix:` | Patch | Yes |
-| `perf:` | Patch | Yes |
-| `feat:` | Minor | Yes |
-| `BREAKING CHANGE` | Major (minor pre-1.0) | Yes |
-| `revert:` | Patch | Yes |
-| `docs:`, `chore:`, `refactor:`, `test:`, `ci:`, `style:`, `build:` | — | Hidden (no release on their own) |
+| Commit Prefix                                                      | Version Bump          | Appears in CHANGELOG             |
+| ------------------------------------------------------------------ | --------------------- | -------------------------------- |
+| `fix:`                                                             | Patch                 | Yes                              |
+| `perf:`                                                            | Patch                 | Yes                              |
+| `feat:`                                                            | Minor                 | Yes                              |
+| `BREAKING CHANGE`                                                  | Major (minor pre-1.0) | Yes                              |
+| `revert:`                                                          | Patch                 | Yes                              |
+| `docs:`, `chore:`, `refactor:`, `test:`, `ci:`, `style:`, `build:` | —                     | Hidden (no release on their own) |
 
 Hidden types are grouped under the releasable commits if releasable types exist in the same batch.
 A push consisting only of hidden types (e.g., `docs:` or `chore:`) will **not** create a Release PR.
 
 ### When Releases Happen
 
-| Situation | Action |
-|-----------|--------|
-| Security fix | Merge fix → merge Release PR ASAP |
-| Bug fix | Merge fix → merge Release PR (batched unless critical) |
-| New feature | Merge feature → merge Release PR after testing and docs |
-| Breaking change | Planned, documented, migration guide provided |
+| Situation       | Action                                                  |
+| --------------- | ------------------------------------------------------- |
+| Security fix    | Merge fix → merge Release PR ASAP                       |
+| Bug fix         | Merge fix → merge Release PR (batched unless critical)  |
+| New feature     | Merge feature → merge Release PR after testing and docs |
+| Breaking change | Planned, documented, migration guide provided           |
 
 ---
 
@@ -130,11 +132,11 @@ def old_function():
 
 ## Support Policy
 
-| Version | Support Level |
-|---------|---------------|
-| Latest major | Full support (bugs + features) |
+| Version        | Support Level                  |
+| -------------- | ------------------------------ |
+| Latest major   | Full support (bugs + features) |
 | Previous major | Security fixes only (6 months) |
-| Older versions | No support |
+| Older versions | No support                     |
 
 ---
 

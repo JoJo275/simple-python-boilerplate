@@ -3,6 +3,7 @@
 A modern Python project template with `src/` layout, automated CI/CD, and batteries-included tooling.
 
 <!-- TODO (template users): Replace 'JoJo275/simple-python-boilerplate' with your repo slug -->
+
 [![CI](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml/badge.svg?branch=main)](https://github.com/JoJo275/simple-python-boilerplate/actions/workflows/ci-gate.yml)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
@@ -120,20 +121,20 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 
 ## Utility Scripts
 
-| Script                          | Purpose                                                                  |
-| :------------------------------ | :----------------------------------------------------------------------- |
-| `scripts/bootstrap.py`          | One-command setup for fresh clones                                       |
-| `scripts/customize.py`          | Interactive project customization (placeholders, license, optional dirs) |
-| `scripts/repo_doctor.py`        | Health checker with `--fix` support                                      |
-| `scripts/env_doctor.py`         | Quick environment health check                                           |
-| `scripts/doctor.py`             | Diagnostics bundle for bug reports                                       |
-| `scripts/dep_versions.py`       | Show/update dependency versions                                          |
-| `scripts/workflow_versions.py`  | Show/update SHA-pinned action versions                                   |
-| `scripts/apply_labels.py`       | Apply GitHub labels (`--set baseline\|extended`)                         |
-| `scripts/check_todos.py`        | Scan for `TODO (template users)` comments                                |
-| `scripts/archive_todos.py`      | Archive resolved TODOs                                                   |
-| `scripts/changelog_check.py`    | Verify CHANGELOG.md matches git tags                                     |
-| `scripts/clean.py`              | Remove build artifacts and caches                                        |
+| Script                         | Purpose                                                                  |
+| :----------------------------- | :----------------------------------------------------------------------- |
+| `scripts/bootstrap.py`         | One-command setup for fresh clones                                       |
+| `scripts/customize.py`         | Interactive project customization (placeholders, license, optional dirs) |
+| `scripts/repo_doctor.py`       | Health checker with `--fix` support                                      |
+| `scripts/env_doctor.py`        | Quick environment health check                                           |
+| `scripts/doctor.py`            | Diagnostics bundle for bug reports                                       |
+| `scripts/dep_versions.py`      | Show/update dependency versions                                          |
+| `scripts/workflow_versions.py` | Show/update SHA-pinned action versions                                   |
+| `scripts/apply_labels.py`      | Apply GitHub labels (`--set baseline\|extended`)                         |
+| `scripts/check_todos.py`       | Scan for `TODO (template users)` comments                                |
+| `scripts/archive_todos.py`     | Archive resolved TODOs                                                   |
+| `scripts/changelog_check.py`   | Verify CHANGELOG.md matches git tags                                     |
+| `scripts/clean.py`             | Remove build artifacts and caches                                        |
 
 ## Using This Template
 
@@ -170,6 +171,7 @@ See [USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for the full walkthrou
 Apache License 2.0 — see [LICENSE](LICENSE).
 
 <!-- reference-style links (keep sorted) -->
+
 [adr-005]: docs/adr/005-ruff-for-linting-formatting.md
 [adr-006]: docs/adr/006-pytest-for-testing.md
 [adr-008]: docs/adr/008-pre-commit-hooks.md

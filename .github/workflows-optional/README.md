@@ -16,8 +16,8 @@ you can adopt when your project needs them.
 
 ## Available templates
 
-| File | Purpose |
-|---|---|
-| `docs.yml` | Build and deploy documentation (e.g. MkDocs, Sphinx) |
-| `dependency-review.yml` | Scan PRs for vulnerable or restricted dependencies |
-| `labeler.yml` | Auto-label PRs based on file paths changed |
+| File                    | Purpose                                              |
+| ----------------------- | ---------------------------------------------------- |
+| `docs.yml`              | Build and deploy documentation (e.g. MkDocs, Sphinx) |
+| `dependency-review.yml` | Scan PRs for vulnerable or restricted dependencies   |
+| `labeler.yml`           | Auto-label PRs based on file paths changed           |

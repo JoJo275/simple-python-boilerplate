@@ -277,7 +277,6 @@ Dev/test dependencies are listed in `pyproject.toml`
 - **`sql/`** — Has `example_query.sql` only, no application queries yet
 - **`db/schema.sql`** — Placeholder schema, no tables defined
 
-
 ## Related Documentation
 
 - [Tool Decisions](tool-decisions.md) — Detailed tool comparison notes

@@ -73,11 +73,9 @@ Comprehensive improvements to utility scripts, CI workflows, and documentation a
 
 The utility scripts lacked robustness (no tests, fragile parsing, missing CLI features), the CI pipeline was missing cache management and requirements file regeneration, and documentation had gaps. These changes bring the template's tooling up to production quality.
 
-
 ## Related Issue
 
 N/A — accumulated improvements across scripts, CI, and documentation. No single tracking issue.
-
 
 ## Type of Change
 
@@ -91,11 +89,13 @@ N/A — accumulated improvements across scripts, CI, and documentation. No singl
 ## How to Test
 
 **Steps:**
+
 1. Run all unit tests to verify script changes
 2. Smoke test the CLI scripts directly
 3. Validate workflows with actionlint
 
 **Test command(s):**
+
 ```bash
 # Run all unit tests
 hatch run pytest tests/unit/ -v
@@ -119,18 +119,17 @@ hatch run mypy scripts/doctor.py scripts/dep_versions.py
 hatch run pre-commit run actionlint --all-files
 ```
 
-
 ## Risk / Impact
 
 **Risk level:** Low
 
 **What could break:**
+
 - `dep_versions.py upgrade` now also updates `>=`/`~=` specifiers in pyproject.toml after upgrading — this is new behavior. It leaves `==` pins untouched.
 - `doctor.py` parallelized tool detection could theoretically surface race conditions, but `ThreadPoolExecutor` + `get_version` are stateless and independent.
 - `hatch --version` fix in both `doctor.py` and `env_doctor.py` changes the output of those commands (now shows Hatch's actual version instead of the project version).
 
 **Rollback plan:** Revert this PR
-
 
 ## Checklist
 

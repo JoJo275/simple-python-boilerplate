@@ -1,18 +1,18 @@
 # repo_doctor.d/ — Optional Profile Rules
 
-Extra rule sets for `scripts/repo_doctor.py`.  These are **not** loaded by
+Extra rule sets for `scripts/repo_doctor.py`. These are **not** loaded by
 default — activate them on the CLI or in `.repo-doctor.toml`.
 
 ## Available Profiles
 
-| Profile       | File              | What it checks                                          |
-|---------------|-------------------|---------------------------------------------------------|
-| `python`      | `python.toml`     | Deeper packaging, typing, linting, coverage, bandit     |
-| `docs`        | `docs.toml`       | MkDocs structure, ADRs, dev guides, standard files      |
-| `db`          | `db.toml`         | Schema, migrations, seeds, bootstrap scripts            |
-| `ci`          | `ci.toml`         | Workflow hardening, pinning, Dependabot ecosystems       |
-| `container`   | `container.toml`  | Containerfile hygiene, ignore files, multi-stage builds  |
-| `security`    | `security.toml`   | Security policy, bandit config, secret scanning, audits  |
+| Profile     | File             | What it checks                                          |
+| ----------- | ---------------- | ------------------------------------------------------- |
+| `python`    | `python.toml`    | Deeper packaging, typing, linting, coverage, bandit     |
+| `docs`      | `docs.toml`      | MkDocs structure, ADRs, dev guides, standard files      |
+| `db`        | `db.toml`        | Schema, migrations, seeds, bootstrap scripts            |
+| `ci`        | `ci.toml`        | Workflow hardening, pinning, Dependabot ecosystems      |
+| `container` | `container.toml` | Containerfile hygiene, ignore files, multi-stage builds |
+| `security`  | `security.toml`  | Security policy, bandit config, secret scanning, audits |
 
 ## Usage
 

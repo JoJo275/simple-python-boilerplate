@@ -13,6 +13,7 @@ Python has several testing frameworks:
 - **nose/nose2** — Extended unittest (largely deprecated)
 
 The choice of testing framework affects:
+
 - How tests are written and organized
 - Available assertion styles and fixtures
 - Plugin ecosystem and extensibility

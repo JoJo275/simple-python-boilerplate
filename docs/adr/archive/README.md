@@ -4,11 +4,11 @@ This directory contains **deprecated**, **superseded**, or **suspended** Archite
 
 ## Status Definitions
 
-| Status | Meaning |
-|--------|---------|
-| **Deprecated** | The decision is no longer valid due to changed circumstances |
+| Status         | Meaning                                                        |
+| -------------- | -------------------------------------------------------------- |
+| **Deprecated** | The decision is no longer valid due to changed circumstances   |
 | **Superseded** | A newer ADR has replaced this one (linked in the supersession) |
-| **Suspended** | The decision is on hold pending further evaluation |
+| **Suspended**  | The decision is on hold pending further evaluation             |
 
 ## Archive Process
 
@@ -21,7 +21,7 @@ When archiving an ADR:
 
 ## Contents
 
-*No archived ADRs yet.*
+_No archived ADRs yet._
 
 <!-- List archived ADRs here as they are added:
 | ADR | Original Title | Status | Archived Date |

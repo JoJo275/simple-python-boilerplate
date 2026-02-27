@@ -31,6 +31,7 @@ If one of these fits better, please use it instead:
 ### Category
 
 <!-- Select one: -->
+
 - [ ] Question / Help wanted
 - [ ] Discussion / RFC
 - [ ] Maintenance / Chore
@@ -44,7 +45,6 @@ If one of these fits better, please use it instead:
 
 <!-- A clear, concise summary of the issue -->
 
-
 ### Description
 
 <!-- Describe your issue in detail. What's the context? What do you need? -->
@@ -55,11 +55,9 @@ If one of these fits better, please use it instead:
 - What have you tried?
 -->
 
-
 ### Proposed Solution / Next Steps (Optional)
 
 <!-- If you have ideas about how to address this, share them here -->
-
 
 ---
 
@@ -75,10 +73,10 @@ If one of these fits better, please use it instead:
 - Screenshots or logs
 -->
 
-
 ### Urgency
 
 <!-- Select one: -->
+
 - [ ] Low – No rush
 - [ ] Medium – Would be helpful soon
 - [ ] High – Blocking work

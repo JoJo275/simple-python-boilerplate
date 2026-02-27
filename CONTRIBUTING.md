@@ -82,21 +82,21 @@ This project uses a layered command system: **Task** (convenience) → **Hatch**
 
 ### Quick Reference
 
-| Task | Command | What it does |
-|------|---------|-------------|
-| Run tests | `task test` | pytest (unit tests only) |
-| Tests + coverage | `task test:cov` | pytest with coverage report |
-| Test matrix | `task test:matrix` | pytest across Python 3.11-3.13 |
-| Lint | `task lint` | ruff check (report issues) |
-| Lint + fix | `task lint:fix` | ruff check with auto-fix |
-| Format | `task fmt` | ruff format |
-| Type check | `task typecheck` | mypy strict mode |
-| All checks | `task check` | lint + typecheck + test |
-| Security | `task security` | bandit security scan |
-| Docs serve | `task docs:serve` | Local docs at localhost:8000 |
-| Docs build | `task docs:build` | Build docs (strict mode) |
-| Pre-commit | `task pre-commit:run` | Run all hooks manually |
-| Commit | `task commit` | Interactive conventional commit |
+| Task             | Command               | What it does                    |
+| ---------------- | --------------------- | ------------------------------- |
+| Run tests        | `task test`           | pytest (unit tests only)        |
+| Tests + coverage | `task test:cov`       | pytest with coverage report     |
+| Test matrix      | `task test:matrix`    | pytest across Python 3.11-3.13  |
+| Lint             | `task lint`           | ruff check (report issues)      |
+| Lint + fix       | `task lint:fix`       | ruff check with auto-fix        |
+| Format           | `task fmt`            | ruff format                     |
+| Type check       | `task typecheck`      | mypy strict mode                |
+| All checks       | `task check`          | lint + typecheck + test         |
+| Security         | `task security`       | bandit security scan            |
+| Docs serve       | `task docs:serve`     | Local docs at localhost:8000    |
+| Docs build       | `task docs:build`     | Build docs (strict mode)        |
+| Pre-commit       | `task pre-commit:run` | Run all hooks manually          |
+| Commit           | `task commit`         | Interactive conventional commit |
 
 ### Without Task Installed
 
@@ -182,10 +182,10 @@ Every change passes through multiple layers of automated checks before reaching 
 
 These tools provide **real-time feedback** as you type — no commands needed.
 
-| Tool | What it does | How it helps |
-|------|-------------|--------------|
+| Tool                  | What it does                                   | How it helps                                      |
+| --------------------- | ---------------------------------------------- | ------------------------------------------------- |
 | **Pylance / Pyright** | Type checking, IntelliSense, import resolution | Catches type errors and missing imports instantly |
-| **Ruff extension** | Inline lint warnings and auto-format on save | Shows style issues and potential bugs as you type |
+| **Ruff extension**    | Inline lint warnings and auto-format on save   | Shows style issues and potential bugs as you type |
 
 **Setup:** Install the [Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) and [Pylance](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance) VS Code extensions. These are optional but strongly recommended — most issues they catch would otherwise fail at a later stage.
 
@@ -195,24 +195,25 @@ These tools provide **real-time feedback** as you type — no commands needed.
 
 When you run `git commit`, pre-commit hooks run **automatically** and block the commit if anything fails. This is your last line of defense before code leaves your machine.
 
-| Hook | What it checks |
-|------|---------------|
-| **trailing-whitespace** | Removes trailing whitespace |
-| **end-of-file-fixer** | Ensures files end with a newline |
-| **check-yaml / check-toml / check-json** | Validates config file syntax |
-| **check-added-large-files** | Blocks files over 1 MB |
-| **check-merge-conflict** | Catches leftover conflict markers |
-| **detect-private-key** | Prevents accidental secret commits |
-| **debug-statements** | Catches leftover `breakpoint()` / `pdb` imports |
-| **Ruff (lint + format)** | Linting with auto-fix and formatting |
-| **mypy** | Static type checking on `src/` |
-| **Bandit** | Security analysis (SQL injection, hardcoded secrets, etc.) |
+| Hook                                     | What it checks                                             |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| **trailing-whitespace**                  | Removes trailing whitespace                                |
+| **end-of-file-fixer**                    | Ensures files end with a newline                           |
+| **check-yaml / check-toml / check-json** | Validates config file syntax                               |
+| **check-added-large-files**              | Blocks files over 1 MB                                     |
+| **check-merge-conflict**                 | Catches leftover conflict markers                          |
+| **detect-private-key**                   | Prevents accidental secret commits                         |
+| **debug-statements**                     | Catches leftover `breakpoint()` / `pdb` imports            |
+| **Ruff (lint + format)**                 | Linting with auto-fix and formatting                       |
+| **mypy**                                 | Static type checking on `src/`                             |
+| **Bandit**                               | Security analysis (SQL injection, hardcoded secrets, etc.) |
 
 **If a hook fails:** Some hooks (Ruff, trailing-whitespace) auto-fix the file. Stage the fixes with `git add` and commit again. Others (mypy, bandit) require you to fix the code manually.
 
 **Bypassing hooks** (use sparingly): `git commit --no-verify`
 
 **Run hooks manually** without committing:
+
 ```bash
 task pre-commit:run          # or: hatch run pre-commit run --all-files
 ```
@@ -223,16 +224,16 @@ task pre-commit:run          # or: hatch run pre-commit run --all-files
 
 After pushing your branch, GitHub Actions workflows run automatically on every push and PR to `main`.
 
-| Workflow | What it does |
-|----------|-------------|
-| **lint-format** | Runs Ruff linter and formatter checks |
-| **test** | Runs pytest across Python 3.11, 3.12, and 3.13 |
-| **type-check** | Runs mypy in strict mode against `src/` |
-| **coverage** | Measures test coverage and uploads to Codecov |
-| **security-audit** | Runs pip-audit against vulnerability databases |
-| **codeql** | GitHub's static analysis for security vulnerabilities |
-| **spellcheck** | Catches typos with codespell |
-| **docs** | Builds documentation (when docs files change) |
+| Workflow           | What it does                                          |
+| ------------------ | ----------------------------------------------------- |
+| **lint-format**    | Runs Ruff linter and formatter checks                 |
+| **test**           | Runs pytest across Python 3.11, 3.12, and 3.13        |
+| **type-check**     | Runs mypy in strict mode against `src/`               |
+| **coverage**       | Measures test coverage and uploads to Codecov         |
+| **security-audit** | Runs pip-audit against vulnerability databases        |
+| **codeql**         | GitHub's static analysis for security vulnerabilities |
+| **spellcheck**     | Catches typos with codespell                          |
+| **docs**           | Builds documentation (when docs files change)         |
 
 These workflows **must all pass** before a PR can be merged. If CI fails, check the workflow logs in the PR's "Checks" tab.
 
@@ -244,11 +245,11 @@ These workflows **must all pass** before a PR can be merged. If CI fails, check 
 
 These checks run **only on pull requests**, not on plain pushes.
 
-| Workflow | What it does |
-|----------|-------------|
-| **pr-title** | Validates the PR title follows conventional commit format (e.g., `feat: add login`) |
-| **dependency-review** | Flags newly added dependencies with known vulnerabilities or restrictive licenses |
-| **labeler** | Auto-labels the PR based on which files changed |
+| Workflow              | What it does                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| **pr-title**          | Validates the PR title follows conventional commit format (e.g., `feat: add login`) |
+| **dependency-review** | Flags newly added dependencies with known vulnerabilities or restrictive licenses   |
+| **labeler**           | Auto-labels the PR based on which files changed                                     |
 
 ### PR guidelines
 
@@ -265,10 +266,10 @@ See [docs/development/pull-requests.md](docs/development/pull-requests.md) for d
 
 After approval and merge, additional automation runs:
 
-| Workflow | What it does |
-|----------|-------------|
+| Workflow           | What it does                                                                    |
+| ------------------ | ------------------------------------------------------------------------------- |
 | **release-please** | Scans new commits on `main`, creates a Release PR with CHANGELOG + version bump |
-| **release** | Builds and publishes the package when a version tag (`v*.*.*`) is pushed |
+| **release**        | Builds and publishes the package when a version tag (`v*.*.*`) is pushed        |
 
 This is why commit message format matters — the changelog is generated directly from your commit messages.
 
@@ -292,16 +293,16 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | A new feature |
-| `fix` | A bug fix |
-| `docs` | Documentation only changes |
+| Type       | Description                                             |
+| ---------- | ------------------------------------------------------- |
+| `feat`     | A new feature                                           |
+| `fix`      | A bug fix                                               |
+| `docs`     | Documentation only changes                              |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
-| `test` | Adding or updating tests |
-| `chore` | Maintenance (deps, CI config, tooling) |
-| `ci` | CI/CD workflow changes |
-| `style` | Formatting changes (no logic change) |
+| `test`     | Adding or updating tests                                |
+| `chore`    | Maintenance (deps, CI config, tooling)                  |
+| `ci`       | CI/CD workflow changes                                  |
+| `style`    | Formatting changes (no logic change)                    |
 
 ### Examples
 

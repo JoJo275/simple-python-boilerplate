@@ -11,12 +11,12 @@ it's configured, and where to learn more.
 
 ## Build & Environments
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[Hatchling](https://hatch.pypa.io/latest/)** | Builds Python packages (sdist + wheel) from source. This is the *build backend* — it runs when you `pip install .` or `hatch build`. | `pyproject.toml` → `[build-system]` | [Hatchling docs](https://hatch.pypa.io/latest/config/build/) |
-| **[Hatch](https://hatch.pypa.io/latest/)** | Manages virtual environments, runs scripts, and orchestrates builds. This is the *project manager* — it creates envs, installs deps, and runs commands like `hatch run test`. | `pyproject.toml` → `[tool.hatch.*]` | [Hatch docs](https://hatch.pypa.io/latest/) |
-| **[hatch-vcs](https://github.com/ofek/hatch-vcs)** | Derives the package version from git tags at build time. No manual version bumping needed. | `pyproject.toml` → `[tool.hatch.version]` | [hatch-vcs docs](https://github.com/ofek/hatch-vcs) |
-| **[Task](https://taskfile.dev/)** | A task runner that wraps `hatch run` commands into shorter aliases like `task test`. Optional convenience layer. | `Taskfile.yml` | [Taskfile docs](https://taskfile.dev/) |
+| Tool                                               | What it does                                                                                                                                                                  | Config                                    | Docs                                                         |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
+| **[Hatchling](https://hatch.pypa.io/latest/)**     | Builds Python packages (sdist + wheel) from source. This is the _build backend_ — it runs when you `pip install .` or `hatch build`.                                          | `pyproject.toml` → `[build-system]`       | [Hatchling docs](https://hatch.pypa.io/latest/config/build/) |
+| **[Hatch](https://hatch.pypa.io/latest/)**         | Manages virtual environments, runs scripts, and orchestrates builds. This is the _project manager_ — it creates envs, installs deps, and runs commands like `hatch run test`. | `pyproject.toml` → `[tool.hatch.*]`       | [Hatch docs](https://hatch.pypa.io/latest/)                  |
+| **[hatch-vcs](https://github.com/ofek/hatch-vcs)** | Derives the package version from git tags at build time. No manual version bumping needed.                                                                                    | `pyproject.toml` → `[tool.hatch.version]` | [hatch-vcs docs](https://github.com/ofek/hatch-vcs)          |
+| **[Task](https://taskfile.dev/)**                  | A task runner that wraps `hatch run` commands into shorter aliases like `task test`. Optional convenience layer.                                                              | `Taskfile.yml`                            | [Taskfile docs](https://taskfile.dev/)                       |
 
 > **How these layers relate:** See [command-workflows.md](development/command-workflows.md)
 > for a visual breakdown of `task test` → `hatch run test` → `pytest`.
@@ -25,80 +25,80 @@ it's configured, and where to learn more.
 
 ## Code Quality
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[Ruff](https://docs.astral.sh/ruff/)** | Lints and formats Python code. A single Rust binary that replaces flake8, isort, black, pyupgrade, and more. | `pyproject.toml` → `[tool.ruff]` | [Ruff docs](https://docs.astral.sh/ruff/) |
-| **[mypy](https://mypy.readthedocs.io/)** | Static type checker. Catches type errors without running your code. Runs in strict mode in this project. | `pyproject.toml` → `[tool.mypy]` | [mypy docs](https://mypy.readthedocs.io/) |
-| **[typos](https://github.com/crate-ci/typos)** | Finds spelling mistakes in source code, docs, and filenames. Rust-based, very fast. | `_typos.toml` | [typos docs](https://github.com/crate-ci/typos) |
-| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos. | `pyproject.toml` → `[tool.codespell]` | [codespell docs](https://github.com/codespell-project/codespell) |
-| **[deptry](https://deptry.com/)** | Checks for unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. | `pyproject.toml` → `[tool.deptry]` | [deptry docs](https://deptry.com/) |
+| Tool                                                            | What it does                                                                                                  | Config                                | Docs                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| **[Ruff](https://docs.astral.sh/ruff/)**                        | Lints and formats Python code. A single Rust binary that replaces flake8, isort, black, pyupgrade, and more.  | `pyproject.toml` → `[tool.ruff]`      | [Ruff docs](https://docs.astral.sh/ruff/)                        |
+| **[mypy](https://mypy.readthedocs.io/)**                        | Static type checker. Catches type errors without running your code. Runs in strict mode in this project.      | `pyproject.toml` → `[tool.mypy]`      | [mypy docs](https://mypy.readthedocs.io/)                        |
+| **[typos](https://github.com/crate-ci/typos)**                  | Finds spelling mistakes in source code, docs, and filenames. Rust-based, very fast.                           | `_typos.toml`                         | [typos docs](https://github.com/crate-ci/typos)                  |
+| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos.                                         | `pyproject.toml` → `[tool.codespell]` | [codespell docs](https://github.com/codespell-project/codespell) |
+| **[deptry](https://deptry.com/)**                               | Checks for unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. | `pyproject.toml` → `[tool.deptry]`    | [deptry docs](https://deptry.com/)                               |
 
 ---
 
 ## Testing
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[pytest](https://docs.pytest.org/)** | Test framework. Discovers and runs tests in `tests/`. Supports fixtures, parametrize, markers, and a huge plugin ecosystem. | `pyproject.toml` → `[tool.pytest.ini_options]` | [pytest docs](https://docs.pytest.org/) |
-| **[pytest-cov](https://pytest-cov.readthedocs.io/)** | Coverage plugin for pytest. Measures which lines are executed during tests and generates reports. | `pyproject.toml` → `[tool.coverage]` | [pytest-cov docs](https://pytest-cov.readthedocs.io/) |
+| Tool                                                 | What it does                                                                                                                | Config                                         | Docs                                                  |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| **[pytest](https://docs.pytest.org/)**               | Test framework. Discovers and runs tests in `tests/`. Supports fixtures, parametrize, markers, and a huge plugin ecosystem. | `pyproject.toml` → `[tool.pytest.ini_options]` | [pytest docs](https://docs.pytest.org/)               |
+| **[pytest-cov](https://pytest-cov.readthedocs.io/)** | Coverage plugin for pytest. Measures which lines are executed during tests and generates reports.                           | `pyproject.toml` → `[tool.coverage]`           | [pytest-cov docs](https://pytest-cov.readthedocs.io/) |
 
 ---
 
 ## Security
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[Bandit](https://bandit.readthedocs.io/)** | Static security linter for Python. Finds common security issues like hardcoded passwords, `shell=True`, unsafe YAML loading. | `pyproject.toml` → `[tool.bandit]` | [Bandit docs](https://bandit.readthedocs.io/) |
-| **[pip-audit](https://github.com/pypa/pip-audit)** | Checks installed packages against vulnerability databases (OSV, PyPI). The PyPA-maintained successor to `safety`. | — (scans the environment) | [pip-audit docs](https://github.com/pypa/pip-audit) |
-| **[gitleaks](https://github.com/gitleaks/gitleaks)** | Scans git history and staged changes for secrets (API keys, tokens, passwords). Runs as a pre-push hook. | `.gitleaks.toml` (if present) | [gitleaks docs](https://github.com/gitleaks/gitleaks) |
+| Tool                                                 | What it does                                                                                                                 | Config                             | Docs                                                  |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| **[Bandit](https://bandit.readthedocs.io/)**         | Static security linter for Python. Finds common security issues like hardcoded passwords, `shell=True`, unsafe YAML loading. | `pyproject.toml` → `[tool.bandit]` | [Bandit docs](https://bandit.readthedocs.io/)         |
+| **[pip-audit](https://github.com/pypa/pip-audit)**   | Checks installed packages against vulnerability databases (OSV, PyPI). The PyPA-maintained successor to `safety`.            | — (scans the environment)          | [pip-audit docs](https://github.com/pypa/pip-audit)   |
+| **[gitleaks](https://github.com/gitleaks/gitleaks)** | Scans git history and staged changes for secrets (API keys, tokens, passwords). Runs as a pre-push hook.                     | `.gitleaks.toml` (if present)      | [gitleaks docs](https://github.com/gitleaks/gitleaks) |
 
 ---
 
 ## Git Hooks
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[pre-commit](https://pre-commit.com/)** | Framework that manages and runs git hooks. Hooks run automatically before commits, on commit messages, and before pushes. | [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) | [pre-commit docs](https://pre-commit.com/) |
-| **[commitizen](https://commitizen-tools.github.io/commitizen/)** | Validates that commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format. Also provides `cz commit` for interactive commit authoring. | `pyproject.toml` → `[tool.commitizen]` | [commitizen docs](https://commitizen-tools.github.io/commitizen/) |
+| Tool                                                             | What it does                                                                                                                                                           | Config                                                  | Docs                                                              |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| **[pre-commit](https://pre-commit.com/)**                        | Framework that manages and runs git hooks. Hooks run automatically before commits, on commit messages, and before pushes.                                              | [`.pre-commit-config.yaml`](../.pre-commit-config.yaml) | [pre-commit docs](https://pre-commit.com/)                        |
+| **[commitizen](https://commitizen-tools.github.io/commitizen/)** | Validates that commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format. Also provides `cz commit` for interactive commit authoring. | `pyproject.toml` → `[tool.commitizen]`                  | [commitizen docs](https://commitizen-tools.github.io/commitizen/) |
 
 ---
 
 ## Documentation
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[MkDocs](https://www.mkdocs.org/)** | Static site generator for project documentation. Writes docs in Markdown, builds an HTML site. | `mkdocs.yml` | [MkDocs docs](https://www.mkdocs.org/) |
-| **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** | Theme for MkDocs with search, dark mode, admonitions, tabs, and more. | `mkdocs.yml` → `theme:` | [Material docs](https://squidfunk.github.io/mkdocs-material/) |
-| **[mkdocstrings](https://mkdocstrings.github.io/)** | Generates API reference docs from Python docstrings. Auto-renders function signatures and descriptions. | `mkdocs.yml` → `plugins:` | [mkdocstrings docs](https://mkdocstrings.github.io/) |
+| Tool                                                                    | What it does                                                                                            | Config                    | Docs                                                          |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| **[MkDocs](https://www.mkdocs.org/)**                                   | Static site generator for project documentation. Writes docs in Markdown, builds an HTML site.          | `mkdocs.yml`              | [MkDocs docs](https://www.mkdocs.org/)                        |
+| **[Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)** | Theme for MkDocs with search, dark mode, admonitions, tabs, and more.                                   | `mkdocs.yml` → `theme:`   | [Material docs](https://squidfunk.github.io/mkdocs-material/) |
+| **[mkdocstrings](https://mkdocstrings.github.io/)**                     | Generates API reference docs from Python docstrings. Auto-renders function signatures and descriptions. | `mkdocs.yml` → `plugins:` | [mkdocstrings docs](https://mkdocstrings.github.io/)          |
 
 ---
 
 ## CI/CD & Release
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[GitHub Actions](https://docs.github.com/en/actions)** | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 26 workflows. | `.github/workflows/*.yml` | [Actions docs](https://docs.github.com/en/actions) |
-| **[release-please](https://github.com/googleapis/release-please)** | Automates versioning and changelog generation from Conventional Commits. Creates a Release PR that you review and merge. | `release-please-config.json` | [release-please docs](https://github.com/googleapis/release-please) |
-| **[Dependabot](https://docs.github.com/en/code-security/dependabot)** | Automatically opens PRs to update outdated or vulnerable dependencies. | `.github/dependabot.yml` | [Dependabot docs](https://docs.github.com/en/code-security/dependabot) |
+| Tool                                                                  | What it does                                                                                                             | Config                       | Docs                                                                   |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------- |
+| **[GitHub Actions](https://docs.github.com/en/actions)**              | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 26 workflows.                  | `.github/workflows/*.yml`    | [Actions docs](https://docs.github.com/en/actions)                     |
+| **[release-please](https://github.com/googleapis/release-please)**    | Automates versioning and changelog generation from Conventional Commits. Creates a Release PR that you review and merge. | `release-please-config.json` | [release-please docs](https://github.com/googleapis/release-please)    |
+| **[Dependabot](https://docs.github.com/en/code-security/dependabot)** | Automatically opens PRs to update outdated or vulnerable dependencies.                                                   | `.github/dependabot.yml`     | [Dependabot docs](https://docs.github.com/en/code-security/dependabot) |
 
 ---
 
 ## Container
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[Podman](https://podman.io/) / [Docker](https://www.docker.com/)** | Builds and runs OCI container images. The project uses a `Containerfile` (same syntax as `Dockerfile`). | `Containerfile`, `docker-compose.yml` | [Podman docs](https://podman.io/) |
-| **[Trivy](https://trivy.dev/)** | Scans container images for vulnerabilities. Runs in CI. | `.github/workflows/container-scan.yml` | [Trivy docs](https://trivy.dev/) |
+| Tool                                                                 | What it does                                                                                            | Config                                 | Docs                              |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------- |
+| **[Podman](https://podman.io/) / [Docker](https://www.docker.com/)** | Builds and runs OCI container images. The project uses a `Containerfile` (same syntax as `Dockerfile`). | `Containerfile`, `docker-compose.yml`  | [Podman docs](https://podman.io/) |
+| **[Trivy](https://trivy.dev/)**                                      | Scans container images for vulnerabilities. Runs in CI.                                                 | `.github/workflows/container-scan.yml` | [Trivy docs](https://trivy.dev/)  |
 
 ---
 
 ## Config Validation
 
-| Tool | What it does | Config | Docs |
-|------|-------------|--------|------|
-| **[validate-pyproject](https://validate-pyproject.readthedocs.io/)** | Validates `pyproject.toml` against PEP 621 and packaging schemas. Catches config errors before CI. | — (validates `pyproject.toml`) | [validate-pyproject docs](https://validate-pyproject.readthedocs.io/) |
-| **[actionlint](https://github.com/rhysd/actionlint)** | Lints GitHub Actions workflow files. Catches expression errors, unknown inputs, and runner issues. | — (lints `.github/workflows/`) | [actionlint docs](https://github.com/rhysd/actionlint) |
-| **[check-jsonschema](https://github.com/python-jsonschema/check-jsonschema)** | Validates YAML/JSON files against schemas from SchemaStore (workflows, Dependabot config, etc.). | — (schema auto-detected) | [check-jsonschema docs](https://github.com/python-jsonschema/check-jsonschema) |
+| Tool                                                                          | What it does                                                                                       | Config                         | Docs                                                                           |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| **[validate-pyproject](https://validate-pyproject.readthedocs.io/)**          | Validates `pyproject.toml` against PEP 621 and packaging schemas. Catches config errors before CI. | — (validates `pyproject.toml`) | [validate-pyproject docs](https://validate-pyproject.readthedocs.io/)          |
+| **[actionlint](https://github.com/rhysd/actionlint)**                         | Lints GitHub Actions workflow files. Catches expression errors, unknown inputs, and runner issues. | — (lints `.github/workflows/`) | [actionlint docs](https://github.com/rhysd/actionlint)                         |
+| **[check-jsonschema](https://github.com/python-jsonschema/check-jsonschema)** | Validates YAML/JSON files against schemas from SchemaStore (workflows, Dependabot config, etc.).   | — (schema auto-detected)       | [check-jsonschema docs](https://github.com/python-jsonschema/check-jsonschema) |
 
 ---
 

@@ -199,12 +199,12 @@ clones. This is intentional — see
 
 **Fix (pick one):**
 
-| Method | How |
-|--------|-----|
-| **Script** | `python scripts/customize.py --enable-workflows myorg/myrepo` |
-| **Global** | Set repo variable `ENABLE_WORKFLOWS = 'true'` (Settings → Secrets and variables → Actions → Variables) |
-| **Per-workflow** | Set `ENABLE_<NAME> = 'true'` (e.g. `ENABLE_TEST`) |
-| **Edit YAML** | Replace `YOURNAME/YOURREPO` with your repo slug in each file |
+| Method           | How                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| **Script**       | `python scripts/customize.py --enable-workflows myorg/myrepo`                                          |
+| **Global**       | Set repo variable `ENABLE_WORKFLOWS = 'true'` (Settings → Secrets and variables → Actions → Variables) |
+| **Per-workflow** | Set `ENABLE_<NAME> = 'true'` (e.g. `ENABLE_TEST`)                                                      |
+| **Edit YAML**    | Replace `YOURNAME/YOURREPO` with your repo slug in each file                                           |
 
 ---
 
@@ -548,12 +548,12 @@ hatch python show
 
 ### `venv` vs `virtualenv` vs Hatch — which should I use?
 
-| Tool | When to use |
-|------|-------------|
-| **Hatch** | Default for this project — manages envs, scripts, and builds |
-| **`python -m venv`** | Quick one-off venv when Hatch isn't available |
-| **`virtualenv`** | Slightly faster venv creation, more options — but rarely needed |
-| **conda** | If you need non-Python dependencies (C libraries, etc.) |
+| Tool                 | When to use                                                     |
+| -------------------- | --------------------------------------------------------------- |
+| **Hatch**            | Default for this project — manages envs, scripts, and builds    |
+| **`python -m venv`** | Quick one-off venv when Hatch isn't available                   |
+| **`virtualenv`**     | Slightly faster venv creation, more options — but rarely needed |
+| **conda**            | If you need non-Python dependencies (C libraries, etc.)         |
 
 For this project: use `hatch shell`. It reads `pyproject.toml` and sets
 everything up — correct Python version, all dependencies, editable install.
@@ -782,7 +782,7 @@ for keeping history linear.
 ### `.gitignore` isn't ignoring a file
 
 **Cause:** The file was already tracked before adding the `.gitignore` rule.
-`.gitignore` only prevents tracking *new* files — it doesn't untrack
+`.gitignore` only prevents tracking _new_ files — it doesn't untrack
 existing ones.
 
 **Fix:**
@@ -937,7 +937,7 @@ outdated.
 ```yaml
 updates:
   - package-ecosystem: pip
-    open-pull-requests-limit: 5  # Max concurrent PRs
+    open-pull-requests-limit: 5 # Max concurrent PRs
 ```
 
 The `auto-merge-dependabot.yml` workflow helps by auto-merging minor/patch
@@ -1237,21 +1237,21 @@ pip show some-package
 
 ## Common Error Messages — Quick Reference
 
-| Error | Likely cause | Quick fix |
-|-------|-------------|-----------|
-| `ModuleNotFoundError` | Package not installed | `pip install -e .` or `hatch shell` |
-| `externally-managed-environment` | PEP 668 — no global pip | Use a venv or Hatch |
-| `No module named 'pip'` | venv created without pip | `python -m ensurepip --upgrade` |
-| `SyntaxError: invalid syntax` | Wrong Python version | Check `python --version` (need 3.11+) |
-| `PermissionError` | File locked or no write access | Close editors using the file, check permissions |
-| `FileNotFoundError: pyproject.toml` | Wrong directory | `cd` to the project root |
-| `subprocess-exited-with-error` | Build dependency missing | Install build tools (see pip section) |
-| `FAILED tests/... AssertionError` | Test failure | Read the assertion diff, fix the code |
-| `error: Skipping analyzing ...` | mypy can't find type stubs | Add `ignore_missing_imports` for that module |
-| `Connection refused: 127.0.0.1:8000` | Docs server not running | `hatch run docs:serve` first |
-| `fatal: not a git repository` | Not in a git repo | `git init` or `cd` to the right directory |
-| `git push rejected (non-fast-forward)` | Remote has commits you don't | `git pull --rebase` first |
-| `Your branch is up to date` but files differ | Unstaged changes | `git add -A` then check status |
+| Error                                        | Likely cause                   | Quick fix                                       |
+| -------------------------------------------- | ------------------------------ | ----------------------------------------------- |
+| `ModuleNotFoundError`                        | Package not installed          | `pip install -e .` or `hatch shell`             |
+| `externally-managed-environment`             | PEP 668 — no global pip        | Use a venv or Hatch                             |
+| `No module named 'pip'`                      | venv created without pip       | `python -m ensurepip --upgrade`                 |
+| `SyntaxError: invalid syntax`                | Wrong Python version           | Check `python --version` (need 3.11+)           |
+| `PermissionError`                            | File locked or no write access | Close editors using the file, check permissions |
+| `FileNotFoundError: pyproject.toml`          | Wrong directory                | `cd` to the project root                        |
+| `subprocess-exited-with-error`               | Build dependency missing       | Install build tools (see pip section)           |
+| `FAILED tests/... AssertionError`            | Test failure                   | Read the assertion diff, fix the code           |
+| `error: Skipping analyzing ...`              | mypy can't find type stubs     | Add `ignore_missing_imports` for that module    |
+| `Connection refused: 127.0.0.1:8000`         | Docs server not running        | `hatch run docs:serve` first                    |
+| `fatal: not a git repository`                | Not in a git repo              | `git init` or `cd` to the right directory       |
+| `git push rejected (non-fast-forward)`       | Remote has commits you don't   | `git pull --rebase` first                       |
+| `Your branch is up to date` but files differ | Unstaged changes               | `git add -A` then check status                  |
 
 ---
 
