@@ -5,6 +5,15 @@ After forking this template, many files contain ``TODO (template users):``
 comments that need to be addressed. This script finds them all and reports
 which ones remain, grouped by file.
 
+Flags::
+
+    --pattern TEXT      Text pattern to search for (default: "TODO (template users)")
+    --count             Only print the count of TODOs found
+    --json              Output results as JSON (for CI integration)
+    --exclude PREFIX    Additional path prefixes to exclude (repeatable)
+    -q, --quiet         Suppress output (exit code still indicates result)
+    --version           Print version and exit
+
 Usage::
 
     python scripts/check_todos.py

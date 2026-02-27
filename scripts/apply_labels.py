@@ -3,12 +3,19 @@
 
 Requirements:
   - Python 3
-  - GitHub CLI (`gh`) installed and authenticated (`gh auth login`)
+  - GitHub CLI (``gh``) installed and authenticated (``gh auth login``)
 
-Usage:
-  scripts/apply_labels.py --set baseline --repo OWNER/REPO
-  scripts/apply_labels.py --set extended --repo OWNER/REPO
-  scripts/apply_labels.py --set baseline --dry-run
+Flags::
+
+    --set {baseline,extended}  Label set to apply (required)
+    --repo OWNER/REPO          Target repository (default: current repo)
+    --dry-run                  Print commands without executing them
+
+Usage::
+
+    scripts/apply_labels.py --set baseline --repo OWNER/REPO
+    scripts/apply_labels.py --set extended --repo OWNER/REPO
+    scripts/apply_labels.py --set baseline --dry-run
 
 For visual example of extended set, see
 https://github.com/JoJo275/simple-python-boilerplate/labels?page=1.

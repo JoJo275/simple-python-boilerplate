@@ -81,6 +81,7 @@ Use the `pre-commit` framework to run checks automatically at three git stages: 
 |------|--------|-----------|
 | `markdownlint-cli2` | DavidAnson | Node-based; heavier dependency footprint |
 | `hadolint-docker` | hadolint | Requires Docker; also covered by Trivy misconfig in CI |
+| `prettier` | rbubley/mirrors-prettier | Node-based; normalises Markdown table alignment. Scoped to `*.md` only. |
 | `forbid-submodules` | pre-commit-hooks | Only needed if project policy forbids submodules |
 
 ## Alternatives Considered
@@ -120,7 +121,7 @@ Document commands and trust developers to run them.
 
 | Tool | Why skipped |
 |------|------------|
-| **prettier** | Ruff handles Python formatting; `check-yaml`, `check-toml`, `check-json` cover config files. Adding a Node.js dependency for marginal benefit is not worth it. |
+| **prettier** | ~~Originally skipped.~~ Now included as a **manual** hook scoped to Markdown only (`types_or: [markdown]`). Markdown table alignment is the one formatting gap Ruff and markdownlint can't fill. The Node dependency is acceptable for a manual-stage hook. |
 | **pyupgrade** | Ruff's `UP` rules include all pyupgrade checks. Running both is redundant. |
 | **autopep8** | Same as above — Ruff's formatter and linter cover all autopep8 fixes. |
 | **black** | `ruff-format` is a drop-in replacement, faster, and configured alongside the linter. |

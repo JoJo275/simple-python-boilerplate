@@ -19,19 +19,31 @@ Requirements:
     - Internet access (queries the GitHub API)
     - Optional: ``GITHUB_TOKEN`` env var for higher rate limits
 
-Usage:
+Subcommands and flags::
+
+    show                     Show all SHA-pinned actions (default)
+      --offline              Skip resolving tags via GitHub API
+      --json                 Output results as JSON
+      --filter FILTER        Filter: stale, upgradable, no-desc, or all (default: all)
+    update-comments          Update inline version comments and add descriptions
+    upgrade                  Upgrade actions to their latest release
+      [action]               Action to upgrade (e.g. actions/checkout; omit for all)
+      [version]              Target version tag (e.g. v6.1.0; omit for latest)
+      --dry-run              Show what would be upgraded without modifying files
+    --color                  Force colored output
+    --no-color               Disable colored output
+    -q, --quiet              Suppress table output; exit 1 if issues found (CI mode)
+    --version                Print version and exit
+
+Usage::
+
     python scripts/workflow_versions.py                # Show all actions
-    python scripts/workflow_versions.py show           # Same as above
     python scripts/workflow_versions.py show --offline # Skip GitHub API
     python scripts/workflow_versions.py show --json    # JSON output
-    python scripts/workflow_versions.py show --filter stale      # Only stale actions
-    python scripts/workflow_versions.py show --filter upgradable # Only upgradable
-    python scripts/workflow_versions.py show --quiet   # CI mode: exit 1 if issues
-    python scripts/workflow_versions.py update-comments # Sync comments + add descriptions
-    python scripts/workflow_versions.py upgrade        # Upgrade ALL actions to latest
-    python scripts/workflow_versions.py upgrade --dry-run   # Preview upgrades
-    python scripts/workflow_versions.py upgrade actions/checkout          # Upgrade one action
-    python scripts/workflow_versions.py upgrade actions/checkout v6.1.0   # Pin to a version
+    python scripts/workflow_versions.py show --filter stale
+    python scripts/workflow_versions.py update-comments
+    python scripts/workflow_versions.py upgrade --dry-run
+    python scripts/workflow_versions.py upgrade actions/checkout v6.1.0
 
 Color output:
     Color is auto-detected (TTY + NO_COLOR/FORCE_COLOR env vars).

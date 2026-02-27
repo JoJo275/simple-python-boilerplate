@@ -4,6 +4,14 @@
 Cleans: dist/, build/, *.egg-info/, __pycache__/, .pytest_cache/,
 .mypy_cache/, .ruff_cache/, .cache/, site/, .coverage, htmlcov/, *.pyc
 
+Flags::
+
+    --dry-run        Show what would be removed without deleting
+    --include-venv   Also remove .venv* directories (requires confirmation)
+    -y, --yes        Skip confirmation prompt for --include-venv
+    -q, --quiet      Suppress informational output (errors still shown)
+    --version        Print version and exit
+
 Usage::
 
     python scripts/clean.py

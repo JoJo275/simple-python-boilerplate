@@ -5,6 +5,13 @@ Compares version headings in CHANGELOG.md against git tags to detect
 drift between what release-please generates and what's actually tagged.
 Also checks for duplicate entries and correct ordering.
 
+Flags::
+
+    -v, --verbose           Show versions that are in sync
+    -q, --quiet             Suppress output; exit code only (for CI)
+    --changelog-path PATH   Path to CHANGELOG.md (default: CHANGELOG.md)
+    --version               Print version and exit
+
 Usage::
 
     python scripts/changelog_check.py

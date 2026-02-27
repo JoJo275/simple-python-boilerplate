@@ -8,6 +8,15 @@ backup of both files before writing unless ``--no-backup`` is passed.
 This is a dev utility for personal note management, not distributed with
 the package.
 
+Flags::
+
+    --dry-run         Show what would change without modifying files
+    --no-backup       Skip creating .bak files before writing
+    --todo-file PATH  Path to todo file (default: docs/notes/todo.md)
+    --archive-file PATH  Path to archive file (default: docs/notes/archive.md)
+    -q, --quiet       Suppress informational output (errors still shown)
+    --version         Print version and exit
+
 Usage::
 
     python scripts/archive_todos.py
