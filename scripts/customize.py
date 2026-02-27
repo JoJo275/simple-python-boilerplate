@@ -8,13 +8,41 @@ Cookiecutter — runs once after cloning with no external dependencies.
 
 See ADR 014 for the design rationale behind manual customization.
 
+Flags::
+
+    --dry-run               Show what would change without modifying any files
+    --non-interactive       Skip interactive prompts; use CLI flags for all values
+    --project-name NAME     Project name (lowercase-hyphenated, e.g. my-project)
+    --package-name NAME     Python package name (underscored); auto-derived from
+                            --project-name if omitted
+    --author NAME           Author name
+    --github-user NAME      GitHub username or organization
+    --description TEXT       One-line project description
+    --cli-prefix PREFIX     CLI command prefix (default: initials of project name)
+    --license ID            License to use (default: apache-2.0; choices:
+                            apache-2.0, mit, bsd-3-clause, …)
+    --strip DIR [DIR ...]   Optional directories to remove: db, experiments, var
+    --force                 Skip the already-customized safety check
+    --enable-workflows SLUG Replace YOURNAME/YOURREPO in all workflow files with
+                            your repo slug (runs only this operation)
+    -q, --quiet             Suppress informational output (errors still shown)
+    --version               Print version and exit
+
 Usage::
 
+    # Interactive (default)
     python scripts/customize.py
+
+    # Preview changes
     python scripts/customize.py --dry-run
+
+    # Fully non-interactive
     python scripts/customize.py --non-interactive \\
         --project-name my-project --author "Jane Doe" \\
-        --github-user janedoe
+        --github-user janedoe --strip db experiments
+
+    # Just enable workflows
+    python scripts/customize.py --enable-workflows janedoe/my-project
 """
 
 from __future__ import annotations

@@ -42,66 +42,9 @@ fit your project.
 > [`scripts/bootstrap.py`](../scripts/bootstrap.py) sets up your local dev
 > environment (creates Hatch envs, installs hooks, verifies the install).
 > Run `customize.py` first, then `bootstrap.py`.
-
----
-
-## Script Flags Reference
-
-Both setup scripts support `--dry-run` to preview changes before committing.
-
-### `scripts/customize.py`
-
-| Flag                      | Default        | Description                                                                                          |
-| :------------------------ | :------------- | :--------------------------------------------------------------------------------------------------- |
-| `--dry-run`               | off            | Show what would change without modifying any files                                                    |
-| `--non-interactive`       | off            | Skip interactive prompts; use CLI arguments for all values                                            |
-| `--project-name`          | —              | Project name (lowercase-hyphenated, e.g., `my-project`)                                              |
-| `--package-name`          | auto-derived   | Python package name (underscored); derived from `--project-name` if omitted                          |
-| `--author`                | —              | Author name                                                                                          |
-| `--github-user`           | —              | GitHub username or organization                                                                      |
-| `--description`           | —              | One-line project description                                                                         |
-| `--cli-prefix`            | auto-derived   | CLI command prefix (default: initials of project name)                                               |
-| `--license`               | `apache-2.0`   | License to use (choices: `apache-2.0`, `mit`, `bsd-3-clause`, etc.)                                  |
-| `--strip DIR [DIR ...]`   | none           | Optional directories to remove: `db`, `experiments`, `var`                                           |
-| `--force`                 | off            | Skip the already-customized safety check                                                             |
-| `--enable-workflows SLUG` | —              | Replace `YOURNAME/YOURREPO` in all workflow files with your repo slug (runs only this operation)      |
-| `-q` / `--quiet`          | off            | Suppress informational output (errors still shown)                                                   |
-| `--version`               | —              | Print version and exit                                                                               |
-
-**Examples:**
-
-```bash
-# Interactive mode (default)
-python scripts/customize.py
-
-# Fully non-interactive
-python scripts/customize.py --non-interactive \
-    --project-name my-project --author "Jane Doe" \
-    --github-user janedoe --strip db experiments
-
-# Just enable workflows
-python scripts/customize.py --enable-workflows janedoe/my-project
-```
-
-### `scripts/bootstrap.py`
-
-| Flag                  | Default | Description                                                          |
-| :-------------------- | :------ | :------------------------------------------------------------------- |
-| `--dry-run`           | off     | Show what would happen without making changes                        |
-| `--skip-hooks`        | off     | Skip pre-commit hook installation                                    |
-| `--skip-test-matrix`  | off     | Skip creating `test.py3.x` environments (faster setup)              |
-| `-q` / `--quiet`      | off     | Suppress informational output (errors and warnings still shown)      |
-| `--version`           | —       | Print version and exit                                               |
-
-**Examples:**
-
-```bash
-# Full setup
-python scripts/bootstrap.py
-
-# Quick setup — skip hooks and test matrix envs
-python scripts/bootstrap.py --skip-hooks --skip-test-matrix
-```
+>
+> Both scripts support `--dry-run` to preview changes and `--help` for the
+> full list of flags. See the docstring at the top of each script for details.
 
 ---
 
