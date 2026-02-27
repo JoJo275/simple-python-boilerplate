@@ -77,38 +77,55 @@ spb-doctor = "simple_python_boilerplate.main:doctor"
 # NOTE: These are the SINGLE SOURCE OF TRUTH for all dev/test tools.
 # Hatch environments consume these via `features = [...]` (see below).
 # Dependabot reads these to auto-update tool versions via PEP 621.
+#
+# VERSION SPECIFIER CHEATSHEET (PEP 440):
+#   "pkg>=1.5"      — 1.5 or newer (minimum pin, recommended default)
+#   "pkg>=1.5,<2"   — 1.5+ but below 2.0 (upper-bound cap)
+#   "pkg==1.5.3"    — exactly 1.5.3 (fully pinned, rarely needed here)
+#   "pkg~=1.5"      — compatible release: >=1.5, <2.0 (shorthand for >=1.5,<2)
+#   "pkg"           — any version (unpinned — fine for runtime deps during
+#                     early development, risky for dev tools that ship
+#                     breaking changes between minor versions)
+#
+# STRATEGY: Use >=MAJOR.MINOR minimum pins for dev tools so a fresh
+# `hatch env prune` + recreate doesn't silently pull a breaking version.
+# Dependabot will bump the floor when it opens update PRs.
+# Docs deps keep floor pins because mkdocs-material has broken themes
+# across minor versions.
 [project.optional-dependencies]
 test = [
-    "pytest",  # Testing framework (v9.0.2)
-    "pytest-cov",  # Code coverage for pytest (v7.0.0)
-    # "pytest-asyncio",  # For async test support
-    # "pytest-mock",     # Mocking utilities
-    # "hypothesis",      # Property-based testing
+    "pytest>=8.0",  # Testing framework (v9.0.2)
+    "pytest-cov>=6.0",  # Code coverage for pytest (v7.0.0)
+    # "pytest-asyncio>=0.24",  # For async test support
+    # "pytest-mock>=3.14",     # Mocking utilities
+    # "hypothesis>=6.100",     # Property-based testing
 ]
 dev = [
-    "simple-python-boilerplate[test]",  # Include test deps (update this if you rename the project)
-    "ruff",  # Fast linter and formatter (v0.15.0)
-    "mypy",  # Static type checker (v1.19.1)
-    "pre-commit",  # Git hooks for automated checks (v4.5.1)
-    "bandit",  # Security linter (v1.9.3)
-    "commitizen",  # Conventional commit helper + validator (v4.4.1)
-    "deptry",  # Dependency hygiene — unused, missing, transitive deps (v0.22.0)
+    # TODO (template users): Update "simple-python-boilerplate" below to
+    # match your [project] name — otherwise pip install -e ".[dev]" breaks.
+    "simple-python-boilerplate[test]",
+    "ruff>=0.11",  # Fast linter and formatter (v0.15.1)
+    "mypy>=1.15",  # Static type checker (v1.19.1)
+    "pre-commit>=4.0",  # Git hooks for automated checks (v4.5.1)
+    "bandit>=1.8",  # Security linter (v1.9.3)
+    "commitizen>=4.4",  # Conventional commit helper + validator (v4.13.8)
+    "deptry>=0.22",  # Dependency hygiene — unused, missing, transitive deps (v0.24.0)
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
 extras = [
-    "pipdeptree",  # Visualize dependency tree: python -m pipdeptree (v2.30.0)
-    # "pip-tools",  # Pin dependencies: pip-compile pyproject.toml
-    # "pip-audit",  # Check for security vulnerabilities in dependencies
-    # "rich",       # Pretty console output for debugging
-    # "icecream",   # Better print debugging: ic(variable)
-    # "ipython",    # Enhanced interactive Python shell
-    # "devtools",   # Debug utilities: debug(variable)
+    "pipdeptree>=2.24",  # Visualize dependency tree: python -m pipdeptree
+    # "pip-tools>=7.4",  # Pin dependencies: pip-compile pyproject.toml
+    # "pip-audit>=2.7",  # Check for security vulnerabilities in dependencies
+    # "rich>=13.0",       # Pretty console output for debugging
+    # "icecream>=2.1",   # Better print debugging: ic(variable)
+    # "ipython>=8.0",    # Enhanced interactive Python shell
+    # "devtools>=0.12",  # Debug utilities: debug(variable)
 ]
 docs = [
     "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
     "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
     "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
-    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (mkdocstrings v0.29.1, handler: mkdocstrings-python v1.0.3)
+    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v0.29.1)
 ]
 
 # ============================================================================
@@ -369,7 +386,6 @@ strict = true  # Enable all strict type checking options
 # OTHER TOOL CONFIGURATIONS (uncomment as needed)
 # ============================================================================
 
-# runtime configuration for your package (e.g., logging, feature flags)
 # -- Bandit (security linter) --
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
@@ -390,6 +406,16 @@ ignore = ["DEP004"]
 # whose module name doesn't match the PyPI distribution name.
 package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs-material = "material", pymdown-extensions = "pymdownx", mkdocstrings = "mkdocstrings" }
 
+# -- Commitizen (commit conventions + validation) --
+# Used locally via `cz commit` and as a pre-commit hook for commit-msg validation.
+# Version bumping and changelog are handled by release-please, not commitizen.
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "scm"                # Read version from git tags (matches hatch-vcs)
+tag_format = "v$version"                # Tags created by release-please: v1.2.3
+update_changelog_on_bump = false        # release-please manages CHANGELOG.md
+major_version_zero = true               # Allow breaking changes without major bump while < 1.0
+
 # -- Black (formatter) - if not using Ruff format --
 # [tool.black]
 # line-length = 88
@@ -406,51 +432,3 @@ package_module_name_map = { pipdeptree = "pipdeptree", mkdocs = "mkdocs", mkdocs
 # typeCheckingMode = "strict"
 # reportMissingImports = true
 # reportMissingTypeStubs = false
-
-# -- Commitizen (commit conventions + validation) --
-# Used locally via `cz commit` and as a pre-commit hook for commit-msg validation.
-# Version bumping and changelog are handled by release-please, not commitizen.
-[tool.commitizen]
-name = "cz_conventional_commits"
-version_provider = "scm"                # Read version from git tags (matches hatch-vcs)
-tag_format = "v$version"                # Tags created by release-please: v1.2.3
-update_changelog_on_bump = false        # release-please manages CHANGELOG.md
-major_version_zero = true               # Allow breaking changes without major bump while < 1.0
-
-# ============================================================================
-# NOTES FOR BOILERPLATE USERS
-# ============================================================================
-# 1. Create py.typed file in src/simple_python_boilerplate/ for PEP 561 typed package
-#    AND ensure it's included in the wheel — see [tool.hatch.build.targets.wheel] above
-# 2. Consider using pre-commit hooks - see .pre-commit-config.yaml
-# 3. For dynamic versioning, consider: setuptools-scm, hatch-vcs, or semantic-release
-# 4. Test your package build with: python -m build
-# 5. Check package metadata with: python -m pip show simple-python-boilerplate
-
-# ============================================================================
-# PRE-COMMIT HOOKS (for local linting/formatting before commits)
-# ============================================================================
-# Pre-commit runs checks automatically before each git commit.
-# This catches issues early, before they reach CI.
-#
-# SETUP STEPS:
-#   1. Install pre-commit: pip install pre-commit
-#   2. Create .pre-commit-config.yaml in project root (see below)
-#   3. Install hooks: pre-commit install
-#   4. (Optional) Run on all files: pre-commit run --all-files
-#
-# Example .pre-commit-config.yaml content:
-# ----------------------------------------
-# repos:
-#   - repo: https://github.com/astral-sh/ruff-pre-commit
-#     rev: v0.6.9
-#     hooks:
-#       - id: ruff          # Linting with auto-fix
-#         args: [--fix]
-#       - id: ruff-format   # Code formatting
-#
-#   - repo: https://github.com/codespell-project/codespell
-#     rev: v2.3.0
-#     hooks:
-#       - id: codespell     # Spell checking
-# ----------------------------------------
