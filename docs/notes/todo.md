@@ -10,7 +10,9 @@ Things to explore, implement, or learn more about.
 - [X] Final file check: requirements-dev.txt
 - [X] Final file check: release-please-config.json
 - [X] Final file check: root-level README.md
-- [ ] Final file check: pyproject.toml
+- [X] Final file check: pyproject.toml
+- [ ] Final file check: architecture.md
+- [ ] Final file check: entire docs/
 - [ ] Add in TODOs where warrented
 - [ ] Review and consolidate docs/
 - [ ]
