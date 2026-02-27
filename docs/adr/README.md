@@ -53,6 +53,12 @@ To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 | [024](024-ci-gate-pattern.md) | CI gate pattern for branch protection | Accepted |
 | [025](025-container-strategy.md) | Container strategy — production, development, orchestration | Accepted |
 | [026](026-no-pip-tools.md) | Do not use pip-tools for dependency management | Accepted |
+| [027](027-database-strategy.md) | Raw SQL database strategy | Accepted |
+| [028](028-git-branching-strategy.md) | Git branching strategy (trunk-based) | Accepted |
+| [029](029-testing-strategy.md) | Testing strategy (unit/integration split, coverage, matrix) | Accepted |
+| [030](030-label-management-as-code.md) | Label management as code | Accepted |
+| [031](031-script-conventions.md) | Script conventions | Accepted |
+| [032](032-dependency-grouping-strategy.md) | Dependency grouping strategy | Accepted |
 
 ## Archive
 

@@ -7,10 +7,10 @@ links to deeper docs where they exist.
 Implement any of these changes at your discretion — skip or reorder steps to
 fit your project.
 
-!!! tip "Something not working?"
-    See **[Troubleshooting & FAQ](guide/troubleshooting.md)** for solutions
-    to common errors with installation, CI/CD, pre-commit hooks, testing, Git,
-    and more.
+> **Something not working?**
+> See **[Troubleshooting & FAQ](guide/troubleshooting.md)** for solutions
+> to common errors with installation, CI/CD, pre-commit hooks, testing, Git,
+> and more.
 
 ---
 
@@ -42,6 +42,66 @@ fit your project.
 > [`scripts/bootstrap.py`](../scripts/bootstrap.py) sets up your local dev
 > environment (creates Hatch envs, installs hooks, verifies the install).
 > Run `customize.py` first, then `bootstrap.py`.
+
+---
+
+## Script Flags Reference
+
+Both setup scripts support `--dry-run` to preview changes before committing.
+
+### `scripts/customize.py`
+
+| Flag                      | Default        | Description                                                                                          |
+| :------------------------ | :------------- | :--------------------------------------------------------------------------------------------------- |
+| `--dry-run`               | off            | Show what would change without modifying any files                                                    |
+| `--non-interactive`       | off            | Skip interactive prompts; use CLI arguments for all values                                            |
+| `--project-name`          | —              | Project name (lowercase-hyphenated, e.g., `my-project`)                                              |
+| `--package-name`          | auto-derived   | Python package name (underscored); derived from `--project-name` if omitted                          |
+| `--author`                | —              | Author name                                                                                          |
+| `--github-user`           | —              | GitHub username or organization                                                                      |
+| `--description`           | —              | One-line project description                                                                         |
+| `--cli-prefix`            | auto-derived   | CLI command prefix (default: initials of project name)                                               |
+| `--license`               | `apache-2.0`   | License to use (choices: `apache-2.0`, `mit`, `bsd-3-clause`, etc.)                                  |
+| `--strip DIR [DIR ...]`   | none           | Optional directories to remove: `db`, `experiments`, `var`                                           |
+| `--force`                 | off            | Skip the already-customized safety check                                                             |
+| `--enable-workflows SLUG` | —              | Replace `YOURNAME/YOURREPO` in all workflow files with your repo slug (runs only this operation)      |
+| `-q` / `--quiet`          | off            | Suppress informational output (errors still shown)                                                   |
+| `--version`               | —              | Print version and exit                                                                               |
+
+**Examples:**
+
+```bash
+# Interactive mode (default)
+python scripts/customize.py
+
+# Fully non-interactive
+python scripts/customize.py --non-interactive \
+    --project-name my-project --author "Jane Doe" \
+    --github-user janedoe --strip db experiments
+
+# Just enable workflows
+python scripts/customize.py --enable-workflows janedoe/my-project
+```
+
+### `scripts/bootstrap.py`
+
+| Flag                  | Default | Description                                                          |
+| :-------------------- | :------ | :------------------------------------------------------------------- |
+| `--dry-run`           | off     | Show what would happen without making changes                        |
+| `--skip-hooks`        | off     | Skip pre-commit hook installation                                    |
+| `--skip-test-matrix`  | off     | Skip creating `test.py3.x` environments (faster setup)              |
+| `-q` / `--quiet`      | off     | Suppress informational output (errors and warnings still shown)      |
+| `--version`           | —       | Print version and exit                                               |
+
+**Examples:**
+
+```bash
+# Full setup
+python scripts/bootstrap.py
+
+# Quick setup — skip hooks and test matrix envs
+python scripts/bootstrap.py --skip-hooks --skip-test-matrix
+```
 
 ---
 
@@ -165,11 +225,11 @@ doesn't apply:
 | [mkdocs.yml](../mkdocs.yml), `docs/` (selectively)   | If you don't need a documentation site                                    |
 | [codecov.yml](../codecov.yml)                         | If you don't use Codecov for coverage reporting                           |
 
-!!! warning "Don't forget dependent files"
-    Some files depend on others. If you remove container files, also remove
-    `container-build.yml` and `container-scan.yml` workflows. If you remove
-    issue templates, update the label references. When in doubt, run
-    `task check` after deleting.
+> **Don't forget dependent files**
+> Some files depend on others. If you remove container files, also remove
+> `container-build.yml` and `container-scan.yml` workflows. If you remove
+> issue templates, update the label references. When in doubt, run
+> `task check` after deleting.
 
 ---
 
@@ -254,13 +314,13 @@ skip on forks and clones.
 | **Option B — Global variable**     | Set `vars.ENABLE_WORKFLOWS = 'true'` as a repository variable                                                 | Enable all workflows at once                |
 | **Option C — Per-workflow variable** | Set `vars.ENABLE_<WORKFLOW> = 'true'` (e.g., `ENABLE_TEST`, `ENABLE_STALE`)                                  | Granular control                            |
 
-!!! tip "Fastest approach"
-    Run the customization script with the `--enable-workflows` flag:
-
-    ```bash
-    python scripts/customize.py --enable-workflows myorg/myproject
-    python scripts/customize.py --enable-workflows myorg/myproject --dry-run  # preview
-    ```
+> **Fastest approach**
+> Run the customization script with the `--enable-workflows` flag:
+>
+> ```bash
+> python scripts/customize.py --enable-workflows myorg/myproject
+> python scripts/customize.py --enable-workflows myorg/myproject --dry-run  # preview
+> ```
 
 **Setting a repository variable (Options B/C):**
 
@@ -284,10 +344,10 @@ Not every project needs all 29 workflows:
 | Auto-merge Dependabot      | `auto-merge-dependabot.yml`                                              | Review Dependabot PRs manually instead                                 |
 | Stale issue cleanup        | `stale.yml`                                                              | Manage stale issues manually                                           |
 
-!!! warning "Don't remove core quality workflows"
-    These are in the CI gate and should stay unless you're replacing them:
-    `test.yml`, `lint-format.yml`, `type-check.yml`, `coverage.yml`,
-    `ci-gate.yml`.
+> **Don't remove core quality workflows.**
+> These are in the CI gate and should stay unless you're replacing them:
+> `test.yml`, `lint-format.yml`, `type-check.yml`, `coverage.yml`,
+> `ci-gate.yml`.
 
 **After removing workflows:**
 
