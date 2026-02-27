@@ -163,6 +163,12 @@ tasks:
     cmds:
       - hatch run pre-commit run {{.CLI_ARGS}} --all-files
 
+  # ── Markdown Formatting ────────────────────────────────────
+  fmt:markdown:
+    desc: Format Markdown files (table alignment via prettier)
+    cmds:
+      - hatch run pre-commit run prettier --hook-stage manual --all-files {{.CLI_ARGS}}
+
   # ── Utility ────────────────────────────────────────────────
   clean:todo:
     desc: Archive completed TODO items
