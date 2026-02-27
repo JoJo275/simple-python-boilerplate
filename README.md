@@ -13,18 +13,21 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 
 ## What's Included
 
-| Category | Tools |
-|----------|-------|
-| [**Build**](docs/adr/016-hatchling-and-hatch.md) | Hatchling + hatch-vcs (version from git tags) |
-| [**Environments**](docs/adr/016-hatchling-and-hatch.md) | Hatch (virtualenv management, test matrix) |
-| [**Linting**](docs/adr/005-ruff-for-linting-formatting.md) | Ruff (lint + format), mypy (strict), bandit (security) |
-| [**Testing**](docs/adr/006-pytest-for-testing.md) | pytest, pytest-cov, Python 3.11-3.13 matrix |
-| [**Pre-commit**](docs/adr/008-pre-commit-hooks.md) | 34+ hooks across 3 stages (commit, commit-msg, push) |
-| [**CI/CD**](docs/workflows.md) | 26 GitHub Actions workflows, SHA-pinned |
-| [**Docs**](docs/adr/020-mkdocs-documentation-stack.md) | MkDocs Material + mkdocstrings, auto-deploy to GitHub Pages |
-| [**Release**](docs/adr/021-automated-release-pipeline.md) | release-please -> automated changelog + versioning |
-| [**Security**](docs/adr/012-multi-layer-security-scanning.md) | CodeQL, pip-audit, Trivy, dependency-review, gitleaks |
-| [**Container**](docs/adr/025-container-strategy.md) | Multi-stage Containerfile with scan |
+<!-- TODO (template users): Update the hook/workflow counts below after
+     adding or removing hooks and workflows in your fork. -->
+
+| Category        | Tools                                                              |
+| :-------------- | :----------------------------------------------------------------- |
+| [**Build**][adr-016]        | Hatchling + hatch-vcs (version from git tags)        |
+| [**Environments**][adr-016] | Hatch (virtualenv management, test matrix)           |
+| [**Linting**][adr-005]      | Ruff (lint + format), mypy (strict), bandit (security) |
+| [**Testing**][adr-006]      | pytest, pytest-cov, Python 3.11–3.13 matrix          |
+| [**Pre-commit**][adr-008]   | 42 hooks across 4 stages (commit, commit-msg, push, manual) |
+| [**CI/CD**][workflows]      | 29 GitHub Actions workflows, SHA-pinned              |
+| [**Docs**][adr-020]         | MkDocs Material + mkdocstrings, auto-deploy to Pages |
+| [**Release**][adr-021]      | release-please → automated changelog + versioning    |
+| [**Security**][adr-012]     | CodeQL, pip-audit, Trivy, dependency-review, gitleaks |
+| [**Container**][adr-025]    | Multi-stage Containerfile with scan                  |
 
 ## Quick Start
 
@@ -84,13 +87,16 @@ tests/unit/                      # Unit tests
 tests/integration/               # Integration tests
 docs/                            # MkDocs documentation
 scripts/                         # Developer utility scripts
-.github/workflows/               # 26 CI/CD workflows
+.github/workflows/               # 29 CI/CD workflows
 db/                              # Database schema, migrations, seeds
 ```
 
 See [docs/repo-layout.md](docs/repo-layout.md) for the full annotated tree.
 
 ## CLI Entry Points
+
+<!-- TODO (template users): Replace these with your own CLI commands after
+     updating [project.scripts] in pyproject.toml. -->
 
 ```bash
 spb              # Main CLI command
@@ -114,15 +120,21 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 
 ## Utility Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `scripts/repo_doctor.py` | Health checker with `--fix` support |
-| `scripts/dep_versions.py` | Show/update dependency versions |
-| `scripts/workflow_versions.py` | Show/update SHA-pinned action versions |
-| `scripts/apply_labels.py` | Apply GitHub labels (`--set baseline\|extended`) || `scripts/check_todos.py` | Scan for `TODO (template users)` comments |
-| `scripts/customize.py` | Interactive project customization (placeholders, license, optional dirs) |
-| `scripts/env_doctor.py` | Quick environment health check |
-| `scripts/changelog_check.py` | Verify CHANGELOG.md matches git tags |
+| Script                          | Purpose                                                                  |
+| :------------------------------ | :----------------------------------------------------------------------- |
+| `scripts/bootstrap.py`          | One-command setup for fresh clones                                       |
+| `scripts/customize.py`          | Interactive project customization (placeholders, license, optional dirs) |
+| `scripts/repo_doctor.py`        | Health checker with `--fix` support                                      |
+| `scripts/env_doctor.py`         | Quick environment health check                                           |
+| `scripts/doctor.py`             | Diagnostics bundle for bug reports                                       |
+| `scripts/dep_versions.py`       | Show/update dependency versions                                          |
+| `scripts/workflow_versions.py`  | Show/update SHA-pinned action versions                                   |
+| `scripts/apply_labels.py`       | Apply GitHub labels (`--set baseline\|extended`)                         |
+| `scripts/check_todos.py`        | Scan for `TODO (template users)` comments                                |
+| `scripts/archive_todos.py`      | Archive resolved TODOs                                                   |
+| `scripts/changelog_check.py`    | Verify CHANGELOG.md matches git tags                                     |
+| `scripts/clean.py`              | Remove build artifacts and caches                                        |
+
 ## Using This Template
 
 See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-step setup guide.
@@ -130,12 +142,15 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
 **Quick checklist:**
 
 1. Click "Use this template" on GitHub
-2. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
-3. Update `pyproject.toml` (name, description, URLs, author)
-4. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
-5. Delete placeholder code in `src/` and `tests/`
-6. Enable repository guards via repository variables (see [ADR 011](docs/adr/011-repository-guard-pattern.md))
-7. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+2. Run `python scripts/customize.py` for interactive setup, **or** manually:
+   1. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
+   2. Update `pyproject.toml` (name, description, URLs, author)
+   3. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
+3. Delete placeholder code in `src/` and `tests/`
+4. Enable repository guards via repository variables (see [ADR 011][adr-011])
+5. Replace the Codecov badge token in this README (or remove the badge)
+6. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+7. Install hooks: `task pre-commit:install`
 
 ## Documentation
 
@@ -146,4 +161,19 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
 
 ## License
 
-Apache License 2.0 - see [LICENSE](LICENSE).
+<!-- TODO (template users): Update the license if you chose something other
+     than Apache 2.0 during customization. -->
+
+Apache License 2.0 — see [LICENSE](LICENSE).
+
+<!-- reference-style links (keep sorted) -->
+[adr-005]: docs/adr/005-ruff-for-linting-formatting.md
+[adr-006]: docs/adr/006-pytest-for-testing.md
+[adr-008]: docs/adr/008-pre-commit-hooks.md
+[adr-011]: docs/adr/011-repository-guard-pattern.md
+[adr-012]: docs/adr/012-multi-layer-security-scanning.md
+[adr-016]: docs/adr/016-hatchling-and-hatch.md
+[adr-020]: docs/adr/020-mkdocs-documentation-stack.md
+[adr-021]: docs/adr/021-automated-release-pipeline.md
+[adr-025]: docs/adr/025-container-strategy.md
+[workflows]: docs/workflows.md
