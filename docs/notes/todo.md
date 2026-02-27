@@ -11,6 +11,7 @@ Things to explore, implement, or learn more about.
 - [X] Final file check: release-please-config.json
 - [X] Final file check: root-level README.md
 - [X] Final file check: pyproject.toml
+- [X] Final file check: architecture.md
 - [ ] Final file check: architecture.md
 - [ ] Final file check: entire docs/
 - [ ] Add in TODOs where warrented
