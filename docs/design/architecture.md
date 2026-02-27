@@ -129,11 +129,11 @@ docs/
 
 Configured in `pyproject.toml` under `[project.scripts]`:
 
-| Command | Function | Description |
-|---------|----------|-------------|
-| `spb` | `main:main` | Primary CLI — parses args via `cli.py`, dispatches to `engine.py` |
-| `spb-version` | `main:print_version` | Print package + Python version |
-| `spb-doctor` | `main:doctor` | Diagnose environment (venv, tools, config files) |
+| Command       | Function             | Description                                                       |
+| ------------- | -------------------- | ----------------------------------------------------------------- |
+| `spb`         | `main:main`          | Primary CLI — parses args via `cli.py`, dispatches to `engine.py` |
+| `spb-version` | `main:print_version` | Print package + Python version                                    |
+| `spb-doctor`  | `main:doctor`        | Diagnose environment (venv, tools, config files)                  |
 
 ## Data Flow
 
@@ -233,27 +233,27 @@ is required in branch protection.
 
 Key architectural decisions are documented in [ADRs](../adr/):
 
-| ADR | Decision |
-|-----|----------|
-| [001](../adr/001-src-layout.md) | src/ layout for packages |
-| [002](../adr/002-pyproject-toml.md) | pyproject.toml as single source of truth |
-| [003](../adr/003-separate-workflow-files.md) | Separate workflow files per concern |
-| [004](../adr/004-pin-action-shas.md) | SHA-pinned GitHub Actions |
-| [005](../adr/005-ruff-for-linting-formatting.md) | Ruff for linting + formatting |
-| [006](../adr/006-pytest-for-testing.md) | pytest for testing |
-| [007](../adr/007-mypy-for-type-checking.md) | mypy for type checking (strict) |
-| [008](../adr/008-pre-commit-hooks.md) | Pre-commit hooks (43 across 4 stages) |
-| [009](../adr/009-conventional-commits.md) | Conventional Commits |
-| [011](../adr/011-repository-guard-pattern.md) | Repository guard pattern |
-| [012](../adr/012-multi-layer-security-scanning.md) | Multi-layer security scanning |
-| [016](../adr/016-hatchling-and-hatch.md) | Hatchling + Hatch |
-| [020](../adr/020-mkdocs-documentation-stack.md) | MkDocs Material documentation stack |
-| [021](../adr/021-automated-release-pipeline.md) | Automated release pipeline |
-| [024](../adr/024-ci-gate-pattern.md) | CI gate pattern |
-| [025](../adr/025-container-strategy.md) | Container strategy |
-| [029](../adr/029-testing-strategy.md) | Testing strategy |
-| [031](../adr/031-script-conventions.md) | Script conventions |
-| [032](../adr/032-dependency-grouping-strategy.md) | Dependency grouping strategy |
+| ADR                                                | Decision                                 |
+| -------------------------------------------------- | ---------------------------------------- |
+| [001](../adr/001-src-layout.md)                    | src/ layout for packages                 |
+| [002](../adr/002-pyproject-toml.md)                | pyproject.toml as single source of truth |
+| [003](../adr/003-separate-workflow-files.md)       | Separate workflow files per concern      |
+| [004](../adr/004-pin-action-shas.md)               | SHA-pinned GitHub Actions                |
+| [005](../adr/005-ruff-for-linting-formatting.md)   | Ruff for linting + formatting            |
+| [006](../adr/006-pytest-for-testing.md)            | pytest for testing                       |
+| [007](../adr/007-mypy-for-type-checking.md)        | mypy for type checking (strict)          |
+| [008](../adr/008-pre-commit-hooks.md)              | Pre-commit hooks (43 across 4 stages)    |
+| [009](../adr/009-conventional-commits.md)          | Conventional Commits                     |
+| [011](../adr/011-repository-guard-pattern.md)      | Repository guard pattern                 |
+| [012](../adr/012-multi-layer-security-scanning.md) | Multi-layer security scanning            |
+| [016](../adr/016-hatchling-and-hatch.md)           | Hatchling + Hatch                        |
+| [020](../adr/020-mkdocs-documentation-stack.md)    | MkDocs Material documentation stack      |
+| [021](../adr/021-automated-release-pipeline.md)    | Automated release pipeline               |
+| [024](../adr/024-ci-gate-pattern.md)               | CI gate pattern                          |
+| [025](../adr/025-container-strategy.md)            | Container strategy                       |
+| [029](../adr/029-testing-strategy.md)              | Testing strategy                         |
+| [031](../adr/031-script-conventions.md)            | Script conventions                       |
+| [032](../adr/032-dependency-grouping-strategy.md)  | Dependency grouping strategy             |
 
 Tool-level trade-off notes live in [tool-decisions.md](tool-decisions.md).
 
@@ -261,11 +261,11 @@ Tool-level trade-off notes live in [tool-decisions.md](tool-decisions.md).
 
 <!-- TODO (template users): List your runtime dependencies here. -->
 
-| Dependency | Purpose | Source |
-|------------|---------|--------|
+| Dependency         | Purpose                               | Source                                    |
+| ------------------ | ------------------------------------- | ----------------------------------------- |
 | Python stdlib only | Runtime (no third-party runtime deps) | `pyproject.toml` `[project.dependencies]` |
-| sqlite3 | Database (stdlib) | — |
-| argparse | CLI parsing (stdlib) | — |
+| sqlite3            | Database (stdlib)                     | —                                         |
+| argparse           | CLI parsing (stdlib)                  | —                                         |
 
 Dev/test dependencies are listed in `pyproject.toml`
 `[project.optional-dependencies]` and consumed by Hatch environments.
