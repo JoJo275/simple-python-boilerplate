@@ -14,11 +14,17 @@ Note:
     in PATH``, install it via ``hatch shell`` (which pulls in the dev
     extras) or ``pipx install commitizen``.
 
+Flags::
+
+    --strict     Treat optional tool warnings as failures
+    --no-color   Disable colored output
+    --json       Output results as JSON (for CI integration)
+    --version    Print version and exit
+
 Usage::
 
     python scripts/env_doctor.py
     python scripts/env_doctor.py --strict
-    python scripts/env_doctor.py --version
     python scripts/env_doctor.py --json
 """
 

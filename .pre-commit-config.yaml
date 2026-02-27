@@ -349,6 +349,20 @@ repos:
       - id: hadolint-docker
         stages: [manual]
 
+  # ---------------------------------------------------------------------------
+  # prettier — opinionated code formatter (Node-based)
+  # Normalises Markdown table alignment, YAML formatting, and more.
+  # Scoped to *.md only to minimise the Node dependency surface.
+  #   pre-commit run prettier --hook-stage manual --all-files
+  # Or change  stages: [manual]  →  stages: [pre-commit]  to enable.
+  # ---------------------------------------------------------------------------
+  - repo: https://github.com/rbubley/mirrors-prettier
+    rev: v3.8.1
+    hooks:
+      - id: prettier
+        types_or: [markdown]
+        stages: [manual]
+
 # =============================================================================
 # CI Configuration (optional)
 # =============================================================================

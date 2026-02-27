@@ -5,10 +5,26 @@ Reads rules from ``.repo-doctor.toml`` and reports missing files,
 directories, TOML config sections, and content patterns.  Never blocks;
 always exits 0.
 
+Flags::
+
+    --missing            Report missing files/dirs in working tree
+    --staged             Report staged deletions (index)
+    --diff RANGE         Report deletions in a git diff range
+                         (e.g. "origin/main...HEAD")
+    --category NAME      Only show rules matching this category
+    --min-level LEVEL    Minimum severity to display (default: warn)
+    --include-info       Include info-level checks (shorthand for --min-level info)
+    --profile NAME       Load additional rules from repo_doctor.d/NAME.toml
+                         (repeatable; 'all' loads everything)
+    --fix                Show auto-fix commands for rules that define one
+    --no-hints           Hide hint lines
+    --no-links           Hide link/reference lines
+    --no-color           Disable colored output
+    --version            Print version and exit
+
 Usage::
 
     python scripts/repo_doctor.py
-    python scripts/repo_doctor.py --version
     python scripts/repo_doctor.py --missing --staged
     python scripts/repo_doctor.py --category ci --min-level info
     python scripts/repo_doctor.py --include-info

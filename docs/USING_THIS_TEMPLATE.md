@@ -316,14 +316,14 @@ Not every project needs all 29 workflows:
 ## Pre-commit Hooks
 
 [Pre-commit hooks](https://pre-commit.com/) catch problems before code leaves
-your machine. This template includes **42 hooks** across four Git stages:
+your machine. This template includes **43 hooks** across four Git stages:
 
 | Stage            | When it runs          | Examples                                                                | Count |
 | :--------------- | :-------------------- | :---------------------------------------------------------------------- | ----: |
 | **pre-commit**   | Every `git commit`    | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks   |    35 |
 | **commit-msg**   | Every `git commit`    | Commitizen — validates Conventional Commits format                      |     1 |
 | **pre-push**     | Every `git push`      | pytest, pip-audit, gitleaks                                             |     3 |
-| **manual**       | On demand             | markdownlint-cli2, hadolint-docker, forbid-submodules                   |     3 |
+| **manual**       | On demand             | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules         |     4 |
 
 All hooks are configured in [.pre-commit-config.yaml](../.pre-commit-config.yaml).
 See [ADR 008](adr/008-pre-commit-hooks.md) for the full inventory and rationale.
@@ -370,6 +370,32 @@ and a Task runner (short aliases). Each layer is optional.
 See [command-workflows.md](development/command-workflows.md) for a
 detailed breakdown of how `task test` → `hatch run test` → `pytest`
 flows through each layer, and guidance on which to use.
+
+---
+
+## Utility Scripts
+
+The [`scripts/`](../scripts/) directory contains standalone tools for
+project setup, maintenance, and diagnostics. Each script supports
+`--help` for full flag details (also documented in the docstring at
+the top of each file).
+
+| Script | Purpose | Key flags |
+| :----- | :------ | :-------- |
+| [`customize.py`](../scripts/customize.py) | Replace boilerplate placeholders, rename package, swap license | `--dry-run`, `--non-interactive`, `--enable-workflows SLUG` |
+| [`bootstrap.py`](../scripts/bootstrap.py) | One-command dev environment setup (Hatch envs, hooks, verify) | `--dry-run`, `--skip-hooks`, `--skip-test-matrix` |
+| [`clean.py`](../scripts/clean.py) | Remove build artifacts and caches | `--dry-run`, `--include-venv` |
+| [`doctor.py`](../scripts/doctor.py) | Diagnostics bundle for bug reports | `--markdown`, `--json`, `--output PATH` |
+| [`env_doctor.py`](../scripts/env_doctor.py) | Quick environment health check | `--strict`, `--json` |
+| [`repo_doctor.py`](../scripts/repo_doctor.py) | Repository structure health checks (configurable rules) | `--profile NAME`, `--fix`, `--category NAME` |
+| [`dep_versions.py`](../scripts/dep_versions.py) | Show/update/upgrade dependency versions | `show --offline`, `upgrade --dry-run` |
+| [`workflow_versions.py`](../scripts/workflow_versions.py) | Show/update/upgrade SHA-pinned GitHub Actions | `show --filter stale`, `upgrade --dry-run` |
+| [`check_todos.py`](../scripts/check_todos.py) | Scan for remaining TODO (template users) comments | `--count`, `--json` |
+| [`archive_todos.py`](../scripts/archive_todos.py) | Archive completed TODOs from notes | `--dry-run`, `--no-backup` |
+| [`changelog_check.py`](../scripts/changelog_check.py) | Verify CHANGELOG entries match git tags | `--verbose`, `--quiet` |
+| [`apply_labels.py`](../scripts/apply_labels.py) | Apply GitHub labels from JSON definitions | `--set {baseline,extended}`, `--dry-run` |
+
+Full inventory with additional details: [`scripts/README.md`](../scripts/README.md)
 
 ---
 
@@ -445,17 +471,106 @@ and the docs you don't need.
 
 ## Optional Tools to Consider
 
-Not included in the template, but worth evaluating:
+Not included in the template, but worth evaluating. Some overlap with
+built-in tooling — listed here so you know the alternatives.
 
-| Tool                                                      | Category          | When to use                                         |
-| :-------------------------------------------------------- | :---------------- | :-------------------------------------------------- |
-| [SQLAlchemy](https://www.sqlalchemy.org/)                 | ORM / Database    | Need a relational DB with Python models             |
-| [Alembic](https://alembic.sqlalchemy.org/)                | DB Migrations     | Managing schema changes (pairs with SQLAlchemy)     |
-| [FastAPI](https://fastapi.tiangolo.com/)                  | Web Framework     | Building an API (async, OpenAPI docs built-in)      |
-| [Flask](https://flask.palletsprojects.com/)               | Web Framework     | Lightweight web apps and APIs                       |
-| [Celery](https://docs.celeryq.dev/)                       | Task Queue        | Background / async job processing                   |
-| [Sentry](https://sentry.io/)                              | Error Tracking    | Production error monitoring                         |
-| [HTTPX](https://www.python-httpx.org/)                    | HTTP Client       | Modern async-capable HTTP client                    |
+### Web Frameworks
+
+| Tool | When to use |
+| :--- | :---------- |
+| [FastAPI](https://fastapi.tiangolo.com/) | Building an API (async, auto-generated OpenAPI docs) |
+| [Flask](https://flask.palletsprojects.com/) | Lightweight web apps and APIs |
+| [Django](https://www.djangoproject.com/) | Full-featured web framework (ORM, admin, auth built-in) |
+| [Litestar](https://litestar.dev/) | High-performance async API framework (alternative to FastAPI) |
+| [Starlette](https://www.starlette.io/) | Lightweight ASGI framework (FastAPI builds on this) |
+
+### Database & ORM
+
+| Tool | When to use |
+| :--- | :---------- |
+| [SQLAlchemy](https://www.sqlalchemy.org/) | Relational DB with Python models (ORM or Core) |
+| [Alembic](https://alembic.sqlalchemy.org/) | Managing schema migrations (pairs with SQLAlchemy) |
+| [SQLModel](https://sqlmodel.tiangolo.com/) | Pydantic + SQLAlchemy models in one (good with FastAPI) |
+| [Tortoise ORM](https://tortoise.github.io/) | Django-like async ORM |
+| [Peewee](https://docs.peewee-orm.com/) | Minimalist ORM for small projects |
+
+### Testing & Quality
+
+| Tool | When to use |
+| :--- | :---------- |
+| [pytest-mock](https://pytest-mock.readthedocs.io/) | Thin wrapper around `unittest.mock` for pytest fixtures |
+| [pytest-asyncio](https://pytest-asyncio.readthedocs.io/) | Testing async code with pytest |
+| [Hypothesis](https://hypothesis.readthedocs.io/) | Property-based testing (finds edge cases automatically) |
+| [Nox](https://nox.thea.codes/) | Test automation across Python versions (alternative to tox/Hatch matrix) |
+| [tox](https://tox.wiki/) | Test automation (alternative to Hatch matrix) |
+| [Coverage.py](https://coverage.readthedocs.io/) | Code coverage (already used via pytest-cov, but can run standalone) |
+| [mutmut](https://mutmut.readthedocs.io/) | Mutation testing — verifies test suite quality |
+
+### HTTP & Networking
+
+| Tool | When to use |
+| :--- | :---------- |
+| [HTTPX](https://www.python-httpx.org/) | Modern async-capable HTTP client (replaces requests) |
+| [requests](https://requests.readthedocs.io/) | Simple synchronous HTTP client |
+| [aiohttp](https://docs.aiohttp.org/) | Async HTTP client and server |
+
+### CLI & Configuration
+
+| Tool | When to use |
+| :--- | :---------- |
+| [Click](https://click.palletsprojects.com/) | Building CLI tools (decorator-based, composable) |
+| [Typer](https://typer.tiangolo.com/) | Building CLIs with type hints (built on Click) |
+| [Rich](https://rich.readthedocs.io/) | Pretty console output, tables, progress bars |
+| [Pydantic](https://docs.pydantic.dev/) | Data validation and settings management |
+| [python-dotenv](https://github.com/theskumar/python-dotenv) | Load `.env` files into environment variables |
+| [dynaconf](https://www.dynaconf.com/) | Multi-layer config management (env, files, vaults) |
+
+### Task Queues & Background Jobs
+
+| Tool | When to use |
+| :--- | :---------- |
+| [Celery](https://docs.celeryq.dev/) | Distributed task queue (Redis/RabbitMQ backend) |
+| [RQ (Redis Queue)](https://python-rq.org/) | Simple job queue backed by Redis |
+| [Dramatiq](https://dramatiq.io/) | Alternative to Celery with saner defaults |
+| [APScheduler](https://apscheduler.readthedocs.io/) | In-process job scheduling (cron-like) |
+
+### Monitoring & Observability
+
+| Tool | When to use |
+| :--- | :---------- |
+| [Sentry](https://sentry.io/) | Production error tracking and performance monitoring |
+| [structlog](https://www.structlog.org/) | Structured logging (JSON output, context binding) |
+| [OpenTelemetry](https://opentelemetry.io/docs/languages/python/) | Distributed tracing, metrics, and logs |
+| [Prometheus client](https://github.com/prometheus/client_python) | Expose metrics for Prometheus scraping |
+
+### Development & Debugging
+
+| Tool | When to use |
+| :--- | :---------- |
+| [IPython](https://ipython.readthedocs.io/) | Enhanced interactive Python shell |
+| [icecream](https://github.com/gruns/icecream) | Better `print()` debugging: `ic(variable)` |
+| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` |
+| [pdb++](https://github.com/pdbpp/pdbpp) | Enhanced Python debugger (drop-in pdb replacement) |
+
+### Linting & Formatting (alternatives/additions)
+
+| Tool | When to use |
+| :--- | :---------- |
+| [Prettier](https://prettier.io/) | Markdown/YAML/JSON formatting (included as a manual pre-commit hook) |
+| [mdformat](https://github.com/hukkin/mdformat) | Python-native Markdown formatter (no Node.js needed) |
+| [Black](https://black.readthedocs.io/) | Python code formatter (Ruff's formatter is a drop-in replacement) |
+| [isort](https://pycqa.github.io/isort/) | Import sorting (Ruff includes this via `I` rules) |
+| [Pylint](https://pylint.readthedocs.io/) | Comprehensive Python linter (overlaps heavily with Ruff) |
+| [pyright](https://microsoft.github.io/pyright/) | Alternative static type checker (faster than mypy, different trade-offs) |
+
+### Packaging & Distribution
+
+| Tool | When to use |
+| :--- | :---------- |
+| [PyInstaller](https://pyinstaller.org/) | Bundle Python app into standalone executables |
+| [Nuitka](https://nuitka.net/) | Compile Python to C for performance / distribution |
+| [pipx](https://pipx.pypa.io/) | Install and run Python CLI tools in isolated environments |
+| [uv](https://github.com/astral-sh/uv) | Ultra-fast pip/venv replacement (from the Ruff team) |
 
 ---
 

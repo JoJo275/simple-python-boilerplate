@@ -20,13 +20,25 @@ Requirements:
     - pip
     - The project installed in the current environment
 
-Usage:
-    python scripts/dep_versions.py --version             # Show script version
+Subcommands and flags::
+
+    show                     Show installed and latest versions (default)
+      --offline              Skip querying PyPI for latest versions
+    update-comments          Update inline version comments in pyproject.toml
+                             and requirements*.txt files
+    upgrade                  Upgrade dependencies via pip
+      [package]              Package to upgrade (omit to upgrade all)
+      [version]              Target version (omit to upgrade to latest)
+      --dry-run              Show what would be upgraded without installing
+    --version                Print version and exit
+
+Usage::
+
     python scripts/dep_versions.py                       # Show all dep versions
     python scripts/dep_versions.py show --offline        # Skip PyPI check
     python scripts/dep_versions.py update-comments       # Sync comments with installed
     python scripts/dep_versions.py upgrade               # Upgrade ALL deps to latest
-    python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades without installing
+    python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades
     python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
     python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
 """

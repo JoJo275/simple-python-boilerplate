@@ -22,7 +22,7 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 | [**Environments**][adr-016] | Hatch (virtualenv management, test matrix)                  |
 | [**Linting**][adr-005]      | Ruff (lint + format), mypy (strict), bandit (security)      |
 | [**Testing**][adr-006]      | pytest, pytest-cov, Python 3.11–3.13 matrix                 |
-| [**Pre-commit**][adr-008]   | 42 hooks across 4 stages (commit, commit-msg, push, manual) |
+| [**Pre-commit**][adr-008]   | 43 hooks across 4 stages (commit, commit-msg, push, manual) |
 | [**CI/CD**][workflows]      | 29 GitHub Actions workflows, SHA-pinned                     |
 | [**Docs**][adr-020]         | MkDocs Material + mkdocstrings, auto-deploy to Pages        |
 | [**Release**][adr-021]      | release-please → automated changelog + versioning           |

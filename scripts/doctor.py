@@ -4,10 +4,17 @@
 Collects: Python version, OS, Hatch version, active environment, key tool
 versions, important paths, git status, and configuration status.
 
+Flags::
+
+    -o, --output PATH   Write output to file (e.g. var/doctor.txt)
+    --markdown           Output as markdown (for GitHub issues)
+    --json               Output as JSON (machine-readable)
+    -q, --quiet          Print a one-line summary only
+    --version            Print version and exit
+
 Usage::
 
     python scripts/doctor.py
-    python scripts/doctor.py --version
     python scripts/doctor.py --output var/doctor.txt
     python scripts/doctor.py --markdown   # For GitHub issues
     python scripts/doctor.py --json       # Machine-readable output
