@@ -408,6 +408,9 @@ Key ADRs that most affect day-to-day work:
 | 016 | Hatchling and Hatch |
 | 024 | CI gate pattern |
 | 026 | No pip-tools for dependency management |
+| 029 | Testing strategy (unit/integration split, coverage, matrix) |
+| 031 | Script conventions |
+| 032 | Dependency grouping strategy |
 
 Full index: `docs/adr/README.md`
 
