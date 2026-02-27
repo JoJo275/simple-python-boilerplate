@@ -148,15 +148,18 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
    3. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
 3. Delete placeholder code in `src/` and `tests/`
 4. Enable repository guards via repository variables (see [ADR 011][adr-011])
-5. Replace the Codecov badge token in this README (or remove the badge)
-6. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
-7. Install hooks: `task pre-commit:install`
+5. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+6. Install hooks: `task pre-commit:install`
+
+See [USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for the full walkthrough and [resources.md](docs/notes/resources.md) for curated learning links.
 
 ## Documentation
 
-- **Live docs:** `task docs:serve` at [localhost:8000](http://127.0.0.1:8000)
+- **Live docs:** `task docs:serve` (serves at `http://localhost:8000`)
+- **Getting started:** [docs/guide/getting-started.md](docs/guide/getting-started.md)
 - **Architecture decisions:** [docs/adr/](docs/adr/)
 - **Developer guides:** [docs/development/](docs/development/)
+- **Troubleshooting:** [docs/guide/troubleshooting.md](docs/guide/troubleshooting.md)
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
