@@ -160,7 +160,7 @@ All three layers support forwarding extra arguments to the underlying tool.
     Append `--` then your arguments:
 
     ```bash
-    task test -- tests/unit/test_engine.py -v
+    task test -- tests/unit/test_example.py -v
     task lint -- --fix src/
     task test:k -- my_function
     ```
@@ -170,7 +170,7 @@ All three layers support forwarding extra arguments to the underlying tool.
     Arguments after the script name are forwarded automatically:
 
     ```bash
-    hatch run test tests/unit/test_engine.py -v
+    hatch run test tests/unit/test_example.py -v
     hatch run lint --fix src/
     ```
 
@@ -183,7 +183,7 @@ All three layers support forwarding extra arguments to the underlying tool.
     Just pass arguments normally:
 
     ```bash
-    pytest tests/unit/test_engine.py -v
+    pytest tests/unit/test_example.py -v
     ruff check --fix src/
     ```
 

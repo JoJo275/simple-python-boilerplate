@@ -288,11 +288,11 @@ pre-commit autoupdate
 ### See Enabled Hooks
 
 ```bash
-# List all configured hooks from .pre-commit-config.yaml
-pre-commit run --all-files --list-hooks
-
-# Or inspect the config directly
+# Inspect the config to see all configured hooks
 cat .pre-commit-config.yaml
+
+# Or run all hooks verbosely to see each hook's status
+pre-commit run --all-files --verbose
 
 # List raw Git hook scripts
 ls .git/hooks/
