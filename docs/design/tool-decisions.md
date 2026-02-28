@@ -215,14 +215,15 @@ decision to use MkDocs.
 - **GitHub Pages deployment:** `docs-deploy.yml` deploys on push to `main`,
   path-filtered to `docs/`, `src/`, and `mkdocs.yml` changes.
 
-- **MkDocs hooks have no unit tests:** `mkdocs-hooks/repo_links.py` has grown
-  to ~280 lines with 3 link pattern types and protected-region handling. It
-  currently has no test coverage. Consider adding `tests/unit/test_repo_links.py`
-  to catch regressions — the hook is complex enough to warrant it.
+- **MkDocs hooks have unit tests:** `mkdocs-hooks/repo_links.py` (~360 lines,
+  3 link pattern types, protected-region handling) is covered by
+  `tests/unit/test_repo_links.py` (86 tests). Tests cover all helper functions,
+  all three link patterns, the protect/restore system, and end-to-end
+  `on_page_markdown` behaviour.
 
-<!-- TODO (template users): If you add custom MkDocs hooks, consider adding
-     unit tests for them. Hooks that rewrite content are especially prone to
-     regressions when patterns change. -->
+<!-- TODO (template users): If you add custom MkDocs hooks, add corresponding
+     unit tests. Hooks that rewrite content are especially prone to regressions
+     when patterns change. See tests/unit/test_repo_links.py for an example. -->
 
 ---
 

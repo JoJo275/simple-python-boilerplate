@@ -14,12 +14,12 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: architecture.md
 - [X] Final file check: ci-cd-design.md
 - [X] Final file check: database.md
-- [ ] Final file check: tool-decisions.md
-- [ ] Final file check: command-workflows.md
-- [ ] Final file check: dev-setup.md
-- [ ] Final file check: developer-commands.md
-- [ ] Final file check: development.md
-- [ ] Final file check: pull-requests.md
+- [x] Final file check: tool-decisions.md
+- [x] Final file check: command-workflows.md
+- [x] Final file check: dev-setup.md
+- [x] Final file check: developer-commands.md
+- [x] Final file check: development.md
+- [x] Final file check: pull-requests.md
 - [ ] Final file check: docs/guide/getting-started.md
 - [ ] Final file check: docs/guide/troubleshooting.md
 - [ ] Final file check: docs/notes/resources.md
@@ -51,7 +51,7 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: entire docs/
 - [x] Add in TODOs where warranted
 - [ ] Review and consolidate docs/
-- [ ] Add unit tests for mkdocs-hooks/repo_links.py (~280 lines, no test coverage)
+- [x] Add unit tests for mkdocs-hooks/repo_links.py (86 tests in tests/unit/test_repo_links.py)
 
 ## Ideas for Later
 

@@ -154,9 +154,6 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 ├── mkdocs-hooks/                # MkDocs build hooks
 │   └── repo_links.py           # Rewrites repo-relative links → GitHub URLs
 │
-├── hooks/                       # Legacy hooks directory
-│   └── repo_links.py           # Original repo_links (before mkdocs-hooks/)
-│
 ├── labels/                      # GitHub label definitions (labels-as-code)
 │   ├── baseline.json            # Core workflow labels
 │   └── extended.json            # Optional detailed labels

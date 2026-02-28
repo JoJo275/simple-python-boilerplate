@@ -161,7 +161,16 @@ git commit -m "chore: bump ruff to 0.9.x"
 
 #### Optional: Commitizen
 
-If you prefer an interactive prompt, install [Commitizen](https://commitizen-tools.github.io/commitizen/):
+Commitizen is already installed in the dev environment. Use it via Hatch
+or the Taskfile shortcut:
+
+```bash
+hatch run cz commit
+# or
+task commit
+```
+
+Alternatively, install it standalone with [pipx](https://pipx.pypa.io/):
 
 ```bash
 pipx install commitizen
@@ -266,11 +275,11 @@ The project already has a `.pre-commit-config.yaml` with all hooks configured.
 To see what's active:
 
 ```bash
-# List all configured hooks
-pre-commit run --all-files --list-hooks
-
-# Or inspect the config directly
+# Inspect the config to see all configured hooks
 cat .pre-commit-config.yaml
+
+# Or run all hooks verbosely to see each hook's status
+pre-commit run --all-files --verbose
 ```
 
 Key hooks by stage:
@@ -282,7 +291,7 @@ Key hooks by stage:
 | `check-yaml`              | pre-commit-hooks | Validate YAML syntax                     |
 | `check-toml`              | pre-commit-hooks | Validate TOML syntax                     |
 | `check-json`              | pre-commit-hooks | Validate JSON syntax                     |
-| `check-added-large-files` | pre-commit-hooks | Prevent giant files (>1 MB)              |
+| `check-added-large-files` | pre-commit-hooks | Prevent large files (>500 KB)            |
 | `check-merge-conflict`    | pre-commit-hooks | Detect merge conflict markers            |
 | `check-case-conflict`     | pre-commit-hooks | Detect case-insensitive filename clashes |
 | `debug-statements`        | pre-commit-hooks | Find leftover debugger imports           |
@@ -368,13 +377,18 @@ dependencies = [
     "requests>=2.28",
 ]
 
-# Dev dependencies (Hatch environment)
-[tool.hatch.envs.default]
-dependencies = [
+# Dev dependencies (add to the 'dev' optional-dependencies group)
+[project.optional-dependencies]
+dev = [
     "pytest",
     "new-dev-tool",  # Add here
 ]
 ```
+
+> **Note:** This project uses `[project.optional-dependencies]` groups
+> consumed by Hatch via `features = ["dev"]`.  Don't add dev dependencies
+> directly to `[tool.hatch.envs.default] dependencies` — add them to the
+> appropriate group in `[project.optional-dependencies]` instead.
 
 Then run any `hatch run` command — Hatch syncs and installs the new dependency automatically.
 
