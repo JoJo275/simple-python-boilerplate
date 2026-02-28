@@ -1,7 +1,7 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
 <!-- Suggested branch rename: feat/docs-tooling-overhaul -->
-<!-- Suggested pr name: feat: documentation overhaul, script enhancements, and new ADRs -->
+<!-- Suggested pr name: feat: docs overhaul, script enhancements, and new ADRs -->
 <!-- Suggested labels: documentation, enhancement, testing -->
 
 <!--
