@@ -212,7 +212,7 @@ follows Conventional Commits format.
 
 **Fix:** Use the correct format:
 
-```
+```text
 <type>(<scope>): <description>
 
 # Examples:

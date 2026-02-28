@@ -19,7 +19,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
      architecture — add/remove layers, services, databases, or external
      integrations as needed. -->
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │                       Application                            │
 ├──────────────────────────────────────────────────────────────┤
@@ -51,7 +51,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 
 ## Module Responsibilities
 
-```
+```text
 main.py   → starts the program (entry points, thin wrappers)
 cli.py    → defines CLI contract (argument parsing, commands)
 engine.py → defines behavior (core logic, interface-agnostic)
@@ -67,7 +67,7 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
      after renaming and adding modules. Delete directories you don't use
      (e.g. experiments/, db/, labels/) and add any new top-level dirs. -->
 
-```
+```text
 .                                # Project root
 ├── pyproject.toml               # Project metadata, deps, all tool configs
 ├── Taskfile.yml                 # Task runner shortcuts (wraps Hatch)
@@ -189,7 +189,7 @@ Configured in `pyproject.toml` under `[project.scripts]`:
 
 ### CLI command
 
-```
+```text
 User runs `spb process <input>`
   → main.main()
     → cli.parse_args()         # argparse
@@ -201,7 +201,7 @@ User runs `spb process <input>`
 
 ### Doctor command
 
-```
+```text
 User runs `spb-doctor`
   → main.doctor()
     → engine.get_version_info()    # VersionInfo TypedDict
@@ -235,7 +235,7 @@ Version is derived from git tags at build time via `hatch-vcs`
 ([ADR 004](../adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../adr/011-repository-guard-pattern.md)).
 
-```
+```text
 PR opened / push to main
   ├── lint-format.yml       (Ruff lint + format)
   ├── type-check.yml        (mypy strict)

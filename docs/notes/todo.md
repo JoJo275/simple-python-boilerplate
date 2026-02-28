@@ -20,14 +20,14 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: developer-commands.md
 - [x] Final file check: development.md
 - [x] Final file check: pull-requests.md
-- [ ] Final file check: docs/guide/getting-started.md
+- [x] Final file check: docs/guide/getting-started.md
 - [x] Final file check: docs/guide/troubleshooting.md
 - [x] Final file check: docs/notes/resources.md
-- [ ] Final file check: docs/notes/learning.md
+- [x] Final file check: docs/notes/learning.md
 - [x] Final file check: docs/notes/tool-comparison.md
 - [x] Final file check: docs/reference/api.md
 - [x] Final file check: docs/reference/index.md
-- [ ] Final file check: docs/templates/
+- [x] Final file check: docs/templates/
 - [ ] Final file check: docs/labels.md
 - [ ] Final file check: docs/workflows.md
 - [ ] Final file check: docs/repo-layout.md
@@ -36,8 +36,8 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: docs/release-policy.md
 - [ ] Final file check: docs/sbom.md
 - [ ] Final file check: docs/USING_THIS_TEMPLATE.md
-- [ ] Final file check: docs/index.md
-- [ ] Final file check: docs/adr/README.md
+- [x] Final file check: docs/index.md
+- [x] Final file check: docs/adr/README.md
 - [ ] Final file check: docs/design/ci-cd-design.md
 - [ ] Final file check: docs/design/database.md
 - [ ] Final file check: CONTRIBUTING.md
