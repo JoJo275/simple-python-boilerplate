@@ -231,7 +231,7 @@ is required in branch protection.
 
 ## Design Decisions
 
-Key architectural decisions are documented in [ADRs](../adr/):
+Key architectural decisions are documented in [ADRs](../adr/README.md):
 
 | ADR                                                | Decision                                 |
 | -------------------------------------------------- | ---------------------------------------- |
@@ -281,5 +281,5 @@ Dev/test dependencies are listed in `pyproject.toml`
 
 - [Tool Decisions](tool-decisions.md) — Detailed tool comparison notes
 - [Database Design](database.md) — Schema and data model
-- [ADRs](../adr/) — Architecture Decision Records
-- [Development Guide](../development/) — Developer setup
+- [ADRs](../adr/README.md) — Architecture Decision Records
+- [Development Guide](../development/development.md) — Developer setup

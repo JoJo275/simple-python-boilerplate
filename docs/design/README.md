@@ -15,5 +15,5 @@ High-level design and architecture documentation.
 
 ## Related
 
-- [ADRs](../adr/) — Architecture Decision Records
-- [Development](../development/) — Developer guides
+- [ADRs](../adr/README.md) — Architecture Decision Records
+- [Development](../development/development.md) — Developer guides

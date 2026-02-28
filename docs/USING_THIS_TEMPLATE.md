@@ -103,7 +103,7 @@ This template includes 3 issue templates plus a config file:
 | [documentation.yml](../.github/ISSUE_TEMPLATE/documentation.yml)     | Docs issues/improvements     | If you maintain docs   |
 | [config.yml](../.github/ISSUE_TEMPLATE/config.yml)                   | External links & Discussions | Customize link targets |
 
-Additional templates are available in [docs/templates/issue_templates/](templates/issue_templates/)
+Additional templates are available in [docs/templates/issue_templates/](templates/issue_templates/README.md)
 if you need them (e.g., question, performance).
 
 ### Removing templates
@@ -156,7 +156,7 @@ doesn't apply:
 
 | Delete                                                                                   | If you don't need…                                           |
 | :--------------------------------------------------------------------------------------- | :----------------------------------------------------------- |
-| [docs/templates/](templates/)                                                            | File templates (copy what you need first)                    |
+| [docs/templates/](templates/README.md)                                                   | File templates (copy what you need first)                    |
 | [docs/adr/template.md](adr/template.md)                                                  | ADR template (keep if you write ADRs)                        |
 | [experiments/](../experiments/)                                                          | Example experiment scripts                                   |
 | [labels/extended.json](../labels/extended.json)                                          | Extended label set (baseline is enough)                      |
@@ -214,7 +214,7 @@ check items off as you go.
 
 ### Cleanup
 
-- [ ] Delete [docs/templates/](templates/) (after copying what you need)
+- [ ] Delete [docs/templates/](templates/README.md) (after copying what you need)
 - [ ] Delete unused issue templates from [.github/ISSUE_TEMPLATE/](../.github/ISSUE_TEMPLATE/)
 - [ ] Clear [CHANGELOG.md](../CHANGELOG.md) for your project's history
 - [ ] Remove template-specific notes from documentation
@@ -347,7 +347,7 @@ pre-commit install --hook-type pre-push
 
 ## File Templates
 
-[docs/templates/](templates/) contains reusable file templates you can copy
+[docs/templates/](templates/README.md) contains reusable file templates you can copy
 and adapt:
 
 | Template                                                     | Purpose                                  |
@@ -465,7 +465,7 @@ and the docs you don't need.
 | Learning resources       | [resources.md](notes/resources.md)            |
 | Release policy           | [releasing.md](releasing.md)                  |
 | Contributing guide       | [CONTRIBUTING.md](../CONTRIBUTING.md)         |
-| ADR index                | [docs/adr/](adr/)                             |
+| ADR index                | [docs/adr/](adr/README.md)                    |
 
 ---
 
