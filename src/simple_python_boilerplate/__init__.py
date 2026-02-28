@@ -4,7 +4,7 @@
 try:
     from simple_python_boilerplate._version import __version__, __version_tuple__
 except ImportError:
-    __version__ = "0.3.0"  # x-release-please-version
+    __version__ = "0.4.0"  # x-release-please-version
     __version_tuple__ = (0, 3, 0)
 
 __all__ = ["__version__", "__version_tuple__"]

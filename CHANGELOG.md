@@ -9,6 +9,34 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.3.0...v0.4.0) (2026-02-28)
+
+
+### Features
+
+* add CI gate task to check for stale or upgradable actions; update documentation and tests ([850843d](https://github.com/JoJo275/simple-python-boilerplate/commit/850843d5d631e722fe0798bc7e70d68720b47525))
+* add GitHub Actions version management commands and color output support; update documentation and tests ([2a582c2](https://github.com/JoJo275/simple-python-boilerplate/commit/2a582c2c6420f1c09872d3c941ba09d71fb8fef2))
+* add troubleshooting guide to documentation; enhance user support resources ([e808395](https://github.com/JoJo275/simple-python-boilerplate/commit/e80839578d2e4930458c38d69cf445391bb2e0f4))
+* add version flag and JSON output support to workflow_versions; implement unit tests for key functions ([e01c59d](https://github.com/JoJo275/simple-python-boilerplate/commit/e01c59de329c864ce0ee9560d7f035ccfa4d3ec5))
+* enhance command workflows documentation and improve link handling ([c1f70da](https://github.com/JoJo275/simple-python-boilerplate/commit/c1f70da2258da5b31eb8982d6726f7f864584217))
+* enhance env_doctor and repo_doctor with JSON output support; add version flag and improve test coverage ([d125eff](https://github.com/JoJo275/simple-python-boilerplate/commit/d125effe2fb560cf1953cea61d16fbeb714323f2))
+* enhance env_doctor with additional checks for git user config and pyproject.toml; add color output support and version flag ([ea2f050](https://github.com/JoJo275/simple-python-boilerplate/commit/ea2f0509cf53f64f02c1b1ee3a84a35059578c4d))
+* enhance Taskfile with new tasks for dependency checks and repository health; update TODO list ([e4526d8](https://github.com/JoJo275/simple-python-boilerplate/commit/e4526d826d1901ea5ec987c286eff58d5ee74b8b))
+* enhance troubleshooting documentation; add common error solutions and tips for Python environments ([9335884](https://github.com/JoJo275/simple-python-boilerplate/commit/9335884d4a80b0059b9ad244dc8672801a4af6b2))
+* enhance workflow_versions script with filtering and quiet mode; update documentation and tests ([d357166](https://github.com/JoJo275/simple-python-boilerplate/commit/d357166999b6dbc11bba435e6c2608817642cb0e))
+* mark requirements files as completed in TODO list ([2a8b600](https://github.com/JoJo275/simple-python-boilerplate/commit/2a8b600ce6ab6a8c342ef7f0e7a3bf709877aae9))
+* mark SECURITY.md as completed in TODO list; update requirements files for final checks ([e9b17b2](https://github.com/JoJo275/simple-python-boilerplate/commit/e9b17b2d0f8af25c1f4819fd71d1466dad32a664))
+* remove outdated tasks from TODO list; streamline implementation focus ([b5dafe0](https://github.com/JoJo275/simple-python-boilerplate/commit/b5dafe00a8284b0023c663cd84297feb220ae0d9))
+* remove outdated tasks from TODO list; streamline implementation focus ([00d039f](https://github.com/JoJo275/simple-python-boilerplate/commit/00d039fb1cc9b08f055397871070443222f0e3dd))
+* reorganize documentation structure and enhance developer context ([96df18e](https://github.com/JoJo275/simple-python-boilerplate/commit/96df18e85510a1be3cc2d90a060ec41f4cd46ed6))
+* update configuration and scripts; enhance caching, versioning, and documentation ([4bc35e8](https://github.com/JoJo275/simple-python-boilerplate/commit/4bc35e8bc0df0221f49490d5f78dacc7ea53077b))
+* update documentation to include CI/CD design and resource links; enhance project guidance ([5620fea](https://github.com/JoJo275/simple-python-boilerplate/commit/5620fea31c75373ab6a2774d98b6ca3835e6b4c6))
+* update requirements files and todo list; clarify usage and remove deprecated notes ([2ed5544](https://github.com/JoJo275/simple-python-boilerplate/commit/2ed55443e52842082c6eb5906f488a27a2a6c8a7))
+* update requirements files with additional TODO instructions for template users ([679f027](https://github.com/JoJo275/simple-python-boilerplate/commit/679f027abca0373d9463efb2fb47175c85dd27d1))
+* update SECURITY.md and Taskfile.yml with template user instructions; finalize taskfile check in TODO list ([cad666a](https://github.com/JoJo275/simple-python-boilerplate/commit/cad666aeeb361d50eb69659bad6e6a5bf6b013ef))
+* update SECURITY.md with improved reporting instructions and formatting enhancements ([30a2775](https://github.com/JoJo275/simple-python-boilerplate/commit/30a27755fccbd875901e2bed441093ccefd3e9dc))
+* update TODO list; refine implementation tasks and remove outdated items ([006a971](https://github.com/JoJo275/simple-python-boilerplate/commit/006a971c872f8a46691741d8765fc7e1ad32738d))
+
 ## [0.3.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.2.0...v0.3.0) (2026-02-26)
 
 ### Features
