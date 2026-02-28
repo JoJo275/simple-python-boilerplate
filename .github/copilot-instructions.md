@@ -424,6 +424,9 @@ Key ADRs that most affect day-to-day work:
 | 029 | Testing strategy (unit/integration split, coverage, matrix) |
 | 031 | Script conventions                                          |
 | 032 | Dependency grouping strategy                                |
+| 033 | Prettier for Markdown formatting                            |
+| 034 | Documentation organization strategy                         |
+| 035 | Copilot instructions as developer context                   |
 
 Full index: `docs/adr/README.md`
 

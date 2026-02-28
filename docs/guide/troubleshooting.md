@@ -148,6 +148,61 @@ git add --chmod=+x scripts/my_script.py
 
 ---
 
+### Prettier hook "Failed" but says "files were modified by this hook"
+
+**Cause:** This is **expected behavior**, not a real error. Prettier is a
+_formatter_, not a _linter_. When pre-commit runs it:
+
+1. Prettier reads each Markdown file and reformats it in place
+2. If any file changed, pre-commit reports the hook as **Failed**
+3. The modified files now contain the correct formatting
+
+**Fix:**
+
+```bash
+# Stage the reformatted files and commit again
+git add -A
+git commit -m "style: format markdown with prettier"
+
+# Or review changes first
+git diff                  # See what Prettier changed
+git add -p                # Stage selectively
+```
+
+This "fail-and-fix" pattern is how all formatter hooks work in pre-commit
+(Ruff format, Black, Prettier). The "failure" means "I fixed something —
+re-stage and retry." See [ADR 033](../adr/033-prettier-for-markdown-formatting.md).
+
+---
+
+### Prettier reformats a file I don't want changed
+
+**Cause:** Prettier applies to all Markdown files by default. Some files
+(generated content, copied templates) may have intentional formatting.
+
+**Fix:** Add a `.prettierignore` file at the repo root, or use
+`<!-- prettier-ignore -->` comments for specific blocks:
+
+```markdown
+<!-- prettier-ignore-start -->
+This    content    won't   be   reformatted.
+<!-- prettier-ignore-end -->
+```
+
+---
+
+### Hook runs but reports "no files to check" / skipped
+
+**Cause:** The hook's file filter doesn't match any staged files. For
+example, the `mypy` hook only runs on `.py` files — if you only changed
+Markdown, mypy is skipped.
+
+**Fix:** No fix needed — this is correct behavior. Hooks use file type
+filters to avoid running on irrelevant changes. Check `.pre-commit-config.yaml`
+for each hook's `types:` or `files:` filter.
+
+---
+
 ## Git & Commits
 
 ### Commit rejected: "commit message does not match pattern"
@@ -1252,10 +1307,47 @@ pip show some-package
 | `fatal: not a git repository`                | Not in a git repo              | `git init` or `cd` to the right directory       |
 | `git push rejected (non-fast-forward)`       | Remote has commits you don't   | `git pull --rebase` first                       |
 | `Your branch is up to date` but files differ | Unstaged changes               | `git add -A` then check status                  |
+| `files were modified by this hook`           | Formatter hook (Prettier/Ruff) | Re-stage files and commit again                 |
+
+---
+
+## Taskfile & Hatch Shortcuts
+
+### `task` commands not working / "task: not found"
+
+**Cause:** Task runner (go-task) isn't installed, or you're not in the
+project root.
+
+**Fix:** See the [Installation & Setup](#command-not-found-task) section
+above. All `task` commands wrap `hatch run` equivalents, so you can always
+use `hatch run` directly if Task isn't available.
+
+---
+
+### `task check` fails — how to read the output
+
+**Cause:** `task check` runs all quality gates in sequence (lint, format
+check, typecheck, tests). It stops at the first failure.
+
+**Fix:**
+
+```bash
+# Run gates individually to isolate the failure
+task lint         # Ruff linting
+task fmt          # Check formatting
+task typecheck    # mypy
+task test         # pytest
+
+# Or auto-fix what's fixable
+task lint:fix     # Auto-fix lint issues
+```
 
 ---
 
 ## Still Stuck?
+
+<!-- TODO (template users): Update the issue URLs below with your actual
+     repository path after forking. -->
 
 1. Search existing [issues](https://github.com/JoJo275/simple-python-boilerplate/issues) — someone may have hit the same problem
 2. Run the diagnostic tool: `spb-doctor` or `python scripts/doctor.py`
@@ -1273,3 +1365,5 @@ pip show some-package
 - [CI/CD Design](../design/ci-cd-design.md) — pipeline architecture and debugging
 - [Using This Template](../USING_THIS_TEMPLATE.md) — first-time setup checklist
 - [Tooling](../tooling.md) — what each tool does
+- [ADR 008](../adr/008-pre-commit-hooks.md) — Pre-commit hook inventory
+- [ADR 033](../adr/033-prettier-for-markdown-formatting.md) — Prettier for Markdown
