@@ -1,7 +1,27 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
 <!-- Suggested branch rename: feat/docs-tooling-overhaul -->
-<!-- Suggested pr name: feat: docs overhaul, script enhancements, and new ADRs -->
+<!--
+  Suggested PR titles (must use conventional commit format — type: description):
+
+  Full titles:
+    feat: docs overhaul, script enhancements, and new ADRs
+    feat: comprehensive template documentation and tooling update
+    docs: documentation overhaul with new ADRs, tests, and script enhancements
+
+  Available prefixes:
+    feat:     — new feature or capability
+    fix:      — bug fix
+    docs:     — documentation only
+    chore:    — maintenance, no production code change
+    refactor: — code restructuring, no behavior change
+    test:     — adding or updating tests
+    ci:       — CI/CD workflow changes
+    style:    — formatting, no logic change
+    perf:     — performance improvement
+    build:    — build system or dependency changes
+    revert:   — reverts a previous commit
+-->
 <!-- Suggested labels: documentation, enhancement, testing -->
 
 <!--
