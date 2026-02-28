@@ -31,7 +31,7 @@ to use pre-commit. Notes below cover individual hook tool choices.
 | **pip-audit**             | Vulnerability scan | PyPA-maintained, uses OSV + PyPI advisory DB. Successor to safety.                                                                                               |
 | **gitleaks**              | Secret detection   | 150+ curated rules with entropy analysis. Single Go binary. Complements the fast regex `no-secrets-patterns` hook.                                               |
 | **deptry**                | Dependency hygiene | No real alternative in Python. Compares `pyproject.toml` against actual imports to find unused, missing, and transitive deps.                                    |
-| **actionlint**            | Workflow linting   | Only mature GitHub Actions workflow linter. Catches expression errors, unknown runner labels, missing action inputs.                                              |
+| **actionlint**            | Workflow linting   | Only mature GitHub Actions workflow linter. Catches expression errors, unknown runner labels, missing action inputs.                                             |
 | **commitizen**            | Commit messages    | Validates Conventional Commits format. Also provides `cz commit` for interactive authoring.                                                                      |
 | **validate-pyproject**    | Config validation  | Validates `pyproject.toml` against PEP 621 / packaging schemas. Catches schema errors before CI.                                                                 |
 | **check-jsonschema**      | Config validation  | SchemaStore-backed validation for GitHub workflows, actions, and Dependabot config.                                                                              |
@@ -154,29 +154,29 @@ pattern.
 
 ### Chosen
 
-| Tool          | Purpose                       | Why chosen                                                                                                  |
-| ------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Hatch**     | Project manager + env manager | Manages virtualenvs, runs scripts, builds packages. Single tool replaces tox + pip-tools + build (ADR 016). |
-| **Hatchling** | Build backend                 | PEP 517 build backend. Pairs with Hatch, auto-discovers `src/` layout.                                      |
-| **hatch-vcs** | Version from git tags         | Dynamic versioning from git tags. No manual version bumps. Fallback: `0.0.0+unknown`.                      |
-| **pytest**    | Test framework                | De facto standard. Rich plugin ecosystem (ADR 006).                                                         |
-| **pytest-cov**| Coverage plugin               | Integrates coverage.py with pytest. Branch coverage enabled, 80% minimum enforced.                          |
-| **mypy**      | Type checker                  | Strict mode. Best error messages for gradual typing (ADR 007).                                              |
-| **Ruff**      | Linter + formatter            | See pre-commit section above (ADR 005).                                                                     |
-| **Bandit**    | Security linter               | AST-based Python security analysis. Skips `B101` (asserts) in config (ADR 018).                             |
+| Tool           | Purpose                       | Why chosen                                                                                                  |
+| -------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Hatch**      | Project manager + env manager | Manages virtualenvs, runs scripts, builds packages. Single tool replaces tox + pip-tools + build (ADR 016). |
+| **Hatchling**  | Build backend                 | PEP 517 build backend. Pairs with Hatch, auto-discovers `src/` layout.                                      |
+| **hatch-vcs**  | Version from git tags         | Dynamic versioning from git tags. No manual version bumps. Fallback: `0.0.0+unknown`.                       |
+| **pytest**     | Test framework                | De facto standard. Rich plugin ecosystem (ADR 006).                                                         |
+| **pytest-cov** | Coverage plugin               | Integrates coverage.py with pytest. Branch coverage enabled, 80% minimum enforced.                          |
+| **mypy**       | Type checker                  | Strict mode. Best error messages for gradual typing (ADR 007).                                              |
+| **Ruff**       | Linter + formatter            | See pre-commit section above (ADR 005).                                                                     |
+| **Bandit**     | Security linter               | AST-based Python security analysis. Skips `B101` (asserts) in config (ADR 018).                             |
 
 ### Skipped
 
-| Tool            | Why skipped                                                                                                                                                                                                    |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **tox**         | Hatch environments cover the same use case (matrix testing, isolated envs) with less configuration.                                                                                                            |
-| **Poetry**      | Excellent tool but uses a non-standard `[tool.poetry]` config. Hatchling uses standard PEP 621 metadata.                                                                                                       |
-| **setuptools**  | Works but requires more boilerplate. Hatchling auto-discovers `src/` layout with zero config.                                                                                                                  |
-| **Flit**        | Simpler than setuptools, but lacks Hatchling's environment management and plugin ecosystem. No advantage when already using Hatch.                                                                             |
-| **PDM**         | Full-featured alternative to Hatch. Less mature ecosystem and smaller community at time of evaluation. Hatch's PEP 621 compliance and env management won out.                                                  |
-| **Pyright**     | Valid alternative to mypy. mypy was chosen for broader community adoption and better error messages for gradual typing. Pyright is available via Pylance in VS Code for real-time feedback.                      |
-| **pip-tools**   | `pip-compile` is useful for pinning, but Hatch environments + `pyproject.toml` extras handle dependency management for this project's needs. See [ADR 026](../adr/026-no-pip-tools.md) for detailed rationale. |
-| **nox**         | Python-native alternative to tox. More flexible than tox but adds a dependency Hatch already covers.                                                                                                           |
+| Tool           | Why skipped                                                                                                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **tox**        | Hatch environments cover the same use case (matrix testing, isolated envs) with less configuration.                                                                                                            |
+| **Poetry**     | Excellent tool but uses a non-standard `[tool.poetry]` config. Hatchling uses standard PEP 621 metadata.                                                                                                       |
+| **setuptools** | Works but requires more boilerplate. Hatchling auto-discovers `src/` layout with zero config.                                                                                                                  |
+| **Flit**       | Simpler than setuptools, but lacks Hatchling's environment management and plugin ecosystem. No advantage when already using Hatch.                                                                             |
+| **PDM**        | Full-featured alternative to Hatch. Less mature ecosystem and smaller community at time of evaluation. Hatch's PEP 621 compliance and env management won out.                                                  |
+| **Pyright**    | Valid alternative to mypy. mypy was chosen for broader community adoption and better error messages for gradual typing. Pyright is available via Pylance in VS Code for real-time feedback.                    |
+| **pip-tools**  | `pip-compile` is useful for pinning, but Hatch environments + `pyproject.toml` extras handle dependency management for this project's needs. See [ADR 026](../adr/026-no-pip-tools.md) for detailed rationale. |
+| **nox**        | Python-native alternative to tox. More flexible than tox but adds a dependency Hatch already covers.                                                                                                           |
 
 ---
 
@@ -187,24 +187,24 @@ decision to use MkDocs.
 
 ### Chosen
 
-| Tool                      | Purpose                 | Why chosen                                                                                                                           |
-| ------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **MkDocs**                | Static site generator   | Python-native, simple config (`mkdocs.yml`), fast rebuild. Better fit for Python projects than Node-based alternatives.              |
-| **mkdocs-material**       | Theme                   | Feature-rich Material Design theme. Built-in search, dark mode toggle, code copy, navigation tabs, content tabs. Active development. |
-| **mkdocstrings\[python\]**| API docs from docstrings| Auto-generates API reference from Google-style docstrings. No manual duplication of function signatures.                             |
-| **pymdown-extensions**    | Markdown extensions     | Adds tabbed content, details/summary, fenced code blocks with highlighting, inline code highlighting.                               |
+| Tool                       | Purpose                  | Why chosen                                                                                                                           |
+| -------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **MkDocs**                 | Static site generator    | Python-native, simple config (`mkdocs.yml`), fast rebuild. Better fit for Python projects than Node-based alternatives.              |
+| **mkdocs-material**        | Theme                    | Feature-rich Material Design theme. Built-in search, dark mode toggle, code copy, navigation tabs, content tabs. Active development. |
+| **mkdocstrings\[python\]** | API docs from docstrings | Auto-generates API reference from Google-style docstrings. No manual duplication of function signatures.                             |
+| **pymdown-extensions**     | Markdown extensions      | Adds tabbed content, details/summary, fenced code blocks with highlighting, inline code highlighting.                                |
 
 <!-- TODO (template users): If you don't need API docs from docstrings, you
      can drop mkdocstrings from the docs dependency group in pyproject.toml. -->
 
 ### Skipped
 
-| Tool          | Why skipped                                                                                                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Sphinx**    | More powerful for large API-heavy projects (cross-references, intersphinx). Steeper config, RST-centric (MyST bridges the gap but adds complexity). MkDocs is simpler for this project. |
-| **Docusaurus**| React-based. Adds a full Node.js build pipeline to a Python project. Overkill for project documentation.                                                                                |
-| **Jupyter Book** | Sphinx-based, great for notebooks. Not needed here — no notebook-heavy documentation.                                                                                                |
-| **pdoc**      | Zero-config API docs. Too limited for project documentation beyond API reference — no custom pages, navigation, or theming.                                                              |
+| Tool             | Why skipped                                                                                                                                                                             |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sphinx**       | More powerful for large API-heavy projects (cross-references, intersphinx). Steeper config, RST-centric (MyST bridges the gap but adds complexity). MkDocs is simpler for this project. |
+| **Docusaurus**   | React-based. Adds a full Node.js build pipeline to a Python project. Overkill for project documentation.                                                                                |
+| **Jupyter Book** | Sphinx-based, great for notebooks. Not needed here — no notebook-heavy documentation.                                                                                                   |
+| **pdoc**         | Zero-config API docs. Too limited for project documentation beyond API reference — no custom pages, navigation, or theming.                                                             |
 
 ### Notes
 
@@ -233,19 +233,19 @@ See [ADR 017](../adr/017-task-runner.md) for the architectural decision.
 
 ### Chosen
 
-| Tool     | Purpose          | Why chosen                                                                                                                                     |
-| -------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Task** | Command runner   | Go-based, single binary, `Taskfile.yml` config. Wraps `hatch run` commands for convenience. Cross-platform without shell compatibility issues. |
+| Tool     | Purpose        | Why chosen                                                                                                                                     |
+| -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Task** | Command runner | Go-based, single binary, `Taskfile.yml` config. Wraps `hatch run` commands for convenience. Cross-platform without shell compatibility issues. |
 
 ### Skipped
 
-| Tool         | Why skipped                                                                                                                                                        |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Make**     | Ubiquitous but tab-sensitive syntax, poor Windows support, file-based targets don't map well to "run this command" tasks.                                          |
-| **Just**     | Rust-based, simpler than Make. Less adoption than Task, similar feature set. Task's YAML config is more readable for this project's needs.                         |
-| **nox**      | Python-native session runner. Good for test matrices but overlaps with Hatch's env management. Would add a dependency for duplicate functionality.                 |
-| **Invoke**   | Python-based, `tasks.py` config. Less declarative than Taskfile YAML. Adds a Python dependency when Task is language-agnostic.                                     |
-| **npm scripts** | Requires `package.json` in a Python project. Wrong ecosystem.                                                                                                  |
+| Tool            | Why skipped                                                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Make**        | Ubiquitous but tab-sensitive syntax, poor Windows support, file-based targets don't map well to "run this command" tasks.                          |
+| **Just**        | Rust-based, simpler than Make. Less adoption than Task, similar feature set. Task's YAML config is more readable for this project's needs.         |
+| **nox**         | Python-native session runner. Good for test matrices but overlaps with Hatch's env management. Would add a dependency for duplicate functionality. |
+| **Invoke**      | Python-based, `tasks.py` config. Less declarative than Taskfile YAML. Adds a Python dependency when Task is language-agnostic.                     |
+| **npm scripts** | Requires `package.json` in a Python project. Wrong ecosystem.                                                                                      |
 
 ---
 
@@ -256,13 +256,13 @@ See [ADR 019](../adr/019-containerfile.md) and
 
 ### Chosen
 
-| Tool / Pattern         | Purpose                | Why chosen                                                                                                                   |
-| ---------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Containerfile**      | Image definition       | OCI-standard name (not Docker-specific `Dockerfile`). Works with both Podman and Docker (ADR 019).                           |
-| **Multi-stage build**  | Image size + security  | Builder stage compiles wheel; runtime stage only has the installed package. No build tools, no source code in final image.    |
-| **Digest pinning**     | Reproducibility        | Base image pinned to SHA256 digest, not a mutable tag. Ensures identical builds regardless of when the image is pulled.      |
-| **Non-root user**      | Runtime security       | Creates `app` user (UID/GID 1000). Container never runs as root.                                                            |
-| **docker-compose.yml** | Local orchestration    | Lightweight scaffolding for `docker compose up --build`. Stubs for common services (DB, env, ports) — not production config. |
+| Tool / Pattern         | Purpose               | Why chosen                                                                                                                   |
+| ---------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Containerfile**      | Image definition      | OCI-standard name (not Docker-specific `Dockerfile`). Works with both Podman and Docker (ADR 019).                           |
+| **Multi-stage build**  | Image size + security | Builder stage compiles wheel; runtime stage only has the installed package. No build tools, no source code in final image.   |
+| **Digest pinning**     | Reproducibility       | Base image pinned to SHA256 digest, not a mutable tag. Ensures identical builds regardless of when the image is pulled.      |
+| **Non-root user**      | Runtime security      | Creates `app` user (UID/GID 1000). Container never runs as root.                                                             |
+| **docker-compose.yml** | Local orchestration   | Lightweight scaffolding for `docker compose up --build`. Stubs for common services (DB, env, ports) — not production config. |
 
 <!-- TODO (template users): If you don't ship containers, delete Containerfile,
      docker-compose.yml, container-build.yml, and container-scan.yml. Remove
@@ -270,12 +270,12 @@ See [ADR 019](../adr/019-containerfile.md) and
 
 ### Skipped
 
-| Tool / Pattern     | Why skipped                                                                                                                       |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Dockerfile name**| Docker-specific convention. `Containerfile` is the OCI-standard name and works with both Docker and Podman.                       |
-| **Distroless base**| Smaller attack surface but harder to debug (no shell). `python:3.12-slim` is a reasonable middle ground for a template project.   |
-| **Alpine base**    | Smaller images but musl libc causes issues with some Python packages (numpy, pandas). Slim Debian avoids this class of problems.  |
-| **Buildpacks**     | Fully managed build. Less control over the image contents. Overkill for a project with a simple `pip install` step.               |
+| Tool / Pattern      | Why skipped                                                                                                                      |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Dockerfile name** | Docker-specific convention. `Containerfile` is the OCI-standard name and works with both Docker and Podman.                      |
+| **Distroless base** | Smaller attack surface but harder to debug (no shell). `python:3.12-slim` is a reasonable middle ground for a template project.  |
+| **Alpine base**     | Smaller images but musl libc causes issues with some Python packages (numpy, pandas). Slim Debian avoids this class of problems. |
+| **Buildpacks**      | Fully managed build. Less control over the image contents. Overkill for a project with a simple `pip install` step.              |
 
 ---
 
@@ -286,20 +286,20 @@ pipeline decision.
 
 ### Chosen
 
-| Tool               | Purpose               | Why chosen                                                                                                                                 |
-| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **release-please** | Automated releases    | Google-maintained. Generates changelogs from Conventional Commits with no manual intervention. Creates release PRs automatically.           |
-| **hatch-vcs**      | Dynamic versioning    | Version derived from git tags at build time. No manual version bumps. release-please creates the tags, hatch-vcs reads them.               |
-| **commitizen**     | Commit message format | Validates Conventional Commits locally (commit-msg hook) and provides `cz commit` for interactive authoring. Feeds release-please.         |
+| Tool               | Purpose               | Why chosen                                                                                                                         |
+| ------------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **release-please** | Automated releases    | Google-maintained. Generates changelogs from Conventional Commits with no manual intervention. Creates release PRs automatically.  |
+| **hatch-vcs**      | Dynamic versioning    | Version derived from git tags at build time. No manual version bumps. release-please creates the tags, hatch-vcs reads them.       |
+| **commitizen**     | Commit message format | Validates Conventional Commits locally (commit-msg hook) and provides `cz commit` for interactive authoring. Feeds release-please. |
 
 ### Skipped
 
-| Tool                 | Why skipped                                                                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **semantic-release** | Node.js-based. Adds a Node dependency. release-please is GitHub-native (Action) and doesn't require a Node runtime.                              |
-| **bump2version**     | Manual version bumping. Redundant when hatch-vcs derives versions from git tags automatically.                                                    |
-| **setuptools-scm**   | Similar to hatch-vcs but tied to setuptools. hatch-vcs integrates natively with the Hatch/Hatchling build system already in use.                  |
-| **CalVer**           | Calendar-based versioning. SemVer is a better fit for a library/template where breaking changes need to be signaled in the version number.        |
+| Tool                 | Why skipped                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **semantic-release** | Node.js-based. Adds a Node dependency. release-please is GitHub-native (Action) and doesn't require a Node runtime.                        |
+| **bump2version**     | Manual version bumping. Redundant when hatch-vcs derives versions from git tags automatically.                                             |
+| **setuptools-scm**   | Similar to hatch-vcs but tied to setuptools. hatch-vcs integrates natively with the Hatch/Hatchling build system already in use.           |
+| **CalVer**           | Calendar-based versioning. SemVer is a better fit for a library/template where breaking changes need to be signaled in the version number. |
 
 ### Notes
 
@@ -318,17 +318,17 @@ pipeline decision.
 
 ### Chosen
 
-| Tool          | Purpose             | Why chosen                                                                                                                                        |
-| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Codecov**   | Coverage tracking   | Free for open source. GitHub integration with PR comments showing coverage diff. Supports branch coverage and per-flag reporting.                 |
-| **coverage.py** | Coverage collection | De facto standard for Python coverage. Branch coverage enabled. Integrated via pytest-cov.                                                       |
+| Tool            | Purpose             | Why chosen                                                                                                                        |
+| --------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Codecov**     | Coverage tracking   | Free for open source. GitHub integration with PR comments showing coverage diff. Supports branch coverage and per-flag reporting. |
+| **coverage.py** | Coverage collection | De facto standard for Python coverage. Branch coverage enabled. Integrated via pytest-cov.                                        |
 
 ### Skipped
 
-| Tool          | Why skipped                                                                                                                        |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **Coveralls** | Similar feature set to Codecov. Codecov has better GitHub Actions integration and more detailed PR comments.                       |
-| **SonarCloud**| Full code quality platform (coverage + bugs + smells). Overkill — individual focused tools (Ruff, mypy, Codecov) cover each need. |
+| Tool           | Why skipped                                                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Coveralls**  | Similar feature set to Codecov. Codecov has better GitHub Actions integration and more detailed PR comments.                      |
+| **SonarCloud** | Full code quality platform (coverage + bugs + smells). Overkill — individual focused tools (Ruff, mypy, Codecov) cover each need. |
 
 ### Notes
 
@@ -350,18 +350,18 @@ for grouping strategy.
 
 ### Chosen
 
-| Tool / Pattern            | Purpose                | Why chosen                                                                                                           |
-| ------------------------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Dependabot**            | Dependency updates     | GitHub-native. Monitors 3 ecosystems: `github-actions`, `pip`, `docker`. Weekly PRs with version bumps.              |
-| **auto-merge-dependabot** | Auto-merge safe updates| Auto-approves and squash-merges Dependabot PRs for minor/patch bumps once CI passes. Reduces maintenance noise.      |
-| **pre-commit autoupdate** | Hook version updates   | `pre-commit-update.yml` runs weekly. Dependabot doesn't support pre-commit hooks natively, so this fills the gap.    |
-| **Grouped updates**       | PR noise reduction     | Minor and patch updates are grouped into single PRs per ecosystem. Reduces the number of Dependabot PRs to review.   |
+| Tool / Pattern            | Purpose                 | Why chosen                                                                                                         |
+| ------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Dependabot**            | Dependency updates      | GitHub-native. Monitors 3 ecosystems: `github-actions`, `pip`, `docker`. Weekly PRs with version bumps.            |
+| **auto-merge-dependabot** | Auto-merge safe updates | Auto-approves and squash-merges Dependabot PRs for minor/patch bumps once CI passes. Reduces maintenance noise.    |
+| **pre-commit autoupdate** | Hook version updates    | `pre-commit-update.yml` runs weekly. Dependabot doesn't support pre-commit hooks natively, so this fills the gap.  |
+| **Grouped updates**       | PR noise reduction      | Minor and patch updates are grouped into single PRs per ecosystem. Reduces the number of Dependabot PRs to review. |
 
 ### Skipped
 
-| Tool          | Why skipped                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Renovate**  | More configurable than Dependabot (supports pre-commit, regex managers, monorepo grouping). Heavier setup — Dependabot is zero-config for GitHub repos. Revisit if Dependabot's limitations become painful. |
+| Tool         | Why skipped                                                                                                                                                                                                 |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Renovate** | More configurable than Dependabot (supports pre-commit, regex managers, monorepo grouping). Heavier setup — Dependabot is zero-config for GitHub repos. Revisit if Dependabot's limitations become painful. |
 
 ### Notes
 
@@ -385,10 +385,10 @@ decision.
 
 ### Chosen
 
-| Tool / Pattern   | Purpose             | Why chosen                                                                                                           |
-| ---------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Raw SQL**      | Database access     | No ORM. Plain SQL files in `db/` with numbered migrations, seed data, and documented queries. Maximum transparency.  |
-| **sqlite3**      | Default database    | stdlib module, zero setup. Good enough for templates and small apps. `var/app.example.sqlite3` as example.           |
+| Tool / Pattern | Purpose          | Why chosen                                                                                                          |
+| -------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Raw SQL**    | Database access  | No ORM. Plain SQL files in `db/` with numbered migrations, seed data, and documented queries. Maximum transparency. |
+| **sqlite3**    | Default database | stdlib module, zero setup. Good enough for templates and small apps. `var/app.example.sqlite3` as example.          |
 
 <!-- TODO (template users): Replace sqlite3 with your production database
      (PostgreSQL, MySQL, etc.). If you adopt an ORM (SQLAlchemy, Django ORM),
@@ -396,11 +396,11 @@ decision.
 
 ### Skipped
 
-| Tool            | Why skipped                                                                                                                            |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **SQLAlchemy**  | Powerful ORM but adds significant complexity. Raw SQL is more transparent for a template project. Easy to add later if needed.          |
-| **Django ORM**  | Ties the project to Django. This is a standalone Python project, not a Django app.                                                      |
-| **Alembic**     | Migration tool for SQLAlchemy. Not needed without an ORM — numbered `.sql` files in `db/migrations/` serve the same purpose with less. |
+| Tool           | Why skipped                                                                                                                            |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **SQLAlchemy** | Powerful ORM but adds significant complexity. Raw SQL is more transparent for a template project. Easy to add later if needed.         |
+| **Django ORM** | Ties the project to Django. This is a standalone Python project, not a Django app.                                                     |
+| **Alembic**    | Migration tool for SQLAlchemy. Not needed without an ORM — numbered `.sql` files in `db/migrations/` serve the same purpose with less. |
 
 ---
 
@@ -411,9 +411,9 @@ decision.
 
 ### Chosen
 
-| Tool / Pattern    | Purpose            | Why chosen                                                                                                       |
-| ----------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| **Labels as code**| Issue/PR labels    | JSON definitions in `labels/` applied via `scripts/apply_labels.py`. Reproducible, version-controlled, auditable.|
+| Tool / Pattern     | Purpose         | Why chosen                                                                                                        |
+| ------------------ | --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Labels as code** | Issue/PR labels | JSON definitions in `labels/` applied via `scripts/apply_labels.py`. Reproducible, version-controlled, auditable. |
 
 ### Notes
 

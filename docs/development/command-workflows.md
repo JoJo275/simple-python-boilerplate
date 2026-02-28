@@ -44,20 +44,20 @@ task test
 
 The same pattern applies to every command:
 
-| You type           | Taskfile runs          | Hatch script  | Actual tool                           |
-| ------------------ | ---------------------- | ------------- | ------------------------------------- |
-| `task test`        | `hatch run test`       | `test`        | `pytest`                              |
-| `task test:cov`    | `hatch run test-cov`   | `test-cov`    | `pytest --cov`                        |
-| `task lint`        | `hatch run lint`       | `lint`        | `ruff check src/ tests/`              |
-| `task lint:fix`    | `hatch run lint-fix`   | `lint-fix`    | `ruff check --fix src/ tests/`        |
-| `task fmt`         | `hatch run fmt`        | `fmt`         | `ruff format src/ tests/`             |
-| `task fmt:check`   | `hatch run fmt-check`  | `fmt-check`   | `ruff format --check src/ tests/`     |
-| `task typecheck`   | `hatch run typecheck`  | `typecheck`   | `mypy src/`                           |
-| `task security`    | `hatch run bandit -r src/` | *(direct)* | `bandit -r src/`                   |
-| `task check`       | `hatch run check`      | `check`       | lint + fmt-check + typecheck + test   |
-| `task test:matrix` | `hatch run test:run`   | `test:run`    | pytest across Python 3.11–3.13        |
-| `task docs:serve`  | `hatch run docs:serve` | `docs:serve`  | `mkdocs serve`                        |
-| `task docs:build`  | `hatch run docs:build` | `docs:build`  | `mkdocs build --strict`               |
+| You type           | Taskfile runs              | Hatch script | Actual tool                         |
+| ------------------ | -------------------------- | ------------ | ----------------------------------- |
+| `task test`        | `hatch run test`           | `test`       | `pytest`                            |
+| `task test:cov`    | `hatch run test-cov`       | `test-cov`   | `pytest --cov`                      |
+| `task lint`        | `hatch run lint`           | `lint`       | `ruff check src/ tests/`            |
+| `task lint:fix`    | `hatch run lint-fix`       | `lint-fix`   | `ruff check --fix src/ tests/`      |
+| `task fmt`         | `hatch run fmt`            | `fmt`        | `ruff format src/ tests/`           |
+| `task fmt:check`   | `hatch run fmt-check`      | `fmt-check`  | `ruff format --check src/ tests/`   |
+| `task typecheck`   | `hatch run typecheck`      | `typecheck`  | `mypy src/`                         |
+| `task security`    | `hatch run bandit -r src/` | _(direct)_   | `bandit -r src/`                    |
+| `task check`       | `hatch run check`          | `check`      | lint + fmt-check + typecheck + test |
+| `task test:matrix` | `hatch run test:run`       | `test:run`   | pytest across Python 3.11–3.13      |
+| `task docs:serve`  | `hatch run docs:serve`     | `docs:serve` | `mkdocs serve`                      |
+| `task docs:build`  | `hatch run docs:build`     | `docs:build` | `mkdocs build --strict`             |
 
 <!-- TODO (template users): Update the table above after renaming Hatch scripts
      or adding new ones in pyproject.toml. Add rows for any domain-specific
@@ -192,61 +192,61 @@ All three layers support forwarding extra arguments to the underlying tool.
 ## More Task Shortcuts
 
 Beyond the core table above, the Taskfile provides shortcuts for common
-workflows.  Run `task --list-all` to see everything.
+workflows. Run `task --list-all` to see everything.
 
 ### Testing
 
-| Task              | What it does                          |
-| ----------------- | ------------------------------------- |
-| `task test:v`     | Tests with verbose output             |
-| `task test:cov`   | Tests with coverage report            |
-| `task test:unit`  | Unit tests only (`tests/unit/`)       |
+| Task                    | What it does                    |
+| ----------------------- | ------------------------------- |
+| `task test:v`           | Tests with verbose output       |
+| `task test:cov`         | Tests with coverage report      |
+| `task test:unit`        | Unit tests only (`tests/unit/`) |
 | `task test:integration` | Integration tests only          |
-| `task test:lf`    | Rerun last-failed tests               |
-| `task test:x`     | Stop on first failure                 |
-| `task test:k`     | Run tests matching a keyword          |
-| `task test:matrix`| All Python versions (3.11–3.13)       |
-| `task test:matrix:cov` | Matrix with coverage             |
+| `task test:lf`          | Rerun last-failed tests         |
+| `task test:x`           | Stop on first failure           |
+| `task test:k`           | Run tests matching a keyword    |
+| `task test:matrix`      | All Python versions (3.11–3.13) |
+| `task test:matrix:cov`  | Matrix with coverage            |
 
 ### Environment
 
-| Task              | What it does                          |
-| ----------------- | ------------------------------------- |
-| `task shell`      | Enter the Hatch dev shell             |
-| `task env:show`   | Show all Hatch envs and scripts       |
-| `task env:reset`  | Remove and recreate the default env   |
-| `task env:prune`  | Remove ALL Hatch environments         |
+| Task             | What it does                        |
+| ---------------- | ----------------------------------- |
+| `task shell`     | Enter the Hatch dev shell           |
+| `task env:show`  | Show all Hatch envs and scripts     |
+| `task env:reset` | Remove and recreate the default env |
+| `task env:prune` | Remove ALL Hatch environments       |
 
 ### Pre-commit
 
-| Task                   | What it does                       |
-| ---------------------- | ---------------------------------- |
-| `task pre-commit:install` | Install all hook stages         |
-| `task pre-commit:run`  | Run all hooks on all files         |
-| `task pre-commit:update` | Update hooks to latest versions |
-| `task pre-commit:hook` | Run a single hook (e.g. `-- ruff`) |
+| Task                      | What it does                       |
+| ------------------------- | ---------------------------------- |
+| `task pre-commit:install` | Install all hook stages            |
+| `task pre-commit:run`     | Run all hooks on all files         |
+| `task pre-commit:update`  | Update hooks to latest versions    |
+| `task pre-commit:hook`    | Run a single hook (e.g. `-- ruff`) |
 
 ### Dependencies & Actions
 
-| Task                      | What it does                            |
-| ------------------------- | --------------------------------------- |
-| `task deps:versions`      | Show installed vs latest dep versions   |
-| `task deps:upgrade`       | Upgrade dependencies in `pyproject.toml`|
-| `task deps:outdated`      | Check for outdated packages             |
-| `task actions:versions`   | Show SHA-pinned action versions         |
-| `task actions:upgrade`    | Upgrade SHA-pinned actions              |
-| `task actions:check`      | CI gate: exit non-zero if stale actions |
+| Task                    | What it does                             |
+| ----------------------- | ---------------------------------------- |
+| `task deps:versions`    | Show installed vs latest dep versions    |
+| `task deps:upgrade`     | Upgrade dependencies in `pyproject.toml` |
+| `task deps:outdated`    | Check for outdated packages              |
+| `task actions:versions` | Show SHA-pinned action versions          |
+| `task actions:upgrade`  | Upgrade SHA-pinned actions               |
+| `task actions:check`    | CI gate: exit non-zero if stale actions  |
 
 ### Utility
 
-| Task                | What it does                            |
-| ------------------- | --------------------------------------- |
-| `task build`        | Build source + wheel distributions      |
-| `task clean:all`    | Remove all build artifacts and caches   |
-| `task doctor`       | Print diagnostics bundle for bug reports|
-| `task doctor:repo`  | Run repository health checks            |
-| `task commit`       | Interactive conventional commit         |
-| `task version`      | Show project version                    |
+| Task               | What it does                             |
+| ------------------ | ---------------------------------------- |
+| `task build`       | Build source + wheel distributions       |
+| `task clean:all`   | Remove all build artifacts and caches    |
+| `task doctor`      | Print diagnostics bundle for bug reports |
+| `task doctor:repo` | Run repository health checks             |
+| `task commit`      | Interactive conventional commit          |
+| `task version`     | Show project version                     |
 
 ---
 

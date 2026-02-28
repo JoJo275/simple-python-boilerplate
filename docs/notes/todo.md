@@ -12,8 +12,8 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: root-level README.md
 - [x] Final file check: pyproject.toml
 - [x] Final file check: architecture.md
-- [X] Final file check: ci-cd-design.md
-- [X] Final file check: database.md
+- [x] Final file check: ci-cd-design.md
+- [x] Final file check: database.md
 - [x] Final file check: tool-decisions.md
 - [x] Final file check: command-workflows.md
 - [x] Final file check: dev-setup.md
