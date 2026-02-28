@@ -12,6 +12,10 @@ and guidance for extending or modifying the pipeline.
 
 ## Design Goals
 
+<!-- TODO (template users): Add or remove goals that match your project's
+     CI/CD requirements. For example, if you don't use forks you may
+     not need the repository guard pattern. -->
+
 | Goal                      | How it's achieved                                                                                       |
 | ------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Safe by default**       | Repository guards disable workflows on forks/clones ([ADR 011](../adr/011-repository-guard-pattern.md)) |
@@ -228,6 +232,10 @@ escalate only when needed.
 
 ## Adding a New Workflow
 
+<!-- TODO (template users): After customizing your pipeline, update the
+     checklist below to reflect your actual workflow patterns, required
+     checks, and documentation locations. -->
+
 When adding a workflow to this project:
 
 1. **Create the file** in `.github/workflows/` following the naming convention
@@ -269,6 +277,11 @@ current SHAs and check for updates.
 
 ## Extending the Pipeline
 
+<!-- TODO (template users): Replace or extend these subsections with
+     deployment, staging, and production pipeline stages specific to
+     your project (e.g., deploy to AWS/GCP/Azure, run E2E tests,
+     publish to PyPI). -->
+
 ### Adding a Test Stage
 
 To add a new test dimension (e.g. integration tests, OS matrix):
@@ -298,6 +311,9 @@ For services like Codecov, Snyk, or SonarCloud:
 ---
 
 ## Troubleshooting
+
+<!-- TODO (template users): Add project-specific troubleshooting entries
+     as you encounter CI failures unique to your setup. -->
 
 ### Common Issues
 

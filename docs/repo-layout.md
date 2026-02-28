@@ -40,6 +40,9 @@ simple-python-boilerplate/
 │
 ├── experiments/                # Scratch space for exploration
 │
+├── mkdocs-hooks/                   # MkDocs build hooks
+│   └── repo_links.py           # Rewrite repo-relative links
+│
 ├── labels/                     # GitHub label definitions
 │   ├── baseline.json           # Core labels
 │   └── extended.json           # Additional labels
@@ -141,6 +144,7 @@ These can be removed without breaking core functionality.
 | ----------------- | --------------- | -------------------------- |
 | `db/`             | Database assets | ✅ If not using a database |
 | `experiments/`    | Scratch space   | ✅ Personal exploration    |
+| `mkdocs-hooks/`    | MkDocs hooks    | ✅ If no repo-relative links in docs |
 | `labels/`         | GitHub labels   | ✅ Manual label management |
 | `scripts/`        | Utility scripts | ✅ Convenience only        |
 | `var/`            | Runtime files   | ✅ Example data            |

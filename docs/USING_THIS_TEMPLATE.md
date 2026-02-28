@@ -449,6 +449,15 @@ Docs have two CI workflows:
 - `docs-build.yml` — runs `mkdocs build --strict` on every PR (CI gate check)
 - `docs-deploy.yml` — deploys to GitHub Pages on push to `main` (path-filtered)
 
+**Repo-relative link handling:** Documentation files frequently link to
+files outside `docs/` (e.g. `../../pyproject.toml`, `../scripts/clean.py`).
+These relative links work when browsing on GitHub but would break on the
+deployed MkDocs site. The [`repo_links.py`](../mkdocs-hooks/repo_links.py)
+build hook automatically rewrites these links to absolute GitHub URLs at
+build time, so authors can keep writing natural relative links and they
+work in both contexts. See [`mkdocs-hooks/README.md`](../mkdocs-hooks/README.md)
+for details.
+
 If you don't need a documentation site, delete [mkdocs.yml](../mkdocs.yml)
 and the docs you don't need.
 

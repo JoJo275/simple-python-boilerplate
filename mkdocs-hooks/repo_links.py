@@ -78,7 +78,8 @@ _EXTENSIONLESS_FILES: frozenset[str] = frozenset(
 
 # Matches standard Markdown links whose target starts with ../
 # Captures: [link text](../some/path) and [link text](../some/path#anchor)
-_LINK_RE = re.compile(r"\[([^\]]*)\]\((\.\./[^)]*)\)")
+# The negative lookbehind (?<!!) skips image links: ![alt](../path).
+_LINK_RE = re.compile(r"(?<!!)\[([^\]]*)\]\((\.\./[^)]*)\)")
 
 
 def _is_likely_file(path: str) -> bool:
@@ -94,7 +95,7 @@ def _is_likely_file(path: str) -> bool:
 def _build_github_url(
     repo_url: str,
     repo_path: str,
-    fragment: str,
+    suffix: str,
     branch: str,
 ) -> str:
     """Build a GitHub URL for a repo-root-relative *repo_path*.
@@ -102,7 +103,8 @@ def _build_github_url(
     Args:
         repo_url: Repository base URL (no trailing slash).
         repo_path: Path relative to the repository root.
-        fragment: Optional URL fragment including the leading ``#``.
+        suffix: Optional query string and/or fragment to append (e.g.
+            ``?plain=1#L10`` or ``#my-heading``).
         branch: Git branch name (e.g. ``main``).
 
     Returns:
@@ -110,7 +112,7 @@ def _build_github_url(
     """
     clean = repo_path.rstrip("/")
     kind = "blob" if _is_likely_file(clean) else "tree"
-    return f"{repo_url}/{kind}/{branch}/{clean}{fragment}"
+    return f"{repo_url}/{kind}/{branch}/{clean}{suffix}"
 
 
 def on_page_markdown(
@@ -135,14 +137,25 @@ def on_page_markdown(
     verbose: bool = bool(extra.get("repo_links_log", False))
 
     page_dir = posixpath.dirname(page.file.src_path)
+    rewrite_count = 0
 
     def _rewrite(match: re.Match[str]) -> str:
+        nonlocal rewrite_count
         text = match.group(1)
         target = match.group(2)
 
-        # Split off fragment (#anchor) if present.
+        # Split off query string (?key=val) and fragment (#anchor).
         fragment = ""
-        if "#" in target:
+        query = ""
+        if "?" in target:
+            target, query_and_rest = target.split("?", 1)
+            if "#" in query_and_rest:
+                query, frag = query_and_rest.split("#", 1)
+                query = f"?{query}"
+                fragment = f"#{frag}"
+            else:
+                query = f"?{query_and_rest}"
+        elif "#" in target:
             target, fragment = target.split("#", 1)
             fragment = f"#{fragment}"
 
@@ -159,7 +172,9 @@ def on_page_markdown(
         if target.endswith("/"):
             repo_path += "/"
 
-        url = _build_github_url(repo_url, repo_path, fragment, branch)
+        suffix = query + fragment
+        url = _build_github_url(repo_url, repo_path, suffix, branch)
+        rewrite_count += 1
 
         if verbose:
             log.info(
@@ -171,4 +186,13 @@ def on_page_markdown(
 
         return f"[{text}]({url})"
 
-    return _LINK_RE.sub(_rewrite, markdown)
+    result = _LINK_RE.sub(_rewrite, markdown)
+
+    if rewrite_count and verbose:
+        log.info(
+            "[repo_links] %s: rewrote %d link(s)",
+            page.file.src_path,
+            rewrite_count,
+        )
+
+    return result
