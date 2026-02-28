@@ -13,7 +13,7 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 - **src/ layout** — clean separation between source code and project root
   ([ADR 001](adr/001-src-layout.md)).
 - **Hatch** — modern build backend and environment manager
-  ([ADR 016](adr/016-hatch-hatchling.md)).
+  ([ADR 016](adr/016-hatchling-and-hatch.md)).
 - **pytest** — testing framework with coverage support, multi-version
   matrix ([ADR 006](adr/006-pytest-for-testing.md)).
 - **Ruff** — fast linting and formatting
