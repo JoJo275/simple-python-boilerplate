@@ -1,8 +1,8 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Suggested branch rename: feat:  -->
-<!-- Suggested pr name:  -->
-<!-- Suggested labels:-->
+<!-- Suggested branch rename: feat/docs-tooling-overhaul -->
+<!-- Suggested pr name: feat: documentation overhaul, script enhancements, and new ADRs -->
+<!-- Suggested labels: documentation, enhancement, testing -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -20,94 +20,98 @@
 
 ## Description
 
-Brief description of the changes in this PR.
+Large-scale documentation overhaul, script enhancements, and new ADRs to bring the template repository up to a comprehensive, self-documenting state. Touches 136 files (+15,862 / −6,189 lines) across docs, scripts, tests, and configuration.
 
 **What changes you made:**
 
+- **Script enhancements** — `env_doctor.py`, `repo_doctor.py`, and `workflow_versions.py` gained JSON output support, `--version` flags, color output, filtering/quiet modes, and a new `actions:check` CI gate task
+- **9 new ADRs (027–035)** — database strategy, git branching strategy, testing strategy, label management as code, script conventions, dependency grouping, Prettier for Markdown, documentation organization, and Copilot instructions as developer context
+- **New MkDocs hook** — `mkdocs-hooks/repo_links.py` rewrites repo-relative links to GitHub URLs during doc builds; registered in `mkdocs.yml`
+- **New documentation** — troubleshooting guide (`docs/guide/troubleshooting.md`), CI/CD design doc (`docs/design/ci-cd-design.md`), resources page (`docs/notes/resources.md`), MkDocs hooks README
+- **Documentation overhaul** — rewrote or substantially updated nearly every existing doc (ADRs, architecture, tool decisions, development guides, templates, release policy, workflows, repo layout, etc.) for clarity, accuracy, and completeness
+- **Markdownlint configuration** — added `.markdownlint-cli2.jsonc` with project-specific rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)
+- **New unit tests** — `test_env_doctor.py`, `test_repo_doctor.py`, `test_repo_links.py`, `test_workflow_versions.py` (~3,200 lines of test coverage)
+- **Configuration updates** — `pyproject.toml` (optional deps, version specs), `Taskfile.yml` (new tasks for dep checks, repo health, actions gate), `.pre-commit-config.yaml` refinements, updated `requirements.txt` / `requirements-dev.txt`
+- **Template improvements** — added actionable `TODO (template users):` comments throughout config files, SECURITY.md, requirements files, and Copilot instructions
+
 **Why you made them:**
+
+The template's documentation was incomplete, inconsistent, and in places inaccurate. Scripts lacked standard CLI features (JSON output, version flags) expected for automation. Several important architectural decisions were undocumented. The goal is to make the template self-contained and immediately usable without needing to reverse-engineer conventions from the code.
 
 ## Related Issue
 
-<!-- Use one of: Fixes #123, Closes #123, Resolves #123, Related to #123 -->
-<!-- If no issue exists, write "N/A" and briefly explain (e.g., maintenance, small refactor) -->
+N/A — ongoing template maturity work; no single issue tracks this effort.
 
 ## Type of Change
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] 📚 Documentation update
-- [ ] 🔧 Refactor (no functional changes)
-- [ ] 🧪 Test update
+- [x] 📚 Documentation update
+- [x] 🔧 Refactor (no functional changes)
+- [x] 🧪 Test update
 
 ## How to Test
 
-<!-- Help reviewers verify your changes. Don't make them guess! -->
-
 **Steps:**
 
-1.
-2.
-3.
+1. Run the unit test suite to verify script changes and new tests pass
+2. Build the docs site to confirm MkDocs hook and documentation changes render correctly
+3. Run the new Taskfile tasks (`task deps:versions`, `task actions:versions`, `task actions:check`) to verify they work
+4. Spot-check a few ADRs and docs pages for rendering and link integrity
 
 **Test command(s):**
 
 ```bash
-# e.g., pytest tests/test_feature.py -v
+# Run all unit tests
+hatch run test:run
+
+# Run only the new tests
+pytest tests/unit/test_env_doctor.py tests/unit/test_repo_doctor.py tests/unit/test_repo_links.py tests/unit/test_workflow_versions.py -v
+
+# Build docs (strict mode catches broken links/warnings)
+hatch run docs:build --strict
+
+# Verify markdownlint config
+pre-commit run markdownlint-cli2 --all-files
+
+# Verify new Taskfile tasks exist
+task --list
 ```
-
-**Screenshots / Demo (if applicable):**
-
-<!-- Add screenshots, GIFs, or video links to help explain your changes -->
 
 ## Risk / Impact
 
-<!-- What's the blast radius? What could go wrong? -->
-
-**Risk level:** Low / Medium / High
+**Risk level:** Low
 
 **What could break:**
 
+- MkDocs hook (`repo_links.py`) could rewrite links incorrectly in edge cases — mitigated by unit tests and strict doc builds
+- Markdownlint config may flag existing Markdown that was previously unchecked — intentional; violations should be fixed
+- Large diff makes review harder — changes are almost entirely documentation and tests with no application logic changes
+
 **Rollback plan:** Revert this PR
-
-<!-- Or: "Toggle feature flag X" / "Run migration Y" / etc. -->
-
-## Dependencies (if applicable)
-
-<!-- Delete this section if not applicable -->
-<!-- List any PRs that must be merged before/after this one -->
-
-**Depends on:** <!-- e.g., #456, or org/other-repo#123 -->
-
-**Blocked by:** <!-- e.g., waiting for deployment of #456 -->
-
-## Breaking Changes / Migrations (if applicable)
-
-<!-- Delete this section if not applicable -->
-
-- [ ] Config changes required
-- [ ] Data migration needed
-- [ ] API changes (document below)
-- [ ] Dependency changes
-
-**Details:**
 
 ## Checklist
 
-- [ ] My code follows the project's style guidelines
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
+- [x] My code follows the project's style guidelines
+- [x] I have performed a self-review of my code
+- [x] I have commented my code, particularly in hard-to-understand areas
+- [x] I have made corresponding changes to the documentation
 - [ ] No new warnings (or explained in Additional Notes)
-- [ ] I have added tests that prove my fix is effective or that my feature works
+- [x] I have added tests that prove my fix is effective or that my feature works
 - [ ] Relevant tests pass locally (or explained in Additional Notes)
 - [ ] No security concerns introduced (or flagged for review)
-- [ ] No performance regressions expected (or flagged for review)
+- [x] No performance regressions expected (or flagged for review)
 
 ## Reviewer Focus (Optional)
 
-<!-- Save reviewer time: "Please pay close attention to X" -->
+- **`mkdocs-hooks/repo_links.py`** — New build hook with non-trivial link rewriting logic. Verify the regex patterns and edge-case handling look correct.
+- **ADRs 027–035** — New architectural decisions. Confirm the rationale and alternatives are well-captured and consistent with existing project conventions.
+- **`scripts/workflow_versions.py`** — Most significant script change. Review the new filtering, JSON output, and CI gate logic.
+- **Copilot instructions (`.github/copilot-instructions.md`)** — Updated to reflect all the new conventions. Worth a read-through to confirm accuracy.
 
 ## Additional Notes
 
-<!-- Any additional information that reviewers should know -->
+- This branch has 48 commits. Before merging, consider squashing into a smaller number of logical commits (e.g., one for scripts, one for ADRs, one for docs overhaul, one for tests) to keep `main` history clean.
+- The `docs/workflows.md` file was updated but is manually maintained — verify it still accurately reflects the actual workflow files in `.github/workflows/`.
+- Some checklist items are left unchecked because full local verification (all tests passing, no warnings) should be confirmed before the PR is marked ready for review.
