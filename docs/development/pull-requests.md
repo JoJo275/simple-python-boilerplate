@@ -1,5 +1,9 @@
 # Pull Request Guidelines
 
+<!-- TODO (template users): Update this guide with your project's PR
+     requirements — required reviewers, CI checks, branch protection rules,
+     and any domain-specific checklist items. -->
+
 How to create, review, and merge pull requests in this project.
 
 ## Before Opening a PR
@@ -41,7 +45,7 @@ How to create, review, and merge pull requests in this project.
    pytest                    # Tests pass
    ruff check .              # Linting passes
    ruff format --check .     # Formatting correct
-   pyright                   # Type checking (optional, recommended)
+   mypy src/                 # Type checking (recommended)
    ```
 
    > See [developer-commands.md](developer-commands.md) for the full command reference.
@@ -74,6 +78,11 @@ Use conventional commit style for PR titles:
 - `docs: update installation guide`
 
 ### Description Template
+
+<!-- TODO (template users): Customise this PR template to include checks
+     specific to your project (e.g. "Migration tested", "API docs updated",
+     "Feature flag added"). Consider copying it to .github/PULL_REQUEST_TEMPLATE.md
+     so GitHub pre-fills it automatically. -->
 
 ```markdown
 ## Summary
@@ -130,6 +139,10 @@ How was this tested?
 
 ## Merging
 
+<!-- TODO (template users): If your team uses a different merge strategy
+     (squash, merge commit), update this section and configure it in
+     GitHub repository settings → General → Pull Requests. -->
+
 ### Merge Strategy
 
 This project uses **Rebase and Merge**:
@@ -175,6 +188,9 @@ Use a **Draft PR** when:
 Convert to "Ready for review" when you're done.
 
 ## Branch Naming
+
+<!-- TODO (template users): Add any project-specific branch prefixes
+     (e.g. release/, hotfix/) or naming rules here. -->
 
 ```
 feature/short-description    # New features

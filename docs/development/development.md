@@ -1,5 +1,9 @@
 # Development Guide
 
+<!-- TODO (template users): Update project-specific references (package name,
+     CLI commands, example test paths) throughout this guide after renaming
+     the project. Remove tool sections you don't use. -->
+
 This guide covers developer tools and workflows for contributing to this project.
 
 > **First time?** See [dev-setup.md](dev-setup.md) for environment setup instructions.
@@ -20,7 +24,7 @@ hatch run test
 hatch run test -v
 
 # Run specific test file
-hatch run test tests/unit_test.py
+hatch run test tests/unit/test_example.py
 
 # Run with coverage report
 hatch run test-cov
@@ -229,50 +233,47 @@ Tools I found helpful during development:
 
 ## Pre-commit Hooks (Optional)
 
-Set up pre-commit hooks to automatically run checks before each commit:
+<!-- TODO (template users): If you add or remove hooks from
+     .pre-commit-config.yaml, update the hook table below and ADR 008. -->
+
+This project ships with a comprehensive `.pre-commit-config.yaml` (43 hooks
+across 4 stages — see [ADR 008](../adr/008-pre-commit-hooks.md) for the full
+inventory). To activate them:
 
 ```bash
-# Install pre-commit
-pip install pre-commit
+# Install pre-commit (if not already installed)
+pipx install pre-commit
 
-# Install the git hooks
+# Install all hook stages
 pre-commit install
+pre-commit install --hook-type commit-msg
+pre-commit install --hook-type pre-push
 
 # Run against all files (first time)
 pre-commit run --all-files
 ```
 
-Create a `.pre-commit-config.yaml` file:
+Or use the Taskfile shortcut:
 
-```yaml
-repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-      - id: ruff-format
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
-    hooks:
-      - id: mypy
-        additional_dependencies: []
+```bash
+task pre-commit:install   # Install all hook stages
+task pre-commit:run        # Run all hooks on all files
 ```
 
 ### Seeing Which Hooks Are Enabled
 
-#### With pre-commit
+The project already has a `.pre-commit-config.yaml` with all hooks configured.
+To see what's active:
 
 ```bash
-# List all configured hooks and their repo/rev from .pre-commit-config.yaml
+# List all configured hooks
 pre-commit run --all-files --list-hooks
 
-# Or simply inspect the config file directly
+# Or inspect the config directly
 cat .pre-commit-config.yaml
 ```
 
-Each `- id:` entry under `hooks:` in `.pre-commit-config.yaml` is an enabled hook. This project uses:
+Key hooks by stage:
 
 | Hook                      | Source           | Purpose                                  |
 | ------------------------- | ---------------- | ---------------------------------------- |
@@ -290,6 +291,9 @@ Each `- id:` entry under `hooks:` in `.pre-commit-config.yaml` is an enabled hoo
 | `ruff-format`             | ruff-pre-commit  | Format Python code                       |
 | `mypy`                    | mirrors-mypy     | Type checking (`src/` only)              |
 | `bandit`                  | bandit           | Security linting (excludes `tests/`)     |
+
+See [ADR 008](../adr/008-pre-commit-hooks.md) for the complete hook inventory
+(35 pre-commit, 1 commit-msg, 3 pre-push, 4 manual — 43 total).
 
 #### Without pre-commit (raw Git hooks)
 
@@ -349,6 +353,9 @@ rm .git/hooks/pre-commit
 ---
 
 ## Dependency Management
+
+<!-- TODO (template users): Update dependency group names if you change the
+     groups in pyproject.toml [project.optional-dependencies]. -->
 
 ### Adding Dependencies
 

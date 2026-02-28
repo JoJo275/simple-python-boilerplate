@@ -59,6 +59,11 @@ The same pattern applies to every command:
 | `task docs:serve`  | `hatch run docs:serve` | `docs:serve`  | `mkdocs serve`                        |
 | `task docs:build`  | `hatch run docs:build` | `docs:build`  | `mkdocs build --strict`               |
 
+<!-- TODO (template users): Update the table above after renaming Hatch scripts
+     or adding new ones in pyproject.toml. Add rows for any domain-specific
+     commands (e.g. `task migrate`, `task seed`). Remove rows for features
+     you've deleted. -->
+
 !!! note "Direct commands vs Hatch scripts"
 
     Most Task commands map to a named Hatch script (e.g. `lint` →
@@ -72,6 +77,9 @@ The same pattern applies to every command:
 ## Pick Your Layer
 
 ### Layer 1: Direct tools (no Hatch, no Task)
+
+<!-- TODO (template users): Update tool paths and flags below to match your
+     project's source layout and tool configuration. -->
 
 Use this if you manage your own virtualenv with `pip install -e ".[dev]"`.
 
@@ -244,6 +252,10 @@ workflows.  Run `task --list-all` to see everything.
 
 ## Adding Your Own Commands
 
+<!-- TODO (template users): After adding your own Hatch scripts and Task
+     shortcuts, update the tables in this file and in developer-commands.md
+     to keep them in sync. -->
+
 ### Hatch scripts
 
 Add a new entry to `[tool.hatch.envs.default.scripts]` in `pyproject.toml`:
@@ -291,6 +303,10 @@ sequence — it's a compound script that calls four other scripts.
 | Hatch test matrix | `pyproject.toml` | `[tool.hatch.envs.test]`            |
 | Hatch docs env    | `pyproject.toml` | `[tool.hatch.envs.docs]`            |
 | Task shortcuts    | `Taskfile.yml`   | `tasks:`                            |
+
+<!-- TODO (template users): If you rename Hatch environments or add new ones
+     (e.g. a `staging` env), add them to the table above and update
+     pyproject.toml accordingly. -->
 
 To see all available commands:
 
