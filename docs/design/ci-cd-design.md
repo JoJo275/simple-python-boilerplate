@@ -83,27 +83,27 @@ Push to main (conventional commit)
 
 These run on cron schedules independent of code changes:
 
-| Workflow                   | Schedule | Purpose                                                                |
-| -------------------------- | -------- | ---------------------------------------------------------------------- |
-| `nightly-security.yml`     | Daily    | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
-| `security-codeql.yml`      | Weekly   | Deep semantic analysis                                                 |
-| `scorecard.yml`            | Weekly   | OpenSSF supply-chain security scoring                                  |
-| `security-audit.yml`       | Weekly   | pip-audit against latest vuln databases                                |
-| `pre-commit-update.yml`    | Weekly   | Auto-update pre-commit hooks, opens PR                                 |
-| `spellcheck-autofix.yml`   | Weekly   | Auto-fix typos via codespell, opens PR                                 |
-| `stale.yml`                | Daily    | Mark/close inactive issues and PRs                                     |
-| `link-checker.yml`         | Weekly   | Validate URLs in documentation                                         |
-| `regenerate-files.yml`     | Weekly   | Regenerate requirements.txt files from pyproject.toml                  |
+| Workflow                 | Schedule | Purpose                                                                |
+| ------------------------ | -------- | ---------------------------------------------------------------------- |
+| `nightly-security.yml`   | Daily    | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
+| `security-codeql.yml`    | Weekly   | Deep semantic analysis                                                 |
+| `scorecard.yml`          | Weekly   | OpenSSF supply-chain security scoring                                  |
+| `security-audit.yml`     | Weekly   | pip-audit against latest vuln databases                                |
+| `pre-commit-update.yml`  | Weekly   | Auto-update pre-commit hooks, opens PR                                 |
+| `spellcheck-autofix.yml` | Weekly   | Auto-fix typos via codespell, opens PR                                 |
+| `stale.yml`              | Daily    | Mark/close inactive issues and PRs                                     |
+| `link-checker.yml`       | Weekly   | Validate URLs in documentation                                         |
+| `regenerate-files.yml`   | Weekly   | Regenerate requirements.txt files from pyproject.toml                  |
 
 ### Event-Driven Workflows
 
 These workflows trigger on specific repository events:
 
-| Workflow                      | Trigger               | Purpose                                                         |
-| ----------------------------- | --------------------- | --------------------------------------------------------------- |
-| `cache-cleanup.yml`           | PR closed             | Clean up GitHub Actions caches for closed PR branches           |
-| `auto-merge-dependabot.yml`   | Dependabot PR opened  | Auto-approve + squash-merge minor/patch dependency updates      |
-| `docs-deploy.yml`             | Push to main          | Deploy documentation to GitHub Pages (path-filtered)            |
+| Workflow                    | Trigger              | Purpose                                                    |
+| --------------------------- | -------------------- | ---------------------------------------------------------- |
+| `cache-cleanup.yml`         | PR closed            | Clean up GitHub Actions caches for closed PR branches      |
+| `auto-merge-dependabot.yml` | Dependabot PR opened | Auto-approve + squash-merge minor/patch dependency updates |
+| `docs-deploy.yml`           | Push to main         | Deploy documentation to GitHub Pages (path-filtered)       |
 
 ---
 

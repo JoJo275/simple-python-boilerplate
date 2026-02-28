@@ -386,7 +386,7 @@ dev = [
 ```
 
 > **Note:** This project uses `[project.optional-dependencies]` groups
-> consumed by Hatch via `features = ["dev"]`.  Don't add dev dependencies
+> consumed by Hatch via `features = ["dev"]`. Don't add dev dependencies
 > directly to `[tool.hatch.envs.default] dependencies` — add them to the
 > appropriate group in `[project.optional-dependencies]` instead.
 

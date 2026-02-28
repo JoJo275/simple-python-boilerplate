@@ -140,16 +140,16 @@ See [workflows.md](workflows.md) for full workflow documentation.
 
 These can be removed without breaking core functionality.
 
-| Path              | Purpose         | Safe to Remove?            |
-| ----------------- | --------------- | -------------------------- |
-| `db/`             | Database assets | ✅ If not using a database |
-| `experiments/`    | Scratch space   | ✅ Personal exploration    |
-| `mkdocs-hooks/`    | MkDocs hooks    | ✅ If no repo-relative links in docs |
-| `labels/`         | GitHub labels   | ✅ Manual label management |
-| `scripts/`        | Utility scripts | ✅ Convenience only        |
-| `var/`            | Runtime files   | ✅ Example data            |
-| `docs/notes/`     | Personal notes  | ✅ Learning reference      |
-| `docs/templates/` | File templates  | ✅ Copy as needed          |
+| Path              | Purpose         | Safe to Remove?                      |
+| ----------------- | --------------- | ------------------------------------ |
+| `db/`             | Database assets | ✅ If not using a database           |
+| `experiments/`    | Scratch space   | ✅ Personal exploration              |
+| `mkdocs-hooks/`   | MkDocs hooks    | ✅ If no repo-relative links in docs |
+| `labels/`         | GitHub labels   | ✅ Manual label management           |
+| `scripts/`        | Utility scripts | ✅ Convenience only                  |
+| `var/`            | Runtime files   | ✅ Example data                      |
+| `docs/notes/`     | Personal notes  | ✅ Learning reference                |
+| `docs/templates/` | File templates  | ✅ Copy as needed                    |
 
 ---
 

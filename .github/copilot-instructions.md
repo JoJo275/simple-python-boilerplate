@@ -144,7 +144,7 @@ shortcuts where available.
 | `Containerfile`              | Multi-stage container build                                                                                                 |
 | `release-please-config.json` | Release automation config                                                                                                   |
 | `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
-| `mkdocs-hooks/repo_links.py`  | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
+| `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 
 ---
 

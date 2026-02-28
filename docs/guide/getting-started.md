@@ -109,11 +109,11 @@ reference files across the repository — both within `docs/` and outside it
 (e.g. `../../pyproject.toml`, `../scripts/clean.py`). This creates a
 challenge because the same links need to work in two different contexts:
 
-| Context                      | How links resolve                                                    |
-| :--------------------------- | :------------------------------------------------------------------- |
-| **Browsing on GitHub**       | GitHub resolves relative paths natively — all links just work        |
-| **Deployed MkDocs site**     | MkDocs can only resolve links within `docs/` — external links break |
-| **Local `mkdocs serve`**     | Same as deployed site — limited to `docs/`                          |
+| Context                  | How links resolve                                                   |
+| :----------------------- | :------------------------------------------------------------------ |
+| **Browsing on GitHub**   | GitHub resolves relative paths natively — all links just work       |
+| **Deployed MkDocs site** | MkDocs can only resolve links within `docs/` — external links break |
+| **Local `mkdocs serve`** | Same as deployed site — limited to `docs/`                          |
 
 ### The `repo_links.py` Hook
 
@@ -145,15 +145,15 @@ for configuration options.
 
 ### Link Types at a Glance
 
-| Link type                     | Example                                        | Where it works natively     | Hook needed? |
-| :---------------------------- | :--------------------------------------------- | :-------------------------- | :----------- |
-| Within-docs relative          | `[ADRs](../adr/README.md)`                     | GitHub + MkDocs             | No           |
-| Repo-relative (outside docs)  | `[pyproject](../../pyproject.toml)`             | GitHub only                 | **Yes**      |
-| Absolute URL                  | `[Python](https://python.org)`                  | Everywhere                  | No           |
-| Fragment / anchor             | `[section](#my-heading)`                        | GitHub + MkDocs             | No           |
-| Repo-relative with fragment   | `[config](../../pyproject.toml#L10)`            | GitHub only                 | **Yes**      |
-| HTML `<a href>`               | `<a href="../../Taskfile.yml">`                 | GitHub only                 | **Yes**      |
-| Reference-style definition    | `[ref]: ../../LICENSE`                           | GitHub only                 | **Yes**      |
+| Link type                    | Example                              | Where it works natively | Hook needed? |
+| :--------------------------- | :----------------------------------- | :---------------------- | :----------- |
+| Within-docs relative         | `[ADRs](../adr/README.md)`           | GitHub + MkDocs         | No           |
+| Repo-relative (outside docs) | `[pyproject](../../pyproject.toml)`  | GitHub only             | **Yes**      |
+| Absolute URL                 | `[Python](https://python.org)`       | Everywhere              | No           |
+| Fragment / anchor            | `[section](#my-heading)`             | GitHub + MkDocs         | No           |
+| Repo-relative with fragment  | `[config](../../pyproject.toml#L10)` | GitHub only             | **Yes**      |
+| HTML `<a href>`              | `<a href="../../Taskfile.yml">`      | GitHub only             | **Yes**      |
+| Reference-style definition   | `[ref]: ../../LICENSE`               | GitHub only             | **Yes**      |
 
 ## Read the Docs
 
