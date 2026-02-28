@@ -25,40 +25,43 @@ To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 
 ## Index
 
-| ADR                                             | Title                                                              | Status   |
-| ----------------------------------------------- | ------------------------------------------------------------------ | -------- |
-| [001](001-src-layout.md)                        | Use src/ layout for package structure                              | Accepted |
-| [002](002-pyproject-toml.md)                    | Use pyproject.toml for all configuration                           | Accepted |
-| [003](003-separate-workflow-files.md)           | Separate GitHub Actions workflow files                             | Accepted |
-| [004](004-pin-action-shas.md)                   | Pin GitHub Actions to commit SHAs                                  | Accepted |
-| [005](005-ruff-for-linting-formatting.md)       | Use Ruff for linting and formatting                                | Accepted |
-| [006](006-pytest-for-testing.md)                | Use pytest for testing                                             | Accepted |
-| [007](007-mypy-for-type-checking.md)            | Use mypy for static type checking                                  | Accepted |
-| [008](008-pre-commit-hooks.md)                  | Use pre-commit hooks for automated checks                          | Accepted |
-| [009](009-conventional-commits.md)              | Use Conventional Commits for commit messages                       | Accepted |
-| [010](010-dependabot-for-dependency-updates.md) | Use Dependabot for dependency updates                              | Accepted |
-| [011](011-repository-guard-pattern.md)          | Repository guard pattern for optional workflows                    | Accepted |
-| [012](012-multi-layer-security-scanning.md)     | Multi-layer security scanning in CI                                | Accepted |
-| [013](013-sbom-bill-of-materials.md)            | SBOM generation and distribution strategy                          | Accepted |
-| [014](014-no-template-engine.md)                | No template engine — manual customisation                          | Accepted |
-| [015](015-no-github-directory-readme.md)        | No README.md in .github/ directory                                 | Accepted |
-| [016](016-hatchling-and-hatch.md)               | Use Hatchling (build backend) and Hatch (project manager) together | Accepted |
-| [017](017-task-runner.md)                       | Use Taskfile as the project task runner                            | Accepted |
-| [018](018-bandit-for-security-linting.md)       | Use Bandit for Python security linting                             | Accepted |
-| [019](019-containerfile.md)                     | Use Containerfile for OCI-compatible container builds              | Accepted |
-| [020](020-mkdocs-documentation-stack.md)        | Use MkDocs with Material theme for project documentation           | Accepted |
-| [021](021-automated-release-pipeline.md)        | Automated release pipeline with release-please                     | Accepted |
-| [022](022-rebase-merge-strategy.md)             | Rebase and merge strategy for pull requests                        | Accepted |
-| [023](023-branch-protection-rules.md)           | Branch protection rules for main                                   | Accepted |
-| [024](024-ci-gate-pattern.md)                   | CI gate pattern for branch protection                              | Accepted |
-| [025](025-container-strategy.md)                | Container strategy — production, development, orchestration        | Accepted |
-| [026](026-no-pip-tools.md)                      | Do not use pip-tools for dependency management                     | Accepted |
-| [027](027-database-strategy.md)                 | Raw SQL database strategy                                          | Accepted |
-| [028](028-git-branching-strategy.md)            | Git branching strategy (trunk-based)                               | Accepted |
-| [029](029-testing-strategy.md)                  | Testing strategy (unit/integration split, coverage, matrix)        | Accepted |
-| [030](030-label-management-as-code.md)          | Label management as code                                           | Accepted |
-| [031](031-script-conventions.md)                | Script conventions                                                 | Accepted |
-| [032](032-dependency-grouping-strategy.md)      | Dependency grouping strategy                                       | Accepted |
+| ADR                                               | Title                                                              | Status   |
+| ------------------------------------------------- | ------------------------------------------------------------------ | -------- |
+| [001](001-src-layout.md)                          | Use src/ layout for package structure                              | Accepted |
+| [002](002-pyproject-toml.md)                      | Use pyproject.toml for all configuration                           | Accepted |
+| [003](003-separate-workflow-files.md)             | Separate GitHub Actions workflow files                             | Accepted |
+| [004](004-pin-action-shas.md)                     | Pin GitHub Actions to commit SHAs                                  | Accepted |
+| [005](005-ruff-for-linting-formatting.md)         | Use Ruff for linting and formatting                                | Accepted |
+| [006](006-pytest-for-testing.md)                  | Use pytest for testing                                             | Accepted |
+| [007](007-mypy-for-type-checking.md)              | Use mypy for static type checking                                  | Accepted |
+| [008](008-pre-commit-hooks.md)                    | Use pre-commit hooks for automated checks                          | Accepted |
+| [009](009-conventional-commits.md)                | Use Conventional Commits for commit messages                       | Accepted |
+| [010](010-dependabot-for-dependency-updates.md)   | Use Dependabot for dependency updates                              | Accepted |
+| [011](011-repository-guard-pattern.md)            | Repository guard pattern for optional workflows                    | Accepted |
+| [012](012-multi-layer-security-scanning.md)       | Multi-layer security scanning in CI                                | Accepted |
+| [013](013-sbom-bill-of-materials.md)              | SBOM generation and distribution strategy                          | Accepted |
+| [014](014-no-template-engine.md)                  | No template engine — manual customisation                          | Accepted |
+| [015](015-no-github-directory-readme.md)          | No README.md in .github/ directory                                 | Accepted |
+| [016](016-hatchling-and-hatch.md)                 | Use Hatchling (build backend) and Hatch (project manager) together | Accepted |
+| [017](017-task-runner.md)                         | Use Taskfile as the project task runner                            | Accepted |
+| [018](018-bandit-for-security-linting.md)         | Use Bandit for Python security linting                             | Accepted |
+| [019](019-containerfile.md)                       | Use Containerfile for OCI-compatible container builds              | Accepted |
+| [020](020-mkdocs-documentation-stack.md)          | Use MkDocs with Material theme for project documentation           | Accepted |
+| [021](021-automated-release-pipeline.md)          | Automated release pipeline with release-please                     | Accepted |
+| [022](022-rebase-merge-strategy.md)               | Rebase and merge strategy for pull requests                        | Accepted |
+| [023](023-branch-protection-rules.md)             | Branch protection rules for main                                   | Accepted |
+| [024](024-ci-gate-pattern.md)                     | CI gate pattern for branch protection                              | Accepted |
+| [025](025-container-strategy.md)                  | Container strategy — production, development, orchestration        | Accepted |
+| [026](026-no-pip-tools.md)                        | Do not use pip-tools for dependency management                     | Accepted |
+| [027](027-database-strategy.md)                   | Raw SQL database strategy                                          | Accepted |
+| [028](028-git-branching-strategy.md)              | Git branching strategy (trunk-based)                               | Accepted |
+| [029](029-testing-strategy.md)                    | Testing strategy (unit/integration split, coverage, matrix)        | Accepted |
+| [030](030-label-management-as-code.md)            | Label management as code                                           | Accepted |
+| [031](031-script-conventions.md)                  | Script conventions                                                 | Accepted |
+| [032](032-dependency-grouping-strategy.md)        | Dependency grouping strategy                                       | Accepted |
+| [033](033-prettier-for-markdown-formatting.md)    | Prettier for Markdown formatting                                   | Accepted |
+| [034](034-documentation-organization-strategy.md) | Documentation organization strategy                                | Accepted |
+| [035](035-copilot-instructions-as-context.md)     | Copilot instructions as developer context                          | Accepted |
 
 ## Archive
 

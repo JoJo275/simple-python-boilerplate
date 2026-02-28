@@ -29,28 +29,31 @@ How to create, review, and merge pull requests in this project.
    **Quick (fix & test):**
 
    ```bash
+   task check                # All quality gates in one command
+   # or individually:
    ruff format . && ruff check --fix . && pytest
    ```
 
    **Apply fixes:**
 
    ```bash
-   ruff format .             # Auto-format code
-   ruff check --fix .        # Auto-fix lint issues
+   task fmt                  # Auto-format code (ruff format)
+   task lint:fix             # Auto-fix lint issues (ruff check --fix)
    ```
 
    **Verify (CI-like):**
 
    ```bash
-   pytest                    # Tests pass
-   ruff check .              # Linting passes
-   ruff format --check .     # Formatting correct
-   mypy src/                 # Type checking (recommended)
+   task test                 # Tests pass
+   task lint                 # Linting passes
+   task typecheck            # Type checking (mypy)
    ```
 
    > See [developer-commands.md](developer-commands.md) for the full command reference.
+   > All `task` commands wrap `hatch run` — see the [Taskfile](../../Taskfile.yml).
 
 4. **Push your branch**
+
    ```bash
    git push -u origin feature/your-feature-name
    ```
@@ -100,9 +103,13 @@ How was this tested?
 
 ## Checklist
 
-- [ ] Tests pass locally
+- [ ] Tests pass locally (`task test`)
+- [ ] Linting passes (`task lint`)
+- [ ] Type checking passes (`task typecheck`)
 - [ ] Code follows style guidelines
-- [ ] Documentation updated (if needed)
+- [ ] Documentation updated (if user-facing changes)
+- [ ] Type hints on public functions
+- [ ] ADR created (if significant decision — see `docs/adr/template.md`)
 ```
 
 ## Code Review Guidelines
@@ -176,6 +183,7 @@ git push --force-with-lease
 
 - Delete the feature branch (GitHub can do this automatically)
 - Close related issues (use `Closes #123` in PR description)
+- Verify the CI gate check passed on `main` after merge
 
 ## Draft PRs
 
@@ -200,9 +208,49 @@ chore/maintenance-task       # Maintenance
 ci/workflow-change           # CI/CD changes
 ```
 
+## CI Gate & Required Checks
+
+All PRs must pass the **CI gate** (`ci-gate.yml`) before merging. The gate
+aggregates required checks into a single status check for branch protection.
+See [ADR 024](../adr/024-ci-gate-pattern.md) for the design.
+
+**If a required check never appears** (stays "pending" forever), the most
+common cause is a renamed workflow job. The `ci-gate.yml` references checks
+by their display name — if you rename a job, update `REQUIRED_CHECKS` in
+`ci-gate.yml` too.
+
+> **Path-filtered workflows** (bandit, docs-deploy, link-checker) are NOT
+> in the CI gate because they don't run on every PR. If they don't trigger,
+> that's expected — see [workflows.md](../workflows.md) for the full list.
+
+## Automated Labels
+
+The `labeler.yml` workflow automatically applies labels to PRs based on
+file paths changed. For example, changes under `docs/` get the `docs` label,
+changes under `src/` get `python`. See [labels.md](../labels.md) for the
+full label inventory and `.github/labeler.yml` for the path-to-label mapping.
+
+<!-- TODO (template users): Customise .github/labeler.yml to match your
+     project's directory structure and labeling conventions. -->
+
+## Stacked PRs
+
+For large features that benefit from incremental review:
+
+1. Break the work into sequential, reviewable PRs
+2. Each PR targets the previous feature branch (not `main`)
+3. Merge the stack bottom-up: first PR into `main`, then rebase the rest
+4. Keep each PR under ~400 lines for manageable reviews
+
+> **Tip:** GitHub's "base branch" dropdown lets you target any branch,
+> not just `main`. Use this for stacked PRs.
+
 ## See Also
 
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) — General contribution guidelines
 - [labels.md](../labels.md) — Issue and PR labels
 - [dev-setup.md](dev-setup.md) — Environment setup
 - [development.md](development.md) — Daily workflows
+- [ADR 022](../adr/022-rebase-merge-strategy.md) — Why rebase merge
+- [ADR 024](../adr/024-ci-gate-pattern.md) — CI gate pattern
+- [workflows.md](../workflows.md) — Full workflow inventory

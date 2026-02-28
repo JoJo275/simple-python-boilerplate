@@ -21,12 +21,12 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: development.md
 - [x] Final file check: pull-requests.md
 - [ ] Final file check: docs/guide/getting-started.md
-- [ ] Final file check: docs/guide/troubleshooting.md
-- [ ] Final file check: docs/notes/resources.md
+- [x] Final file check: docs/guide/troubleshooting.md
+- [x] Final file check: docs/notes/resources.md
 - [ ] Final file check: docs/notes/learning.md
-- [ ] Final file check: docs/notes/tool-comparison.md
-- [ ] Final file check: docs/reference/api.md
-- [ ] Final file check: docs/reference/index.md
+- [x] Final file check: docs/notes/tool-comparison.md
+- [x] Final file check: docs/reference/api.md
+- [x] Final file check: docs/reference/index.md
 - [ ] Final file check: docs/templates/
 - [ ] Final file check: docs/labels.md
 - [ ] Final file check: docs/workflows.md

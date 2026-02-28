@@ -176,6 +176,36 @@ Every tool declared in `pyproject.toml` `[project.optional-dependencies]`:
 | [OpenSSF best practices](https://best.openssf.org/) | Open Source Security Foundation guidelines               |
 | [SLSA framework](https://slsa.dev/)                 | Supply-chain Levels for Software Artifacts               |
 
+## Markdown & Formatting
+
+| Resource                                                                                | Description                                            |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [Prettier documentation](https://prettier.io/docs/en/)                                  | Code formatter used for Markdown files in this project |
+| [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md) | Rule reference for markdownlint-cli2                   |
+| [GitHub Flavored Markdown](https://github.github.com/gfm/)                              | GitHub's Markdown spec — tables, task lists, autolinks |
+| [CommonMark specification](https://commonmark.org/)                                     | The foundational Markdown standard                     |
+
+## AI Coding Assistants
+
+<!-- TODO (template users): If you don't use AI assistants in your workflow,
+     you can remove this section. If you do, update the links to match
+     the tools your team uses. -->
+
+| Resource                                                                                                                                              | Description                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [GitHub Copilot custom instructions](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot) | How `.github/copilot-instructions.md` works |
+| [Copilot chat documentation](https://docs.github.com/en/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide)                     | Using Copilot in VS Code                    |
+| [Cursor Rules](https://cursor.sh/docs/context/rules)                                                                                                  | Similar context files for the Cursor editor |
+
+## Modern Python Tooling
+
+| Resource                                                                                | Description                                                   |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [uv documentation](https://docs.astral.sh/uv/)                                          | Ultra-fast Python package installer and resolver (Astral)     |
+| [Rye documentation](https://rye.astral.sh/)                                             | Experimental Python project manager (Astral, merging into uv) |
+| [Scientific Python Development Guide](https://learn.scientific-python.org/development/) | Modern packaging guide for scientific Python                  |
+| [Hypermodern Python](https://cjolowicz.github.io/posts/hypermodern-python-01-setup/)    | Blog series on modern Python project setup                    |
+
 ---
 
 ## How to Use This Page
@@ -186,6 +216,7 @@ Every tool declared in `pyproject.toml` `[project.optional-dependencies]`:
 - **Configuring tools?** Configuration File Formats section for TOML/YAML reference
 - **Looking for a tool's docs?** Project Dependencies table links every dev tool
 - **Making an architectural decision?** ADR section for the template and process
+- **Using AI assistants?** AI Coding Assistants section + `copilot-instructions.md`
 
 This is a living document — add links as you discover useful resources and
 remove ones that go stale.
