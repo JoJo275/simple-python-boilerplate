@@ -1,5 +1,9 @@
 # Developer Commands
 
+<!-- TODO (template users): Update command examples, script names, and paths
+     throughout this file after renaming the project and adding your own
+     Hatch scripts. Remove sections for features you don't use. -->
+
 Quick reference for common development commands in this project.
 
 ## Environment Setup
@@ -62,7 +66,7 @@ hatch run test
 hatch run test -v
 
 # Run specific test file
-hatch run test tests/unit_test.py
+hatch run test tests/unit/test_example.py
 
 # Run with coverage
 hatch run test-cov
@@ -70,7 +74,7 @@ hatch run test-cov
 
 ### Multi-Version Testing
 
-Hatch can run tests across multiple Python versions (3.11–3.14) using a test matrix defined in `pyproject.toml`.
+Hatch can run tests across multiple Python versions (3.11–3.13) using a test matrix defined in `pyproject.toml`.
 
 ```bash
 # Run tests on ALL Python versions in the matrix
@@ -94,7 +98,7 @@ hatch env show
 ```bash
 pytest
 pytest -v
-pytest tests/unit_test.py
+pytest tests/unit/test_example.py
 pytest --cov=simple_python_boilerplate --cov-report=term-missing
 ```
 
@@ -166,6 +170,9 @@ python -m build
 </details>
 
 ## Utility Scripts
+
+<!-- TODO (template users): Update this list after adding or removing scripts.
+     The full script inventory is in scripts/README.md. -->
 
 ```bash
 # Archive completed TODO items
@@ -262,6 +269,10 @@ git push origin <branch-name>
 ```
 
 ## Pre-commit (if installed)
+
+<!-- TODO (template users): If you add or remove pre-commit hooks, update
+     the hook examples and the hooks table below. The authoritative hook
+     list is in .pre-commit-config.yaml and ADR 008. -->
 
 ```bash
 # Install hooks

@@ -1,5 +1,9 @@
 # Development Environment Setup
 
+<!-- TODO (template users): Update clone URLs, package names, and CLI entry
+     points throughout this guide after renaming the project with
+     scripts/customize.py. -->
+
 This guide walks you through setting up the development environment for this project.
 
 ## Prerequisites
@@ -188,17 +192,26 @@ python -m pip show simple-python-boilerplate
 
 ## Project Structure
 
+<!-- TODO (template users): Update this tree after adding or removing modules.
+     The full directory reference is in docs/design/architecture.md. -->
+
 ```
 simple-python-boilerplate/
 ├── src/
 │   └── simple_python_boilerplate/  # Main package code
 │       ├── __init__.py
-│       └── main.py
+│       ├── main.py                 # CLI entry points
+│       ├── cli.py                  # Argument parsing
+│       ├── engine.py               # Core logic
+│       └── api.py                  # HTTP/REST (placeholder)
 ├── tests/                          # Test files
-│   └── unit_test.py
-├── docs/                           # Documentation
+│   ├── unit/                       # Unit tests
+│   └── integration/                # Integration tests
 ├── scripts/                        # Utility scripts
-├── pyproject.toml                  # Project configuration
+├── docs/                           # Documentation (MkDocs)
+├── db/                             # Database files (schema, migrations, seeds)
+├── pyproject.toml                  # Project configuration (single source of truth)
+├── Taskfile.yml                    # Task runner shortcuts
 └── README.md
 ```
 
@@ -215,6 +228,9 @@ simple-python-boilerplate/
 | `python -m mypy src/`        | Type check source code         |
 
 ## IDE Setup
+
+<!-- TODO (template users): Update the workspace file name and interpreter
+     paths after renaming the project. -->
 
 ### VS Code (Recommended)
 
@@ -236,6 +252,9 @@ simple-python-boilerplate/
 3. Add interpreter → Existing environment → Select `.venv/Scripts/python.exe` (Windows) or `.venv/bin/python` (macOS/Linux)
 
 ## Troubleshooting
+
+<!-- TODO (template users): Add troubleshooting entries specific to your
+     project (e.g. database connection issues, missing API keys). -->
 
 ### "spb" command not found
 

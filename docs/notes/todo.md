@@ -13,48 +13,45 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: pyproject.toml
 - [x] Final file check: architecture.md
 - [X] Final file check: ci-cd-design.md
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
-- [ ] Final file check:
+- [X] Final file check: database.md
+- [ ] Final file check: tool-decisions.md
+- [ ] Final file check: command-workflows.md
+- [ ] Final file check: dev-setup.md
+- [ ] Final file check: developer-commands.md
+- [ ] Final file check: development.md
+- [ ] Final file check: pull-requests.md
+- [ ] Final file check: docs/guide/getting-started.md
+- [ ] Final file check: docs/guide/troubleshooting.md
+- [ ] Final file check: docs/notes/resources.md
+- [ ] Final file check: docs/notes/learning.md
+- [ ] Final file check: docs/notes/tool-comparison.md
+- [ ] Final file check: docs/reference/api.md
+- [ ] Final file check: docs/reference/index.md
+- [ ] Final file check: docs/templates/
+- [ ] Final file check: docs/labels.md
+- [ ] Final file check: docs/workflows.md
+- [ ] Final file check: docs/repo-layout.md
+- [ ] Final file check: docs/tooling.md
+- [ ] Final file check: docs/releasing.md
+- [ ] Final file check: docs/release-policy.md
+- [ ] Final file check: docs/sbom.md
+- [ ] Final file check: docs/USING_THIS_TEMPLATE.md
+- [ ] Final file check: docs/index.md
+- [ ] Final file check: docs/adr/README.md
+- [ ] Final file check: docs/design/ci-cd-design.md
+- [ ] Final file check: docs/design/database.md
+- [ ] Final file check: CONTRIBUTING.md
+- [ ] Final file check: CODE_OF_CONDUCT.md
+- [ ] Final file check: Containerfile
+- [ ] Final file check: docker-compose.yml
+- [ ] Final file check: codecov.yml
+- [ ] Final file check: mkdocs.yml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .github/dependabot.yml
 - [ ] Final file check: entire docs/
-- [ ] Add in TODOs where warrented
+- [x] Add in TODOs where warranted
 - [ ] Review and consolidate docs/
-- [ ]
+- [ ] Add unit tests for mkdocs-hooks/repo_links.py (~280 lines, no test coverage)
 
 ## Ideas for Later
 
