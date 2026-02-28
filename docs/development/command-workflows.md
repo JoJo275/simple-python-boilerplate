@@ -13,7 +13,7 @@ How commands flow through the tooling layers in this project.
 This project has three ways to run developer commands, each building on the
 one below:
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Layer 3: Task Runner (Taskfile.yml)        │  ← task test
 │  Convenience shortcuts, no Hatch knowledge  │
@@ -34,7 +34,7 @@ Each layer is optional — you can work at whichever level you prefer.
 
 When you run `task test`, here's what happens:
 
-```
+```text
 task test
   → Taskfile.yml runs: hatch run test
     → Hatch activates the default env (creates it if needed)

@@ -144,6 +144,7 @@ shortcuts where available.
 | `Containerfile`              | Multi-stage container build                                                                                                 |
 | `release-please-config.json` | Release automation config                                                                                                   |
 | `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
+| `.markdownlint-cli2.jsonc`   | markdownlint rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)                                   |
 | `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 
 ---
@@ -176,6 +177,8 @@ exists in the project. Key templates:
 - **Seed** → `db/seeds/001_example_seed.sql`
 - **Script** → review `scripts/` for naming and shebang conventions. **Important:** After creating a script with a shebang (`#!/usr/bin/env python3`), mark it executable: `git add --chmod=+x scripts/my_script.py`
 - **MkDocs hook** → review `mkdocs-hooks/repo_links.py` for conventions; update `mkdocs-hooks/README.md` inventory and register in `mkdocs.yml` under `hooks:`
+- **Security policy** → `docs/templates/SECURITY_no_bounty.md` or `SECURITY_with_bounty.md` — copy to repo root as `SECURITY.md`
+- **Bug bounty** → `docs/templates/BUG_BOUNTY.md` — standalone bounty policy linked from SECURITY.md
 
 ### Keep Related Files in Sync
 

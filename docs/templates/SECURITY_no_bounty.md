@@ -4,7 +4,20 @@
 >
 > **This document is an example only. It is NOT active for this repository.**
 >
-> To use this template: copy it to your own repository, replace all placeholders (marked with `TODO`), and remove this notice.
+> To use this template: copy it to the root of your repository as
+> `SECURITY.md`, replace all placeholders (marked with `TODO`), and remove
+> this notice.
+
+<!-- TODO (template users): Before publishing this file:
+     1. Copy this file to the root of your repository as SECURITY.md
+     2. Replace ALL `[OWNER]/[REPO]` placeholders with your actual repo path
+     3. Replace ALL email placeholders with your real security contact
+     4. Replace `[package-name]` and domain placeholders with real values
+     5. Update the Supported Versions table for your release schedule
+     6. Enable GitHub Security Advisories in repo settings
+        (Settings → Security → Private vulnerability reporting)
+     7. Delete the template warning banner at the top
+     8. Review each section — remove anything that doesn't apply -->
 
 **Status:** Not active for this repository. For demonstration purposes only.
 
@@ -12,9 +25,12 @@
 
 ## Supported Versions
 
-<!-- TODO: Update this table as you release new versions -->
+<!-- TODO (template users): Update this table as you release new versions.
+     Keep it in sync with BUG_BOUNTY.md's Version Coverage table (if applicable).
+     If you only support the latest version, simplify to a single row. -->
 
-> **Note:** Update this table per release; otherwise assume only the latest version is supported.
+> **Note:** Update this table per release; otherwise assume only the latest
+> version is supported.
 
 | Version | Supported                                |
 | ------- | ---------------------------------------- |
@@ -26,11 +42,20 @@
 
 ## Bug Bounty
 
-We do not currently offer a bug bounty program. However, we deeply appreciate responsible disclosure and will acknowledge contributors in our [Acknowledgments](#acknowledgments) section.
+We do not currently offer a bug bounty program. However, we deeply
+appreciate responsible disclosure and will acknowledge contributors in
+our [Acknowledgments](#acknowledgments) section.
 
-If you're interested in sponsoring a bug bounty program for this project, please [contact us](mailto:security@example.com).
+If you're interested in sponsoring a bug bounty program for this project,
+please [contact us](mailto:security@example.com).
 
-> **Looking for a bounty template?** See [SECURITY_with_bounty.md](SECURITY_with_bounty.md) and [BUG_BOUNTY.md](BUG_BOUNTY.md) for examples.
+<!-- TODO (template users): Replace security@example.com with your actual
+     security contact. If you decide to add a bounty program later,
+     switch to the SECURITY_with_bounty.md template instead. -->
+
+> **Looking for a bounty template?** See
+> [SECURITY_with_bounty.md](SECURITY_with_bounty.md) and
+> [BUG_BOUNTY.md](BUG_BOUNTY.md) for examples.
 
 ---
 
@@ -44,8 +69,11 @@ We take security vulnerabilities seriously. If you discover a security issue, pl
 
 Instead, please report security vulnerabilities via one of the following methods:
 
-<!-- TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values -->
-<!-- TODO: Ensure Security Advisories are enabled in repo settings (Settings → Security → Private vulnerability reporting); otherwise the link below may 404. -->
+<!-- TODO (template users): Replace [OWNER]/[REPO] and security@example.com
+     with your actual values. -->
+<!-- TODO (template users): Ensure Security Advisories are enabled in repo
+     settings (Settings → Security → Private vulnerability reporting);
+     otherwise the advisory link below will 404. -->
 
 1. **GitHub Security Advisories (Preferred)**
    Use [GitHub's private vulnerability reporting](https://github.com/[OWNER]/[REPO]/security/advisories/new) to submit a report directly.
@@ -56,7 +84,8 @@ Instead, please report security vulnerabilities via one of the following methods
 3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
 
-   <!-- TODO: Add your PGP key fingerprint (full 40-character format):
+   <!-- TODO (template users): Add your PGP key fingerprint (full 40-character
+        format), or remove this entire option if you don't use PGP:
    Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
    Public key: https://keys.openpgp.org/search?q=security@example.com
    -->
@@ -76,7 +105,8 @@ Please provide as much information as possible:
 
 ## Response Timeline
 
-> **Note:** These are targets, not guarantees. Small teams or volunteer maintainers may need more time. We will communicate delays proactively.
+> **Note:** These are targets, not guarantees. Small teams or volunteer
+> maintainers may need more time. We will communicate delays proactively.
 
 | Action                   | Timeframe                                 |
 | ------------------------ | ----------------------------------------- |
@@ -133,7 +163,8 @@ We support responsible security research. To the extent permitted by law, we wil
 
 ### In Scope
 
-<!-- TODO: Replace placeholders with your actual values -->
+<!-- TODO (template users): Replace placeholders with your actual values.
+     Remove lines that don't apply (e.g., Documentation site if you don't host one). -->
 
 This security policy applies to:
 
@@ -164,11 +195,13 @@ The following are generally **not considered** security vulnerabilities:
 
 When using this project:
 
-1. **Keep dependencies updated** — Run `pip list --outdated` regularly
-2. **Use virtual environments** — Isolate project dependencies
+1. **Keep dependencies updated** — Run `pip list --outdated` or
+   `task deps:outdated` regularly
+2. **Use virtual environments** — Isolate project dependencies (`hatch shell`
+   or `python -m venv .venv`)
 3. **Review code before running** — Especially from untrusted sources
 4. **Enable Dependabot** — For automated security updates on your fork
-5. **Pin dependencies** — Use `pip freeze` or `pip-tools` for reproducible builds
+5. **Pin dependencies** — Use `pip freeze` or lock files for reproducible builds
 6. **Avoid `shell=True`** — Use `subprocess` with argument lists instead
 7. **Use safe YAML loading** — Always use `yaml.safe_load()`, never `yaml.load()`
 8. **Never log secrets** — Ensure tokens and credentials are not logged
@@ -189,7 +222,8 @@ We thank the following individuals for responsibly disclosing security issues:
 
 ## Contact
 
-<!-- TODO: Replace placeholders with your actual values -->
+<!-- TODO (template users): Replace placeholders with your actual values.
+     Consider adding a dedicated security email alias rather than a personal address. -->
 
 - **Security issues:** `security@example.com`
 - **General questions:** Open a [Discussion](https://github.com/[OWNER]/[REPO]/discussions)
@@ -201,7 +235,10 @@ We thank the following individuals for responsibly disclosing security issues:
 - [SECURITY_with_bounty.md](SECURITY_with_bounty.md) — Example security policy with bug bounty program
 - [BUG_BOUNTY.md](BUG_BOUNTY.md) — Example standalone bug bounty policy
 - [SECURITY.md](../../SECURITY.md) — Main security policy for this repository
+- [Templates README](README.md) — Overview of all available templates
 
 ---
 
 **Last updated:** February 2026
+
+<!-- TODO (template users): Update this date whenever you modify the policy. -->

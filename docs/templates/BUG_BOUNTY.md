@@ -5,19 +5,34 @@
 > **This document is an example only. It is NOT active for this repository.**
 > **Do not submit vulnerability reports expecting rewards for this template repo.**
 >
-> To use this template: copy it to your own repository, replace all placeholders, and link it from your SECURITY.md.
+> To use this template: copy it to your own repository, replace all
+> placeholders (marked with `TODO`), and link it from your SECURITY.md.
+
+<!-- TODO (template users): Before publishing this file:
+     1. Replace ALL `[OWNER]/[REPO]` placeholders with your actual repo path
+     2. Replace ALL email placeholders with your real security contact
+     3. Set actual reward amounts or remove the monetary rewards section
+     4. Replace `[PROJECT NAME]` and `[package-name]` with real values
+     5. Review each section — remove anything that doesn't apply to your project
+     6. Delete the template warning banner at the top
+     7. Consider having legal counsel review before making bounty commitments -->
 
 ## Overview
 
-We offer rewards for responsibly disclosed security vulnerabilities in [PROJECT NAME]. This program encourages security researchers to help us identify and fix vulnerabilities before they can be exploited.
+We offer rewards for responsibly disclosed security vulnerabilities in
+[PROJECT NAME]. This program encourages security researchers to help us
+identify and fix vulnerabilities before they can be exploited.
 
-> **Legal disclaimer:** Nothing in this document creates a legal obligation to pay. All rewards, if any, are offered at our sole discretion based on the severity, impact, and quality of the report.
+> **Legal disclaimer:** Nothing in this document creates a legal obligation
+> to pay. All rewards, if any, are offered at our sole discretion based on
+> the severity, impact, and quality of the report.
 
 ## Scope
 
 ### In Scope
 
-<!-- TODO: Replace all placeholders below with your actual values -->
+<!-- TODO (template users): Replace all placeholders below with your actual values.
+     Remove lines that don't apply (e.g., Documentation site if you don't have one). -->
 
 The following are eligible for rewards:
 
@@ -29,7 +44,9 @@ The following are eligible for rewards:
 
 ### Version Coverage
 
-<!-- TODO: Specify which versions are in scope. See docs/RELEASE_POLICY.md (if available) for version support details. -->
+<!-- TODO (template users): Specify which versions are in scope.
+     Align with your release policy (see docs/release-policy.md if available).
+     Keep this table in sync with SECURITY.md's Supported Versions table. -->
 
 | Version                                 | In Scope                          |
 | --------------------------------------- | --------------------------------- |
@@ -40,7 +57,9 @@ The following are eligible for rewards:
 
 ### Vulnerability Types
 
-<!-- TODO: Replace $X values with your actual reward amounts, or remove monetary rewards entirely -->
+<!-- TODO (template users): Replace $X values with your actual reward amounts,
+     or remove monetary rewards entirely and offer recognition only.
+     See the "Reward Payment" section below for payment method options. -->
 
 | Severity     | Examples                                                           | Reward Range     |
 | ------------ | ------------------------------------------------------------------ | ---------------- |
@@ -106,18 +125,24 @@ We will not pursue legal action against researchers who:
 
 ## How to Report
 
-<!-- ⚠️ TODO: Replace [OWNER]/[REPO] and security@example.com with your actual values before publishing! -->
+<!-- TODO (template users): Replace [OWNER]/[REPO] and security email with your
+     actual values. Ensure GitHub Security Advisories are enabled in your repo
+     settings (Settings → Security → Private vulnerability reporting);
+     otherwise the advisory link below will 404. -->
 
-**If you are using this as a template:** Replace the link, email, and all placeholders below before publishing. Do not ship this file with example values.
+**If you are using this as a template:** Replace the link, email, and all
+placeholders below before publishing. Do not ship this file with example values.
 
 1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)
-   **⚠️ TODO:** Replace `[OWNER]/[REPO]` with your actual repository path
+   <!-- TODO (template users): Replace `[OWNER]/[REPO]` with your actual repo path -->
 2. **Email:** `[security-email]@[your-domain].com`
+   <!-- TODO (template users): Replace with your actual security email -->
 3. **PGP Encrypted:** See key details below (if available)
 
-<!-- TODO: Add your PGP key fingerprint (full 40-character format):
-Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
-Public key: https://keys.openpgp.org/search?q=security@example.com
+<!-- TODO (template users): Add your PGP key fingerprint (full 40-character format),
+     or remove this option entirely if you don't use PGP:
+     Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
+     Public key: https://keys.openpgp.org/search?q=security@example.com
 -->
 
 For general security information, see our [Security Policy](../../SECURITY.md).
@@ -149,7 +174,10 @@ For general security information, see our [Security Policy](../../SECURITY.md).
 
 ## Reward Payment
 
-<!-- TODO: Remove this section entirely if you're offering recognition only -->
+<!-- TODO (template users): Remove this entire section if you're offering
+     recognition only. If you keep it, review payment methods and legal
+     requirements for your jurisdiction. Consider consulting legal counsel
+     before committing to monetary rewards. -->
 
 If monetary rewards are offered, payment methods may include:
 
@@ -169,7 +197,8 @@ If monetary rewards are offered, payment methods may include:
 - Rewards may be subject to applicable tax laws in your jurisdiction
 - **Tax responsibility:** Researchers are responsible for reporting any bounty income as required by their local laws. We may request tax documentation where legally required.
 
-<!-- TODO: Adjust or remove these requirements based on your jurisdiction and legal advice -->
+<!-- TODO (template users): Adjust or remove these requirements based on
+     your jurisdiction and legal advice. These are examples, not legal guidance. -->
 
 ---
 
@@ -203,10 +232,22 @@ We may modify this bug bounty policy at any time. Changes will be posted to this
 
 **Last updated:** January 2026
 
+<!-- TODO (template users): Update this date whenever you modify the policy. -->
+
 ---
 
 ## Questions?
 
-Contact us at `[security-email]@[your-domain].com` for any questions about this program.
+Contact us at `[security-email]@[your-domain].com` for any questions about
+this program.
 
-<!-- TODO: Replace with your actual security contact email -->
+<!-- TODO (template users): Replace with your actual security contact email -->
+
+---
+
+## Related Documents
+
+- [SECURITY.md](../../SECURITY.md) — Main security policy for this repository
+- [SECURITY_with_bounty.md](SECURITY_with_bounty.md) — Security policy template with integrated bounty section
+- [SECURITY_no_bounty.md](SECURITY_no_bounty.md) — Security policy template without bounty program
+- [Templates README](README.md) — Overview of all available templates

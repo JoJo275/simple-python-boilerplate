@@ -200,7 +200,7 @@ Convert to "Ready for review" when you're done.
 <!-- TODO (template users): Add any project-specific branch prefixes
      (e.g. release/, hotfix/) or naming rules here. -->
 
-```
+```text
 feature/short-description    # New features
 fix/issue-description        # Bug fixes
 docs/what-changed            # Documentation

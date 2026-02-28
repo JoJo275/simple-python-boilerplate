@@ -70,3 +70,28 @@ HTTP/REST interface helpers. Currently a placeholder — choose a framework
 options:
 show_source: false
 heading_level: 3
+
+## Dev Tools
+
+Development utilities (not part of the public API). Provides cache cleanup
+and build artifact removal used by `scripts/clean.py` and `task clean`.
+
+<!-- TODO (template users): If you add development-only utilities to
+     dev_tools/, document them here. If you don't need this subpackage,
+     remove both the directory and this section. -->
+
+::: simple_python_boilerplate.dev_tools
+options:
+show_source: false
+heading_level: 3
+
+---
+
+## See Also
+
+- [API Reference index](index.md) — How mkdocstrings works, docstring conventions
+- [Architecture](../design/architecture.md) — Module responsibilities and data flow
+- [Source code](https://github.com/JoJo275/simple-python-boilerplate/tree/main/src/simple_python_boilerplate) — Browse on GitHub
+
+<!-- TODO (template users): Update the GitHub link above to point to your
+     actual repository. -->

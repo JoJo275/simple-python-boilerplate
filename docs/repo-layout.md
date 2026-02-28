@@ -8,7 +8,7 @@ For a quick overview, see the [Repository Layout](#repository-layout) section in
 
 ## Directory Tree
 
-```
+```text
 simple-python-boilerplate/
 ├── .github/                    # GitHub-specific configuration
 │   ├── dependabot.yml          # Automated dependency updates
@@ -155,7 +155,7 @@ These can be removed without breaking core functionality.
 
 ## Source Code Architecture
 
-```
+```text
 src/simple_python_boilerplate/
 ├── __init__.py     # Package exports, version
 ├── main.py         # Entry points (thin wrappers)
@@ -169,7 +169,7 @@ src/simple_python_boilerplate/
 
 ### Data Flow
 
-```
+```text
 User → main.py → cli.py → engine.py → result
               ↘ api.py ↗
 ```
