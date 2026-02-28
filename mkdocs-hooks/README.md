@@ -66,6 +66,10 @@ Promote to a plugin if the logic is reusable across multiple projects.
 | :--------------- | :----------------- | :----------------------------------------------------------------------- |
 | `repo_links.py`  | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs      |
 
+`repo_links.py` handles standard Markdown links, HTML `<a href>` links,
+and reference-style link definitions (`[ref]: ../path`).  Code blocks,
+inline code, and HTML comments are automatically protected from rewriting.
+
 ---
 
 ## Adding a New Hook

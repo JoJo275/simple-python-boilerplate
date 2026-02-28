@@ -9,8 +9,23 @@ locally, and understanding how links behave across different viewing contexts.
 
 ## Prerequisites
 
-- Python 3.11 or later
-- [Hatch](https://hatch.pypa.io/) (recommended) or plain pip
+- **Python 3.11+** — [Download](https://www.python.org/downloads/)
+- **Git** — [Download](https://git-scm.com/downloads)
+- **[Hatch](https://hatch.pypa.io/)** (recommended) — `pip install hatch` or
+  `pipx install hatch`
+- **[Task](https://taskfile.dev/)** (optional) — shortest commands, wraps Hatch
+
+!!! tip "One-command setup"
+
+    For fresh clones, the [`bootstrap.py`](../../scripts/bootstrap.py) script
+    handles all setup in one step:
+
+    ```bash
+    python scripts/bootstrap.py
+    ```
+
+    It installs pre-commit hooks, verifies your environment, and enters the
+    Hatch shell.
 
 ## Installation
 
@@ -84,7 +99,8 @@ picked up automatically via live-reload.
     ```
 
 The `--strict` flag treats warnings as errors, which is the same mode used by
-the CI build.
+the CI build. When using Taskfile or Hatch, `--strict` is applied automatically
+by the docs environment script — you don't need to add it.
 
 ## How Links Work
 
@@ -105,6 +121,15 @@ The [`repo_links.py`](../../mkdocs-hooks/repo_links.py) MkDocs build hook
 solves this automatically. During `mkdocs build` or `mkdocs serve`, it
 intercepts every Markdown link that points outside `docs/` and rewrites it
 to an absolute GitHub URL (e.g. `https://github.com/OWNER/REPO/blob/main/pyproject.toml`).
+
+The hook handles three link formats:
+
+- **Standard Markdown:** `[text](../../path/to/file)`
+- **HTML anchors:** `<a href="../../path/to/file">`
+- **Reference-style:** `[ref]: ../../path/to/file`
+
+Code blocks, inline code, and HTML comments are automatically protected —
+example links in documentation are never accidentally rewritten.
 
 This means:
 
@@ -127,6 +152,8 @@ for configuration options.
 | Absolute URL                  | `[Python](https://python.org)`                  | Everywhere                  | No           |
 | Fragment / anchor             | `[section](#my-heading)`                        | GitHub + MkDocs             | No           |
 | Repo-relative with fragment   | `[config](../../pyproject.toml#L10)`            | GitHub only                 | **Yes**      |
+| HTML `<a href>`               | `<a href="../../Taskfile.yml">`                 | GitHub only                 | **Yes**      |
+| Reference-style definition    | `[ref]: ../../LICENSE`                           | GitHub only                 | **Yes**      |
 
 ## Read the Docs
 
@@ -195,3 +222,17 @@ action.
        Use `../adr/README.md` instead of `../adr/`.
     3. **Links to excluded files** — files in `exclude_docs` or not in
        the `nav` may not resolve.
+
+    For comprehensive troubleshooting, see the [Troubleshooting & FAQ](troubleshooting.md)
+    page.
+
+## Next Steps
+
+- [Development Environment Setup](../development/dev-setup.md) — full env
+  setup including VS Code, pre-commit, and Python version management
+- [Developer Commands](../development/developer-commands.md) — complete
+  command reference for testing, linting, formatting, and more
+- [Command Workflows](../development/command-workflows.md) — how commands
+  flow through Taskfile → Hatch → Python tools
+- [Pull Requests](../development/pull-requests.md) — PR guidelines and
+  conventions
