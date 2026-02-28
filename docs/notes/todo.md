@@ -12,7 +12,45 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: root-level README.md
 - [x] Final file check: pyproject.toml
 - [x] Final file check: architecture.md
-- [ ] Final file check: architecture.md
+- [X] Final file check: ci-cd-design.md
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
+- [ ] Final file check:
 - [ ] Final file check: entire docs/
 - [ ] Add in TODOs where warrented
 - [ ] Review and consolidate docs/
