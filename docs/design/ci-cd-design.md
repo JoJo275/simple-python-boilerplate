@@ -50,7 +50,8 @@ PR opened / push to main
   ├── PR Hygiene ───────────────────────────────
   │   ├── pr-title.yml      (Conventional Commits title)
   │   ├── commit-lint.yml   (commit message validation)
-  │   └── labeler.yml       (auto-label by path)
+  │   ├── labeler.yml       (auto-label by path)
+  │   └── auto-merge-dependabot.yml (auto-approve minor/patch)
   │
   ├── Build ────────────────────────────────────
   │   ├── container-build.yml (OCI image build)
@@ -78,16 +79,27 @@ Push to main (conventional commit)
 
 These run on cron schedules independent of code changes:
 
-| Workflow                | Schedule | Purpose                                                                |
-| ----------------------- | -------- | ---------------------------------------------------------------------- |
-| `nightly-security.yml`  | Daily    | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
-| `security-codeql.yml`   | Weekly   | Deep semantic analysis                                                 |
-| `scorecard.yml`         | Weekly   | OpenSSF supply-chain security scoring                                  |
-| `security-audit.yml`    | Weekly   | pip-audit against latest vuln databases                                |
-| `pre-commit-update.yml` | Weekly   | Auto-update pre-commit hooks, opens PR                                 |
-| `stale.yml`             | Daily    | Mark/close inactive issues and PRs                                     |
-| `link-checker.yml`      | Weekly   | Validate URLs in documentation                                         |
-| `regenerate-files.yml`  | Weekly   | Regenerate requirements.txt files from pyproject.toml                  |
+| Workflow                   | Schedule | Purpose                                                                |
+| -------------------------- | -------- | ---------------------------------------------------------------------- |
+| `nightly-security.yml`     | Daily    | Comprehensive security sweep (SBOM rescan, pip-audit, container scans) |
+| `security-codeql.yml`      | Weekly   | Deep semantic analysis                                                 |
+| `scorecard.yml`            | Weekly   | OpenSSF supply-chain security scoring                                  |
+| `security-audit.yml`       | Weekly   | pip-audit against latest vuln databases                                |
+| `pre-commit-update.yml`    | Weekly   | Auto-update pre-commit hooks, opens PR                                 |
+| `spellcheck-autofix.yml`   | Weekly   | Auto-fix typos via codespell, opens PR                                 |
+| `stale.yml`                | Daily    | Mark/close inactive issues and PRs                                     |
+| `link-checker.yml`         | Weekly   | Validate URLs in documentation                                         |
+| `regenerate-files.yml`     | Weekly   | Regenerate requirements.txt files from pyproject.toml                  |
+
+### Event-Driven Workflows
+
+These workflows trigger on specific repository events:
+
+| Workflow                      | Trigger               | Purpose                                                         |
+| ----------------------------- | --------------------- | --------------------------------------------------------------- |
+| `cache-cleanup.yml`           | PR closed             | Clean up GitHub Actions caches for closed PR branches           |
+| `auto-merge-dependabot.yml`   | Dependabot PR opened  | Auto-approve + squash-merge minor/patch dependency updates      |
+| `docs-deploy.yml`             | Push to main          | Deploy documentation to GitHub Pages (path-filtered)            |
 
 ---
 
@@ -126,6 +138,10 @@ The three opt-in methods (in order of convenience):
 
 All 29 workflows use the guard — no workflow runs by default on a
 fresh fork or clone.
+
+<!-- TODO (template users): After enabling workflows via customize.py or
+     ENABLE_WORKFLOWS variable, verify the guard is working by checking
+     the Actions tab. Remove this comment once your workflows are active. -->
 
 Core quality workflows (test, lint, type-check) are guarded for
 consistency with the template pattern, even though most users will want
@@ -227,7 +243,10 @@ When adding a workflow to this project:
    `name:` line with `# ci-gate: required`
 7. **Update documentation:**
    - [workflows.md](../workflows.md) — add to the workflow inventory
-   - [architecture.md](architecture.md) — update the CI/CD diagram
+   - [architecture.md](architecture.md) — update the CI/CD diagram if
+     the new workflow fits a different category
+   - [tool-decisions.md](tool-decisions.md) — if the workflow introduces
+     a new tool, document the tool choice rationale
    - [copilot-instructions.md](../../.github/copilot-instructions.md) — update
      the workflow categories summary
 
@@ -289,6 +308,8 @@ For services like Codecov, Snyk, or SonarCloud:
 | Path-filtered workflow skipped           | PR doesn't touch filtered paths     | Expected behavior — these only run on relevant changes                   |
 | "Resource not accessible by integration" | Insufficient permissions            | Add the needed permission to the workflow's `permissions:` block         |
 | Duplicate runs on PR                     | Both `push` and `pull_request` fire | Use concurrency groups (already configured) — the duplicate is cancelled |
+| Dependabot PR not auto-merged            | CI checks failing or major bump     | Fix CI failures; major version bumps require manual review               |
+| Stale workflow closes active issue       | No activity within stale period     | Comment on the issue to reset the timer, or add `pinned` label           |
 
 ### Debugging Workflow Failures
 
@@ -310,5 +331,7 @@ For services like Codecov, Snyk, or SonarCloud:
 - [Tool Decisions](tool-decisions.md) — why specific CI tools were chosen
 - [ADR 003](../adr/003-separate-workflow-files.md) — separate workflow files
 - [ADR 004](../adr/004-pin-action-shas.md) — SHA-pinned actions
+- [ADR 010](../adr/010-dependabot-for-dependency-updates.md) — Dependabot
 - [ADR 011](../adr/011-repository-guard-pattern.md) — repository guard pattern
+- [ADR 012](../adr/012-multi-layer-security-scanning.md) — multi-layer security scanning
 - [ADR 024](../adr/024-ci-gate-pattern.md) — CI gate pattern

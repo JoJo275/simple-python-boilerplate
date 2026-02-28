@@ -1,7 +1,7 @@
 # Tool Decisions
 
 A living reference of tool evaluation notes — what was chosen, what was
-skipped, and why. This complements the formal [ADRs](../adr/) with the
+skipped, and why. This complements the formal [ADRs](../adr/README.md) with the
 lighter-weight reasoning that comes up when comparing specific tools.
 
 <!-- TODO (template users): After forking, review every section below.

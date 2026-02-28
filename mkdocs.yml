@@ -120,6 +120,12 @@ nav:
       - 024 – CI Gate: adr/024-ci-gate-pattern.md
       - 025 – Container Strategy: adr/025-container-strategy.md
       - 026 – No pip-tools: adr/026-no-pip-tools.md
+      - 027 – Database Strategy: adr/027-database-strategy.md
+      - 028 – Git Branching: adr/028-git-branching-strategy.md
+      - 029 – Testing Strategy: adr/029-testing-strategy.md
+      - 030 – Label Management: adr/030-label-management-as-code.md
+      - 031 – Script Conventions: adr/031-script-conventions.md
+      - 032 – Dependency Grouping: adr/032-dependency-grouping-strategy.md
   - Templates:
       - Overview: templates/README.md
       - Security Policy: templates/SECURITY_no_bounty.md
@@ -136,6 +142,9 @@ nav:
   - Reference:
       - Overview: reference/index.md
       - API: reference/api.md
+
+hooks:
+  - hooks/repo_links.py
 
 plugins:
   - search
