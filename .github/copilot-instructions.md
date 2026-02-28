@@ -126,6 +126,7 @@ shortcuts where available.
 ### Documentation
 
 - **MkDocs Material** stack: `mkdocs.yml` + `docs/` directory
+- **MkDocs hooks** in `mkdocs-hooks/` — custom build hooks registered in `mkdocs.yml` under `hooks:`
 - **ADRs** in `docs/adr/` — template at `docs/adr/template.md`
 - **Tool decisions** (lightweight notes) in `docs/design/tool-decisions.md`
 - **Architecture docs** in `docs/design/`
@@ -143,6 +144,7 @@ shortcuts where available.
 | `Containerfile`              | Multi-stage container build                                                                                                 |
 | `release-please-config.json` | Release automation config                                                                                                   |
 | `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
+| `mkdocs-hooks/repo_links.py`  | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 
 ---
 
@@ -173,6 +175,7 @@ exists in the project. Key templates:
 - **Migration** → `db/migrations/001_example_migration.sql`
 - **Seed** → `db/seeds/001_example_seed.sql`
 - **Script** → review `scripts/` for naming and shebang conventions. **Important:** After creating a script with a shebang (`#!/usr/bin/env python3`), mark it executable: `git add --chmod=+x scripts/my_script.py`
+- **MkDocs hook** → review `mkdocs-hooks/repo_links.py` for conventions; update `mkdocs-hooks/README.md` inventory and register in `mkdocs.yml` under `hooks:`
 
 ### Keep Related Files in Sync
 
@@ -181,6 +184,7 @@ changed and update them too. Examples:
 
 - Adding a workflow → update `docs/workflows.md` and the categories list in this file
 - Adding a pre-commit hook → update ADR 008's hook inventory and the hook table in this file
+- Adding an MkDocs hook → register in `mkdocs.yml` under `hooks:`, update `mkdocs-hooks/README.md` inventory
 - Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
 - Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
 - Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it

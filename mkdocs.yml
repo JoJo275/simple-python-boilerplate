@@ -144,7 +144,7 @@ nav:
       - API: reference/api.md
 
 hooks:
-  - hooks/repo_links.py
+  - mkdocs-hooks/repo_links.py
 
 plugins:
   - search
