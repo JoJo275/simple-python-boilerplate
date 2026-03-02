@@ -1,5 +1,6 @@
 # Runs Ruff linter and formatter checks.
 # Fails CI if code doesn't pass lint rules or isn't formatted.
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 
 name: Lint + format
 

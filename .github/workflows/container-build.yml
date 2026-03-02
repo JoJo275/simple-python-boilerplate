@@ -19,6 +19,8 @@
 #                   (Settings → Secrets and variables → Actions → Variables)
 #   2. Ensure your repo has Packages write access
 #      (Settings → Actions → General → Workflow permissions).
+#
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 # ──────────────────────────────────────────────────────────────
 
 name: Container Build

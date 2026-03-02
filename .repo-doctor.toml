@@ -543,3 +543,54 @@ impact = "No .prettierignore — Prettier may reformat mkdocstrings ::: directiv
 hint = "Add .prettierignore excluding docs/reference/api.md and other files with mkdocstrings directives."
 only_if.path = ".pre-commit-config.yaml"
 only_if.regex = "(?i)\\bprettier\\b"
+
+
+# =============================================================================
+# CATEGORY: ci-hygiene — CI concurrency, caching, and performance
+# =============================================================================
+
+# Workflows should use concurrency to cancel stale runs
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/test.yml"
+regex = "(?m)^concurrency:"
+level = "info"
+category = "ci-hygiene"
+impact = "test.yml lacks concurrency group — duplicate test matrix runs may pile up on rapid pushes, wasting CI minutes."
+hint = "Add concurrency: { group: '${{ github.workflow }}-${{ github.ref }}', cancel-in-progress: true } at the top level."
+only_if.path = ".github/workflows/test.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/lint-format.yml"
+regex = "(?m)^concurrency:"
+level = "info"
+category = "ci-hygiene"
+impact = "lint-format.yml lacks concurrency group — duplicate lint runs may pile up on rapid pushes."
+hint = "Add concurrency: { group: '${{ github.workflow }}-${{ github.ref }}', cancel-in-progress: true }."
+only_if.path = ".github/workflows/lint-format.yml"
+only_if.regex = "(?s)."
+
+# Workflows using setup-python should enable pip caching
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/test.yml"
+regex = "cache:\\s*[\"']?pip"
+level = "info"
+category = "ci-hygiene"
+impact = "test.yml uses setup-python without pip caching — every run re-downloads all dependencies."
+hint = "Add cache: 'pip' to the setup-python step."
+only_if.path = ".github/workflows/test.yml"
+only_if.regex = "setup-python"
+
+[[rule]]
+type = "regex_present"
+path = ".github/workflows/coverage.yml"
+regex = "cache:\\s*[\"']?pip"
+level = "info"
+category = "ci-hygiene"
+impact = "coverage.yml uses setup-python without pip caching — every run re-downloads all dependencies."
+hint = "Add cache: 'pip' to the setup-python step."
+only_if.path = ".github/workflows/coverage.yml"
+only_if.regex = "setup-python"

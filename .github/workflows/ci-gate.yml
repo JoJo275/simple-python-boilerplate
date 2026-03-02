@@ -95,6 +95,11 @@ jobs:
           # Path-filtered workflows (bandit, link-checker) are intentionally
           # excluded — they may not run on every PR so requiring them would
           # block unrelated changes.
+          #
+          # Conversely, the required workflows listed below must NOT use
+          # paths-ignore or paths filters. GitHub treats path-filtered
+          # (skipped) checks as "pending" — not "success" — so the gate
+          # would poll forever and time out on docs-only or config-only PRs.
           # -----------------------------------------------------------------
           script: |
             // Checks required on EVERY trigger (push + PR)

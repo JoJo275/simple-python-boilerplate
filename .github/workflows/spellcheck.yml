@@ -1,5 +1,6 @@
 # Checks for spelling mistakes using codespell (no auto-fix).
 # Fails CI if typos are found. See spellcheck-autofix.yml for auto-fix variant.
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 
 name: Spellcheck
 

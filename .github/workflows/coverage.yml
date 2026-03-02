@@ -24,6 +24,8 @@
 #   4. (Optional) Add a codecov.yml config file to customize
 #      coverage thresholds, flags, and PR comment behavior.
 #      See: https://docs.codecov.com/docs/codecov-yaml
+#
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 # ──────────────────────────────────────────────────────────────
 
 name: Coverage
