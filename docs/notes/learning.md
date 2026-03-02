@@ -3091,6 +3091,193 @@ modifies the terminal's `PATH` so `python` and `pip` resolve to the venv's
 copies. This is why you see the `(.venv)` prefix in the prompt — that's the
 shell indicating the venv is active, not the terminal doing it.
 
+### VS Code Settings Hierarchy
+
+VS Code has multiple layers of settings. Each layer overrides the one above
+it — more specific scopes win over more general ones.
+
+#### Precedence Order (lowest → highest)
+
+| Priority | Scope              | Where it lives                                 | Who it affects                  |
+| -------- | ------------------ | ---------------------------------------------- | ------------------------------- |
+| 1 (low)  | **Default**        | Built into VS Code                             | Everyone (not editable)         |
+| 2        | **User**           | `~/.config/Code/User/settings.json` (or equiv) | All workspaces for this user    |
+| 3        | **Remote**         | Server-side settings (SSH, WSL, containers)    | Remote sessions only            |
+| 4        | **Workspace**      | `.code-workspace` file or `.vscode/settings.json` | Everyone who opens this workspace |
+| 5 (high) | **Folder**         | `.vscode/settings.json` in a multi-root folder | Only that specific folder       |
+
+**Key takeaway:** Workspace settings override User settings. If a setting
+is defined in both your personal User settings and the project's
+`.code-workspace` file, the workspace version wins. This is intentional —
+projects should enforce their own conventions regardless of individual
+developer preferences.
+
+#### Where Settings Are Stored
+
+| Scope         | File / Location                                                                     |
+| ------------- | ----------------------------------------------------------------------------------- |
+| **User**      | Windows: `%APPDATA%\Code\User\settings.json`                                       |
+|               | macOS: `~/Library/Application Support/Code/User/settings.json`                      |
+|               | Linux: `~/.config/Code/User/settings.json`                                          |
+| **Workspace** | Single-folder: `.vscode/settings.json` in the project root                          |
+|               | Multi-root: Inside the `*.code-workspace` file under `"settings": {}`               |
+| **Folder**    | `.vscode/settings.json` in each folder (multi-root workspaces only)                 |
+
+#### .code-workspace vs .vscode/settings.json
+
+Both are "workspace settings" but they serve different purposes:
+
+| Feature             | `.code-workspace` file                          | `.vscode/settings.json`                |
+| ------------------- | ----------------------------------------------- | -------------------------------------- |
+| Format              | JSON with `folders`, `settings`, `extensions`   | Pure settings JSON only                |
+| Multi-root support  | Yes — can define multiple folder roots           | No — single folder only                |
+| Extension recs      | Yes — `extensions.recommendations` array        | No (use `.vscode/extensions.json`)     |
+| Task/launch configs | Yes — can contain tasks/launch configs          | No (use `.vscode/tasks.json` etc.)     |
+| Open via CLI        | `code project.code-workspace`                   | `code /path/to/folder`                 |
+| Commit to git?      | Yes — team-shared settings                      | Yes — team-shared settings             |
+
+This project uses a `.code-workspace` file (`simple-python-boilerplate.code-workspace`)
+because it bundles settings + extension recommendations in one file.
+
+#### Common Settings in This Project
+
+The workspace file configures:
+
+| Setting                               | Value                | Purpose                                        |
+| ------------------------------------- | -------------------- | ---------------------------------------------- |
+| `python.defaultInterpreterPath`       | `.venv/.../python`   | Points to the project's virtual environment    |
+| `editor.defaultFormatter` (Python)    | Ruff                 | Format Python with Ruff, not autopep8/black    |
+| `editor.formatOnSave` (Python)        | `true`               | Auto-format every time you save                |
+| `editor.defaultFormatter` (Markdown)  | Prettier             | Format Markdown with Prettier                  |
+| `editor.formatOnSave` (Markdown)      | `false`              | Don't auto-format Markdown (run manually)      |
+| `editor.rulers`                       | `[88, 120]`          | Vertical guide lines at columns 88 and 120     |
+| `files.trimTrailingWhitespace`        | `true`               | Remove trailing spaces on save                 |
+| `files.insertFinalNewline`            | `true`               | Ensure files end with a newline                |
+| `files.exclude`                       | (various)            | Hide `__pycache__`, `.mypy_cache`, etc.        |
+
+> **Those vertical lines in the editor** are the rulers at columns 88 and
+> 120. Column 88 matches Ruff's default line length limit for Python.
+> Column 120 is a common secondary limit for docs/comments. They're visual
+> guides only — they don't enforce anything.
+
+#### Language-Specific Settings
+
+VS Code allows settings scoped to a file type using `[language]` keys:
+
+```jsonc
+// Only applies to Python files
+"[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+}
+
+// Only applies to Markdown files
+"[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": false
+}
+```
+
+These always override the global version of that setting for matched files.
+So even if you have `"editor.formatOnSave": false` globally, the
+`[python]` scope above sets it to `true` for Python files.
+
+#### Troubleshooting Settings
+
+If a setting isn't behaving as expected:
+
+1. **Command Palette → "Preferences: Open Settings (JSON)"** — see the
+   merged result of all scopes
+2. **Settings UI → search → click the gear icon** — shows where each
+   setting is defined and which scope it comes from
+3. **Command Palette → "Developer: Inspect Editor Tokens and Scopes"** —
+   shows language scope for the current cursor position
+
+#### Python Interpreter Discovery
+
+The `python.defaultInterpreterPath` setting is a **hint**, not a
+requirement. VS Code's Python extension automatically discovers
+interpreters from:
+
+- `.venv/` in the workspace
+- Hatch environments (`hatch env find`)
+- Conda environments
+- pyenv versions
+- System Python
+
+If the configured path doesn't exist (e.g., `.venv/bin/python` on
+Windows where it should be `.venv/Scripts/python.exe`), VS Code shows an
+"Unable to handle" error. Fix it by:
+
+1. Opening Command Palette → **"Python: Select Interpreter"**
+2. Picking the correct interpreter from the list
+3. VS Code saves this choice per-workspace
+
+> **Common cause of this error:** The `.code-workspace` file ships with
+> a Linux/macOS path (`.venv/bin/python`) as the default. On Windows the
+> path would be `.venv/Scripts/python.exe`. But if you use **Hatch** to
+> manage environments (as this project does), there is no `.venv/` at all
+> — Hatch stores environments externally (run `hatch env find default` to
+> see where). The fix is always the same: pick the correct interpreter via
+> the Command Palette. VS Code remembers the choice per-workspace, so you
+> only need to do this once.
+
+#### Settings Sync and Profiles
+
+**Settings Sync** (`Settings → Turn on Settings Sync`) synchronizes your
+User settings, keybindings, extensions, UI state, and snippets across
+machines via your GitHub or Microsoft account.
+
+What syncs:
+
+| What              | Synced? | Notes                                                  |
+| ----------------- | ------- | ------------------------------------------------------ |
+| User settings     | Yes     | `settings.json`                                        |
+| Keybindings       | Yes     | `keybindings.json`                                     |
+| Extensions        | Yes     | Installed extensions list                              |
+| UI state          | Yes     | Open editors, sidebar, panel state                     |
+| Snippets          | Yes     | User-defined code snippets                             |
+| Workspace settings| **No**  | `.code-workspace` / `.vscode/settings.json` are local  |
+| Tasks / Launch    | **No**  | `.vscode/tasks.json`, `launch.json` are local          |
+
+**Profiles** (File → Preferences → Profiles) let you group settings,
+extensions, and keybindings into named configurations. Useful for
+switching between "Python development" and "Markdown writing" setups
+without conflicting extensions or settings.
+
+#### Useful Commands for Debugging Settings
+
+| Command Palette (`Ctrl+Shift+P`)                      | What it does                                     |
+| ------------------------------------------------------ | ------------------------------------------------ |
+| `Preferences: Open User Settings (JSON)`              | Opens your global `settings.json`                |
+| `Preferences: Open Workspace Settings (JSON)`         | Opens workspace `settings.json`                  |
+| `Preferences: Open Default Settings (JSON)`           | Shows all defaults (read-only, searchable)       |
+| `Python: Select Interpreter`                           | Pick which Python executable VS Code uses        |
+| `Developer: Inspect Editor Tokens and Scopes`         | Shows language scope at cursor position          |
+| `Developer: Toggle Developer Tools`                    | Opens Chrome DevTools for VS Code itself         |
+| `Preferences: Open Keyboard Shortcuts (JSON)`         | Edit keybindings directly                        |
+
+#### Extensions: Workspace Recommendations
+
+The `extensions.recommendations` array in `.code-workspace` or
+`.vscode/extensions.json` lets you recommend extensions for the project.
+When someone opens the workspace, VS Code prompts them to install
+missing recommendations.
+
+```jsonc
+// In .code-workspace or .vscode/extensions.json
+"extensions": {
+    "recommendations": [
+        "ms-python.python",         // Python language support
+        "charliermarsh.ruff",       // Ruff linter/formatter
+        "DavidAnson.vscode-markdownlint"  // Markdown linting
+    ]
+}
+```
+
+**Unwanted recommendations:** If an extension is not relevant to your
+workflow, use `extensions.unwantedRecommendations` to suppress prompts.
+
 ### What is a Shell? (Conceptual Overview)
 
 A **shell** is a program that:

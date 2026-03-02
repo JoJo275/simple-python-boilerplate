@@ -352,7 +352,7 @@ release-please reads conventional commit prefixes to determine the version bump:
 | `perf:`                               | **Patch** (0.0.X) | `perf: cache DB queries`                   |
 | `docs:`, `chore:`, `ci:`, etc.        | **No release**    | Only releasable types trigger a Release PR |
 
-> While the project is pre-1.0 (`major_version_zero: true`), breaking changes bump minor instead of major.
+> While the project is pre-1.0 (`bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json)), breaking changes bump minor instead of major.
 
 ### What Triggers a Release
 
