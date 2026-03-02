@@ -1,0 +1,24 @@
+# ──────────────────────────────────────────────────────────────
+# .prettierignore
+# ──────────────────────────────────────────────────────────────
+# Files that Prettier should not format.
+#
+# Prettier is used in this project for Markdown table alignment
+# (via pre-commit manual stage and VS Code). However, it
+# aggressively re-indents content inside Markdown files, which
+# breaks mkdocstrings ::: directives that require specific
+# indentation (e.g., docs/reference/api.md).
+#
+# This file tells Prettier to skip files where reformatting
+# causes breakage.
+# ──────────────────────────────────────────────────────────────
+
+# mkdocstrings API reference — uses ::: directives with indented
+# `options:` blocks that Prettier would flatten, breaking the
+# MkDocs build.
+docs/reference/api.md
+
+# Generated / vendored
+CHANGELOG.md
+site/
+node_modules/

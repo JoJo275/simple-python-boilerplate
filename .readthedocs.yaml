@@ -1,5 +1,13 @@
 # Read the Docs configuration file (v2)
 # Docs: https://docs.readthedocs.io/en/stable/config-file/v2.html
+#
+# This project primarily uses GitHub Pages for documentation hosting
+# (via docs-deploy.yml workflow). This file exists as an alternative
+# if you prefer Read the Docs.
+#
+# TODO (template users): If using Read the Docs, configure your project
+#   at https://readthedocs.org/. If using GitHub Pages instead (the
+#   default for this template), you can delete this file.
 
 version: 2
 

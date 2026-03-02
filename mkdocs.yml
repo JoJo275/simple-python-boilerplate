@@ -166,6 +166,9 @@ plugins:
 # These are repo-facing files (READMEs, templates) or the mkdocs/ example
 # directory kept as a reference.  Without this list, --strict mode would
 # warn about files not included in nav.
+# TODO (template users): Update this list when adding/removing docs that
+#   aren't in the nav. Remove template-specific entries (ADR archives,
+#   issue templates) if you don't use them.
 not_in_nav: |
   README.md
   adr/template.md
