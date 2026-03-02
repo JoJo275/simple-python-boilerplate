@@ -4,15 +4,19 @@
 # Files and directories excluded from the container build
 # context. Keeps images small and avoids leaking secrets.
 # Works with both Podman (.containerignore) and Docker
-# (.dockerignore) — a symlink or copy can be used for Docker.
+# (.dockerignore) — keep both files in sync.
 # ──────────────────────────────────────────────────────────────
 
 # Version control
 .git/
 .gitignore
+.gitmessage.txt
 
 # CI / GitHub
 .github/
+
+# Dev container (development only, not for production images)
+.devcontainer/
 
 # Virtual environments
 .venv/
@@ -34,6 +38,7 @@ sdist/
 wheels/
 
 # Testing & coverage
+tests/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -43,6 +48,9 @@ coverage.xml
 
 # Documentation & notes
 docs/
+site/
+mkdocs.yml
+mkdocs-hooks/
 *.md
 !README.md
 
@@ -55,6 +63,28 @@ scripts/
 experiments/
 labels/
 
+# Container / orchestration files (not needed inside the image)
+Containerfile
+docker-compose.yml
+.containerignore
+.dockerignore
+
+# Config files not needed at runtime
+Taskfile.yml
+.pre-commit-config.yaml
+release-please-config.json
+codecov.yml
+_typos.toml
+.markdownlint-cli2.jsonc
+.editorconfig
+requirements-dev.txt
+repo_doctor.d/
+
 # OS files
 .DS_Store
 Thumbs.db
+
+# Secrets / environment (never ship these)
+.env
+.env.*
+!.env.example

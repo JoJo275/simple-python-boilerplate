@@ -14,12 +14,13 @@ VS Code will build the container and set up your environment automatically.
 
 ## What's Included
 
-- Python 3.12 with pip
-- Node.js LTS (for pre-commit hooks like markdownlint)
+- Python 3.12 with pip and Hatch (environment management)
+- Node.js LTS (for pre-commit hooks like markdownlint, prettier)
 - Task runner (go-task)
-- All Python dev dependencies installed
-- Pre-commit hooks configured
-- VS Code extensions for Python, TOML, YAML, Git
+- All Python dev dependencies installed via Hatch
+- Pre-commit hooks configured (pre-commit, commit-msg, pre-push)
+- VS Code extensions for Python, TOML, YAML, Markdown, Git
+- mypy type checker extension
 
 ## GitHub Codespaces
 
@@ -38,3 +39,15 @@ browser-based development environment with zero local setup.
 | **When to use** | `code .` → "Reopen in Container" | `docker build` → `docker run` |
 
 They serve completely different purposes and don't share configuration.
+
+## Using Hatch Inside the Container
+
+Once the container is running, use Hatch for all commands:
+
+```bash
+hatch shell                    # Enter the dev environment
+hatch run test                 # Run tests
+hatch run lint                 # Lint
+hatch run docs:serve           # Serve docs locally
+task check                     # All quality gates (via Task runner)
+```

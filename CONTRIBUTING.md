@@ -74,6 +74,34 @@ pre-commit install --hook-type pre-push          # pre-push stage (pytest, pip-a
 
 > **Note:** All three `pre-commit install` commands must be run once per clone. They register git hooks that run automatically at each stage (commit, commit-msg, push).
 
+### Option C: Using Dev Container (zero local setup)
+
+If you have Docker (or Podman) and the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) VS Code extension:
+
+1. Open this repo in VS Code
+2. Click "Reopen in Container" when prompted (or run `Dev Containers: Reopen in Container` from the command palette)
+
+Everything — Python, dependencies, pre-commit hooks, extensions — is configured automatically. This also works with [GitHub Codespaces](https://github.com/features/codespaces) for a browser-based environment with no local setup at all.
+
+See [`.devcontainer/README.md`](.devcontainer/README.md) for details.
+
+---
+
+## Running with Containers
+
+To build and run the **production** container image locally:
+
+```bash
+# Build and run (foreground)
+docker compose up --build
+
+# Or with Podman directly
+podman build -t simple-python-boilerplate -f Containerfile .
+podman run --rm simple-python-boilerplate
+```
+
+> **Note:** The production Containerfile and the Dev Container (`.devcontainer/`) serve different purposes. The Containerfile builds a minimal runtime image; the Dev Container provides a full development environment. See [`.devcontainer/README.md`](.devcontainer/README.md) for the comparison.
+
 ---
 
 ## Command Reference
@@ -123,7 +151,7 @@ mypy src/                   # Type check directly
 
 ### How Commands Layer Together
 
-```
+```text
 task test
   └→ hatch run test
        └→ pytest
@@ -142,7 +170,7 @@ For a deeper explanation, see [docs/notes/learning.md](docs/notes/learning.md) (
 
 Every change passes through multiple layers of automated checks before reaching `main`. This catches issues progressively — fast feedback first, comprehensive checks later.
 
-```
+```text
  You write code
       │
       ▼
@@ -283,7 +311,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 ### Format
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
