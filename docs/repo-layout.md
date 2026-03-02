@@ -248,36 +248,36 @@ See [docs/notes/learning.md](notes/learning.md#source-code-file-workflow) for de
 
 ### Other Config Files
 
-| File                            | Tool           | Purpose                  |
-| ------------------------------- | -------------- | ------------------------ |
-| `.pre-commit-config.yaml`       | pre-commit     | Git hook definitions     |
-| `.github/dependabot.yml`        | Dependabot     | Dependency update rules  |
-| `_typos.toml`                   | typos          | Spellcheck exceptions    |
-| `.markdownlint-cli2.jsonc`      | markdownlint   | Markdown lint overrides  |
-| `Taskfile.yml`                  | Task           | Task runner shortcuts    |
-| `mkdocs.yml`                    | MkDocs         | Documentation site       |
-| `codecov.yml`                   | Codecov        | Coverage reporting       |
-| `release-please-config.json`    | release-please | Release automation       |
-| `Containerfile`                 | Podman/Docker  | Container build          |
-| `docker-compose.yml`            | Docker Compose | Container orchestration  |
-| `requirements.txt`              | pip            | Production dependencies  |
-| `requirements-dev.txt`          | pip            | Development dependencies |
+| File                         | Tool           | Purpose                  |
+| ---------------------------- | -------------- | ------------------------ |
+| `.pre-commit-config.yaml`    | pre-commit     | Git hook definitions     |
+| `.github/dependabot.yml`     | Dependabot     | Dependency update rules  |
+| `_typos.toml`                | typos          | Spellcheck exceptions    |
+| `.markdownlint-cli2.jsonc`   | markdownlint   | Markdown lint overrides  |
+| `Taskfile.yml`               | Task           | Task runner shortcuts    |
+| `mkdocs.yml`                 | MkDocs         | Documentation site       |
+| `codecov.yml`                | Codecov        | Coverage reporting       |
+| `release-please-config.json` | release-please | Release automation       |
+| `Containerfile`              | Podman/Docker  | Container build          |
+| `docker-compose.yml`         | Docker Compose | Container orchestration  |
+| `requirements.txt`           | pip            | Production dependencies  |
+| `requirements-dev.txt`       | pip            | Development dependencies |
 
 ---
 
 ## Naming Conventions
 
-| Pattern         | Meaning               | Example                            |
-| --------------- | --------------------- | ---------------------------------- |
-| `test_*.py`     | Test file             | `test_example.py`                  |
-| `conftest.py`   | Shared pytest fixtures| `tests/conftest.py`                |
-| `_*.py`         | Internal/private module | `_version.py`                    |
-| `py.typed`      | PEP 561 type marker   | Enables type-checking for package  |
-| `*.example.*`   | Example/template file | `app.example.sqlite3`              |
-| `__init__.py`   | Package marker        | Required in all packages           |
-| `__pycache__/`  | Python bytecode cache | Never commit                       |
-| `_version.py`   | Generated version     | Created by hatch-vcs (do not edit) |
-| `README.md`     | Directory documentation | One per directory (convention)   |
+| Pattern        | Meaning                 | Example                            |
+| -------------- | ----------------------- | ---------------------------------- |
+| `test_*.py`    | Test file               | `test_example.py`                  |
+| `conftest.py`  | Shared pytest fixtures  | `tests/conftest.py`                |
+| `_*.py`        | Internal/private module | `_version.py`                      |
+| `py.typed`     | PEP 561 type marker     | Enables type-checking for package  |
+| `*.example.*`  | Example/template file   | `app.example.sqlite3`              |
+| `__init__.py`  | Package marker          | Required in all packages           |
+| `__pycache__/` | Python bytecode cache   | Never commit                       |
+| `_version.py`  | Generated version       | Created by hatch-vcs (do not edit) |
+| `README.md`    | Directory documentation | One per directory (convention)     |
 
 ---
 

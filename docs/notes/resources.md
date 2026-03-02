@@ -56,13 +56,13 @@ patterns used in this project. Organized by topic for quick lookup.
 
 ## Security Tools
 
-| Resource                                                                                                 | Description                                         |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| [Bandit documentation](https://bandit.readthedocs.io/)                                                   | Python security linter — issue types, configuration |
-| [pip-audit](https://github.com/pypa/pip-audit)                                                           | Vulnerability scanning for Python dependencies      |
-| [gitleaks](https://github.com/gitleaks/gitleaks)                                                         | Secret detection in git repositories                |
-| [Trivy](https://aquasecurity.github.io/trivy/)                                                           | Container and dependency vulnerability scanner      |
-| [OpenSSF Scorecard](https://securityscorecards.dev/)                                                     | Supply-chain security scoring                       |
+| Resource                                                        | Description                                         |
+| --------------------------------------------------------------- | --------------------------------------------------- |
+| [Bandit documentation](https://bandit.readthedocs.io/)          | Python security linter — issue types, configuration |
+| [pip-audit](https://github.com/pypa/pip-audit)                  | Vulnerability scanning for Python dependencies      |
+| [gitleaks](https://github.com/gitleaks/gitleaks)                | Secret detection in git repositories                |
+| [Trivy](https://aquasecurity.github.io/trivy/)                  | Container and dependency vulnerability scanner      |
+| [OpenSSF Scorecard](https://securityscorecards.dev/)            | Supply-chain security scoring                       |
 | [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) | Application security cheat sheets (OWASP)           |
 
 ## Documentation (MkDocs)
@@ -150,15 +150,15 @@ Every tool declared in `pyproject.toml` `[project.optional-dependencies]`:
 
 ## GitHub Platform
 
-| Resource                                                                                                                                                | Description                                                   |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| [GitHub Docs](https://docs.github.com/)                                                                                                                 | Official platform documentation                               |
+| Resource                                                                                                                                                                            | Description                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [GitHub Docs](https://docs.github.com/)                                                                                                                                             | Official platform documentation                               |
 | [Branch protection rules](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/managing-a-branch-protection-rule) | How to configure required checks                              |
-| [Repository variables](https://docs.github.com/en/actions/learn-github-actions/variables)                                                               | Variables and secrets for Actions (used by repository guards) |
-| [Dependabot documentation](https://docs.github.com/en/code-security/dependabot)                                                                         | Automated dependency updates                                  |
-| [GitHub Pages](https://docs.github.com/en/pages)                                                                                                        | Hosting docs from the repo (used by docs-deploy workflow)     |
-| [GitHub Codespaces](https://docs.github.com/en/codespaces)                                                                                              | Cloud dev environments (pairs with .devcontainer/)            |
-| [GitHub CLI (gh)](https://cli.github.com/)                                                                                                              | Command-line tool for GitHub — PRs, issues, releases          |
+| [Repository variables](https://docs.github.com/en/actions/learn-github-actions/variables)                                                                                           | Variables and secrets for Actions (used by repository guards) |
+| [Dependabot documentation](https://docs.github.com/en/code-security/dependabot)                                                                                                     | Automated dependency updates                                  |
+| [GitHub Pages](https://docs.github.com/en/pages)                                                                                                                                    | Hosting docs from the repo (used by docs-deploy workflow)     |
+| [GitHub Codespaces](https://docs.github.com/en/codespaces)                                                                                                                          | Cloud dev environments (pairs with .devcontainer/)            |
+| [GitHub CLI (gh)](https://cli.github.com/)                                                                                                                                          | Command-line tool for GitHub — PRs, issues, releases          |
 
 ## Task Runner
 

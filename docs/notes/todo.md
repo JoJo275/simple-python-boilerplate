@@ -28,9 +28,9 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: docs/reference/api.md
 - [x] Final file check: docs/reference/index.md
 - [x] Final file check: docs/templates/
-- [X] Final file check: BUG_BOUNTY.md
-- [X] Final file check: SECURITY_no_bounty.md
-- [X] Final file check: SECURITY_with_bounty.md
+- [x] Final file check: BUG_BOUNTY.md
+- [x] Final file check: SECURITY_no_bounty.md
+- [x] Final file check: SECURITY_with_bounty.md
 - [x] Final file check: docs/repo-layout.md
 - [ ] Final file check: All repo README.md files (root, docs/, src/)
 - [ ] Final file check: All repo index.md files (docs/, docs/reference/)
@@ -43,20 +43,25 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: USING_THIS_TEMPLATE.md
 - [x] Final file check: workflows.md
 - [ ] Final file check: docs/design/database.md
-- [ ] Final file check: CONTRIBUTING.md
+- [x] Final file check: CONTRIBUTING.md
 - [ ] Final file check: CODE_OF_CONDUCT.md
 - [x] Final file check: Containerfile
 - [x] Final file check: docker-compose.yml
+- [X] Final file check: .gitignore
+- [X] Final file check: .dockerignore
+- [X] Final file check: .devcontainer/devcontainer.json
+- [ ] Final file check: .devcontainer/README.md
+- [ ] Final file check: codecov.yml
+- [ ] Final file check: codecov.yml
 - [ ] Final file check: codecov.yml
 - [ ] Final file check: mkdocs.yml
 - [ ] Final file check: .pre-commit-config.yaml
 - [ ] Final file check: .github/dependabot.yml
-- [X] Final file check: entire docs/
-- [X] Final file check: LICENSE
-- [ ] Final file check: LICENSE
+- [x] Final file check: entire docs/
+- [x] Final file check: LICENSE
 - [x] Add in TODOs where warranted
 - [x] Configure VS Code workspace settings and recommended extensions
-- [X] Review and consolidate docs/
+- [x] Review and consolidate docs/
 - [x] Add unit tests for mkdocs-hooks/repo_links.py (86 tests in tests/unit/test_repo_links.py)
 
 ## Ideas for Later

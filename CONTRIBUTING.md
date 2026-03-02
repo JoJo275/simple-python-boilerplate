@@ -375,23 +375,23 @@ This is entirely optional — write commits manually if you prefer. The PR title
 
 This contributing guide covers the essentials. For deeper dives:
 
-| Topic | Document |
-| ----- | -------- |
-| **Getting started** | [docs/guide/getting-started.md](docs/guide/getting-started.md) |
-| **Developer setup (detailed)** | [docs/development/dev-setup.md](docs/development/dev-setup.md) |
-| **Developer commands** | [docs/development/developer-commands.md](docs/development/developer-commands.md) |
-| **Command workflows** | [docs/development/command-workflows.md](docs/development/command-workflows.md) |
-| **PR conventions** | [docs/development/pull-requests.md](docs/development/pull-requests.md) |
-| **Release process** | [docs/releasing.md](docs/releasing.md) |
-| **CI/CD workflows** | [docs/workflows.md](docs/workflows.md) |
-| **Tooling overview** | [docs/tooling.md](docs/tooling.md) |
-| **Architecture & design** | [docs/design/architecture.md](docs/design/architecture.md) |
-| **Tool decisions** | [docs/design/tool-decisions.md](docs/design/tool-decisions.md) |
-| **Architecture Decision Records** | [docs/adr/README.md](docs/adr/README.md) |
-| **Repository layout** | [docs/repo-layout.md](docs/repo-layout.md) |
-| **Troubleshooting** | [docs/guide/troubleshooting.md](docs/guide/troubleshooting.md) |
-| **Using this template** | [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) |
-| **Container setup** | [.devcontainer/README.md](.devcontainer/README.md) |
+| Topic                             | Document                                                                         |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| **Getting started**               | [docs/guide/getting-started.md](docs/guide/getting-started.md)                   |
+| **Developer setup (detailed)**    | [docs/development/dev-setup.md](docs/development/dev-setup.md)                   |
+| **Developer commands**            | [docs/development/developer-commands.md](docs/development/developer-commands.md) |
+| **Command workflows**             | [docs/development/command-workflows.md](docs/development/command-workflows.md)   |
+| **PR conventions**                | [docs/development/pull-requests.md](docs/development/pull-requests.md)           |
+| **Release process**               | [docs/releasing.md](docs/releasing.md)                                           |
+| **CI/CD workflows**               | [docs/workflows.md](docs/workflows.md)                                           |
+| **Tooling overview**              | [docs/tooling.md](docs/tooling.md)                                               |
+| **Architecture & design**         | [docs/design/architecture.md](docs/design/architecture.md)                       |
+| **Tool decisions**                | [docs/design/tool-decisions.md](docs/design/tool-decisions.md)                   |
+| **Architecture Decision Records** | [docs/adr/README.md](docs/adr/README.md)                                         |
+| **Repository layout**             | [docs/repo-layout.md](docs/repo-layout.md)                                       |
+| **Troubleshooting**               | [docs/guide/troubleshooting.md](docs/guide/troubleshooting.md)                   |
+| **Using this template**           | [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md)                       |
+| **Container setup**               | [.devcontainer/README.md](.devcontainer/README.md)                               |
 
 ---
 

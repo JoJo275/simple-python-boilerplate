@@ -145,4 +145,4 @@ We thank the following individuals for responsibly disclosing security issues:
 <!-- Add names/handles here as vulnerabilities are reported and fixed.
      Format: - **@handle** — Brief description of the issue (YYYY-MM) -->
 
-_No security vulnerabilities have been reported yet._
+_No security vulnerabilities have been reported yet. Be the first!_

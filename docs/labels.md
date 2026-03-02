@@ -74,22 +74,22 @@ Indicate urgency. **Apply exactly one** to triaged issues.
 
 Identify which part of the codebase is affected. **Can apply multiple.**
 
-| Label             | Scope                             |
-| ----------------- | --------------------------------- |
-| `area: cli`       | Command-line interface            |
-| `area: api`       | Public API surface                |
-| `area: docs`      | Documentation                     |
-| `area: tests`     | Test suite                        |
-| `area: ci`        | CI/CD pipelines                   |
-| `area: config`    | Configuration/environment         |
-| `area: packaging` | pyproject.toml, build, publishing |
-| `area: logging`   | Logging and telemetry             |
-| `area: ux`        | User experience and ergonomics    |
-| `area: performance` | Subsystem performance (hot paths) |
-| `area: compatibility` | OS/Python-version compatibility |
-| `area: windows`   | Windows-specific issues           |
-| `area: linux`     | Linux-specific issues             |
-| `area: macos`     | macOS-specific issues             |
+| Label                 | Scope                             |
+| --------------------- | --------------------------------- |
+| `area: cli`           | Command-line interface            |
+| `area: api`           | Public API surface                |
+| `area: docs`          | Documentation                     |
+| `area: tests`         | Test suite                        |
+| `area: ci`            | CI/CD pipelines                   |
+| `area: config`        | Configuration/environment         |
+| `area: packaging`     | pyproject.toml, build, publishing |
+| `area: logging`       | Logging and telemetry             |
+| `area: ux`            | User experience and ergonomics    |
+| `area: performance`   | Subsystem performance (hot paths) |
+| `area: compatibility` | OS/Python-version compatibility   |
+| `area: windows`       | Windows-specific issues           |
+| `area: linux`         | Linux-specific issues             |
+| `area: macos`         | macOS-specific issues             |
 
 ### Type Labels (`type:`)
 

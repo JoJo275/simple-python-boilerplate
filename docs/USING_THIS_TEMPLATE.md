@@ -91,7 +91,7 @@ Search your project for these placeholders and replace them with your values:
 | [codecov.yml](../codecov.yml)                                         | Coverage thresholds, flags, path exclusions                      |
 | [\*.code-workspace](../simple-python-boilerplate.code-workspace)      | VS Code settings, recommended extensions, default formatters     |
 | [.github/copilot-instructions.md](../.github/copilot-instructions.md) | Replace domain/business context for Copilot                      |
-| [_typos.toml](../_typos.toml)                                         | Spellchecker exceptions and ignored words                        |
+| [\_typos.toml](../_typos.toml)                                        | Spellchecker exceptions and ignored words                        |
 | [.markdownlint-cli2.jsonc](../.markdownlint-cli2.jsonc)               | Markdown lint rule overrides                                     |
 
 ---
@@ -200,7 +200,7 @@ check items off as you go.
 - [ ] Update [SECURITY.md](../SECURITY.md) with your contact info
 - [ ] Update [mkdocs.yml](../mkdocs.yml) — `site_name`, `site_url`, `repo_url`
 - [ ] Update [.github/copilot-instructions.md](../.github/copilot-instructions.md) — replace domain/business context
-- [ ] Customize [*.code-workspace](../simple-python-boilerplate.code-workspace) — rename file, update extensions and settings
+- [ ] Customize [\*.code-workspace](../simple-python-boilerplate.code-workspace) — rename file, update extensions and settings
 
 ### Source Code
 
@@ -327,10 +327,10 @@ your machine. This template includes **43 hooks** across four Git stages:
 
 | Stage          | When it runs       | Examples                                                             | Count |
 | :------------- | :----------------- | :------------------------------------------------------------------- | ----: |
-| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks | 35    |
-| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   | 1     |
-| **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          | 3     |
-| **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      | 4     |
+| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |    35 |
+| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   |     1 |
+| **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          |     3 |
+| **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      |     4 |
 
 All hooks are configured in [.pre-commit-config.yaml](../.pre-commit-config.yaml).
 See [ADR 008](adr/008-pre-commit-hooks.md) for the full inventory and rationale.
@@ -562,12 +562,12 @@ template but listed here so you see how they compare to alternatives.
 
 ### Development & Debugging
 
-| Tool                                               | When to use                                                               |
-| :------------------------------------------------- | :------------------------------------------------------------------------ |
-| [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                                         |
-| [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`                                |
-| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` |
-| [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement)                        |
+| Tool                                               | When to use                                        |
+| :------------------------------------------------- | :------------------------------------------------- |
+| [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                  |
+| [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`         |
+| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)`                 |
+| [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement) |
 
 ### Linting & Formatting (alternatives/additions)
 
