@@ -24,6 +24,8 @@
 # across forks and CI runners.
 minimum_pre_commit_version: "3.6.0"
 
+# TODO (template users): If your project drops Python 3.11 support or adds
+#   3.14, update this to match your minimum supported version.
 default_language_version:
   python: python3
 
@@ -121,6 +123,12 @@ repos:
       - id: mypy
         # Only check src/ to avoid issues with untyped test files
         files: ^src/
+        # TODO (template users): When you add typed dependencies (e.g.,
+        #   requests, click), add their type stubs here so mypy can resolve
+        #   them in the isolated pre-commit venv:
+        # additional_dependencies:
+        #   - types-requests
+        #   - types-pyyaml
 
   # ---------------------------------------------------------------------------
   # Security checks
@@ -366,10 +374,13 @@ repos:
         stages: [manual]
 
 # =============================================================================
-# CI Configuration (optional)
+# CI Configuration (optional) — pre-commit.ci service
 # =============================================================================
-# Uncomment to set defaults for CI environments
+# TODO (template users): If you use pre-commit.ci (https://pre-commit.ci),
+#   uncomment the block below and customise it. If you use GitHub Actions
+#   for pre-commit (the default for this template), you can delete this
+#   section entirely.
 # ci:
 #   autofix_commit_msg: "style: auto-fix by pre-commit hooks"
 #   autoupdate_commit_msg: "chore: update pre-commit hooks"
-#   skip: [mypy]  # Skip slow hooks in CI if you have separate type-check job
+#   skip: [mypy, deptry, tests]  # Skip hooks that need project deps or are slow

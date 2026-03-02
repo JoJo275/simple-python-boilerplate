@@ -6,6 +6,10 @@
 // pre-commit hook (markdownlint-cli2, manual stage).
 //
 // Rule reference: https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md
+//
+// TODO (template users): Review disabled/relaxed rules below and tighten
+//   them if your project doesn't need the exceptions. Remove allowed_elements
+//   you don't use.
 {
   "config": {
     // MD024: Allow duplicate headings under different parent headings.
@@ -17,8 +21,17 @@
 
     // MD033: Allow specific inline HTML elements used for collapsible
     // sections in documentation (developer-commands.md, etc.).
+    // TODO (template users): Remove elements you don't use in your docs.
     "MD033": {
-      "allowed_elements": ["details", "summary", "br"]
+      "allowed_elements": [
+        "details",
+        "summary",
+        "br",
+        "sup",
+        "sub",
+        "kbd",
+        "img"
+      ]
     },
 
     // MD046: Disable code-block-style enforcement.
@@ -29,5 +42,11 @@
   },
 
   // Ignore generated/vendored files
-  "ignores": ["site/**", "node_modules/**", "**/CHANGELOG.md"]
+  "ignores": [
+    "site/**",
+    "node_modules/**",
+    "**/CHANGELOG.md",
+    "var/**",
+    "experiments/**"
+  ]
 }

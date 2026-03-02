@@ -1,5 +1,9 @@
 # Lychee Link Checker Ignore File
 # https://lychee.cli.rs/
+#
+# TODO (template users): After customizing the project, remove placeholder
+#   URL patterns and add patterns for any external URLs specific to your
+#   project that are intermittently unavailable in CI.
 
 # ──────────────────────────────────────────────────────────────
 # Template placeholder URLs (not real links)
@@ -26,6 +30,16 @@ file://.*docs/adr/NNN-related\.md
 file://.*docs/adr/XXX-name\.md
 
 # ──────────────────────────────────────────────────────────────
+# Local / development URLs
+# ──────────────────────────────────────────────────────────────
+# These are valid in development but never reachable from CI.
+
+https?://localhost[:/].*
+https?://127\.0\.0\.1[:/].*
+https?://0\.0\.0\.0[:/].*
+https?://\[::1\][:/].*
+
+# ──────────────────────────────────────────────────────────────
 # External URLs with intermittent availability
 # ──────────────────────────────────────────────────────────────
 # These are valid URLs but sometimes fail in CI due to
@@ -42,3 +56,16 @@ https://learn\.scientific-python\.org
 
 # GitHub CLI - manual/installation path sometimes 404s
 https://cli\.github\.com/manual/installation
+
+# ──────────────────────────────────────────────────────────────
+# Sites that block automated crawlers / rate-limit aggressively
+# ──────────────────────────────────────────────────────────────
+
+# LinkedIn blocks all non-browser requests
+https://www\.linkedin\.com
+
+# Twitter / X.com aggressively rate-limits
+https://(www\.)?(twitter\.com|x\.com)
+
+# PyPI rate-limits CI runners
+https://pypi\.org

@@ -44,17 +44,25 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: workflows.md
 - [ ] Final file check: docs/design/database.md
 - [x] Final file check: CONTRIBUTING.md
-- [ ] Final file check: CODE_OF_CONDUCT.md
+- [X] Final file check: CODE_OF_CONDUCT.md
 - [x] Final file check: Containerfile
 - [x] Final file check: docker-compose.yml
 - [X] Final file check: .gitignore
 - [X] Final file check: .dockerignore
 - [X] Final file check: .devcontainer/devcontainer.json
 - [ ] Final file check: .devcontainer/README.md
+- [X] Final file check: codecov.yml
 - [ ] Final file check: codecov.yml
 - [ ] Final file check: codecov.yml
-- [ ] Final file check: codecov.yml
-- [ ] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: repo-doctor.yml
+- [X] Final file check: release-please-config.json
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
+- [X] Final file check: mkdocs.yml
 - [ ] Final file check: .pre-commit-config.yaml
 - [ ] Final file check: .github/dependabot.yml
 - [x] Final file check: entire docs/
