@@ -52,15 +52,15 @@ Things to explore, implement, or learn more about.
 - [X] Final file check: .devcontainer/devcontainer.json
 - [ ] Final file check: .devcontainer/README.md
 - [X] Final file check: codecov.yml
-- [ ] Final file check: codecov.yml
-- [ ] Final file check: codecov.yml
+- [ ] Final file check: .pre-commit-config.yaml
+- [X] Final file check: .readthedocs.yaml
 - [X] Final file check: mkdocs.yml
 - [X] Final file check: repo-doctor.yml
 - [X] Final file check: release-please-config.json
-- [X] Final file check: mkdocs.yml
-- [X] Final file check: mkdocs.yml
-- [X] Final file check: mkdocs.yml
-- [X] Final file check: mkdocs.yml
+- [X] Final file check: .prettierignore
+- [X] Final file check: pre-commit-config.yaml
+- [X] Final file check: .markdownlint-cli2.jsonc
+- [X] Final file check: .lycheeignore
 - [X] Final file check: mkdocs.yml
 - [X] Final file check: mkdocs.yml
 - [ ] Final file check: .pre-commit-config.yaml
