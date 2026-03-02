@@ -79,9 +79,9 @@ the summary below is for quick orientation only.
 
 **Categories at a glance:**
 
-- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck
+- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck, spellcheck-autofix
 - **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy container scan, nightly scan, OpenSSF Scorecard
-- **PR hygiene:** commit-lint, pr-title, labeler, spellcheck-autofix
+- **PR hygiene:** commit-lint, pr-title, labeler
 - **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan

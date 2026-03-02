@@ -39,9 +39,9 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: releasing.md
 - [x] Final file check: repo-layout.md
 - [x] Final file check: sbom.md
-- [ ] Final file check: tooling.md
-- [ ] Final file check: USING_THIS_TEMPLATE.md
-- [ ] Final file check: workflows.md
+- [x] Final file check: tooling.md
+- [x] Final file check: USING_THIS_TEMPLATE.md
+- [x] Final file check: workflows.md
 - [ ] Final file check: docs/design/database.md
 - [ ] Final file check: CONTRIBUTING.md
 - [ ] Final file check: CODE_OF_CONDUCT.md

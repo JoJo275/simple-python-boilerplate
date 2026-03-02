@@ -283,7 +283,7 @@ Not every project needs all 29 workflows:
 | Documentation site    | `docs-deploy.yml`                                             | Keep `docs-build.yml` for CI validation of docs                                               |
 | Automated releases    | `release-please.yml`, `release.yml`, `sbom.yml`               | Manual releases still work via git tags                                                       |
 | Security scanning     | `nightly-security.yml`, `container-scan.yml`, `scorecard.yml` | Keep `security-audit.yml` and `dependency-review.yml` at minimum                              |
-| Spell checking        | `spellcheck.yml`, `spellcheck-autofix.yml`                    | Also remove the typos/codespell pre-commit hooks                                              |
+| Spell checking        | `spellcheck.yml`, `spellcheck-autofix.yml`                    | Also remove the typos pre-commit hook                                                         |
 | Auto-merge Dependabot | `auto-merge-dependabot.yml`                                   | Review Dependabot PRs manually instead                                                        |
 | Stale issue cleanup   | `stale.yml`                                                   | Manage stale issues manually                                                                  |
 
@@ -300,16 +300,16 @@ Not every project needs all 29 workflows:
 
 ### Workflow Categories
 
-| Category          | Workflows                                                                                      | Always run?                                 |
-| :---------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------ |
-| **Quality**       | test, lint-format, type-check, coverage, spellcheck                                            | Yes — in CI gate                            |
-| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard          | Mixed — some path-filtered                  |
-| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                 | Yes — in CI gate                            |
-| **Release**       | release-please, release, sbom                                                                  | Push to main / tags only                    |
-| **Documentation** | docs-build, docs-deploy                                                                        | docs-build in gate; deploy is path-filtered |
-| **Container**     | container-build, container-scan                                                                | container-build in gate                     |
-| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered                 |
-| **Gate**          | ci-gate                                                                                        | Yes — the single required check             |
+| Category          | Workflows                                                                                      | Always run?                                  |
+| :---------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------- |
+| **Quality**       | test, lint-format, type-check, coverage, spellcheck, spellcheck-autofix                        | Yes — in CI gate (except spellcheck-autofix) |
+| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard          | Mixed — some path-filtered                   |
+| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                 | Yes — in CI gate                             |
+| **Release**       | release-please, release, sbom                                                                  | Push to main / tags only                     |
+| **Documentation** | docs-build, docs-deploy                                                                        | docs-build in gate; deploy is path-filtered  |
+| **Container**     | container-build, container-scan                                                                | container-build in gate                      |
+| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered                  |
+| **Gate**          | ci-gate                                                                                        | Yes — the single required check              |
 
 ---
 
