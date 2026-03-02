@@ -24,15 +24,15 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Security
 
-| Workflow              | File                                                                | Triggers                                                | Job name(s)                                                                     | Purpose                                                  |
-| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Security Audit**    | [security-audit.yml](../.github/workflows/security-audit.yml)       | push, PR, weekly, manual                                | `pip-audit`                                                                     | Checks Python deps against OSV/PyPI vuln databases       |
-| **Bandit**            | [bandit.yml](../.github/workflows/bandit.yml)                       | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan`                                                          | Static security analysis for Python source               |
-| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR                                                      | `Scan dependencies`                                                             | Scans PRs for vulnerable or risky new dependencies       |
-| **CodeQL**            | [security-codeql.yml](../.github/workflows/security-codeql.yml)     | push, PR, weekly                                        | `CodeQL Analysis`                                                               | GitHub CodeQL static analysis                            |
-| **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                | `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
-| **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                           | Multiple (SBOM rescan, pip-audit, container scans)                              | Consolidated nightly sweep against latest vuln databases |
-| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                             | `Scorecard analysis`                                                            | Evaluates repo security practices via OpenSSF Scorecard  |
+| Workflow              | File                                                                | Triggers                                                | Job name(s)                                                                                              | Purpose                                                  |
+| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Security Audit**    | [security-audit.yml](../.github/workflows/security-audit.yml)       | push, PR, weekly, manual                                | `pip-audit`                                                                                              | Checks Python deps against OSV/PyPI vuln databases       |
+| **Bandit**            | [bandit.yml](../.github/workflows/bandit.yml)                       | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan`                                                                                   | Static security analysis for Python source               |
+| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR                                                      | `Scan dependencies`                                                                                      | Scans PRs for vulnerable or risky new dependencies       |
+| **CodeQL**            | [security-codeql.yml](../.github/workflows/security-codeql.yml)     | push, PR, weekly                                        | `CodeQL Analysis`                                                                                        | GitHub CodeQL static analysis                            |
+| **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                | `Build container image`, `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
+| **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                           | Multiple (SBOM rescan, pip-audit, container scans)                                                       | Consolidated nightly sweep against latest vuln databases |
+| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                             | `Scorecard analysis`                                                                                     | Evaluates repo security practices via OpenSSF Scorecard  |
 
 ### PR Hygiene
 
@@ -44,11 +44,11 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Release
 
-| Workflow           | File                                                          | Triggers                 | Job name(s)                                                             | Purpose                                            |
-| ------------------ | ------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------- | -------------------------------------------------- |
-| **Release Please** | [release-please.yml](../.github/workflows/release-please.yml) | push (main)              | `Create or update Release PR`                                           | Automates version bump, changelog, and git tags    |
-| **Release**        | [release.yml](../.github/workflows/release.yml)               | tag push (`v*`), manual  | `Build distribution`, `Generate release SBOMs`, `Upload release assets` | Builds sdist + wheel, optionally publishes to PyPI |
-| **SBOM**           | [sbom.yml](../.github/workflows/sbom.yml)                     | push, PR, weekly, manual | `Generate SBOMs`                                                        | Generates SPDX + CycloneDX SBOMs                   |
+| Workflow           | File                                                          | Triggers                 | Job name(s)                                                                                | Purpose                                            |
+| ------------------ | ------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| **Release Please** | [release-please.yml](../.github/workflows/release-please.yml) | push (main)              | `Create or update Release PR`                                                              | Automates version bump, changelog, and git tags    |
+| **Release**        | [release.yml](../.github/workflows/release.yml)               | tag push (`v*`), manual  | `Build distribution`, `Publish to PyPI`, `Generate release SBOMs`, `Upload release assets` | Builds sdist + wheel, optionally publishes to PyPI |
+| **SBOM**           | [sbom.yml](../.github/workflows/sbom.yml)                     | push, PR, weekly, manual | `Generate SBOMs`                                                                           | Generates SPDX + CycloneDX SBOMs                   |
 
 ### Documentation
 

@@ -30,7 +30,7 @@ it's configured, and where to learn more.
 | **[Ruff](https://docs.astral.sh/ruff/)**                        | Lints and formats Python code. A single Rust binary that replaces flake8, isort, black, pyupgrade, and more.  | `pyproject.toml` → `[tool.ruff]`      | [Ruff docs](https://docs.astral.sh/ruff/)                        |
 | **[mypy](https://mypy.readthedocs.io/)**                        | Static type checker. Catches type errors without running your code. Runs in strict mode in this project.      | `pyproject.toml` → `[tool.mypy]`      | [mypy docs](https://mypy.readthedocs.io/)                        |
 | **[typos](https://github.com/crate-ci/typos)**                  | Finds spelling mistakes in source code, docs, and filenames. Rust-based, very fast.                           | `_typos.toml`                         | [typos docs](https://github.com/crate-ci/typos)                  |
-| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos.                                         | `pyproject.toml` → `[tool.codespell]` | [codespell docs](https://github.com/codespell-project/codespell) |
+| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos.                                         | CLI args in `spellcheck.yml`          | [codespell docs](https://github.com/codespell-project/codespell) |
 | **[deptry](https://deptry.com/)**                               | Checks for unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. | `pyproject.toml` → `[tool.deptry]`    | [deptry docs](https://deptry.com/)                               |
 
 ---
@@ -77,7 +77,7 @@ it's configured, and where to learn more.
 
 | Tool                                                                  | What it does                                                                                                             | Config                       | Docs                                                                   |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------- |
-| **[GitHub Actions](https://docs.github.com/en/actions)**              | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 26 workflows.                  | `.github/workflows/*.yml`    | [Actions docs](https://docs.github.com/en/actions)                     |
+| **[GitHub Actions](https://docs.github.com/en/actions)**              | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 29 workflows.                  | `.github/workflows/*.yml`    | [Actions docs](https://docs.github.com/en/actions)                     |
 | **[release-please](https://github.com/googleapis/release-please)**    | Automates versioning and changelog generation from Conventional Commits. Creates a Release PR that you review and merge. | `release-please-config.json` | [release-please docs](https://github.com/googleapis/release-please)    |
 | **[Dependabot](https://docs.github.com/en/code-security/dependabot)** | Automatically opens PRs to update outdated or vulnerable dependencies.                                                   | `.github/dependabot.yml`     | [Dependabot docs](https://docs.github.com/en/code-security/dependabot) |
 
@@ -99,6 +99,16 @@ it's configured, and where to learn more.
 | **[validate-pyproject](https://validate-pyproject.readthedocs.io/)**          | Validates `pyproject.toml` against PEP 621 and packaging schemas. Catches config errors before CI. | — (validates `pyproject.toml`) | [validate-pyproject docs](https://validate-pyproject.readthedocs.io/)          |
 | **[actionlint](https://github.com/rhysd/actionlint)**                         | Lints GitHub Actions workflow files. Catches expression errors, unknown inputs, and runner issues. | — (lints `.github/workflows/`) | [actionlint docs](https://github.com/rhysd/actionlint)                         |
 | **[check-jsonschema](https://github.com/python-jsonschema/check-jsonschema)** | Validates YAML/JSON files against schemas from SchemaStore (workflows, Dependabot config, etc.).   | — (schema auto-detected)       | [check-jsonschema docs](https://github.com/python-jsonschema/check-jsonschema) |
+
+---
+
+## Formatting (non-Python)
+
+| Tool                                                                             | What it does                                                                                            | Config                     | Docs                                                                              |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------- |
+| **[Prettier](https://prettier.io/)**                                             | Formats Markdown, YAML, and JSON files. Runs as a manual pre-commit hook and VS Code default formatter. | `.pre-commit-config.yaml`  | [Prettier docs](https://prettier.io/)                                             |
+| **[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)**         | Lints Markdown files for style and structure issues. Runs as a manual pre-commit hook.                  | `.markdownlint-cli2.jsonc` | [markdownlint-cli2 docs](https://github.com/DavidAnson/markdownlint-cli2)         |
+| **[hadolint](https://github.com/hadolint/hadolint)**                             | Lints Dockerfiles/Containerfiles for best practices. Runs as a manual pre-commit hook.                  | `.pre-commit-config.yaml`  | [hadolint docs](https://github.com/hadolint/hadolint)                             |
 
 ---
 
