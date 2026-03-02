@@ -97,6 +97,24 @@ level = "warn"
 category = "packaging"
 impact = "No README — first thing visitors see on GitHub. pyproject.toml references it as readme; build may warn."
 
+[[rule]]
+type = "exists"
+path = "requirements.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No requirements.txt — pip-audit pre-push hook and some CI workflows reference it. pip users won't have a pinned dependency list."
+hint = "Generate with: hatch run pip freeze > requirements.txt (or remove pip-audit -r references)."
+
+[[rule]]
+type = "exists"
+path = "requirements-dev.txt"
+kind = "file"
+level = "info"
+category = "packaging"
+impact = "No requirements-dev.txt — pip-audit pre-push hook references it; the hook will fail."
+hint = "Generate with: hatch run pip freeze > requirements-dev.txt (or update pip-audit args in .pre-commit-config.yaml)."
+
 
 # =============================================================================
 # CATEGORY: ci — GitHub Actions, branch protection, workflows
@@ -362,14 +380,14 @@ impact = "No code of conduct — open-source best practice for community repos."
 
 [[rule]]
 type = "exists"
-path = ".prettierignore"
+path = "docs/adr/README.md"
 kind = "file"
 level = "info"
 category = "docs"
-impact = "No .prettierignore — Prettier may reformat mkdocstrings ::: directives in docs/, breaking the MkDocs build."
-hint = "Add .prettierignore excluding docs/reference/api.md and other files with mkdocstrings directives."
-only_if.path = ".pre-commit-config.yaml"
-only_if.regex = "(?i)\\bprettier\\b"
+impact = "ADR index missing — contributors can't find the list of architecture decisions."
+hint = "Create docs/adr/README.md with an index table of all ADRs."
+only_if.path = "docs/adr"
+only_if.regex = "(?s)."
 
 
 # =============================================================================
@@ -395,6 +413,15 @@ category = "git"
 impact = "No .gitattributes — line endings won't be normalised; cross-platform contributors may see spurious diffs."
 hint = "Add '* text=auto' as a baseline for line ending normalisation."
 fix = "echo '* text=auto' > .gitattributes"
+
+[[rule]]
+type = "exists"
+path = ".editorconfig"
+kind = "file"
+level = "info"
+category = "git"
+impact = "No .editorconfig — editors without project-specific settings may use inconsistent indentation/encoding."
+hint = "Add .editorconfig with charset, indent_style, indent_size, and end_of_line settings."
 
 
 # =============================================================================
@@ -451,3 +478,68 @@ impact = "No obvious DB bootstrap reference found in scripts/. If you intended S
 hint = "Ignore if you intentionally removed DB bootstrap; otherwise add/init scripts and update docs."
 only_if.path = "db"
 only_if.regex = "\\.sql\\b"
+
+
+# =============================================================================
+# CATEGORY: config — Cross-file config consistency and hygiene
+# =============================================================================
+
+# .containerignore and .dockerignore should stay in sync
+[[rule]]
+type = "regex_present"
+path = ".dockerignore"
+regex = "(?s)."
+level = "info"
+category = "config"
+impact = ".dockerignore exists but may be out of sync with .containerignore. Docker and Podman users get different build contexts."
+hint = "Run: diff .containerignore .dockerignore — or copy: cp .containerignore .dockerignore (then restore header)."
+only_if.path = ".containerignore"
+only_if.regex = "(?s)."
+
+# .readthedocs.yaml Python version should match project
+[[rule]]
+type = "regex_present"
+path = ".readthedocs.yaml"
+regex = "python:\\s*[\"']3\\.1[1-9]"
+level = "info"
+category = "config"
+impact = ".readthedocs.yaml may specify an outdated Python version that doesn't match pyproject.toml requires-python."
+hint = "Update the python version in .readthedocs.yaml to match your latest supported Python."
+only_if.path = ".readthedocs.yaml"
+only_if.regex = "(?s)."
+
+# .lycheeignore should exist if link-checker workflow exists
+[[rule]]
+type = "exists"
+path = ".lycheeignore"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .lycheeignore — the link-checker workflow may fail on template placeholder URLs or flaky external sites."
+hint = "Add .lycheeignore with patterns for placeholder URLs and intermittently-unavailable sites."
+only_if.path = ".github/workflows"
+only_if.regex = "(?i)lychee|link.?check"
+
+# .markdownlint-cli2.jsonc should exist if markdownlint hook is configured
+[[rule]]
+type = "exists"
+path = ".markdownlint-cli2.jsonc"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .markdownlint-cli2.jsonc — markdownlint uses default rules which may conflict with project formatting."
+hint = "Add .markdownlint-cli2.jsonc to customise rules (e.g., MD024 siblings_only, MD033 allowed elements)."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)markdownlint"
+
+# .prettierignore should exist if prettier hook is configured
+[[rule]]
+type = "exists"
+path = ".prettierignore"
+kind = "file"
+level = "info"
+category = "config"
+impact = "No .prettierignore — Prettier may reformat mkdocstrings ::: directives in docs/, breaking the MkDocs build."
+hint = "Add .prettierignore excluding docs/reference/api.md and other files with mkdocstrings directives."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)\\bprettier\\b"

@@ -82,6 +82,12 @@ _typos.toml
 .editorconfig
 requirements-dev.txt
 repo_doctor.d/
+.repo-doctor.toml
+.readthedocs.yaml
+.prettierignore
+.lycheeignore
+.gitattributes
+.gitmessage.txt
 
 # OS files
 .DS_Store
