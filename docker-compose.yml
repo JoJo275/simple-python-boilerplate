@@ -33,6 +33,11 @@ services:
     security_opt:
       - no-new-privileges:true
 
+    # tmpfs mounts — required because read_only: true makes the root filesystem
+    # immutable. Python and many libraries need /tmp for temporary files at runtime.
+    tmpfs:
+      - /tmp
+
     # Uncomment to expose ports (e.g., if this becomes a web service)
     # ports:
     #   - "8000:8000"

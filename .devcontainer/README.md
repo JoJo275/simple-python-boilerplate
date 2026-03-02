@@ -51,3 +51,37 @@ hatch run lint                 # Lint
 hatch run docs:serve           # Serve docs locally
 task check                     # All quality gates (via Task runner)
 ```
+
+## Rebuilding the Dev Container
+
+When `devcontainer.json` changes (e.g., new features, extensions, or
+`postCreateCommand` updates), VS Code won't pick them up automatically.
+You must rebuild:
+
+1. Open the command palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run **Dev Containers: Rebuild Container** (keeps your workspace files)
+   — or **Rebuild Without Cache** if you want a completely fresh image
+
+Alternatively from the terminal:
+
+```bash
+# Force a full rebuild from scratch
+devcontainer up --remove-existing-container --workspace-folder .
+```
+
+Rebuild is needed after changes to:
+
+- `devcontainer.json` (image, features, postCreateCommand, extensions)
+- Dockerfile / base image references
+- Feature versions
+
+It is **not** needed for changes to `pyproject.toml` dependencies —
+run `hatch env remove default && hatch env create default` inside the
+running container instead.
+
+## Further Reading
+
+- [CONTRIBUTING.md](../CONTRIBUTING.md) — Full contributing guide
+- [docs/development/dev-setup.md](../docs/development/dev-setup.md) — Detailed dev environment setup
+- [docs/guide/troubleshooting.md](../docs/guide/troubleshooting.md) — Troubleshooting
+- [docs/design/tool-decisions.md](../docs/design/tool-decisions.md) — Why these tools were chosen

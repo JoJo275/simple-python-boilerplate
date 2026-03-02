@@ -38,7 +38,11 @@ sdist/
 wheels/
 
 # Testing & coverage
-tests/
+# Note: tests/ is intentionally NOT excluded. The Containerfile doesn't COPY
+# tests, so they never end up in the image. Keeping them in the build context
+# allows future multi-stage patterns (e.g., a "test" stage that runs pytest
+# inside the build). If your build context is enormous, uncomment the line below.
+# tests/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
