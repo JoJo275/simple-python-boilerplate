@@ -103,7 +103,7 @@ jobs:
 
       # Generate SPDX SBOM for downstream scanning jobs
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -111,7 +111,7 @@ jobs:
 
       # Generate CycloneDX SBOM (Grype works well with both formats)
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@28d71544de8eaf1b958d335707167c5f783590ad # v0.22.2
+        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
@@ -153,7 +153,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SBOM SARIF
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@c793b717bc78562f491db7b0e93a3a178b099162 # v4.32.5
         if: always()
         with:
           sarif_file: trivy-sbom-results.sarif
@@ -185,7 +185,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SBOM SARIF
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@c793b717bc78562f491db7b0e93a3a178b099162 # v4.32.5
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
@@ -291,7 +291,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@c793b717bc78562f491db7b0e93a3a178b099162 # v4.32.5
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -322,7 +322,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@9e907b5e64f6b83e7804b09294d44122997950d6 # v4.32.3
+        uses: github/codeql-action/upload-sarif@c793b717bc78562f491db7b0e93a3a178b099162 # v4.32.5
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
