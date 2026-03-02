@@ -25,7 +25,6 @@ env/
 # IDE / editor
 .vscode/
 .idea/
-*.code-workspace
 
 # Python artifacts
 __pycache__/

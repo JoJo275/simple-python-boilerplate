@@ -3,7 +3,9 @@
 # =============================================================================
 # Warn-only "doctor" checks. Never blocks; exits 0.
 #
-# TODO: If you fork or adapt this template, feel free to update this file to your hearts content
+# TODO (template users): Update checks to match your project structure.
+#   Remove checks for files you don't use (e.g., database rules if no DB).
+#   Add new checks for project-specific files your team depends on.
 #
 # Fields:
 #   type      — Check type: "exists", "toml_has_path", "regex_present"

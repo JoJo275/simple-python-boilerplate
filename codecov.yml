@@ -4,7 +4,11 @@
 # Customizes coverage thresholds, PR comments, and status checks.
 # See: https://docs.codecov.com/docs/codecov-yaml
 #
-# Validate this file: curl -X POST --data-binary @codecov.yml https://codecov.io/validate
+# Validate: curl -X POST --data-binary @codecov.yml https://codecov.io/validate
+#
+# TODO (template users): Adjust target thresholds to match your project goals.
+#   80% is a reasonable starting point; increase as your test suite matures.
+#   Remove patch.default if you don't want per-PR coverage enforcement.
 # =============================================================================
 
 coverage:

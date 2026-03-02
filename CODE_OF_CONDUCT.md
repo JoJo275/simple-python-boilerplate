@@ -10,7 +10,7 @@ We pledge to act and interact in ways that contribute to an open, inclusive, and
 
 ## Our Standards
 
-### Examples of behavior that contributes to a positive environment:
+### Examples of behavior that contributes to a positive environment
 
 - Being kind and empathetic toward others
 - Respecting differing opinions, viewpoints, and experiences
@@ -18,7 +18,7 @@ We pledge to act and interact in ways that contribute to an open, inclusive, and
 - Taking responsibility for our mistakes and learning from them
 - Focusing on what is best for the community and the project
 
-### Examples of unacceptable behavior:
+### Examples of unacceptable behavior
 
 - Harassment, trolling, or insulting/derogatory comments
 - Personal or political attacks
@@ -38,17 +38,25 @@ This Code of Conduct applies within all project spaces, including issues, pull r
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting our team at:
 
-**Project Maintainer: JoJo275**
+<!-- TODO (template users): Replace the placeholder contacts below with
+     your actual project maintainers. Remove Contributor A/B entries if
+     you're a solo maintainer, or add real team members. -->
+
+### Project Maintainer — JoJo275
 
 - **GitHub:** [@JoJo275](https://github.com/JoJo275)
 - **Email:** [joseph26584@gmail.com](mailto:joseph26584@gmail.com)
 
-**Contributor A:**
+### Contributor A
+
+<!-- TODO (template users): Replace with a real contributor or remove. -->
 
 - **GitHub:** [@exampleA](https://github.com/exampleA)
 - **Email:** [exampleA@gmail.com](mailto:exampleA@gmail.com)
 
-**Contributor B:**
+### Contributor B
+
+<!-- TODO (template users): Replace with a real contributor or remove. -->
 
 - **GitHub:** [@exampleB](https://github.com/exampleB)
 - **Email:** [exampleB@gmail.com](mailto:exampleB@gmail.com)
