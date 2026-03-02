@@ -1,5 +1,6 @@
 # Runs pytest across Python 3.11, 3.12, and 3.13.
 # Triggered on push/PR to main or manual dispatch.
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 
 name: Test
 

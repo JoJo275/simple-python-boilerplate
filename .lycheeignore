@@ -69,3 +69,13 @@ https://(www\.)?(twitter\.com|x\.com)
 
 # PyPI rate-limits CI runners
 https://pypi\.org
+
+# ──────────────────────────────────────────────────────────────
+# GitHub URLs that require authentication or are generated
+# ──────────────────────────────────────────────────────────────
+# GitHub edit/settings pages require login and will always 404 in CI
+https://github\.com/.*/settings
+https://github\.com/.*/edit
+
+# GitHub private profile URLs
+https://github\.com/orgs/.*/teams

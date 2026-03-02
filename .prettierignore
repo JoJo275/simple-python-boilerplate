@@ -36,6 +36,7 @@ build/
 _typos.toml
 repo_doctor.d/
 .repo-doctor.toml
+.github/
 
 # Non-Markdown files that Prettier may try to touch
 LICENSE

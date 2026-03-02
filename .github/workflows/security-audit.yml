@@ -17,6 +17,8 @@
 #        Option B – Set a repository variable (no YAML edits needed):
 #                     vars.ENABLE_SECURITY_AUDIT = 'true'
 #                   (Settings → Secrets and variables → Actions → Variables)
+#
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 # ──────────────────────────────────────────────────────────────
 
 name: Security Audit

@@ -38,7 +38,12 @@
     // We use fenced code blocks exclusively, but some indented blocks
     // appear in list context (command-workflows.md) where Prettier
     // formats them as indented. Let the formatter win.
-    "MD046": false
+    "MD046": false,
+
+    // MD013: Disable line-length enforcement.
+    // Long lines are common in tables, URLs, and code examples.
+    // Ruff handles Python line length; Markdown is left flexible.
+    "MD013": false
   },
 
   // Ignore generated/vendored files

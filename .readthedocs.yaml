@@ -18,6 +18,14 @@ build:
     #   requires-python and CI test matrix. Use the latest stable Python
     #   version your project supports.
     python: "3.13"
+  jobs:
+    # TODO (template users): If your docs build has slow or resource-heavy
+    #   steps, consider adding build commands here to pre-install system
+    #   packages or run custom build steps.
+    # pre_build:
+    #   - echo "Pre-build step"
+    post_install:
+      - python -m pip install --upgrade pip
 
 python:
   install:

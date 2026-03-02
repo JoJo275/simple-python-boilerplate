@@ -10,6 +10,8 @@
 #   - Manual dispatch via the GitHub Actions UI
 #
 # Configuration lives in pyproject.toml under [tool.mypy].
+#
+# ci-gate required — do not add paths-ignore (see ci-gate.yml).
 # ──────────────────────────────────────────────────────────────
 
 name: Type check
