@@ -82,13 +82,17 @@ Search your project for these placeholders and replace them with your values:
 
 ### Optional
 
-| File                                                        | When to customize                                                |
-| :---------------------------------------------------------- | :--------------------------------------------------------------- |
-| [.github/ISSUE_TEMPLATE/\*.yml](../.github/ISSUE_TEMPLATE/) | Adjust fields, labels, or remove templates you don't need        |
-| [CONTRIBUTING.md](../CONTRIBUTING.md)                       | Add project-specific contribution guidelines                     |
-| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)                 | Usually fine as-is (Contributor Covenant)                        |
-| [labels/\*.json](../labels/)                                | Add custom labels for your workflow — see [labels.md](labels.md) |
-| [codecov.yml](../codecov.yml)                               | Coverage thresholds, flags, path exclusions                      |
+| File                                                                  | When to customize                                                |
+| :-------------------------------------------------------------------- | :--------------------------------------------------------------- |
+| [.github/ISSUE_TEMPLATE/\*.yml](../.github/ISSUE_TEMPLATE/)           | Adjust fields, labels, or remove templates you don't need        |
+| [CONTRIBUTING.md](../CONTRIBUTING.md)                                 | Add project-specific contribution guidelines                     |
+| [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)                           | Usually fine as-is (Contributor Covenant)                        |
+| [labels/\*.json](../labels/)                                          | Add custom labels for your workflow — see [labels.md](labels.md) |
+| [codecov.yml](../codecov.yml)                                         | Coverage thresholds, flags, path exclusions                      |
+| [\*.code-workspace](../simple-python-boilerplate.code-workspace)      | VS Code settings, recommended extensions, default formatters     |
+| [.github/copilot-instructions.md](../.github/copilot-instructions.md) | Replace domain/business context for Copilot                      |
+| [_typos.toml](../_typos.toml)                                         | Spellchecker exceptions and ignored words                        |
+| [.markdownlint-cli2.jsonc](../.markdownlint-cli2.jsonc)               | Markdown lint rule overrides                                     |
 
 ---
 
@@ -151,7 +155,7 @@ After creating your repo, consider enabling:
 
 ## Files You Can Delete
 
-This template ships with ~225 files. After customizing, delete anything that
+This template ships with ~250 files. After customizing, delete anything that
 doesn't apply:
 
 | Delete                                                                                   | If you don't need…                                           |
@@ -195,6 +199,8 @@ check items off as you go.
 - [ ] Update [LICENSE](../LICENSE) — year, author (or choose a different license)
 - [ ] Update [SECURITY.md](../SECURITY.md) with your contact info
 - [ ] Update [mkdocs.yml](../mkdocs.yml) — `site_name`, `site_url`, `repo_url`
+- [ ] Update [.github/copilot-instructions.md](../.github/copilot-instructions.md) — replace domain/business context
+- [ ] Customize [*.code-workspace](../simple-python-boilerplate.code-workspace) — rename file, update extensions and settings
 
 ### Source Code
 
@@ -226,6 +232,7 @@ check items off as you go.
 - [ ] Run `task check` — all quality gates pass
 - [ ] Run `task docs:build` — docs build without warnings
 - [ ] Verify imports: `python -c "import your_package"`
+- [ ] Run `python scripts/check_todos.py` — find remaining template placeholders
 
 ---
 
@@ -320,10 +327,10 @@ your machine. This template includes **43 hooks** across four Git stages:
 
 | Stage          | When it runs       | Examples                                                             | Count |
 | :------------- | :----------------- | :------------------------------------------------------------------- | ----: |
-| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |    35 |
-| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   |     1 |
-| **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          |     3 |
-| **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      |     4 |
+| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks | 35    |
+| **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   | 1     |
+| **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          | 3     |
+| **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      | 4     |
 
 All hooks are configured in [.pre-commit-config.yaml](../.pre-commit-config.yaml).
 See [ADR 008](adr/008-pre-commit-hooks.md) for the full inventory and rationale.
@@ -481,7 +488,8 @@ and the docs you don't need.
 ## Optional Tools to Consider
 
 Not included in the template, but worth evaluating. Some overlap with
-built-in tooling — listed here so you know the alternatives.
+built-in tooling — tools marked “(included)” are already bundled in this
+template but listed here so you see how they compare to alternatives.
 
 ### Web Frameworks
 
@@ -554,23 +562,23 @@ built-in tooling — listed here so you know the alternatives.
 
 ### Development & Debugging
 
-| Tool                                               | When to use                                        |
-| :------------------------------------------------- | :------------------------------------------------- |
-| [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                  |
-| [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`         |
-| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)`                 |
-| [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement) |
+| Tool                                               | When to use                                                               |
+| :------------------------------------------------- | :------------------------------------------------------------------------ |
+| [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                                         |
+| [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`                                |
+| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` (check URL — domain may be unreliable) |
+| [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement)                        |
 
 ### Linting & Formatting (alternatives/additions)
 
-| Tool                                            | When to use                                                              |
-| :---------------------------------------------- | :----------------------------------------------------------------------- |
-| [Prettier](https://prettier.io/)                | Markdown/YAML/JSON formatting (included as a manual pre-commit hook)     |
-| [mdformat](https://github.com/hukkin/mdformat)  | Python-native Markdown formatter (no Node.js needed)                     |
-| [Black](https://black.readthedocs.io/)          | Python code formatter (Ruff's formatter is a drop-in replacement)        |
-| [isort](https://pycqa.github.io/isort/)         | Import sorting (Ruff includes this via `I` rules)                        |
-| [Pylint](https://pylint.readthedocs.io/)        | Comprehensive Python linter (overlaps heavily with Ruff)                 |
-| [pyright](https://microsoft.github.io/pyright/) | Alternative static type checker (faster than mypy, different trade-offs) |
+| Tool                                            | When to use                                                                                                |
+| :---------------------------------------------- | :--------------------------------------------------------------------------------------------------------- |
+| [Prettier](https://prettier.io/)                | Markdown/YAML/JSON formatting **(included** as a manual pre-commit hook and VS Code default formatter**)** |
+| [mdformat](https://github.com/hukkin/mdformat)  | Python-native Markdown formatter (no Node.js needed)                                                       |
+| [Black](https://black.readthedocs.io/)          | Python code formatter (Ruff's formatter is a drop-in replacement)                                          |
+| [isort](https://pycqa.github.io/isort/)         | Import sorting (Ruff includes this via `I` rules)                                                          |
+| [Pylint](https://pylint.readthedocs.io/)        | Comprehensive Python linter (overlaps heavily with Ruff)                                                   |
+| [pyright](https://microsoft.github.io/pyright/) | Alternative static type checker (faster than mypy, different trade-offs)                                   |
 
 ### Packaging & Distribution
 

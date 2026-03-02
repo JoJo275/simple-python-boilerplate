@@ -61,6 +61,8 @@ Things to explore, implement, or learn more about.
 
 - [ ] Spin-off template repos: "minimal", "library", "cli", "data-science", "web-app"
 - [ ] Keep Containerfile in sync with production pipeline
+- [ ] Verify devtools URL (python-devtools.helpmanual.io) — domain may be unreliable
+- [ ] Reconcile container-scan category: listed in both Security and Container in USING_THIS_TEMPLATE.md; only Security in workflows.md
 
 ## For Template Users
 

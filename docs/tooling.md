@@ -25,13 +25,13 @@ it's configured, and where to learn more.
 
 ## Code Quality
 
-| Tool                                                            | What it does                                                                                                  | Config                                | Docs                                                             |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
-| **[Ruff](https://docs.astral.sh/ruff/)**                        | Lints and formats Python code. A single Rust binary that replaces flake8, isort, black, pyupgrade, and more.  | `pyproject.toml` → `[tool.ruff]`      | [Ruff docs](https://docs.astral.sh/ruff/)                        |
-| **[mypy](https://mypy.readthedocs.io/)**                        | Static type checker. Catches type errors without running your code. Runs in strict mode in this project.      | `pyproject.toml` → `[tool.mypy]`      | [mypy docs](https://mypy.readthedocs.io/)                        |
-| **[typos](https://github.com/crate-ci/typos)**                  | Finds spelling mistakes in source code, docs, and filenames. Rust-based, very fast.                           | `_typos.toml`                         | [typos docs](https://github.com/crate-ci/typos)                  |
-| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos.                                         | CLI args in `spellcheck.yml`          | [codespell docs](https://github.com/codespell-project/codespell) |
-| **[deptry](https://deptry.com/)**                               | Checks for unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. | `pyproject.toml` → `[tool.deptry]`    | [deptry docs](https://deptry.com/)                               |
+| Tool                                                            | What it does                                                                                                  | Config                             | Docs                                                             |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| **[Ruff](https://docs.astral.sh/ruff/)**                        | Lints and formats Python code. A single Rust binary that replaces flake8, isort, black, pyupgrade, and more.  | `pyproject.toml` → `[tool.ruff]`   | [Ruff docs](https://docs.astral.sh/ruff/)                        |
+| **[mypy](https://mypy.readthedocs.io/)**                        | Static type checker. Catches type errors without running your code. Runs in strict mode in this project.      | `pyproject.toml` → `[tool.mypy]`   | [mypy docs](https://mypy.readthedocs.io/)                        |
+| **[typos](https://github.com/crate-ci/typos)**                  | Finds spelling mistakes in source code, docs, and filenames. Rust-based, very fast.                           | `_typos.toml`                      | [typos docs](https://github.com/crate-ci/typos)                  |
+| **[codespell](https://github.com/codespell-project/codespell)** | Another spellchecker that runs in CI as a safety net alongside typos.                                         | CLI args in `spellcheck.yml`       | [codespell docs](https://github.com/codespell-project/codespell) |
+| **[deptry](https://deptry.com/)**                               | Checks for unused, missing, and transitive dependencies by comparing `pyproject.toml` against actual imports. | `pyproject.toml` → `[tool.deptry]` | [deptry docs](https://deptry.com/)                               |
 
 ---
 
@@ -51,6 +51,8 @@ it's configured, and where to learn more.
 | **[Bandit](https://bandit.readthedocs.io/)**         | Static security linter for Python. Finds common security issues like hardcoded passwords, `shell=True`, unsafe YAML loading. | `pyproject.toml` → `[tool.bandit]` | [Bandit docs](https://bandit.readthedocs.io/)         |
 | **[pip-audit](https://github.com/pypa/pip-audit)**   | Checks installed packages against vulnerability databases (OSV, PyPI). The PyPA-maintained successor to `safety`.            | — (scans the environment)          | [pip-audit docs](https://github.com/pypa/pip-audit)   |
 | **[gitleaks](https://github.com/gitleaks/gitleaks)** | Scans git history and staged changes for secrets (API keys, tokens, passwords). Runs as a pre-push hook.                     | `.gitleaks.toml` (if present)      | [gitleaks docs](https://github.com/gitleaks/gitleaks) |
+| **[CodeQL](https://codeql.github.com/)**             | GitHub's semantic code analysis engine. Finds security vulnerabilities via deep static analysis. Runs in CI.                 | `security-codeql.yml`              | [CodeQL docs](https://codeql.github.com/)             |
+| **[OpenSSF Scorecard](https://scorecard.dev/)**      | Evaluates repository security practices (branch protection, dependency pinning, etc.). Runs in CI.                           | `scorecard.yml`                    | [Scorecard docs](https://scorecard.dev/)              |
 
 ---
 
@@ -85,10 +87,19 @@ it's configured, and where to learn more.
 
 ## Container
 
-| Tool                                                                 | What it does                                                                                            | Config                                 | Docs                              |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------- |
-| **[Podman](https://podman.io/) / [Docker](https://www.docker.com/)** | Builds and runs OCI container images. The project uses a `Containerfile` (same syntax as `Dockerfile`). | `Containerfile`, `docker-compose.yml`  | [Podman docs](https://podman.io/) |
-| **[Trivy](https://trivy.dev/)**                                      | Scans container images for vulnerabilities. Runs in CI.                                                 | `.github/workflows/container-scan.yml` | [Trivy docs](https://trivy.dev/)  |
+| Tool                                                                 | What it does                                                                                                 | Config                                 | Docs                                           |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------- | ---------------------------------------------- |
+| **[Podman](https://podman.io/) / [Docker](https://www.docker.com/)** | Builds and runs OCI container images. The project uses a `Containerfile` (same syntax as `Dockerfile`).      | `Containerfile`, `docker-compose.yml`  | [Podman docs](https://podman.io/)              |
+| **[Trivy](https://trivy.dev/)**                                      | Scans container images for vulnerabilities. Runs in CI.                                                      | `.github/workflows/container-scan.yml` | [Trivy docs](https://trivy.dev/)               |
+| **[Grype](https://github.com/anchore/grype)**                        | Scans container images for vulnerabilities using a different DB than Trivy. Provides complementary coverage. | `.github/workflows/container-scan.yml` | [Grype docs](https://github.com/anchore/grype) |
+
+---
+
+## Link Checking
+
+| Tool                                                | What it does                                                                                     | Config                               | Docs                                                 |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------ | ---------------------------------------------------- |
+| **[lychee](https://github.com/lycheeverse/lychee)** | Checks Markdown and HTML for broken links. Rust-based, async. Runs in CI via `link-checker.yml`. | `.github/workflows/link-checker.yml` | [lychee docs](https://github.com/lycheeverse/lychee) |
 
 ---
 
@@ -104,11 +115,11 @@ it's configured, and where to learn more.
 
 ## Formatting (non-Python)
 
-| Tool                                                                             | What it does                                                                                            | Config                     | Docs                                                                              |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------- |
-| **[Prettier](https://prettier.io/)**                                             | Formats Markdown, YAML, and JSON files. Runs as a manual pre-commit hook and VS Code default formatter. | `.pre-commit-config.yaml`  | [Prettier docs](https://prettier.io/)                                             |
-| **[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)**         | Lints Markdown files for style and structure issues. Runs as a manual pre-commit hook.                  | `.markdownlint-cli2.jsonc` | [markdownlint-cli2 docs](https://github.com/DavidAnson/markdownlint-cli2)         |
-| **[hadolint](https://github.com/hadolint/hadolint)**                             | Lints Dockerfiles/Containerfiles for best practices. Runs as a manual pre-commit hook.                  | `.pre-commit-config.yaml`  | [hadolint docs](https://github.com/hadolint/hadolint)                             |
+| Tool                                                                     | What it does                                                                                            | Config                     | Docs                                                                      |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------- |
+| **[Prettier](https://prettier.io/)**                                     | Formats Markdown, YAML, and JSON files. Runs as a manual pre-commit hook and VS Code default formatter. | `.pre-commit-config.yaml`  | [Prettier docs](https://prettier.io/)                                     |
+| **[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2)** | Lints Markdown files for style and structure issues. Runs as a manual pre-commit hook.                  | `.markdownlint-cli2.jsonc` | [markdownlint-cli2 docs](https://github.com/DavidAnson/markdownlint-cli2) |
+| **[hadolint](https://github.com/hadolint/hadolint)**                     | Lints Dockerfiles/Containerfiles for best practices. Runs as a manual pre-commit hook.                  | `.pre-commit-config.yaml`  | [hadolint docs](https://github.com/hadolint/hadolint)                     |
 
 ---
 
@@ -118,3 +129,6 @@ it's configured, and where to learn more.
 - [tool-decisions.md](design/tool-decisions.md) — Detailed notes on why each tool was chosen over alternatives
 - [ADR index](adr/README.md) — Architecture Decision Records for major tool choices
 - [developer-commands.md](development/developer-commands.md) — Complete command reference
+- [workflows.md](workflows.md) — Canonical workflow inventory (many tools run via CI)
+- [USING_THIS_TEMPLATE.md](USING_THIS_TEMPLATE.md) — Tool customization for template users
+- [repo-layout.md](repo-layout.md) — Where tools are configured in the project structure

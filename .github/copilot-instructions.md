@@ -80,7 +80,7 @@ the summary below is for quick orientation only.
 **Categories at a glance:**
 
 - **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck, spellcheck-autofix
-- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy container scan, nightly scan, OpenSSF Scorecard
+- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy + Grype container scans, nightly scan, OpenSSF Scorecard
 - **PR hygiene:** commit-lint, pr-title, labeler
 - **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
 - **Release:** release-please → release → SBOM

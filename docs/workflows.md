@@ -146,6 +146,7 @@ All workflows in this project follow these patterns:
 | **Timeout limits**             | `timeout-minutes` set on every job                                                                                                                                       |
 | **Minimal permissions**        | `permissions: contents: read` (least privilege)                                                                                                                          |
 | **Persist-credentials: false** | On all checkout steps                                                                                                                                                    |
+| **Manual triggers**            | Most workflows include `workflow_dispatch` for manual runs (exceptions: PR-only workflows like `dependency-review`, `labeler`, `pr-title`, `commit-lint`)                |
 | **Header comments**            | Each file has a comment block explaining purpose, triggers, and TODO instructions for template users                                                                     |
 
 ### File Naming
@@ -225,6 +226,8 @@ python scripts/workflow_versions.py show --quiet || echo "Actions need attention
 - [Architecture — CI/CD section](design/architecture.md) — CI/CD architecture diagram
 - [Releasing](releasing.md) — Release workflow details
 - [SBOM Strategy](sbom.md) — SBOM formats, channels, and authoritative source
+- [tooling.md](tooling.md) — All tools at a glance (many run via these workflows)
+- [USING_THIS_TEMPLATE.md](USING_THIS_TEMPLATE.md) — Workflow enablement, disabling, and categories
 - [ADR 003](adr/003-separate-workflow-files.md) — Why separate workflow files
 - [ADR 004](adr/004-pin-action-shas.md) — Why pin to SHAs
 - [ADR 011](adr/011-repository-guard-pattern.md) — Repository guard pattern
