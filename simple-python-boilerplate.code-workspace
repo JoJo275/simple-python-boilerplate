@@ -1,0 +1,87 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		// ── Python ──────────────────────────────────────────────
+		// NOTE: VS Code's Python extension auto-discovers interpreters
+		// (Hatch envs, .venv, conda, etc.) so this setting is a hint,
+		// not a hard requirement. "python" uses PATH resolution — the
+		// extension will still discover and offer Hatch envs, .venv,
+		// conda, etc. via the interpreter picker.
+		//
+		// To select a specific interpreter:
+		//   Ctrl+Shift+P → "Python: Select Interpreter" → pick your env.
+		//   The extension remembers your choice per workspace.
+		//
+		// TODO (template users): If you use a local .venv instead of
+		//   Hatch, change this to the absolute path of your venv python:
+		//   Linux/macOS: ${workspaceFolder}/.venv/bin/python
+		//   Windows:     ${workspaceFolder}/.venv/Scripts/python.exe
+		"python.defaultInterpreterPath": "python",
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll": "explicit",
+				"source.organizeImports": "explicit"
+			}
+		},
+
+		// ── Markdown ────────────────────────────────────────────
+		// markdownlint reads rules from .markdownlint-cli2.jsonc automatically.
+		// These settings control editor-side behavior only.
+		"[markdown]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"editor.formatOnSave": false,
+			"editor.wordWrap": "on"
+		},
+
+		// ── Files ───────────────────────────────────────────────
+		"files.trimTrailingWhitespace": true,
+		"files.insertFinalNewline": true,
+		"files.trimFinalNewlines": true,
+		"files.exclude": {
+			"**/__pycache__": true,
+			"**/*.egg-info": true,
+			"**/.mypy_cache": true,
+			"**/.ruff_cache": true,
+			"**/site": true
+		},
+
+		// ── Editor ──────────────────────────────────────────────
+		"editor.rulers": [88, 120],
+
+		// ── YAML ────────────────────────────────────────────────
+		"[yaml]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			// Python
+			"ms-python.python",
+			"ms-python.mypy-type-checker",
+			"charliermarsh.ruff",
+
+			// Markdown
+			"DavidAnson.vscode-markdownlint",
+			"esbenp.prettier-vscode",
+
+			// YAML
+			"redhat.vscode-yaml",
+
+			// Git
+			"eamodio.gitlens",
+
+			// Task runner
+			"task.vscode-task",
+
+			// General
+			"EditorConfig.EditorConfig",
+			"streetsidesoftware.code-spell-checker"
+		]
+	}
+}

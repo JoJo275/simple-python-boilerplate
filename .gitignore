@@ -120,6 +120,8 @@ dmypy.json
 
 # VS Code workspace files (personal layout/state)
 *.code-workspace
+# But track the project's shared workspace config
+!simple-python-boilerplate.code-workspace
 
 # =========================================
 # PyPI credentials
