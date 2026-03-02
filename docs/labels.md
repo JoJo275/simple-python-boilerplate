@@ -1,5 +1,13 @@
 # Labels
 
+<!-- TODO (template users): After forking, customise the label sets to
+     match your project. In particular:
+     - Review `area:` labels — replace cli/api/docs placeholders with
+       areas that match your codebase.
+     - Decide whether you need the extended set or if baseline is enough.
+     - Update labels/baseline.json and labels/extended.json to match.
+     - Run `python scripts/apply_labels.py --set baseline` to sync. -->
+
 This boilerplate includes **label specs** (machine-readable) plus a human-readable catalog.
 
 Why this exists:
@@ -202,9 +210,9 @@ For macOS/Linux/WSL users who prefer shell scripts:
 
 ## Baseline set
 
-GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(18 labels = 11 GitHub defaults + 7 extras)**
+GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(18 labels = 9 GitHub defaults + 9 extras)**
 
-> GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate also includes a few extra labels (including automation-friendly `dependencies` / `github_actions`) plus a minimal `status:` and `priority:` subset.
+> GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate adds 9 extras: automation-friendly labels (`dependencies`, `github_actions`), a minimal `status:` subset (`needs-triage`, `needs-info`, `blocked`), and `priority:` labels (`p1-high`, `p2-medium`, `p3-low`, `backlog`).
 
 | Label                  | Description                                    | Color     |
 | ---------------------- | ---------------------------------------------- | --------- |
@@ -307,3 +315,12 @@ Includes everything in baseline plus more granular `status:`, `priority:`, `area
 - `labels/extended.json` — extended label spec
 - `scripts/apply_labels.py` — upsert logic (create/update labels)
 - `scripts/apply-labels.sh` — convenience wrapper
+
+---
+
+## See Also
+
+- [ADR 030](adr/030-label-management-as-code.md) — Decision record for label management strategy
+- [CONTRIBUTING.md](../CONTRIBUTING.md) — Contribution guidelines (references labels for triage)
+- [Workflows](workflows.md) — `labeler.yml` auto-applies labels based on changed file paths
+- [`.github/labeler.yml`](../.github/labeler.yml) — Path-to-label mapping for the auto-labeler

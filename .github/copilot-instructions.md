@@ -180,6 +180,7 @@ exists in the project. Key templates:
 - **MkDocs hook** → review `mkdocs-hooks/repo_links.py` for conventions; update `mkdocs-hooks/README.md` inventory and register in `mkdocs.yml` under `hooks:`
 - **Security policy** → `docs/templates/SECURITY_no_bounty.md` or `SECURITY_with_bounty.md` — copy to repo root as `SECURITY.md`
 - **Bug bounty** → `docs/templates/BUG_BOUNTY.md` — standalone bounty policy linked from SECURITY.md
+- **VS Code workspace** → `*.code-workspace` — review for settings, extensions, and file exclusions before adding new workspace-level config
 
 ### Keep Related Files in Sync
 
