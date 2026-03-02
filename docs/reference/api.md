@@ -22,9 +22,9 @@ processing. This module is interface-agnostic and contains no CLI or HTTP
 dependencies.
 
 ::: simple_python_boilerplate.engine
-options:
-show_source: false
-heading_level: 3
+    options:
+      show_source: false
+      heading_level: 3
 
 ## Main
 
@@ -37,9 +37,9 @@ Configured as console scripts in `pyproject.toml` under
      your actual entry points. -->
 
 ::: simple_python_boilerplate.main
-options:
-show_source: false
-heading_level: 3
+    options:
+      show_source: false
+      heading_level: 3
 
 ## CLI
 
@@ -51,9 +51,9 @@ from the standard library.
      document the new command structure. -->
 
 ::: simple_python_boilerplate.cli
-options:
-show_source: false
-heading_level: 3
+    options:
+      show_source: false
+      heading_level: 3
 
 ## API Layer
 
@@ -67,9 +67,9 @@ HTTP/REST interface helpers. Currently a placeholder — choose a framework
      4. If not building a web API, remove this section entirely -->
 
 ::: simple_python_boilerplate.api
-options:
-show_source: false
-heading_level: 3
+    options:
+      show_source: false
+      heading_level: 3
 
 ## Dev Tools
 
@@ -81,9 +81,9 @@ and build artifact removal used by `scripts/clean.py` and `task clean`.
      remove both the directory and this section. -->
 
 ::: simple_python_boilerplate.dev_tools
-options:
-show_source: false
-heading_level: 3
+    options:
+      show_source: false
+      heading_level: 3
 
 ---
 
