@@ -112,6 +112,19 @@ impact = "GitHub Actions checks won't run. Branch protection may block merges if
 link = "docs/adr/003-separate-workflow-files.md"
 fix = "mkdir -p .github/workflows"
 
+# CI gate — the single required check for branch protection
+[[rule]]
+type = "exists"
+path = ".github/workflows/ci-gate.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "CI gate workflow missing — branch protection required check 'CI Gate' will fail; PRs can't merge."
+hint = "Restore ci-gate.yml or update branch protection rules to remove the 'CI Gate' required check."
+link = "docs/adr/024-ci-gate-pattern.md"
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."
+
 # Core workflows that branch protection likely requires
 [[rule]]
 type = "exists"
@@ -154,6 +167,16 @@ level = "warn"
 category = "ci"
 impact = "Dependabot won't create automatic dependency update PRs. Dependencies may fall behind or accumulate vulnerabilities."
 link = "docs/adr/010-dependabot-for-dependency-updates.md"
+
+[[rule]]
+type = "exists"
+path = "Taskfile.yml"
+kind = "file"
+level = "warn"
+category = "ci"
+impact = "Taskfile.yml missing — 'task' commands won't work. Contributors will need to run hatch commands directly."
+hint = "Restore Taskfile.yml or update docs/CONTRIBUTING.md to remove task references."
+link = "docs/adr/017-task-runner.md"
 
 [[rule]]
 type = "exists"
@@ -336,6 +359,17 @@ kind = "file"
 level = "info"
 category = "docs"
 impact = "No code of conduct — open-source best practice for community repos."
+
+[[rule]]
+type = "exists"
+path = ".prettierignore"
+kind = "file"
+level = "info"
+category = "docs"
+impact = "No .prettierignore — Prettier may reformat mkdocstrings ::: directives in docs/, breaking the MkDocs build."
+hint = "Add .prettierignore excluding docs/reference/api.md and other files with mkdocstrings directives."
+only_if.path = ".pre-commit-config.yaml"
+only_if.regex = "(?i)\\bprettier\\b"
 
 
 # =============================================================================
