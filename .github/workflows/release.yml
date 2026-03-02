@@ -92,7 +92,7 @@ jobs:
 
       # Persist the built artifacts so the publish job can use them
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # Upload a build artifact that can be used by… (v6.0.0)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # Upload a build artifact that can be used by… (v6.0.0)
         with:
           name: dist
           path: dist/
@@ -200,7 +200,7 @@ jobs:
       # Bundle both SBOMs into a single artifact for the
       # github-release job to download and attach.
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # Upload a build artifact that can be used by… (v6.0.0)
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # Upload a build artifact that can be used by… (v6.0.0)
         with:
           name: sbom
           path: |
