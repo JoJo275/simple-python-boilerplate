@@ -1,5 +1,11 @@
 # Release Policy
 
+<!-- TODO (template users): Review this entire document and adapt it to
+     your project's actual release cadence, support commitments, and API
+     surface. The policies below are reasonable defaults — adjust the
+     support window, deprecation timeline, and public API definition to
+     match your project's reality. -->
+
 This document describes when and how releases are made.
 
 ---
@@ -90,6 +96,10 @@ A push consisting only of hidden types (e.g., `docs:` or `chore:`) will **not** 
 
 ### What We Consider "Public API"
 
+<!-- TODO (template users): Update this list to reflect your actual
+     exported API surface. The items below are placeholders from the
+     boilerplate. -->
+
 - Exported functions/classes from `simple_python_boilerplate`
 - CLI commands and their arguments
 - Configuration file formats
@@ -106,6 +116,10 @@ Changes to non-public API do not require a major version bump.
 ---
 
 ## Deprecation Policy
+
+<!-- TODO (template users): Adapt the deprecation timeline to your release
+     cadence. "At least one minor release" may not be enough for projects
+     with long release cycles. -->
 
 Before removing features:
 
@@ -131,6 +145,9 @@ def old_function():
 ---
 
 ## Support Policy
+
+<!-- TODO (template users): Adjust the support window (6 months, 12 months,
+     etc.) based on your project's maintenance capacity and user expectations. -->
 
 | Version        | Support Level                  |
 | -------------- | ------------------------------ |

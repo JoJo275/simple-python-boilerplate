@@ -84,4 +84,7 @@ jobs:
             Review for false positives before merging.
           branch: "bot/spellcheck-autofix"
           delete-branch: true
-          labels: "spellcheck,maintenance"
+          # TODO (template users): Ensure these labels exist in your repo
+          # before enabling this workflow. See labels/ for label definitions
+          # and scripts/apply_labels.py to sync them.
+          labels: "type: chore,documentation"

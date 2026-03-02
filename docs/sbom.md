@@ -1,5 +1,10 @@
 # Software Bill of Materials (SBOM)
 
+<!-- TODO (template users): SBOMs require repository variables to be set.
+     After forking, set `ENABLE_SBOM = true` in Settings → Variables for
+     CI SBOMs, and `ENABLE_RELEASE = true` for release SBOMs. See the
+     "Enabling SBOMs" section below for details. -->
+
 This project generates SBOMs in two standard formats and distributes them through four complementary channels.
 
 ---
@@ -102,11 +107,15 @@ If discrepancies arise, the **release-asset SBOM (channel 3)** is the authoritat
 
 ## Enabling SBOMs
 
+<!-- TODO (template users): Set the repository variables below in your
+     repo settings. If using the repository guard pattern (Option A in
+     the workflow), replace `YOURNAME/YOURREPO` with your repo slug. -->
+
 ### For the CI workflow (`sbom.yml`)
 
 Set a repository variable:
 
-```
+```text
 Settings → Secrets and variables → Actions → Variables
   Name:  ENABLE_SBOM
   Value: true

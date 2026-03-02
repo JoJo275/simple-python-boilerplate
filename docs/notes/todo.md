@@ -31,14 +31,14 @@ Things to explore, implement, or learn more about.
 - [X] Final file check: BUG_BOUNTY.md
 - [X] Final file check: SECURITY_no_bounty.md
 - [X] Final file check: SECURITY_with_bounty.md
-- [ ] Final file check: docs/repo-layout.md
+- [x] Final file check: docs/repo-layout.md
 - [ ] Final file check: All repo README.md files (root, docs/, src/)
 - [ ] Final file check: All repo index.md files (docs/, docs/reference/)
-- [ ] Final file check: labels.md
-- [ ] Final file check: release-policy.md
-- [ ] Final file check: releasing.md
-- [ ] Final file check: repo-layout.md
-- [ ] Final file check: sbom.md
+- [x] Final file check: labels.md
+- [x] Final file check: release-policy.md
+- [x] Final file check: releasing.md
+- [x] Final file check: repo-layout.md
+- [x] Final file check: sbom.md
 - [ ] Final file check: tooling.md
 - [ ] Final file check: USING_THIS_TEMPLATE.md
 - [ ] Final file check: workflows.md

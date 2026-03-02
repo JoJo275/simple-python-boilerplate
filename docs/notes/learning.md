@@ -367,7 +367,7 @@ Understanding the distinction is important.
 
 ### The Big Picture
 
-```
+```text
                     ┌─────────────────────────┐
                     │   Docker / Podman       │  ← The engine that runs everything
                     │   (container runtime)   │
@@ -590,7 +590,7 @@ issues or customizing workflows.
 
 ### The Hierarchy
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  YOU (developer)                                                            │
 │  ↓                                                                          │
@@ -629,7 +629,7 @@ All three ultimately run pytest. The layers add convenience:
 
 ### Example: Tracing `task lint`
 
-```
+```text
 task lint
   └→ Taskfile.yml defines: cmds: ["hatch run lint"]
       └→ pyproject.toml [tool.hatch.envs.default.scripts] defines: lint = "ruff check src/ tests/"
@@ -792,7 +792,7 @@ A simple hook that checks for `TODO` comments:
 
 For hooks written in Python, structure the repo as an installable package:
 
-```
+```text
 my-hooks/
 ├── .pre-commit-hooks.yaml
 ├── pyproject.toml
@@ -1095,7 +1095,7 @@ will not match if the variable is set to `'True'` or `'TRUE'`.
 
 Cron uses five fields, all in **UTC**:
 
-```
+```text
 ┌─── minute (0–59)
 │ ┌─── hour (0–23)
 │ │ ┌─── day of month (1–31)
@@ -1846,7 +1846,7 @@ A clean separation of concerns for the `src/` package structure.
 
 ### The Pattern
 
-```
+```text
 main.py   → starts the program (entry points, thin wrappers)
 cli.py    → defines CLI contract (argument parsing, commands)
 engine.py → defines behavior (core logic, interface-agnostic)
@@ -1864,7 +1864,7 @@ api.py    → defines callable interface (HTTP/REST, optional)
 
 ### Data Flow
 
-```
+```text
 User runs command
        ↓
 main.py (entry point)
@@ -2453,7 +2453,7 @@ It is not source code. It is installation metadata.
 
 Typical contents:
 
-```
+```text
 my_package.egg-info/
 ├── PKG-INFO        # Name, version, license, metadata
 ├── SOURCES.txt     # Files included in the package
@@ -2603,7 +2603,7 @@ These PEPs made `pyproject.toml` the **standard** way to configure Python projec
 
 A `pyproject.toml` has three major sections:
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │  [build-system]            ← PEP 518            │
 │  How to build this project                      │
@@ -2850,7 +2850,7 @@ nearly every modern OS:
 
 #### The Unix Family Tree
 
-```
+```text
 Unix (AT&T Bell Labs, 1969)
  ├── BSD (Berkeley, 1977)
  │    ├── FreeBSD
@@ -3015,7 +3015,7 @@ the _window_, not the thing interpreting your commands.
 
 #### Historical Context
 
-```
+```text
 1960s–70s: Physical terminals (hardware devices with a screen and keyboard)
            └── VT100, VT220, Teletype (TTY)
                 └── Connected to a mainframe/minicomputer via serial cable
@@ -3032,7 +3032,7 @@ The word "TTY" (teletypewriter) persists in Unix — `tty` is a command,
 
 These three terms are often used interchangeably, but they're different layers:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │  Terminal Emulator (the window)                      │
 │  ┌───────────────────────────────────────────────┐  │
@@ -3138,7 +3138,7 @@ should go in the script itself or be passed explicitly.
 
 When you type `python main.py` and press Enter, here's what happens:
 
-```
+```text
 1. Shell reads the line: "python main.py"
 2. Shell parses it: command="python", args=["main.py"]
 3. Shell searches $PATH for "python" executable
@@ -3508,7 +3508,7 @@ Shells are command-line interpreters — programs that read your commands and ex
 
 ### The Shell Family Tree
 
-```
+```text
 sh (Bourne Shell, 1979)
  └── bash (Bourne Again Shell, 1989)
       └── zsh (Z Shell, 1990)
@@ -4284,7 +4284,7 @@ When changes from a feature branch need to get into `main`, there are several st
 
 The simplest approach: commit directly on `main` and push.
 
-```
+```text
 main:  A ─ B ─ C ─ D
                      ↑ your commits land here
 ```
@@ -4299,7 +4299,7 @@ main:  A ─ B ─ C ─ D
 
 Creates a special commit with **two parents** — one from main, one from the branch tip. Preserves the branch topology.
 
-```
+```text
 main:    A ─ B ─ ─ ─ ─ ─ M
               \         /
 feature:       C ─ D ─ E
@@ -4325,7 +4325,7 @@ Where `M` is the merge commit with parents `B` and `E`.
 
 Takes all commits from the feature branch and **squashes** them into a **single commit** on main. The PR title typically becomes the commit message.
 
-```
+```text
 feature:  C ─ D ─ E    (3 commits)
                 ↓ squash
 main:     A ─ B ─ S    (1 commit, S = squashed C+D+E)
@@ -4349,7 +4349,7 @@ main:     A ─ B ─ S    (1 commit, S = squashed C+D+E)
 
 Takes each commit from the feature branch and **replays** them one at a time on top of main's tip. Produces a linear history where every commit is preserved.
 
-```
+```text
 feature:  C ─ D ─ E           (on top of B)
                   ↓ rebase onto main's tip
 main:     A ─ B ─ C' ─ D' ─ E'  (C', D', E' are replayed copies)
@@ -4397,7 +4397,7 @@ The **PR is the integration record** (review comments, approvals, design discuss
 
 A common scenario: Alice creates `feature-a` off `main`. Bob needs Alice's work, so he branches `feature-b` off `feature-a`. Alice's branch eventually gets merged into `main`. Now Bob's branch has problems.
 
-```
+```text
 main:       A ─ B ─ ─ ─ ─ ─ ─ ─ ─ (Alice's work arrives here somehow)
                  \
 feature-a:        C ─ D ─ E         (Alice's branch)
@@ -4411,7 +4411,7 @@ The **severity of the problem depends on the merge strategy** used to integrate 
 
 When `feature-a` is merged into main with a merge commit:
 
-```
+```text
 main:       A ─ B ─ ─ ─ ─ ─ M      (M = merge commit, parents: B and E)
                  \         /
 feature-a:        C ─ D ─ E
@@ -4437,7 +4437,7 @@ The `--onto` flag says: "take the commits that are on `feature-b` but NOT on `fe
 
 When `feature-a` is squash-merged into main:
 
-```
+```text
 main:       A ─ B ─ S              (S = squashed C+D+E into one commit, NEW SHA)
                  \
 feature-a:        C ─ D ─ E        (these commits are now abandoned)
@@ -4474,7 +4474,7 @@ git rebase -i main
 
 When `feature-a` is rebase-merged into main:
 
-```
+```text
 main:       A ─ B ─ C' ─ D' ─ E'    (C', D', E' = rebased copies, NEW SHAs)
                  \
 feature-a:        C ─ D ─ E          (original SHAs, now orphaned)
@@ -4558,7 +4558,7 @@ git rebase --onto main <SHA-of-E> feature-b
 
 Tags are **named pointers to specific commits** in git. They're like bookmarks — a human-readable label permanently attached to a point in history.
 
-```
+```text
 main:  A ─ B ─ C ─ D ─ E ─ F
                    ↑           ↑
                 v0.1.0      v1.0.0
@@ -4681,7 +4681,7 @@ If you want commits to reference an **issue** (not just the PR), you can enforce
 
 **Example commit with issue reference:**
 
-```
+```text
 feat: add user authentication
 
 Refs: #15
@@ -4689,7 +4689,7 @@ Refs: #15
 
 Or using GitHub's closing keywords:
 
-```
+```text
 fix: correct token expiration calculation
 
 Fixes #28
@@ -4725,7 +4725,7 @@ To strictly enforce issue references, you'd need a custom commitizen plugin or a
 
 You can use both: GitHub auto-appends `(#PR)` and you optionally include `Refs: #issue` in the body. The commit on `main` would look like:
 
-```
+```text
 feat: add user authentication (#42)
 
 Refs: #15

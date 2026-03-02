@@ -324,7 +324,7 @@ The Release PR contains auto-generated changes to:
 
 When releasable commits exist on `main` (i.e., commits with `feat:`, `fix:`, `perf:`, or `BREAKING CHANGE`), release-please automatically creates or updates a Release PR titled something like:
 
-```
+```text
 chore(main): release 1.2.0
 ```
 
@@ -418,7 +418,7 @@ The tag then triggers the [release.yml](../.github/workflows/release.yml) workfl
 
 Since rebase+merge preserves individual commits, **every commit message matters**:
 
-```
+```text
 feat: add user login endpoint (#42)
 
 Why: Users need to authenticate to access protected resources.
@@ -450,7 +450,7 @@ This means every commit on `main` automatically points back to its PR — preser
 
 **Optional: Issue references in commit body.** If you also want to link to issues (requirements, bug reports), add a footer:
 
-```
+```text
 feat: add user authentication
 
 Refs: #15
@@ -461,6 +461,13 @@ GitHub's closing keywords (`Fixes #28`, `Closes #30`, `Resolves #15`) also work 
 ---
 
 ## Publishing to PyPI
+
+<!-- TODO (template users): Replace `your-username/simple-python-boilerplate`
+     below with your actual GitHub `OWNER/REPO` slug. Also set up the
+     `release` environment and `PUBLISH_TOKEN` secret in your repo settings
+     before publishing. If you don't plan to publish to PyPI, you can skip
+     this section entirely — the release workflow builds artifacts and
+     uploads them to GitHub Releases regardless. -->
 
 PyPI publishing is disabled by default. To enable:
 
@@ -487,6 +494,11 @@ Add `PUBLISH_TOKEN` in Settings → Secrets and variables → Actions → Secret
 ---
 
 ## GitHub Repository Settings
+
+<!-- TODO (template users): Configure these settings in your repository
+     after forking. These are not inherited from templates and must be
+     set manually in Settings → General, Settings → Branches, and
+     Settings → Variables. -->
 
 Configure these settings to enforce the release workflow:
 
