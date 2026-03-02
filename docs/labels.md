@@ -52,6 +52,7 @@ Track where an issue/PR is in the workflow. **Apply one at a time** as the issue
 | `status: ready-for-review`      | PR ready for maintainer review           |
 | `status: waiting-on-maintainer` | Ball is in maintainer's court            |
 | `status: waiting-on-reporter`   | Ball is in reporter's court              |
+| `status: wont-merge`            | Decision made not to accept a PR         |
 
 **Baseline flow:** `needs-triage` → _(work)_ → closed (use `blocked` / `needs-info` as needed)
 
@@ -82,6 +83,10 @@ Identify which part of the codebase is affected. **Can apply multiple.**
 | `area: ci`        | CI/CD pipelines                   |
 | `area: config`    | Configuration/environment         |
 | `area: packaging` | pyproject.toml, build, publishing |
+| `area: logging`   | Logging and telemetry             |
+| `area: ux`        | User experience and ergonomics    |
+| `area: performance` | Subsystem performance (hot paths) |
+| `area: compatibility` | OS/Python-version compatibility |
 | `area: windows`   | Windows-specific issues           |
 | `area: linux`     | Linux-specific issues             |
 | `area: macos`     | macOS-specific issues             |
