@@ -45,13 +45,15 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: docs/design/database.md
 - [ ] Final file check: CONTRIBUTING.md
 - [ ] Final file check: CODE_OF_CONDUCT.md
-- [ ] Final file check: Containerfile
-- [ ] Final file check: docker-compose.yml
+- [x] Final file check: Containerfile
+- [x] Final file check: docker-compose.yml
 - [ ] Final file check: codecov.yml
 - [ ] Final file check: mkdocs.yml
 - [ ] Final file check: .pre-commit-config.yaml
 - [ ] Final file check: .github/dependabot.yml
-- [ ] Final file check: entire docs/
+- [X] Final file check: entire docs/
+- [X] Final file check: LICENSE
+- [ ] Final file check: LICENSE
 - [x] Add in TODOs where warranted
 - [x] Configure VS Code workspace settings and recommended extensions
 - [X] Review and consolidate docs/
@@ -61,7 +63,7 @@ Things to explore, implement, or learn more about.
 
 - [ ] Spin-off template repos: "minimal", "library", "cli", "data-science", "web-app"
 - [ ] Keep Containerfile in sync with production pipeline
-- [ ] Verify devtools URL (python-devtools.helpmanual.io) — domain may be unreliable
+- [x] Verify devtools URL (python-devtools.helpmanual.io) — verified 2026-03-02, URL is valid
 - [ ] Reconcile container-scan category: listed in both Security and Container in USING_THIS_TEMPLATE.md; only Security in workflows.md
 
 ## For Template Users

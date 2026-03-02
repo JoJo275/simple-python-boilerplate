@@ -12,7 +12,10 @@
 # This uses the production Containerfile, not the dev container.
 # For development, use the VS Code Dev Container instead.
 #
-# See: https://docs.docker.com/compose/
+# See: https://docs.docker.com/compose/compose-file/
+#
+# TODO (template users): Update service name, image name, container_name,
+#   ports, environment variables, and volumes for your application.
 # =============================================================================
 
 services:
@@ -20,8 +23,15 @@ services:
     build:
       context: .
       dockerfile: Containerfile
+      # Pass git-derived version to the build (matches Containerfile ARG)
+      args:
+        VERSION: ${VERSION:-}
     image: simple-python-boilerplate:local
     container_name: simple-python-boilerplate
+    # Security: drop all capabilities and run read-only where possible
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
 
     # Uncomment to expose ports (e.g., if this becomes a web service)
     # ports:
@@ -51,7 +61,6 @@ services:
     #       memory: 256M
 
 # Uncomment to add a database service
-# services:
 #   db:
 #     image: postgres:16-alpine
 #     environment:

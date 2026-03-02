@@ -566,7 +566,7 @@ template but listed here so you see how they compare to alternatives.
 | :------------------------------------------------- | :------------------------------------------------------------------------ |
 | [IPython](https://ipython.readthedocs.io/)         | Enhanced interactive Python shell                                         |
 | [icecream](https://github.com/gruns/icecream)      | Better `print()` debugging: `ic(variable)`                                |
-| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` (check URL — domain may be unreliable) |
+| [devtools](https://python-devtools.helpmanual.io/) | Debug utilities: `debug(variable)` |
 | [pdb++](https://github.com/pdbpp/pdbpp)            | Enhanced Python debugger (drop-in pdb replacement)                        |
 
 ### Linting & Formatting (alternatives/additions)

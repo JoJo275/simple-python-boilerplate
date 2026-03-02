@@ -30,6 +30,10 @@ ARG PYTHON_BASE=python:3.12-slim@sha256:41563b9752d16a220983617270a893a0ddd47871
 # ── Stage 1: Build ────────────────────────────────────────────
 FROM ${PYTHON_BASE} AS builder
 
+# Prevent Python from writing .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 WORKDIR /build
 
 # Install build tool first (layer cached independently of source changes)
@@ -48,8 +52,14 @@ RUN python -m build --wheel --outdir /build/dist
 # ── Stage 2: Runtime ──────────────────────────────────────────
 FROM ${PYTHON_BASE} AS runtime
 
+# Prevent Python from writing .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
 # OCI image metadata
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
+# TODO (template users): Replace YOURNAME/YOURREPO with your actual GitHub
+#   repository slug (e.g., octocat/my-app). Update the title and description.
 LABEL org.opencontainers.image.title="simple-python-boilerplate" \
       org.opencontainers.image.description="A Python boilerplate project" \
       org.opencontainers.image.source="https://github.com/YOURNAME/YOURREPO" \
@@ -73,4 +83,7 @@ USER app
 #   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
 
 # Default command — runs the CLI entry point
+# TODO (template users): Replace "spb" with your package's actual CLI entry
+#   point, or switch to CMD ["python", "-m", "your_package"] if you don't
+#   define a console_scripts entry point.
 ENTRYPOINT ["spb"]
