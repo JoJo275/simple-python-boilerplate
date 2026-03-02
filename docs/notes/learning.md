@@ -2004,6 +2004,340 @@ You are not just writing code—you are teaching architecture.
 
 ---
 
+## Programming Conventions & Expected Patterns
+
+When people read a Python project, they expect certain conventions. These
+aren't arbitrary — they signal professionalism, ease maintenance, and
+enable tooling to work correctly. This section covers the patterns that
+experienced developers look for (and notice when they're missing).
+
+### The `if __name__ == "__main__":` Guard
+
+Every Python file that can be run directly should have this:
+
+```python
+def main() -> None:
+    """Entry point for the script."""
+    print("Hello, world!")
+
+if __name__ == "__main__":
+    main()
+```
+
+**Why it matters:**
+
+- Without it, importing the module executes its top-level code as a side effect
+- Tests can't safely import the module without triggering execution
+- Tooling (mypy, IDEs, linters) may behave unexpectedly
+- It's the first thing reviewers check in any executable file
+
+**The pattern:** Put all logic in functions, then call the entry function
+inside the guard. Never put bare logic at module level.
+
+### Shebangs
+
+Scripts intended to be run directly (not just imported) should start with:
+
+```python
+#!/usr/bin/env python3
+```
+
+**Why `env python3` instead of `/usr/bin/python3`?** Because `env` searches
+`$PATH`, so it finds the correct Python even in virtual environments or
+non-standard installs. Hardcoding the path breaks on systems where Python
+is installed elsewhere.
+
+**In this project:** After adding a shebang, mark the file executable in git:
+
+```bash
+git add --chmod=+x scripts/my_script.py
+```
+
+The pre-commit hook `check-shebang-scripts-are-executable` will fail
+otherwise.
+
+### Type Hints
+
+Python doesn't enforce types at runtime, but type hints serve three
+purposes: documentation, tooling, and catching bugs before they happen.
+
+```python
+# Without type hints — what does this accept? Return?
+def process(data, threshold):
+    ...
+
+# With type hints — immediately clear
+def process(data: list[dict[str, float]], threshold: float) -> bool:
+    ...
+```
+
+**What's expected in this project:**
+
+| Context | Expectation |
+| --- | --- |
+| Public functions in `src/` | Full type annotations required |
+| Private functions (`_name`) | Type annotations recommended |
+| Test functions | Not required (fixtures, mocks make it noisy) |
+| Script functions | Recommended but relaxed |
+| Return types | Always annotate — `-> None` for void functions |
+| `TypedDict`, `dataclass` | Prefer over raw dicts for structured data |
+
+**Common pitfalls:**
+
+- `dict` instead of `dict[str, Any]` — too vague, tells the reader nothing
+- Missing `-> None` — makes mypy assume `-> Any`
+- `Optional[str]` vs `str | None` — use `str | None` (Python 3.10+ style)
+- Forgetting `from __future__ import annotations` if targeting Python < 3.10
+
+### Docstrings (Google Style)
+
+This project uses **Google-style docstrings** because mkdocstrings parses
+them to generate API documentation.
+
+```python
+def calculate_score(values: list[float], weight: float = 1.0) -> float:
+    """Calculate weighted score from a list of values.
+
+    Takes a list of numeric values and applies a uniform weight factor.
+    Returns 0.0 for empty inputs rather than raising an error.
+
+    Args:
+        values: List of numeric values to score.
+        weight: Multiplier applied to the final sum. Defaults to 1.0.
+
+    Returns:
+        The weighted sum of all values, or 0.0 if the list is empty.
+
+    Raises:
+        ValueError: If weight is negative.
+
+    Example:
+        >>> calculate_score([1.0, 2.0, 3.0], weight=0.5)
+        3.0
+    """
+```
+
+**What's expected:**
+
+| Context | Expectation |
+| --- | --- |
+| Public functions | Required (one-line or full docstring) |
+| Classes | Required (describe purpose, not implementation) |
+| Modules (`__init__.py`) | Recommended (describe what the package does) |
+| Private functions | Optional (add when the "why" isn't obvious) |
+| Test functions | Optional (test name should be descriptive enough) |
+
+**The "why not what" rule:** Don't restate the code. Instead, explain
+intent, edge cases, and non-obvious behavior. `# increment counter` before
+`counter += 1` teaches nothing. `# Reset to 0 after 255 to match the
+protocol's unsigned-byte wraparound` is valuable.
+
+### Import Conventions
+
+```python
+# Standard library
+import os
+import sys
+from pathlib import Path
+
+# Third-party
+import requests
+from rich.console import Console
+
+# Local (absolute imports — required by this project)
+from simple_python_boilerplate.engine import process_data
+from simple_python_boilerplate.cli import parse_args
+```
+
+**Rules for this project:**
+
+1. **Absolute imports only** — `from simple_python_boilerplate.module import func`, never `from .module import func`
+2. **Ruff handles sorting** — Don't manually reorder; `ruff check --fix` does it for you
+3. **No wildcard imports** — Never `from module import *`
+4. **Lazy imports for heavy dependencies** — If a module takes 500ms to import (ML libs, etc.), import inside the function that uses it
+
+### Constants
+
+```python
+# Module-level constants — UPPER_SNAKE_CASE
+MAX_RETRY_COUNT = 3
+DEFAULT_TIMEOUT_SECONDS = 30
+API_BASE_URL = "https://api.example.com/v1"
+
+# Not constants — these are variables
+retry_count = 0
+current_timeout = DEFAULT_TIMEOUT_SECONDS
+```
+
+Constants go at the top of the file, after imports. They signal "this value
+never changes at runtime." If you see `MAX_RETRIES = 3` being reassigned
+later in the code, it's not actually a constant — rename it.
+
+### Error Handling
+
+```python
+# Bad — catches everything, hides bugs
+try:
+    result = process(data)
+except Exception:
+    pass
+
+# Better — specific exception, meaningful handling
+try:
+    result = process(data)
+except ValueError as e:
+    logger.warning("Invalid data format: %s", e)
+    return default_result
+except ConnectionError:
+    logger.error("Service unavailable, retrying in %ds", backoff)
+    raise
+```
+
+**Expected patterns:**
+
+- **Catch specific exceptions** — never bare `except:` or `except Exception:`
+- **Don't silence errors** — `pass` in an except block is almost always wrong
+- **Re-raise when appropriate** — Use `raise` without arguments to preserve traceback
+- **Use custom exceptions for API boundaries** — If your module has a public API, define domain-specific exceptions instead of leaking `KeyError` from internal dicts
+
+### Logging vs Print
+
+```python
+# Scripts — print() is fine for user-facing output
+print(f"Processed {count} files")
+
+# Libraries/packages — use logging
+import logging
+logger = logging.getLogger(__name__)
+logger.info("Processed %d files", count)
+```
+
+**When to use which:**
+
+| Context | Use | Why |
+| --- | --- | --- |
+| CLI output (user sees it) | `print()` | Direct, expected |
+| Diagnostic info (debugging) | `logging.debug()` | Configurable, filterable |
+| Operational info (health) | `logging.info()` | Captured by log systems |
+| Warnings (degraded state) | `logging.warning()` | Visible but non-fatal |
+| Errors (failure path) | `logging.error()` | Captured, alerted on |
+| **Never** use `print()` in | Library code, `engine.py` | Pollutes stdout, untestable |
+
+### Exit Codes
+
+Scripts should return meaningful exit codes:
+
+```python
+import sys
+
+def main() -> int:
+    """Return 0 on success, non-zero on failure."""
+    try:
+        result = run_checks()
+        if result.has_errors:
+            return 1
+        return 0
+    except KeyboardInterrupt:
+        return 130  # Standard for SIGINT
+
+if __name__ == "__main__":
+    sys.exit(main())
+```
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Success |
+| `1` | General error |
+| `2` | Misuse of command (bad args) |
+| `130` | Interrupted (Ctrl+C / SIGINT) |
+
+**Why it matters:** CI pipelines, shell scripts, and pre-commit hooks all
+check exit codes. A script that prints "Error!" but exits 0 silently
+passes every quality gate.
+
+### File-Level Structure
+
+The expected order within a Python file:
+
+```python
+#!/usr/bin/env python3                  # 1. Shebang (scripts only)
+"""Module docstring."""                 # 2. Module docstring
+
+from __future__ import annotations     # 3. Future imports
+
+import os                              # 4. Standard library imports
+import sys
+
+import requests                        # 5. Third-party imports
+
+from mypackage.engine import process   # 6. Local imports
+
+logger = logging.getLogger(__name__)   # 7. Module-level setup
+
+MAX_RETRIES = 3                        # 8. Constants
+
+class MyClass:                         # 9. Classes
+    ...
+
+def my_function():                     # 10. Functions
+    ...
+
+if __name__ == "__main__":             # 11. Main guard (last)
+    main()
+```
+
+This order isn't a personal preference — it's what isort, Ruff, and most
+style guides enforce. Deviating from it causes linter warnings and
+confuses readers.
+
+### The `__all__` Variable
+
+Controls what `from module import *` exports and tells tooling what a
+module's public API is:
+
+```python
+__all__ = ["process_data", "DataResult", "InvalidInputError"]
+```
+
+**When to use it:** When a module has a mix of public and internal names
+and you want to be explicit about the API boundary. Not required for every
+file, but good practice for `__init__.py` files that re-export from
+submodules.
+
+### Testing Conventions
+
+| Pattern | Expected? | Example |
+| --- | --- | --- |
+| Test files mirror source layout | Yes | `src/pkg/engine.py` → `tests/unit/test_engine.py` |
+| Test names describe behavior | Yes | `test_process_returns_empty_for_no_input` |
+| One assert per test (ideally) | Preferred | Easier to debug failures |
+| Fixtures for shared setup | Yes | `conftest.py` at test root |
+| Mocks for external services | Yes | Don't hit real APIs in unit tests |
+| Integration tests separate | Yes | `tests/integration/` directory |
+
+See [ADR 029](../adr/029-testing-strategy.md) for the project's full
+testing philosophy.
+
+### Script Conventions
+
+Scripts in `scripts/` follow additional rules:
+
+| Convention | Example | Why |
+| --- | --- | --- |
+| Shebang on line 1 | `#!/usr/bin/env python3` | Direct execution on Unix |
+| Module docstring | `"""Bootstrap a fresh clone."""` | `--help` or file browsing |
+| `if __name__ == "__main__":` guard | Always | Importable for testing |
+| Meaningful exit codes | `sys.exit(0)` or `sys.exit(1)` | CI and shell scripts check these |
+| `argparse` for CLI args | `parser = argparse.ArgumentParser()` | Consistent, self-documenting |
+| Type hints on public functions | `def bootstrap(path: Path) -> int:` | mypy checks scripts too |
+| No global state | Pass deps as function args | Testable, predictable |
+
+See [ADR 031](../adr/031-script-conventions.md) and
+[scripts/README.md](../../scripts/README.md) for the full inventory and
+conventions.
+
+---
+
 ## Common Python Cache & Artifact Directories
 
 | Path             | Created by         | Purpose                                            | Safe to delete? | Commit to git? |

@@ -146,6 +146,7 @@ shortcuts where available.
 | `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
 | `.markdownlint-cli2.jsonc`   | markdownlint rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)                                   |
 | `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
+| `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config                                                           |
 
 ---
 

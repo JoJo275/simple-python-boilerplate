@@ -50,6 +50,7 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: .github/dependabot.yml
 - [ ] Final file check: entire docs/
 - [x] Add in TODOs where warranted
+- [x] Configure VS Code workspace settings and recommended extensions
 - [ ] Review and consolidate docs/
 - [x] Add unit tests for mkdocs-hooks/repo_links.py (86 tests in tests/unit/test_repo_links.py)
 
