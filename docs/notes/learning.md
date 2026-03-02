@@ -2073,14 +2073,14 @@ def process(data: list[dict[str, float]], threshold: float) -> bool:
 
 **What's expected in this project:**
 
-| Context | Expectation |
-| --- | --- |
-| Public functions in `src/` | Full type annotations required |
-| Private functions (`_name`) | Type annotations recommended |
-| Test functions | Not required (fixtures, mocks make it noisy) |
-| Script functions | Recommended but relaxed |
-| Return types | Always annotate — `-> None` for void functions |
-| `TypedDict`, `dataclass` | Prefer over raw dicts for structured data |
+| Context                     | Expectation                                    |
+| --------------------------- | ---------------------------------------------- |
+| Public functions in `src/`  | Full type annotations required                 |
+| Private functions (`_name`) | Type annotations recommended                   |
+| Test functions              | Not required (fixtures, mocks make it noisy)   |
+| Script functions            | Recommended but relaxed                        |
+| Return types                | Always annotate — `-> None` for void functions |
+| `TypedDict`, `dataclass`    | Prefer over raw dicts for structured data      |
 
 **Common pitfalls:**
 
@@ -2119,13 +2119,13 @@ def calculate_score(values: list[float], weight: float = 1.0) -> float:
 
 **What's expected:**
 
-| Context | Expectation |
-| --- | --- |
-| Public functions | Required (one-line or full docstring) |
-| Classes | Required (describe purpose, not implementation) |
-| Modules (`__init__.py`) | Recommended (describe what the package does) |
-| Private functions | Optional (add when the "why" isn't obvious) |
-| Test functions | Optional (test name should be descriptive enough) |
+| Context                 | Expectation                                       |
+| ----------------------- | ------------------------------------------------- |
+| Public functions        | Required (one-line or full docstring)             |
+| Classes                 | Required (describe purpose, not implementation)   |
+| Modules (`__init__.py`) | Recommended (describe what the package does)      |
+| Private functions       | Optional (add when the "why" isn't obvious)       |
+| Test functions          | Optional (test name should be descriptive enough) |
 
 **The "why not what" rule:** Don't restate the code. Instead, explain
 intent, edge cases, and non-obvious behavior. `# increment counter` before
@@ -2214,14 +2214,14 @@ logger.info("Processed %d files", count)
 
 **When to use which:**
 
-| Context | Use | Why |
-| --- | --- | --- |
-| CLI output (user sees it) | `print()` | Direct, expected |
-| Diagnostic info (debugging) | `logging.debug()` | Configurable, filterable |
-| Operational info (health) | `logging.info()` | Captured by log systems |
-| Warnings (degraded state) | `logging.warning()` | Visible but non-fatal |
-| Errors (failure path) | `logging.error()` | Captured, alerted on |
-| **Never** use `print()` in | Library code, `engine.py` | Pollutes stdout, untestable |
+| Context                     | Use                       | Why                         |
+| --------------------------- | ------------------------- | --------------------------- |
+| CLI output (user sees it)   | `print()`                 | Direct, expected            |
+| Diagnostic info (debugging) | `logging.debug()`         | Configurable, filterable    |
+| Operational info (health)   | `logging.info()`          | Captured by log systems     |
+| Warnings (degraded state)   | `logging.warning()`       | Visible but non-fatal       |
+| Errors (failure path)       | `logging.error()`         | Captured, alerted on        |
+| **Never** use `print()` in  | Library code, `engine.py` | Pollutes stdout, untestable |
 
 ### Exit Codes
 
@@ -2244,12 +2244,12 @@ if __name__ == "__main__":
     sys.exit(main())
 ```
 
-| Exit code | Meaning |
-| --- | --- |
-| `0` | Success |
-| `1` | General error |
-| `2` | Misuse of command (bad args) |
-| `130` | Interrupted (Ctrl+C / SIGINT) |
+| Exit code | Meaning                       |
+| --------- | ----------------------------- |
+| `0`       | Success                       |
+| `1`       | General error                 |
+| `2`       | Misuse of command (bad args)  |
+| `130`     | Interrupted (Ctrl+C / SIGINT) |
 
 **Why it matters:** CI pipelines, shell scripts, and pre-commit hooks all
 check exit codes. A script that prints "Error!" but exits 0 silently
@@ -2306,14 +2306,14 @@ submodules.
 
 ### Testing Conventions
 
-| Pattern | Expected? | Example |
-| --- | --- | --- |
-| Test files mirror source layout | Yes | `src/pkg/engine.py` → `tests/unit/test_engine.py` |
-| Test names describe behavior | Yes | `test_process_returns_empty_for_no_input` |
-| One assert per test (ideally) | Preferred | Easier to debug failures |
-| Fixtures for shared setup | Yes | `conftest.py` at test root |
-| Mocks for external services | Yes | Don't hit real APIs in unit tests |
-| Integration tests separate | Yes | `tests/integration/` directory |
+| Pattern                         | Expected? | Example                                           |
+| ------------------------------- | --------- | ------------------------------------------------- |
+| Test files mirror source layout | Yes       | `src/pkg/engine.py` → `tests/unit/test_engine.py` |
+| Test names describe behavior    | Yes       | `test_process_returns_empty_for_no_input`         |
+| One assert per test (ideally)   | Preferred | Easier to debug failures                          |
+| Fixtures for shared setup       | Yes       | `conftest.py` at test root                        |
+| Mocks for external services     | Yes       | Don't hit real APIs in unit tests                 |
+| Integration tests separate      | Yes       | `tests/integration/` directory                    |
 
 See [ADR 029](../adr/029-testing-strategy.md) for the project's full
 testing philosophy.
@@ -2322,15 +2322,15 @@ testing philosophy.
 
 Scripts in `scripts/` follow additional rules:
 
-| Convention | Example | Why |
-| --- | --- | --- |
-| Shebang on line 1 | `#!/usr/bin/env python3` | Direct execution on Unix |
-| Module docstring | `"""Bootstrap a fresh clone."""` | `--help` or file browsing |
-| `if __name__ == "__main__":` guard | Always | Importable for testing |
-| Meaningful exit codes | `sys.exit(0)` or `sys.exit(1)` | CI and shell scripts check these |
-| `argparse` for CLI args | `parser = argparse.ArgumentParser()` | Consistent, self-documenting |
-| Type hints on public functions | `def bootstrap(path: Path) -> int:` | mypy checks scripts too |
-| No global state | Pass deps as function args | Testable, predictable |
+| Convention                         | Example                              | Why                              |
+| ---------------------------------- | ------------------------------------ | -------------------------------- |
+| Shebang on line 1                  | `#!/usr/bin/env python3`             | Direct execution on Unix         |
+| Module docstring                   | `"""Bootstrap a fresh clone."""`     | `--help` or file browsing        |
+| `if __name__ == "__main__":` guard | Always                               | Importable for testing           |
+| Meaningful exit codes              | `sys.exit(0)` or `sys.exit(1)`       | CI and shell scripts check these |
+| `argparse` for CLI args            | `parser = argparse.ArgumentParser()` | Consistent, self-documenting     |
+| Type hints on public functions     | `def bootstrap(path: Path) -> int:`  | mypy checks scripts too          |
+| No global state                    | Pass deps as function args           | Testable, predictable            |
 
 See [ADR 031](../adr/031-script-conventions.md) and
 [scripts/README.md](../../scripts/README.md) for the full inventory and
@@ -3098,13 +3098,13 @@ it — more specific scopes win over more general ones.
 
 #### Precedence Order (lowest → highest)
 
-| Priority | Scope              | Where it lives                                 | Who it affects                  |
-| -------- | ------------------ | ---------------------------------------------- | ------------------------------- |
-| 1 (low)  | **Default**        | Built into VS Code                             | Everyone (not editable)         |
-| 2        | **User**           | `~/.config/Code/User/settings.json` (or equiv) | All workspaces for this user    |
-| 3        | **Remote**         | Server-side settings (SSH, WSL, containers)    | Remote sessions only            |
-| 4        | **Workspace**      | `.code-workspace` file or `.vscode/settings.json` | Everyone who opens this workspace |
-| 5 (high) | **Folder**         | `.vscode/settings.json` in a multi-root folder | Only that specific folder       |
+| Priority | Scope         | Where it lives                                    | Who it affects                    |
+| -------- | ------------- | ------------------------------------------------- | --------------------------------- |
+| 1 (low)  | **Default**   | Built into VS Code                                | Everyone (not editable)           |
+| 2        | **User**      | `~/.config/Code/User/settings.json` (or equiv)    | All workspaces for this user      |
+| 3        | **Remote**    | Server-side settings (SSH, WSL, containers)       | Remote sessions only              |
+| 4        | **Workspace** | `.code-workspace` file or `.vscode/settings.json` | Everyone who opens this workspace |
+| 5 (high) | **Folder**    | `.vscode/settings.json` in a multi-root folder    | Only that specific folder         |
 
 **Key takeaway:** Workspace settings override User settings. If a setting
 is defined in both your personal User settings and the project's
@@ -3114,27 +3114,27 @@ developer preferences.
 
 #### Where Settings Are Stored
 
-| Scope         | File / Location                                                                     |
-| ------------- | ----------------------------------------------------------------------------------- |
-| **User**      | Windows: `%APPDATA%\Code\User\settings.json`                                       |
-|               | macOS: `~/Library/Application Support/Code/User/settings.json`                      |
-|               | Linux: `~/.config/Code/User/settings.json`                                          |
-| **Workspace** | Single-folder: `.vscode/settings.json` in the project root                          |
-|               | Multi-root: Inside the `*.code-workspace` file under `"settings": {}`               |
-| **Folder**    | `.vscode/settings.json` in each folder (multi-root workspaces only)                 |
+| Scope         | File / Location                                                       |
+| ------------- | --------------------------------------------------------------------- |
+| **User**      | Windows: `%APPDATA%\Code\User\settings.json`                          |
+|               | macOS: `~/Library/Application Support/Code/User/settings.json`        |
+|               | Linux: `~/.config/Code/User/settings.json`                            |
+| **Workspace** | Single-folder: `.vscode/settings.json` in the project root            |
+|               | Multi-root: Inside the `*.code-workspace` file under `"settings": {}` |
+| **Folder**    | `.vscode/settings.json` in each folder (multi-root workspaces only)   |
 
 #### .code-workspace vs .vscode/settings.json
 
 Both are "workspace settings" but they serve different purposes:
 
-| Feature             | `.code-workspace` file                          | `.vscode/settings.json`                |
-| ------------------- | ----------------------------------------------- | -------------------------------------- |
-| Format              | JSON with `folders`, `settings`, `extensions`   | Pure settings JSON only                |
-| Multi-root support  | Yes — can define multiple folder roots           | No — single folder only                |
-| Extension recs      | Yes — `extensions.recommendations` array        | No (use `.vscode/extensions.json`)     |
-| Task/launch configs | Yes — can contain tasks/launch configs          | No (use `.vscode/tasks.json` etc.)     |
-| Open via CLI        | `code project.code-workspace`                   | `code /path/to/folder`                 |
-| Commit to git?      | Yes — team-shared settings                      | Yes — team-shared settings             |
+| Feature             | `.code-workspace` file                        | `.vscode/settings.json`            |
+| ------------------- | --------------------------------------------- | ---------------------------------- |
+| Format              | JSON with `folders`, `settings`, `extensions` | Pure settings JSON only            |
+| Multi-root support  | Yes — can define multiple folder roots        | No — single folder only            |
+| Extension recs      | Yes — `extensions.recommendations` array      | No (use `.vscode/extensions.json`) |
+| Task/launch configs | Yes — can contain tasks/launch configs        | No (use `.vscode/tasks.json` etc.) |
+| Open via CLI        | `code project.code-workspace`                 | `code /path/to/folder`             |
+| Commit to git?      | Yes — team-shared settings                    | Yes — team-shared settings         |
 
 This project uses a `.code-workspace` file (`simple-python-boilerplate.code-workspace`)
 because it bundles settings + extension recommendations in one file.
@@ -3143,20 +3143,19 @@ because it bundles settings + extension recommendations in one file.
 
 The workspace file configures:
 
-| Setting                               | Value                | Purpose                                        |
-| ------------------------------------- | -------------------- | ---------------------------------------------- |
-| `python.defaultInterpreterPath`       | `.venv/.../python`   | Points to the project's virtual environment    |
-| `editor.defaultFormatter` (Python)    | Ruff                 | Format Python with Ruff, not autopep8/black    |
-| `editor.formatOnSave` (Python)        | `true`               | Auto-format every time you save                |
-| `editor.defaultFormatter` (Markdown)  | Prettier             | Format Markdown with Prettier                  |
-| `editor.formatOnSave` (Markdown)      | `false`              | Don't auto-format Markdown (run manually)      |
-| `editor.rulers`                       | `[88, 120]`          | Vertical guide lines at columns 88 and 120     |
-| `files.trimTrailingWhitespace`        | `true`               | Remove trailing spaces on save                 |
-| `files.insertFinalNewline`            | `true`               | Ensure files end with a newline                |
-| `files.exclude`                       | (various)            | Hide `__pycache__`, `.mypy_cache`, etc.        |
+| Setting                              | Value              | Purpose                                     |
+| ------------------------------------ | ------------------ | ------------------------------------------- |
+| `python.defaultInterpreterPath`      | `.venv/.../python` | Points to the project's virtual environment |
+| `editor.defaultFormatter` (Python)   | Ruff               | Format Python with Ruff, not autopep8/black |
+| `editor.formatOnSave` (Python)       | `true`             | Auto-format every time you save             |
+| `editor.defaultFormatter` (Markdown) | Prettier           | Format Markdown with Prettier               |
+| `editor.formatOnSave` (Markdown)     | `false`            | Don't auto-format Markdown (run manually)   |
+| `editor.rulers`                      | `[88, 120]`        | Vertical guide lines at columns 88 and 120  |
+| `files.trimTrailingWhitespace`       | `true`             | Remove trailing spaces on save              |
+| `files.insertFinalNewline`           | `true`             | Ensure files end with a newline             |
+| `files.exclude`                      | (various)          | Hide `__pycache__`, `.mypy_cache`, etc.     |
 
-> **Those vertical lines in the editor** are the rulers at columns 88 and
-> 120. Column 88 matches Ruff's default line length limit for Python.
+> **Those vertical lines in the editor** are the rulers at columns 88 and 120. Column 88 matches Ruff's default line length limit for Python.
 > Column 120 is a common secondary limit for docs/comments. They're visual
 > guides only — they don't enforce anything.
 
@@ -3230,15 +3229,15 @@ machines via your GitHub or Microsoft account.
 
 What syncs:
 
-| What              | Synced? | Notes                                                  |
-| ----------------- | ------- | ------------------------------------------------------ |
-| User settings     | Yes     | `settings.json`                                        |
-| Keybindings       | Yes     | `keybindings.json`                                     |
-| Extensions        | Yes     | Installed extensions list                              |
-| UI state          | Yes     | Open editors, sidebar, panel state                     |
-| Snippets          | Yes     | User-defined code snippets                             |
-| Workspace settings| **No**  | `.code-workspace` / `.vscode/settings.json` are local  |
-| Tasks / Launch    | **No**  | `.vscode/tasks.json`, `launch.json` are local          |
+| What               | Synced? | Notes                                                 |
+| ------------------ | ------- | ----------------------------------------------------- |
+| User settings      | Yes     | `settings.json`                                       |
+| Keybindings        | Yes     | `keybindings.json`                                    |
+| Extensions         | Yes     | Installed extensions list                             |
+| UI state           | Yes     | Open editors, sidebar, panel state                    |
+| Snippets           | Yes     | User-defined code snippets                            |
+| Workspace settings | **No**  | `.code-workspace` / `.vscode/settings.json` are local |
+| Tasks / Launch     | **No**  | `.vscode/tasks.json`, `launch.json` are local         |
 
 **Profiles** (File → Preferences → Profiles) let you group settings,
 extensions, and keybindings into named configurations. Useful for
@@ -3247,15 +3246,15 @@ without conflicting extensions or settings.
 
 #### Useful Commands for Debugging Settings
 
-| Command Palette (`Ctrl+Shift+P`)                      | What it does                                     |
-| ------------------------------------------------------ | ------------------------------------------------ |
-| `Preferences: Open User Settings (JSON)`              | Opens your global `settings.json`                |
-| `Preferences: Open Workspace Settings (JSON)`         | Opens workspace `settings.json`                  |
-| `Preferences: Open Default Settings (JSON)`           | Shows all defaults (read-only, searchable)       |
-| `Python: Select Interpreter`                           | Pick which Python executable VS Code uses        |
-| `Developer: Inspect Editor Tokens and Scopes`         | Shows language scope at cursor position          |
-| `Developer: Toggle Developer Tools`                    | Opens Chrome DevTools for VS Code itself         |
-| `Preferences: Open Keyboard Shortcuts (JSON)`         | Edit keybindings directly                        |
+| Command Palette (`Ctrl+Shift+P`)              | What it does                               |
+| --------------------------------------------- | ------------------------------------------ |
+| `Preferences: Open User Settings (JSON)`      | Opens your global `settings.json`          |
+| `Preferences: Open Workspace Settings (JSON)` | Opens workspace `settings.json`            |
+| `Preferences: Open Default Settings (JSON)`   | Shows all defaults (read-only, searchable) |
+| `Python: Select Interpreter`                  | Pick which Python executable VS Code uses  |
+| `Developer: Inspect Editor Tokens and Scopes` | Shows language scope at cursor position    |
+| `Developer: Toggle Developer Tools`           | Opens Chrome DevTools for VS Code itself   |
+| `Preferences: Open Keyboard Shortcuts (JSON)` | Edit keybindings directly                  |
 
 #### Extensions: Workspace Recommendations
 
