@@ -96,7 +96,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.1
+    rev: v0.15.4
     hooks:
       # Linter
       - id: ruff
@@ -129,7 +129,7 @@ repos:
   #       or rely on the bandit GitHub Actions workflow instead.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.3
+    rev: 1.9.4
     hooks:
       - id: bandit
         args: ["-c", "pyproject.toml"]
@@ -153,7 +153,7 @@ repos:
   # each catches things the other misses.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/crate-ci/typos
-    rev: v1.43.5
+    rev: v1
     hooks:
       - id: typos
         args: [--config, _typos.toml]
@@ -174,7 +174,7 @@ repos:
   # Uses SchemaStore schemas for GitHub workflows, Dependabot, etc.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.36.2
+    rev: 0.37.0
     hooks:
       - id: check-github-workflows
       - id: check-github-actions
@@ -260,7 +260,7 @@ repos:
   # With rebase+merge, every commit message matters — this ensures
   # well-formed messages that feed into release-please's CHANGELOG.
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.4.1
+    rev: v4.13.9
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -290,7 +290,7 @@ repos:
   #       pass requirements files for it to have something to audit.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/pypa/pip-audit
-    rev: v2.7.3
+    rev: v2.10.0
     hooks:
       - id: pip-audit
         args: ["-r", "requirements-dev.txt"]
