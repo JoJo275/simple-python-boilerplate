@@ -15,7 +15,7 @@ Thanks for your interest in this project! ❓
 Please provide as much context as possible to help us understand
 and answer your question effectively.
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ⚠️ **Before submitting**
 

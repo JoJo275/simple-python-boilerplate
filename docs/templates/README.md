@@ -74,3 +74,9 @@ The `issue_templates/` directory contains GitHub issue template examples:
 
 Once you've copied the templates you need, you can delete this
 `docs/templates/` directory to keep your repository clean.
+
+## See Also
+
+- [docs/adr/template.md](../adr/template.md) — ADR template
+- [.github/PULL_REQUEST_TEMPLATE.md](../../.github/PULL_REQUEST_TEMPLATE.md) — Active PR template
+- [.github/ISSUE_TEMPLATE/](../../.github/ISSUE_TEMPLATE/) — Active issue templates

@@ -16,7 +16,7 @@ A good feature request explains the **problem** you're facing and how
 your proposed solution would help. The more context you provide, the
 easier it is to evaluate and prioritize.
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ⚠️ **Before submitting**
 

@@ -1,5 +1,8 @@
 # repo_doctor.d/ — Optional Profile Rules
 
+<!-- TODO (template users): Add custom profiles for your project's specific
+     checks. Modify existing profiles to match your actual file layout. -->
+
 Extra rule sets for `scripts/repo_doctor.py`. These are **not** loaded by
 default — activate them on the CLI or in `.repo-doctor.toml`.
 
@@ -36,3 +39,9 @@ profiles = ["python", "docs"]
 1. Create `repo_doctor.d/<name>.toml`.
 2. Add `[[rule]]` entries using the same schema as `.repo-doctor.toml`.
 3. Update the table above.
+
+## See Also
+
+- [scripts/repo_doctor.py](../scripts/repo_doctor.py) — The repo doctor script
+- [.repo-doctor.toml](../.repo-doctor.toml) — Base configuration (if exists)
+- [scripts/doctor.py](../scripts/doctor.py) — Diagnostics bundle for bug reports

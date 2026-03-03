@@ -1,5 +1,9 @@
 # Dev Container
 
+<!-- TODO (template users): Review devcontainer.json and update the Python
+     version, extensions, and postCreateCommand for your project. Remove
+     features you don't need (e.g., Node.js if you have no JS tooling). -->
+
 This folder configures a VS Code [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers)
 for consistent development environments.
 

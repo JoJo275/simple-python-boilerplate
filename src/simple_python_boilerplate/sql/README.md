@@ -1,6 +1,8 @@
 # SQL Queries Module
 
-<!-- TODO: Update with your project's query organization -->
+<!-- TODO (template users): Replace the example structure below with your
+     actual query organization. Delete placeholder .sql files and add your
+     own. If you don't embed SQL in the package, delete this directory. -->
 
 Application SQL queries embedded in the package.
 
@@ -28,7 +30,7 @@ query = files("simple_python_boilerplate.sql").joinpath("get_user.sql").read_tex
 
 ## Structure
 
-```
+```text
 sql/
 ├── users/
 │   ├── get_by_id.sql
@@ -36,3 +38,9 @@ sql/
 └── reports/
     └── daily_summary.sql
 ```
+
+## See Also
+
+- [db/queries/](../../../db/queries/) — Standalone reusable queries
+- [db/schema.sql](../../../db/schema.sql) — Canonical database schema
+- [ADR 027](../../../docs/adr/027-database-strategy.md) — Raw SQL database strategy

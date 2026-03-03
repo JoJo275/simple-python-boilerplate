@@ -14,7 +14,7 @@ Thanks for reporting a performance issue! ⚡
 Performance issues help us keep the project fast and efficient.
 Please provide as much detail as possible, including measurements and reproduction steps.
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ⚠️ **Before submitting**
 

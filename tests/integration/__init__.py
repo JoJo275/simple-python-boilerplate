@@ -1,2 +1,2 @@
 # Integration tests package
-# TODO: Add shared fixtures (e.g., database connections, test clients) here
+# TODO (template users): Add shared fixtures (e.g., database connections, test clients) here

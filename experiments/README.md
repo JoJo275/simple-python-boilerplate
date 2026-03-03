@@ -1,5 +1,9 @@
 # Experiments
 
+<!-- TODO (template users): Delete the example files and add your own
+     experiments. Remove this directory entirely if you don't need a
+     scratch space. -->
+
 A scratch space for exploratory code, prototypes, and one-off scripts.
 
 ## Purpose
@@ -27,4 +31,11 @@ This directory is for:
 
 ## Cleanup
 
-Periodically review and delete old experiments. If something proves useful, refactor it properly into `src/` with tests.
+Periodically review and delete old experiments. If something proves useful,
+refactor it properly into `src/` with tests, type hints, and documentation.
+
+## See Also
+
+- [src/](../src/) — Production source code
+- [scripts/](../scripts/) — Maintained utility scripts
+- [docs/notes/](../docs/notes/) — Learning notes and references

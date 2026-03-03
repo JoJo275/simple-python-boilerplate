@@ -1,5 +1,8 @@
 # Scripts
 
+<!-- TODO (template users): Remove scripts you don't need and add your own.
+     Update this README table when adding or removing scripts. -->
+
 Utility scripts for development and maintenance.
 
 ## Contents
@@ -74,3 +77,21 @@ python scripts/workflow_versions.py upgrade actions/checkout v6.1.0  # Specific 
 # Run SQL against database
 sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
 ```
+
+## Conventions
+
+- **Shebang:** Include `#!/usr/bin/env python3` and mark executable:
+  `git add --chmod=+x scripts/my_script.py`
+- **Naming:** `snake_case.py` for Python scripts, `kebab-case.sh` for shell
+- **Standalone:** Scripts must not import from `src/simple_python_boilerplate/`
+  — they should work without installing the package
+- **`--dry-run`:** Destructive scripts should support `--dry-run` to preview changes
+- **Exit codes:** 0 = success, non-zero = failure (for CI compatibility)
+
+See [ADR 031: Script conventions](../docs/adr/031-script-conventions.md) for the full rationale.
+
+## See Also
+
+- [Taskfile.yml](../Taskfile.yml) — Task runner shortcuts for common scripts
+- [precommit/](precommit/) — Custom pre-commit hook scripts
+- [sql/](sql/) — Ad-hoc SQL experimentation scripts

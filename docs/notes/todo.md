@@ -63,6 +63,21 @@ Things to explore, implement, or learn more about.
 - [X] Final file check: .lycheeignore
 - [X] Final file check: mkdocs.yml
 - [X] Final file check: mkdocs.yml
+- [ ] Final file check: .editorconfig
+- [ ] Final file check: db/schema.sql
+- [ ] Final file check: db/seeds/001_example_seed.sql
+- [ ] Final file check: db/queries/example_queries.sql
+- [ ] Final file check: db/migrations/001_example_migrations.sql
+- [ ] Final file check: repo_doctor.d directory and files
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
+- [ ] Final file check: .pre-commit-config.yaml
 - [ ] Final file check: .pre-commit-config.yaml
 - [ ] Final file check: .github/dependabot.yml
 - [x] Final file check: entire docs/

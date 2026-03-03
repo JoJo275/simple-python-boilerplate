@@ -13,7 +13,7 @@ Refactoring keeps the codebase maintainable and healthy.
 Please provide enough context to understand the value of this change.
 -->
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ## ⚠️ Before submitting
 
