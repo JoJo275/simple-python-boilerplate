@@ -47,6 +47,30 @@ def _is_interactive() -> bool:
     return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 
 
+def _supports_unicode() -> bool:
+    """Return True if the terminal likely supports Unicode box-drawing chars."""
+    import locale
+
+    try:
+        encoding = sys.stdout.encoding or locale.getpreferredencoding(False)
+        return encoding.lower().replace("-", "") in {"utf8", "utf16", "utf32"}
+    except Exception:
+        return False
+
+
+# Bar style pairs: (filled_char, empty_char, left_bracket, right_bracket)
+_STYLE_UNICODE = ("\u2588", "\u2591", "[", "]")  # █ ░
+_STYLE_ASCII_HASH = ("#", "-", "[", "]")  # [###-----]
+_STYLE_ASCII_ARROW = ("=", " ", "[", "]")  # [===>    ]
+
+
+def _pick_bar_style() -> tuple[str, str, str, str]:
+    """Choose the best bar style the terminal can render."""
+    if _supports_unicode():
+        return _STYLE_UNICODE
+    return _STYLE_ASCII_HASH
+
+
 def _print_progress(
     current: int,
     total: int,
@@ -56,16 +80,24 @@ def _print_progress(
 ) -> None:
     """Print an inline progress bar that overwrites itself.
 
-    Example output::
+    Adapts to terminal capabilities:
 
-        Applying labels  [████████████░░░░░░░░]  12/72 (17%)  bug
+    - Unicode terminal::
+
+        Applying labels  [████████████░░░░░░░░]  12/72 ( 17%)  bug
+
+    - ASCII fallback::
+
+        Applying labels  [############--------]  12/72 ( 17%)  bug
 
     Degrades gracefully:
     - If stdout is not a TTY (piped), prints nothing (final summary suffices).
-    - On narrow terminals the bar shrinks or is omitted.
+    - On narrow terminals the bar shrinks automatically.
     """
     if not _is_interactive():
         return
+
+    fill_ch, empty_ch, lbracket, rbracket = _pick_bar_style()
 
     pct = int(current / total * 100) if total else 0
     counter = f"{current}/{total} ({pct:>3}%)"
@@ -74,22 +106,28 @@ def _print_progress(
     # Truncate long label names so the bar fits one line
     max_label_len = 30
     display_name = (
-        label_name[: max_label_len - 1] + "…"
+        label_name[: max_label_len - 1]
+        + ("..." if not _supports_unicode() else "\u2026")
         if len(label_name) > max_label_len
         else label_name
     )
 
     if bar_width is None:
-        # Reserve space for: prefix + [bar] + counter + label + padding
+        # Reserve space for: prefix + brackets + counter + label + padding
         overhead = (
-            len(prefix) + len(counter) + len(display_name) + 8
-        )  # brackets + spaces
+            len(prefix)
+            + len(lbracket)
+            + len(rbracket)
+            + len(counter)
+            + len(display_name)
+            + 6  # spaces between sections
+        )
         bar_width = max(_terminal_width() - overhead, 10)
 
     filled = int(bar_width * current / total) if total else 0
-    bar = "█" * filled + "░" * (bar_width - filled)
+    bar = fill_ch * filled + empty_ch * (bar_width - filled)
 
-    line = f"\r{prefix}[{bar}]  {counter}  {display_name}"
+    line = f"\r{prefix}{lbracket}{bar}{rbracket}  {counter}  {display_name}"
     # Pad with spaces to clear leftover chars from previous longer lines
     sys.stdout.write(line.ljust(_terminal_width()))
     sys.stdout.flush()
