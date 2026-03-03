@@ -294,7 +294,7 @@ Next steps:
      $ python scripts/customize.py --enable-workflows OWNER/REPO
      - Or set repository variable: vars.ENABLE_WORKFLOWS = 'true'
 
-Documentation: https://YOURNAME.github.io/YOURREPO/
+Documentation: https://JoJo275.github.io/simple-python-boilerplate/
 """)
 
 

@@ -17,7 +17,7 @@
 -- =============================================================================
 
 -- ── Example: Seed users ──────────────────────────────────────
--- INSERT OR IGNORE INTO users (name, email) VALUES
---     ('Alice Admin', 'alice@example.com'),
---     ('Bob Builder', 'bob@example.com'),
---     ('Carol Contributor', 'carol@example.com');
+INSERT OR IGNORE INTO users (name, email) VALUES
+    ('Alice Admin', 'alice@example.com'),
+    ('Bob Builder', 'bob@example.com'),
+    ('Carol Contributor', 'carol@example.com');

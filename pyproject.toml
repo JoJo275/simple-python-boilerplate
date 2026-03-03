@@ -27,8 +27,8 @@ keywords = [
 
 # PyPI classifiers - see: https://pypi.org/classifiers/
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    # "Development Status :: 4 - Beta",
+    # "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     # "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
@@ -51,13 +51,13 @@ dependencies = [
 ]
 
 # Project URLs - shown on PyPI sidebar
-# TODO (template users): Replace YOURNAME/YOURREPO with your actual GitHub username/repo.
+# TODO (template users): Replace JoJo275/simple-python-boilerplate with your actual GitHub username/repo.
 [project.urls]
-Homepage = "https://github.com/YOURNAME/YOURREPO"
-Repository = "https://github.com/YOURNAME/YOURREPO"
-Documentation = "https://YOURNAME.github.io/YOURREPO/"
-Changelog = "https://github.com/YOURNAME/YOURREPO/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/YOURNAME/YOURREPO/issues"
+Homepage = "https://github.com/JoJo275/simple-python-boilerplate"
+Repository = "https://github.com/JoJo275/simple-python-boilerplate"
+Documentation = "https://JoJo275.github.io/simple-python-boilerplate/"
+Changelog = "https://github.com/JoJo275/simple-python-boilerplate/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/JoJo275/simple-python-boilerplate/issues"
 
 # CLI entry point - run with: spb
 [project.scripts]
@@ -261,10 +261,8 @@ version-file = "src/simple_python_boilerplate/_version.py"
 # -- Pytest --
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"  # Quiet output
+addopts = "-q --strict-markers --strict-config"
 # addopts = "-v --cov=simple_python_boilerplate --cov-report=term-missing"
-strict_markers = true   # Fail on unknown markers (catches typos)
-strict_config = true    # Fail on unknown config keys
 filterwarnings = [
     "error::DeprecationWarning",  # Surface deprecations as errors early
 ]

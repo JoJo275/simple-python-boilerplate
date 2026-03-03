@@ -120,7 +120,7 @@ def run(args: argparse.Namespace) -> int:
         result = process_data(args.input)
 
         if args.output:
-            with open(args.output, "w") as f:
+            with open(args.output, "w", encoding="utf-8") as f:
                 f.write(result)
             if args.verbose:
                 print(f"Output written to {args.output}")

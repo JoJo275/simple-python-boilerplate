@@ -15,19 +15,21 @@
 
 -- ── UP (apply) ───────────────────────────────────────────────
 
--- CREATE TABLE IF NOT EXISTS users (
---     id         INTEGER PRIMARY KEY AUTOINCREMENT,
---     name       TEXT    NOT NULL,
---     email      TEXT    NOT NULL UNIQUE,
---     is_active  INTEGER NOT NULL DEFAULT 1,
---     created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
---     updated_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
--- );
---
--- CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE TABLE IF NOT EXISTS users (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL,
+    email      TEXT    NOT NULL UNIQUE,
+    is_active  INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    updated_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email     ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
 
 -- ── DOWN (rollback) ──────────────────────────────────────────
 -- Keep rollback SQL here for reference, even if you apply it manually.
 --
+-- DROP INDEX IF EXISTS idx_users_is_active;
 -- DROP INDEX IF EXISTS idx_users_email;
 -- DROP TABLE IF EXISTS users;

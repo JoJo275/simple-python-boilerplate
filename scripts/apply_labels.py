@@ -30,6 +30,8 @@ import sys
 import urllib.parse
 from pathlib import Path
 
+SCRIPT_VERSION = "1.1.0"
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 
@@ -64,10 +66,17 @@ def gh_api(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(
+        description="Apply GitHub labels to a repository from a JSON label set.",
+    )
     ap.add_argument("--set", choices=["baseline", "extended"], required=True)
     ap.add_argument("--repo", help="OWNER/REPO; default is current repo")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
     args = ap.parse_args()
 
     # Ensure gh is installed

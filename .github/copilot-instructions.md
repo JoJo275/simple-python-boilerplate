@@ -451,11 +451,13 @@ Full index: `docs/adr/README.md`
 
 Acknowledged gaps that don't need to be rediscovered each session:
 
-| Area         | Issue                           | Notes                                                                                                                                                                 |
-| ------------ | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CI**       | Container scan is advisory-only | `container-scan.yml` results don't block PRs (intentional — but worth knowing).                                                                                       |
-| **CI**       | Docs deploy is path-filtered    | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs _build_ validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
-| **Docs**     | `docs/workflows.md` can drift   | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast.                                                                    |
-| **Template** | Placeholder source code         | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely.                                                           |
+| Area         | Issue                             | Notes                                                                                                                                                                 |
+| ------------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CI**       | Container scan is advisory-only   | `container-scan.yml` results don't block PRs (intentional — but worth knowing).                                                                                       |
+| **CI**       | Docs deploy is path-filtered      | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs _build_ validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
+| **Docs**     | `docs/workflows.md` can drift     | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast.                                                                    |
+| **Template** | Placeholder source code           | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely.                                                           |
+| **Security** | Security email updated            | `SECURITY.md` uses `joseph26584@gmail.com`. PGP key fingerprint is still a TODO.                                                                                       |
+| **CI**       | Workflow guards use `YOURNAME`    | Workflow `if:` guards still reference `YOURNAME/YOURREPO` — intentional per ADR 011 (disabled by default for forks). Template users enable via repo variables.        |
 
 <!-- Add new entries here as they're discovered. Remove entries when resolved. -->

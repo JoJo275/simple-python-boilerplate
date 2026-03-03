@@ -10,6 +10,11 @@
     "color": "0366d6"
   },
   {
+    "name": "docker",
+    "description": "Pull requests that update Docker/container configuration",
+    "color": "2496ed"
+  },
+  {
     "name": "documentation",
     "description": "Improvements or additions to documentation",
     "color": "0075ca"
@@ -25,7 +30,7 @@
     "color": "a2eeef"
   },
   {
-    "name": "github_actions",
+    "name": "github-actions",
     "description": "Pull requests that update GitHub Actions code",
     "color": "000000"
   },
@@ -43,6 +48,16 @@
     "name": "invalid",
     "description": "This doesn't seem right",
     "color": "e4e669"
+  },
+  {
+    "name": "pinned",
+    "description": "Exempt from stale bot; kept open indefinitely",
+    "color": "006b75"
+  },
+  {
+    "name": "python",
+    "description": "Pull requests that update Python dependencies",
+    "color": "3572a5"
   },
   {
     "name": "question",
@@ -123,6 +138,21 @@
     "name": "area: ci",
     "description": "CI pipelines and automation",
     "color": "bfd4f2"
+  },
+  {
+    "name": "area: container",
+    "description": "Containerfile, Docker Compose, container builds",
+    "color": "2496ed"
+  },
+  {
+    "name": "area: database",
+    "description": "Database schema, migrations, queries",
+    "color": "006b75"
+  },
+  {
+    "name": "area: scripts",
+    "description": "Utility scripts in scripts/",
+    "color": "c5def5"
   },
   {
     "name": "status: confirmed",
@@ -307,6 +337,16 @@
   {
     "name": "meta: stale",
     "description": "Inactive; may be closed if no response",
+    "color": "eeeeee"
+  },
+  {
+    "name": "security",
+    "description": "Security-related; exempt from stale bot",
+    "color": "ee0701"
+  },
+  {
+    "name": "stale",
+    "description": "Inactive; may be closed if no response (applied by stale bot)",
     "color": "eeeeee"
   }
 ]

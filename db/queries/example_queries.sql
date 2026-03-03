@@ -18,36 +18,36 @@
 
 -- name: get_all_users
 -- Get all active users, most recent first
--- SELECT id, name, email, created_at
--- FROM users
--- WHERE is_active = 1
--- ORDER BY created_at DESC;
+SELECT id, name, email, created_at
+FROM users
+WHERE is_active = 1
+ORDER BY created_at DESC;
 
 -- name: get_all_users_paginated
 -- Paginated user listing (pass :limit and :offset)
--- SELECT id, name, email, created_at
--- FROM users
--- WHERE is_active = 1
--- ORDER BY created_at DESC
--- LIMIT :limit OFFSET :offset;
+SELECT id, name, email, created_at
+FROM users
+WHERE is_active = 1
+ORDER BY created_at DESC
+LIMIT :limit OFFSET :offset;
 
 -- ── Lookup queries ───────────────────────────────────────────
 
 -- name: get_user_by_id
--- SELECT id, name, email, is_active, created_at, updated_at
--- FROM users
--- WHERE id = :user_id;
+SELECT id, name, email, is_active, created_at, updated_at
+FROM users
+WHERE id = :user_id;
 
 -- name: get_user_by_email
--- SELECT id, name, email, is_active, created_at, updated_at
--- FROM users
--- WHERE email = :email;
+SELECT id, name, email, is_active, created_at, updated_at
+FROM users
+WHERE email = :email;
 
 -- ── Search queries ───────────────────────────────────────────
 
 -- name: search_users_by_name
 -- Case-insensitive prefix search
--- SELECT id, name, email, created_at
--- FROM users
--- WHERE name LIKE :search || '%'
--- ORDER BY name;
+SELECT id, name, email, created_at
+FROM users
+WHERE name LIKE :search || '%'
+ORDER BY name;
