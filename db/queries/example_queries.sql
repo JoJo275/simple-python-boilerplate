@@ -51,3 +51,41 @@ SELECT id, name, email, created_at
 FROM users
 WHERE name LIKE :search || '%'
 ORDER BY name;
+
+-- ── Count / Aggregate queries ────────────────────────────────
+
+-- name: count_active_users
+SELECT COUNT(*) AS active_count FROM users WHERE is_active = 1;
+
+-- name: count_all_users
+SELECT COUNT(*) AS total_count FROM users;
+
+-- ── Write queries ────────────────────────────────────────────
+-- TODO (template users): Adapt INSERT/UPDATE/DELETE queries to your schema.
+
+-- name: create_user!
+-- Insert a new user. Returns the new row via RETURNING (SQLite 3.35+).
+INSERT INTO users (name, email)
+VALUES (:name, :email)
+RETURNING id, name, email, created_at;
+
+-- name: update_user!
+-- Update a user's name and email. Bumps updated_at.
+UPDATE users
+SET name       = :name,
+    email      = :email,
+    updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE id = :user_id
+RETURNING id, name, email, updated_at;
+
+-- name: deactivate_user!
+-- Soft-delete: mark a user inactive rather than removing the row.
+UPDATE users
+SET is_active  = 0,
+    updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE id = :user_id;
+
+-- name: delete_user!
+-- Hard-delete: permanently remove a user row.
+-- Prefer deactivate_user! for audit-trail-friendly workflows.
+DELETE FROM users WHERE id = :user_id;
