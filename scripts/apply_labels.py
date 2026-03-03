@@ -31,7 +31,7 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
@@ -131,6 +131,20 @@ def gh_api(
     return run(cmd)
 
 
+def _get_existing_label(repo: str, encoded_name: str) -> dict[str, str] | None:
+    """Fetch an existing label from the GitHub API.
+
+    Returns the label dict (name, color, description) or None on failure.
+    """
+    p = run(["gh", "api", f"repos/{repo}/labels/{encoded_name}"])
+    if p.returncode != 0:
+        return None
+    try:
+        return json.loads(p.stdout)  # type: ignore[no-any-return]
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="Apply GitHub labels to a repository from a JSON label set.",
@@ -190,7 +204,7 @@ def main() -> int:
     total = len(labels)
     print(f"Processing {total} labels for {repo}…")
 
-    created = updated = 0
+    created = updated = up_to_date = 0
     failures: list[str] = []
 
     for i, lab in enumerate(labels, start=1):
@@ -210,8 +224,19 @@ def main() -> int:
             created += 1
             continue
 
-        # Update existing (name must be URL-encoded)
+        # Label already exists — check whether it actually needs updating
         encoded = urllib.parse.quote(name, safe="")
+        existing = _get_existing_label(repo, encoded)
+
+        if existing is not None:
+            # Compare current vs desired (GitHub returns color without '#')
+            cur_color = (existing.get("color") or "").lstrip("#").lower()
+            cur_desc = existing.get("description") or ""
+            if cur_color == color.lower() and cur_desc == desc:
+                up_to_date += 1
+                continue
+
+        # Values differ (or couldn't fetch) — PATCH to update
         p2 = gh_api(
             "PATCH",
             f"repos/{repo}/labels/{encoded}",
@@ -230,7 +255,15 @@ def main() -> int:
         failures.append(error_msg)
 
     _finish_progress()
-    print(f"Done. Created: {created}, Updated: {updated}. Repo: {repo}")
+    parts = []
+    if created:
+        parts.append(f"{created} created")
+    if updated:
+        parts.append(f"{updated} updated")
+    if up_to_date:
+        parts.append(f"{up_to_date} already up to date")
+    summary = ", ".join(parts) if parts else "no changes"
+    print(f"Done: {summary}. Repo: {repo}")
 
     if failures:
         print(f"\n{len(failures)} label(s) failed:", file=sys.stderr)
