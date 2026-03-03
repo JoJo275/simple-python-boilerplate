@@ -92,6 +92,10 @@ spb-doctor = "simple_python_boilerplate.main:doctor"
 # Dependabot will bump the floor when it opens update PRs.
 # Docs deps keep floor pins because mkdocs-material has broken themes
 # across minor versions.
+#
+# Version comments (e.g. "(v9.0.2)") track what's actually installed.
+# Keep them current with: task deps:update-comments
+# Or directly: hatch run python scripts/dep_versions.py update-comments
 [project.optional-dependencies]
 test = [
     "pytest>=8.0",  # Testing framework (v9.0.2)
