@@ -71,7 +71,8 @@ The pre-commit hook `check-shebang-scripts-are-executable` enforces this.
 
 ### Argument parsing
 
-- Use `argparse` for all scripts that accept arguments
+- Use `argparse` for all scripts that accept arguments — including
+  pre-commit hooks in `scripts/precommit/`
 - Always include `--version` (print version and exit)
 - Always include `--dry-run` where the script modifies files or state
 - Include `-q` / `--quiet` for scripts with verbose output

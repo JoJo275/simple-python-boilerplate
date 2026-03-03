@@ -1,5 +1,9 @@
 # Pre-commit Scripts
 
+<!-- TODO (template users): Replace or remove the example hook and add
+     hooks specific to your project. Update the Contents table and
+     ADR 008 when adding or removing hooks. -->
+
 Custom [pre-commit](https://pre-commit.com/) hooks used by this project.
 
 These scripts are called from `.pre-commit-config.yaml` under the `repo: local` section.
@@ -34,9 +38,14 @@ These scripts are called from `.pre-commit-config.yaml` under the `repo: local` 
 
 - **Exit code 0** = pass, **non-zero** = fail
 - Accept filenames as positional arguments (pre-commit passes staged files)
-- Use `argparse` for any additional flags
+- Use `argparse` for **all** argument parsing — including positional file
+  arguments — to get `--help` for free and stay consistent with the
+  [script conventions](../README.md#conventions)
+- Include `SCRIPT_VERSION = "x.y.z"` and a `--version` flag
 - Include a module-level docstring explaining what the hook checks
 - Print clear error messages with filename and line number when possible
+- Wrap execution in `if __name__ == "__main__":` so the hook can be
+  imported for testing without side effects
 
 ## See Also
 
