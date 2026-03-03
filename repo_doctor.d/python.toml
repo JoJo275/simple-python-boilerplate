@@ -158,3 +158,26 @@ kind = "file"
 level = "info"
 category = "packaging"
 impact = "No dev requirements file — contributors may miss dev-only dependencies."
+
+
+# ---------------------------------------------------------------------------
+# Editor / formatting consistency
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".editorconfig"
+kind = "file"
+level = "info"
+category = "formatting"
+impact = "No .editorconfig — editors without project-specific settings may use inconsistent indentation/encoding."
+hint = "Add .editorconfig with charset, indent_style, indent_size, and end_of_line settings."
+
+[[rule]]
+type = "exists"
+path = ".gitattributes"
+kind = "file"
+level = "info"
+category = "formatting"
+impact = "No .gitattributes — line endings, diff drivers, and language stats aren't configured."
+hint = "Add .gitattributes with text=auto, diff drivers for *.py, and linguist overrides."

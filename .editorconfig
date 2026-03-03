@@ -29,13 +29,21 @@ trim_trailing_whitespace = true
 [*.py]
 indent_size = 4
 
-# ── YAML / TOML ──────────────────────────────────────────────
-[*.{yml,yaml,toml}]
+# ── YAML ──────────────────────────────────────────────────────
+[*.{yml,yaml}]
+indent_size = 2
+
+# ── TOML ──────────────────────────────────────────────────────
+[*.toml]
 indent_size = 2
 
 # ── JSON / JSONC ──────────────────────────────────────────────
 [*.{json,jsonc}]
 indent_size = 2
+
+# ── INI / CFG ─────────────────────────────────────────────────
+[*.{ini,cfg}]
+indent_size = 4
 
 # ── Markdown ──────────────────────────────────────────────────
 # Trailing whitespace in Markdown can be intentional (line breaks)
@@ -55,8 +63,22 @@ indent_size = 2
 [*.sql]
 indent_size = 4
 
+# ── Taskfile ──────────────────────────────────────────────────
+[Taskfile.yml]
+indent_size = 2
+
 # ── Containerfile / Dockerfile ────────────────────────────────
 [{Containerfile,Dockerfile,*.dockerfile}]
+indent_size = 4
+
+# ── Git config files ─────────────────────────────────────────
+[{.gitattributes,.gitignore,.gitmodules}]
+indent_style = space
+indent_size = 4
+
+# ── EditorConfig itself ──────────────────────────────────────
+[.editorconfig]
+indent_style = space
 indent_size = 4
 
 # ── Windows-specific files (CRLF) ────────────────────────────

@@ -91,3 +91,30 @@ impact = "No dependency audit step detected in CI — known vulnerabilities in d
 hint = "Add pip-audit or safety to your CI pipeline."
 only_if.path = ".github/workflows"
 only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Sensitive file guards
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = ".gitignore"
+regex = "(?m)^\\.env$|\\.env\\b"
+level = "warn"
+category = "security"
+impact = ".gitignore doesn't exclude .env files — secrets in .env could be committed accidentally."
+hint = "Add .env and .env.* to .gitignore."
+only_if.path = ".gitignore"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = ".gitignore"
+regex = "(?i)\\.pypirc"
+level = "info"
+category = "security"
+impact = ".gitignore doesn't exclude .pypirc — PyPI tokens could be committed."
+hint = "Add .pypirc to .gitignore."
+only_if.path = ".gitignore"
+only_if.regex = "(?s)."

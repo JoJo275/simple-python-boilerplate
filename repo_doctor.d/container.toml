@@ -99,3 +99,41 @@ impact = "Containerfile doesn't use multi-stage builds — the final image may c
 hint = "Consider a multi-stage build: build in one stage, copy artifacts to a slim runtime stage."
 only_if.path = "Containerfile"
 only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Docker Compose
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "docker-compose.yml"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No docker-compose.yml — local container orchestration isn't available out of the box."
+hint = "Add docker-compose.yml for convenient local container builds and multi-service setups."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "docker-compose.yml"
+regex = "(?i)read_only:\\s*true"
+level = "info"
+category = "container"
+impact = "docker-compose.yml doesn't set read_only: true — the container filesystem is writable at runtime."
+hint = "Add read_only: true and tmpfs mounts for directories that need writes (/tmp)."
+only_if.path = "docker-compose.yml"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "docker-compose.yml"
+regex = "(?i)no-new-privileges"
+level = "info"
+category = "container"
+impact = "docker-compose.yml doesn't set no-new-privileges — container processes could escalate privileges."
+hint = "Add security_opt: [no-new-privileges:true] to harden the container."
+only_if.path = "docker-compose.yml"
+only_if.regex = "(?s)."
