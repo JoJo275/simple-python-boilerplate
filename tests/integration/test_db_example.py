@@ -1,8 +1,10 @@
 """Example database integration tests."""
 
-# TODO (template users): Replace placeholder tests with actual integration tests for your database layer
+# TODO (template users): Replace placeholder tests with actual
+# integration tests for your database layer
 
 import sqlite3
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -11,7 +13,7 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def test_db(tmp_path: Path) -> sqlite3.Connection:
+def test_db(tmp_path: Path) -> Iterator[sqlite3.Connection]:
     """Create an in-memory test database."""
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
