@@ -158,3 +158,30 @@ hint = "Create var/ and add var/*.sqlite3 to .gitignore."
 fix = "mkdir -p var"
 only_if.path = "db"
 only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Schema / migration consistency hints
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "regex_present"
+path = "db/schema.sql"
+regex = "(?i)CREATE\\s+TABLE"
+level = "info"
+category = "database"
+impact = "schema.sql has no CREATE TABLE statements — the schema may still be placeholder/template content."
+hint = "Add your actual table definitions to db/schema.sql (uncomment the examples or write your own)."
+only_if.path = "db/schema.sql"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "regex_present"
+path = "db/schema.sql"
+regex = "(?i)PRAGMA\\s+foreign_keys\\s*=\\s*ON"
+level = "info"
+category = "database"
+impact = "schema.sql doesn't enable foreign_keys pragma — SQLite won't enforce FK constraints by default."
+hint = "Add 'PRAGMA foreign_keys = ON;' near the top of schema.sql."
+only_if.path = "db/schema.sql"
+only_if.regex = "(?i)CREATE\\s+TABLE"

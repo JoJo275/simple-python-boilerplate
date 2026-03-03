@@ -5,14 +5,14 @@ default — activate them on the CLI or in `.repo-doctor.toml`.
 
 ## Available Profiles
 
-| Profile     | File             | What it checks                                          |
-| ----------- | ---------------- | ------------------------------------------------------- |
-| `python`    | `python.toml`    | Deeper packaging, typing, linting, coverage, bandit     |
-| `docs`      | `docs.toml`      | MkDocs structure, ADRs, dev guides, standard files      |
-| `db`        | `db.toml`        | Schema, migrations, seeds, bootstrap scripts            |
-| `ci`        | `ci.toml`        | Workflow hardening, pinning, Dependabot ecosystems      |
-| `container` | `container.toml` | Containerfile hygiene, ignore files, multi-stage builds |
-| `security`  | `security.toml`  | Security policy, bandit config, secret scanning, audits |
+| Profile     | File             | What it checks                                                       |
+| ----------- | ---------------- | -------------------------------------------------------------------- |
+| `python`    | `python.toml`    | Packaging, typing, linting, coverage, bandit, editorconfig           |
+| `docs`      | `docs.toml`      | MkDocs structure, ADRs, dev guides, standard files, workflows ref    |
+| `db`        | `db.toml`        | Schema, migrations, seeds, bootstrap scripts, schema consistency     |
+| `ci`        | `ci.toml`        | Workflow hardening, pinning, Dependabot, CI gate, labeler            |
+| `container` | `container.toml` | Containerfile hygiene, ignore files, multi-stage, docker-compose     |
+| `security`  | `security.toml`  | Security policy, bandit config, secret scanning, audits, env guards  |
 
 ## Usage
 
