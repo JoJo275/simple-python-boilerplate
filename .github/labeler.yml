@@ -78,6 +78,11 @@ github_actions:
           - ".pre-commit-config.yaml"
           - "release-please-config.json"
           - "Taskfile.yml"
+          - ".gitattributes"
+          - ".github/CODEOWNERS"
+          - ".github/FUNDING.yml"
+          - ".github/dependabot.yml"
+          - ".markdownlint-cli2.jsonc"
 
 # ── Type labels ───────────────────────────────────────────────
 
