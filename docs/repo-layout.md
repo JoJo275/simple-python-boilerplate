@@ -96,6 +96,7 @@ simple-python-boilerplate/
 ├── var/                        # Runtime/generated files
 │   └── app.example.sqlite3     # Example database file
 │
+├── .editorconfig               # Cross-editor formatting rules
 ├── .gitattributes              # Git file handling rules
 ├── .gitignore                  # Files excluded from git
 ├── .gitmessage.txt             # Commit message template

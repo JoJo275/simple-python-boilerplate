@@ -78,6 +78,7 @@ github_actions:
           - ".pre-commit-config.yaml"
           - "release-please-config.json"
           - "Taskfile.yml"
+          - ".editorconfig"
           - ".gitattributes"
           - ".github/CODEOWNERS"
           - ".github/FUNDING.yml"
