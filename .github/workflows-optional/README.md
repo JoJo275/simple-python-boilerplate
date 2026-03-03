@@ -21,11 +21,9 @@ you can adopt when your project needs them.
 <!-- TODO (template users): Remove entries from this table as you move
      workflows into .github/workflows/. Delete this directory when empty. -->
 
-| File                    | Purpose                                              |
-| ----------------------- | ---------------------------------------------------- |
-| `docs.yml`              | Build and deploy documentation (e.g. MkDocs, Sphinx) |
-| `dependency-review.yml` | Scan PRs for vulnerable or restricted dependencies   |
-| `labeler.yml`           | Auto-label PRs based on file paths changed           |
+| File             | Purpose                                              |
+| ---------------- | ---------------------------------------------------- |
+| `changelog.yml`  | Generate CHANGELOG.md from conventional commits (git-cliff) |
 
 ## After Adopting
 

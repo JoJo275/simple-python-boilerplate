@@ -90,9 +90,10 @@ sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
 - **Version constant:** Include `SCRIPT_VERSION = "x.y.z"` near the top of
   each script. Bump when behavior changes. Useful for debugging and
   `--version` flags.
-- **Argparse for flags:** Use `argparse` for all CLI flags — avoid ad-hoc
-  `sys.argv` parsing. This gives `--help` for free and keeps interfaces
-  consistent.
+- **Argparse for all arguments:** Use `argparse` for all CLI parsing —
+  including positional arguments — avoid ad-hoc `sys.argv` parsing. This
+  gives `--help` and `--version` for free and keeps interfaces consistent.
+  This applies to pre-commit hooks in `precommit/` too.
 - **`__main__` guard:** Wrap execution in `if __name__ == "__main__":` so
   the script can be imported for testing without side effects.
 - **Docstring:** Every script should have a module-level docstring explaining

@@ -14,13 +14,34 @@ Exit codes:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
+SCRIPT_VERSION = "1.1.0"
 CHUNK_SIZE = 1024 * 1024  # 1 MiB
 
 
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser for the NUL-byte checker."""
+    parser = argparse.ArgumentParser(
+        description="Fail if any file contains NUL (0x00) bytes.",
+    )
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="Files to check (passed by pre-commit).",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {SCRIPT_VERSION}",
+    )
+    return parser
+
+
 def check_file(path: str) -> bool:
+    """Return True if *path* contains at least one NUL byte."""
     try:
         with Path(path).open("rb") as f:
             for chunk in iter(lambda: f.read(CHUNK_SIZE), b""):
@@ -32,10 +53,11 @@ def check_file(path: str) -> bool:
         return True  # treat unreadable as failure
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Check all files passed as arguments for NUL bytes."""
+    args = _build_parser().parse_args(argv)
     found = False
-    for path in sys.argv[1:]:
+    for path in args.files:
         if check_file(path):
             print(f"ERROR: NUL byte detected in {path}", file=sys.stderr)
             found = True
