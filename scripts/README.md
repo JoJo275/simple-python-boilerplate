@@ -9,6 +9,7 @@ Utility scripts for development and maintenance.
 
 | Script                                             | Description                                                              |
 | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| [_progress.py](_progress.py)                       | Shared progress-indicator utilities (ProgressBar, Spinner)               |
 | [apply_labels.py](apply_labels.py)                 | Apply GitHub labels from JSON                                            |
 | [apply-labels.sh](apply-labels.sh)                 | Shell wrapper for label application                                      |
 | [archive_todos.py](archive_todos.py)               | Archive completed TODO items from todo.md                                |
