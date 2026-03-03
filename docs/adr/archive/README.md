@@ -1,5 +1,8 @@
 # ADR Archive
 
+<!-- TODO (template users): This directory is ready to use as-is. No changes
+     needed until you have ADRs to archive. -->
+
 This directory contains **deprecated**, **superseded**, or **suspended** Architecture Decision Records.
 
 ## Status Definitions

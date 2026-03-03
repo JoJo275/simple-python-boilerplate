@@ -1,5 +1,5 @@
 -- Database Reset Script
--- TODO: Update with your actual tables and reset logic
+-- TODO (template users): Update with your actual tables and reset logic
 --
 -- WARNING: This will delete all data! Use only in development.
 --

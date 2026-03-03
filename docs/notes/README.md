@@ -1,5 +1,9 @@
 # Notes
 
+<!-- TODO (template users): Keep or remove this directory. It's useful as a
+     personal knowledge base during development but isn't required. If you
+     keep it, replace the contents with your own notes. -->
+
 This directory contains personal notes, learnings, and references captured while building this project.
 
 > **Why a README here?** When you have multiple note files, this README serves as an index and explains the purpose of the directory. It helps future-you (and others) understand what's here and how it's organized.

@@ -1,6 +1,7 @@
 # Database
 
-<!-- TODO: Update this README with your project's database conventions -->
+<!-- TODO (template users): Update this README with your project's database
+     conventions. Replace SQLite examples if using a different database. -->
 
 This directory contains all database-related files.
 
@@ -53,8 +54,10 @@ If using an ORM instead of raw SQL files, lint Python code (Ruff, mypy) and
 test migrations with pytest. See [learning notes on SQL CI](../docs/notes/learning.md#setting-up-sql-ci-and-hooks)
 for detailed examples.
 
-## Related
+## See Also
 
 - [var/](../var/) — Runtime database files (gitignored)
 - [scripts/sql/](../scripts/sql/) — Ad-hoc SQL experimentation
-- [tests/integration/sql/](../tests/integration/sql/) — Test fixtures
+- [tests/integration/sql/](../tests/integration/sql/) — SQL test fixtures
+- [src/simple_python_boilerplate/sql/](../src/simple_python_boilerplate/sql/) — Embedded application queries
+- [ADR 027](../docs/adr/027-database-strategy.md) — Raw SQL database strategy

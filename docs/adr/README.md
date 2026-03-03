@@ -23,6 +23,17 @@ Each ADR follows the structure defined in [template.md](template.md):
 
 To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 
+## When to Write an ADR
+
+Write an ADR when a decision:
+
+- Is **hard to reverse** (choosing a framework, database, or deployment strategy)
+- **Affects multiple parts** of the project (new convention, pattern, or tooling)
+- Would be **useful context** for future contributors ("why did we do it this way?")
+
+Don't write an ADR for routine choices (dependency patch updates, style tweaks).
+For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/tool-decisions.md) instead.
+
 ## Index
 
 | ADR                                               | Title                                                              | Status   |

@@ -1,5 +1,8 @@
 # Issue Templates Archive
 
+<!-- TODO (template users): Activate any templates you need by copying them
+     to .github/ISSUE_TEMPLATE/. Delete this directory when you're done. -->
+
 This directory stores issue templates that are **not active** in `.github/ISSUE_TEMPLATE/`.
 
 ## Active Templates
@@ -31,3 +34,8 @@ cp docs/templates/issue_templates/issue_forms/design_proposal.yml .github/ISSUE_
 ```
 
 Or just drag and drop the file in your code editor.
+
+## See Also
+
+- [.github/ISSUE_TEMPLATE/](../../../.github/ISSUE_TEMPLATE/) — Active issue templates
+- [GitHub docs: Configuring issue templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository)

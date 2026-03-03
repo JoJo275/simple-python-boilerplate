@@ -14,7 +14,7 @@ Thanks for taking the time to report a bug! 🐛
 
 Please provide the **smallest possible example** that **reliably** reproduces the issue.
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ⚠️ **Before submitting**
 

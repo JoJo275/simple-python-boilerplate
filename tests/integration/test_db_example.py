@@ -1,6 +1,6 @@
 """Example database integration tests."""
 
-# TODO: Replace placeholder tests with actual integration tests for your database layer
+# TODO (template users): Replace placeholder tests with actual integration tests for your database layer
 
 import sqlite3
 from pathlib import Path

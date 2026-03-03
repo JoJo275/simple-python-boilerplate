@@ -1,2 +1,2 @@
 # SQL queries package
-# TODO: Add your application queries here
+# TODO (template users): Add your application queries here

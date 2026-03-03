@@ -12,7 +12,7 @@ Thanks for taking the time to propose a design change! 🎨
 Design proposals help us make thoughtful architectural decisions.
 Please provide as much context as possible to facilitate discussion.
 
-<!-- TODO: When using this template repo, replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
+<!-- TODO (template users): Replace all JoJo275/simple-python-boilerplate URLs below with your own GitHub username/org and repo name -->
 
 ⚠️ **Before submitting**
 

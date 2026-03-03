@@ -1,6 +1,7 @@
 # Workflows
 
-<!-- TODO (template users): Update this file after removing or adding workflows. -->
+<!-- TODO (template users): Update this file after removing or adding
+     workflows. Keep it in sync with docs/workflows.md. -->
 
 Overview of all GitHub Actions workflows in this repository.
 

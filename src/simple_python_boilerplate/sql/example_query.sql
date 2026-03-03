@@ -1,5 +1,5 @@
 -- Example query: Get user by ID
--- TODO: Replace with your actual queries or delete this file
+-- TODO (template users): Replace with your actual queries or delete this file
 --
 -- Usage in Python:
 --   from importlib.resources import files
