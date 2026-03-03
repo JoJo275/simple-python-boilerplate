@@ -87,6 +87,23 @@ sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
   — they should work without installing the package
 - **`--dry-run`:** Destructive scripts should support `--dry-run` to preview changes
 - **Exit codes:** 0 = success, non-zero = failure (for CI compatibility)
+- **Version constant:** Include `SCRIPT_VERSION = "x.y.z"` near the top of
+  each script. Bump when behavior changes. Useful for debugging and
+  `--version` flags.
+- **Argparse for flags:** Use `argparse` for all CLI flags — avoid ad-hoc
+  `sys.argv` parsing. This gives `--help` for free and keeps interfaces
+  consistent.
+- **`__main__` guard:** Wrap execution in `if __name__ == "__main__":` so
+  the script can be imported for testing without side effects.
+- **Docstring:** Every script should have a module-level docstring explaining
+  what it does, when to use it, and any prerequisites.
+- **Logging over print:** Prefer `logging` over bare `print()` for status
+  messages. Use `print()` only for primary output (e.g., JSON, tables).
+- **Idempotency:** Scripts should be safe to run multiple times. Don't
+  create duplicates, corrupt state, or fail on re-runs.
+- **Error messages:** Write actionable error messages that tell the user
+  what went wrong _and_ how to fix it. Avoid bare tracebacks when a
+  human-readable message is possible.
 
 See [ADR 031: Script conventions](../docs/adr/031-script-conventions.md) for the full rationale.
 
