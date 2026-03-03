@@ -100,7 +100,7 @@ flowchart LR
     style V4 fill:#3a1a2a,stroke:#d4577a,color:#e0e0e0
 ```
 
-> **Pre-1.0 note:** `bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means breaking changes bump **minor**, not major. Reaching 1.0.0 is a manual decision (edit the Release PR).
+> **Pre-1.0 note:** `bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means breaking changes bump **minor**, not major. Reaching 1.0.0 is a manual decision — see [How to Release 1.0.0](#how-to-release-100) below.
 
 ---
 
@@ -353,6 +353,62 @@ release-please reads conventional commit prefixes to determine the version bump:
 | `docs:`, `chore:`, `ci:`, etc.        | **No release**    | Only releasable types trigger a Release PR |
 
 > While the project is pre-1.0 (`bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json)), breaking changes bump minor instead of major.
+
+### How to Release 1.0.0
+
+Reaching `1.0.0` requires an explicit action — release-please will never
+automatically bump from `0.x` to `1.0.0`. Choose one of these approaches:
+
+**Option A — `Release-As` commit trailer (recommended):**
+
+Add a commit (or empty commit) with a `Release-As` trailer in the body.
+This tells release-please to use that exact version for the next Release PR:
+
+```bash
+git commit --allow-empty -m "chore: release 1.0.0" -m "Release-As: 1.0.0"
+```
+
+Push to `main` (via a PR). release-please will create a Release PR targeting `1.0.0`.
+
+**Option B — Edit the Release PR manually:**
+
+If release-please has already opened a Release PR (e.g., for `0.8.0`), you can
+manually edit the PR's version references (`CHANGELOG.md`, `__init__.py`,
+`.release-please-manifest.json`) to `1.0.0` before merging.
+
+**Option C — Update the manifest directly:**
+
+Edit `.release-please-manifest.json` to set the version to `1.0.0`, commit,
+and push. The next Release PR will use `1.0.0` as the base.
+
+> **Post-1.0 checklist:**
+>
+> - Update the `Development Status` classifier in `pyproject.toml` from
+>   `"Development Status :: 4 - Beta"` to `"Development Status :: 5 - Production/Stable"`
+> - Verify `SECURITY.md` has a real contact email (not a placeholder)
+> - Consider whether `bump-minor-pre-major` should be removed from
+>   `release-please-config.json` (it's a no-op after 1.0 but removing it
+>   keeps config clean)
+
+### Post-1.0 Version Behavior
+
+After `1.0.0`, version bumps follow standard SemVer:
+
+| Commit type       | Version bump | Example           |
+| ----------------- | ------------ | ----------------- |
+| `fix:` / `perf:`  | Patch        | `1.2.0` → `1.2.1` |
+| `feat:`           | Minor        | `1.2.0` → `1.3.0` |
+| `BREAKING CHANGE` | **Major**    | `1.2.0` → `2.0.0` |
+
+**Will `feat:` bump you to 2.0?** No. A plain `feat:` commit only bumps the
+minor version (`1.2.0` → `1.3.0`). Only an explicit breaking change
+(`feat!:`, `fix!:`, or a `BREAKING CHANGE:` footer) triggers a major bump.
+You can merge `feat:` branches frequently without version inflation.
+
+**Avoiding accidental major bumps:** Use `!` or `BREAKING CHANGE` only when
+you intentionally introduce backward-incompatible changes. If a commit
+accidentally includes a breaking change marker, you can edit the Release PR
+before merging to change the version.
 
 ### What Triggers a Release
 

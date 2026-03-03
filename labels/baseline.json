@@ -1,5 +1,15 @@
 [
   {
+    "name": "autorelease: pending",
+    "description": "Release PR is open and waiting to be merged",
+    "color": "ededed"
+  },
+  {
+    "name": "autorelease: tagged",
+    "description": "Release PR was merged and the release tag was created",
+    "color": "ededed"
+  },
+  {
     "name": "bug",
     "description": "Something isn't working",
     "color": "d73a4a"

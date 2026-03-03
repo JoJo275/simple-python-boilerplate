@@ -41,7 +41,8 @@ The package version comes from **git tags** via [hatch-vcs](https://github.com/o
 | `feat:`           | Minor             | `0.6.0` → `0.7.0` |
 | `BREAKING CHANGE` | Minor (not major) | `0.6.0` → `0.7.0` |
 
-Reaching `1.0.0` is a **manual decision** — edit the Release PR to set the version.
+Reaching `1.0.0` is a **manual decision**. See [How to Release 1.0.0](releasing.md#how-to-release-100)
+for the available approaches (`Release-As` trailer, manual PR edit, or manifest update).
 After `1.0.0`, breaking changes bump major as expected by SemVer.
 
 ### Pre-release Versions
