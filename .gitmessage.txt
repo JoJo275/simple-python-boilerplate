@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────
-# <type>(<scope>): <description>          (max 50 chars)
+# <type>(<scope>): <description>   (subject ≤ 50 chars)
 # ──────────────────────────────────────────────────
 #
 # Why:
@@ -16,6 +16,15 @@
 #
 # Issues/Refs:                (omit if not applicable)
 #
+#
+# ──────────────────────────────────────────────────
+# Setup (run once per clone)
+# ──────────────────────────────────────────────────
+#   git config commit.template .gitmessage.txt
+#
+# TODO (template users): If you renamed this file or moved it,
+#   update the path in the git config command above, CONTRIBUTING.md,
+#   and .repo-doctor.toml.
 #
 # ──────────────────────────────────────────────────
 # Types
@@ -36,8 +45,10 @@
 # Rules
 # ──────────────────────────────────────────────────
 #   - Subject: imperative mood, lowercase, no period
+#   - Subject: ≤ 50 chars total (type + scope + description)
 #   - Body:    wrap at 72 chars, explain what and why
-#   - Breaking: add ! after type/scope, add footer
+#   - Blank line between subject and body (required by git)
+#   - Breaking: add ! after type/scope AND add footer
 #
 # ──────────────────────────────────────────────────
 # Examples
@@ -47,4 +58,8 @@
 #   docs: update installation guide
 #   ci: add Python 3.13 to test matrix
 #   feat(api)!: change authentication to OAuth2
+#
+#   Revert example (include original commit SHA):
+#   revert: feat: add user authentication
+#     This reverts commit abc1234.
 # ──────────────────────────────────────────────────

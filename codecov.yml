@@ -28,6 +28,8 @@ ignore:
   - "tests/**"
   - "scripts/**"
   - "experiments/**"
+  - "docs/**"
+  - "mkdocs-hooks/**"
 
 # PR comment configuration
 comment:
