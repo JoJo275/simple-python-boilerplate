@@ -25,119 +25,17 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess  # nosec B404
 import sys
 import urllib.parse
 from pathlib import Path
 
+from _progress import ProgressBar
+
 SCRIPT_VERSION = "1.3.0"
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-
-
-def _terminal_width() -> int:
-    """Get terminal width, with a sensible fallback."""
-    return shutil.get_terminal_size((80, 24)).columns
-
-
-def _is_interactive() -> bool:
-    """Return True if stdout is a TTY (not piped/redirected)."""
-    return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
-
-
-def _supports_unicode() -> bool:
-    """Return True if the terminal likely supports Unicode box-drawing chars."""
-    import locale
-
-    try:
-        encoding = sys.stdout.encoding or locale.getpreferredencoding(False)
-        return encoding.lower().replace("-", "") in {"utf8", "utf16", "utf32"}
-    except Exception:
-        return False
-
-
-# Bar style pairs: (filled_char, empty_char, left_bracket, right_bracket)
-_STYLE_UNICODE = ("\u2588", "\u2591", "[", "]")  # █ ░
-_STYLE_ASCII_HASH = ("#", "-", "[", "]")  # [###-----]
-_STYLE_ASCII_ARROW = ("=", " ", "[", "]")  # [===>    ]
-
-
-def _pick_bar_style() -> tuple[str, str, str, str]:
-    """Choose the best bar style the terminal can render."""
-    if _supports_unicode():
-        return _STYLE_UNICODE
-    return _STYLE_ASCII_HASH
-
-
-def _print_progress(
-    current: int,
-    total: int,
-    label_name: str,
-    *,
-    bar_width: int | None = None,
-) -> None:
-    """Print an inline progress bar that overwrites itself.
-
-    Adapts to terminal capabilities:
-
-    - Unicode terminal::
-
-        Applying labels  [████████████░░░░░░░░]  12/72 ( 17%)  bug
-
-    - ASCII fallback::
-
-        Applying labels  [############--------]  12/72 ( 17%)  bug
-
-    Degrades gracefully:
-    - If stdout is not a TTY (piped), prints nothing (final summary suffices).
-    - On narrow terminals the bar shrinks automatically.
-    """
-    if not _is_interactive():
-        return
-
-    fill_ch, empty_ch, lbracket, rbracket = _pick_bar_style()
-
-    pct = int(current / total * 100) if total else 0
-    counter = f"{current}/{total} ({pct:>3}%)"
-    prefix = "Applying labels  "
-
-    # Truncate long label names so the bar fits one line
-    max_label_len = 30
-    display_name = (
-        label_name[: max_label_len - 1]
-        + ("..." if not _supports_unicode() else "\u2026")
-        if len(label_name) > max_label_len
-        else label_name
-    )
-
-    if bar_width is None:
-        # Reserve space for: prefix + brackets + counter + label + padding
-        overhead = (
-            len(prefix)
-            + len(lbracket)
-            + len(rbracket)
-            + len(counter)
-            + len(display_name)
-            + 6  # spaces between sections
-        )
-        bar_width = max(_terminal_width() - overhead, 10)
-
-    filled = int(bar_width * current / total) if total else 0
-    bar = fill_ch * filled + empty_ch * (bar_width - filled)
-
-    line = f"\r{prefix}{lbracket}{bar}{rbracket}  {counter}  {display_name}"
-    # Pad with spaces to clear leftover chars from previous longer lines
-    sys.stdout.write(line.ljust(_terminal_width()))
-    sys.stdout.flush()
-
-
-def _finish_progress() -> None:
-    """Move to a new line after the progress bar is complete."""
-    if _is_interactive():
-        sys.stdout.write("\n")
-        sys.stdout.flush()
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
@@ -244,13 +142,14 @@ def main() -> int:
 
     created = updated = up_to_date = 0
     failures: list[str] = []
+    bar = ProgressBar(total=total, label="Applying labels")
 
-    for i, lab in enumerate(labels, start=1):
+    for lab in labels:
         name = lab["name"]
         color = lab["color"].lstrip("#")
         desc = lab.get("description", "")
 
-        _print_progress(i, total, name)
+        bar.update(name)
 
         # Try create
         p = gh_api(
@@ -292,7 +191,7 @@ def main() -> int:
             error_msg += f"\n  PATCH error: {p2.stderr.strip()}"
         failures.append(error_msg)
 
-    _finish_progress()
+    bar.finish()
     parts = []
     if created:
         parts.append(f"{created} created")

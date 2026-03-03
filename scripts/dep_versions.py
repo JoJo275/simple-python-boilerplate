@@ -57,11 +57,13 @@ from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
+from _progress import ProgressBar
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 PYPROJECT = ROOT / "pyproject.toml"
@@ -256,31 +258,47 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
     rows: list[dict[str, str | None]] = []
     seen: set[str] = set()
 
+    # Count total unique deps for progress
+    all_deps: list[tuple[str, str]] = []
     for group, deps in groups.items():
         for raw in deps:
             name = _normalise_name(raw)
-            if name in seen:
-                continue
-            seen.add(name)
+            if name not in seen and "simple-python-boilerplate" not in name:
+                seen.add(name)
+                all_deps.append((group, raw))
+    seen.clear()
 
-            # Skip self-references
-            if "simple-python-boilerplate" in name:
-                continue
+    if check_latest:
+        bar = ProgressBar(total=len(all_deps), label="Querying PyPI")
+    else:
+        bar = None
 
-            installed = _installed_version(name)
-            latest = _latest_version(name) if check_latest else None
-            upgradable = installed != latest if installed and latest else None
+    for group, raw in all_deps:
+        name = _normalise_name(raw)
+        if name in seen:
+            continue
+        seen.add(name)
 
-            rows.append(
-                {
-                    "group": group,
-                    "name": name,
-                    "specifier": raw,
-                    "installed": installed,
-                    "latest": latest,
-                    "upgradable": "yes" if upgradable else "",
-                }
-            )
+        installed = _installed_version(name)
+        latest = _latest_version(name) if check_latest else None
+        upgradable = installed != latest if installed and latest else None
+
+        if bar is not None:
+            bar.update(name)
+
+        rows.append(
+            {
+                "group": group,
+                "name": name,
+                "specifier": raw,
+                "installed": installed,
+                "latest": latest,
+                "upgradable": "yes" if upgradable else "",
+            }
+        )
+
+    if bar is not None:
+        bar.finish()
 
     return rows
 

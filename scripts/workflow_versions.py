@@ -77,6 +77,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from _progress import ProgressBar, Spinner
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -597,6 +599,9 @@ def scan_workflows(
     seen_shas: dict[str, str | None] = {}  # "action@SHA" -> resolved tag
     seen_latest: dict[str, str | None] = {}  # repo_slug -> latest tag
 
+    use_spinner = resolve_tags or check_latest
+    spinner = Spinner("Scanning actions") if use_spinner else None
+
     for wf in sorted(WORKFLOWS_DIR.glob("*.yml")):
         try:
             text = wf.read_text(encoding="utf-8")
@@ -615,6 +620,9 @@ def scan_workflows(
             sha = m.group("ref")
             trail = m.group("trail").strip()
             slug = _repo_slug(action)
+
+            if spinner is not None:
+                spinner.update(slug)
 
             # Extract existing comment tag and detect description
             comment_tag: str | None = None
@@ -688,6 +696,9 @@ def scan_workflows(
                     "has_description": "yes" if has_desc else "",
                 }
             )
+
+    if spinner is not None:
+        spinner.finish()
 
     return rows
 
@@ -1021,8 +1032,10 @@ def upgrade_all_actions(
             upgrades.append((action, latest))
 
     modified_total = 0
+    bar = ProgressBar(total=len(upgrades), label="Upgrading actions")
     for action, target_tag in upgrades:
         slug = _repo_slug(action)
+        bar.update(slug)
         _info(f"  {slug}: upgrading to {target_tag} …")
         count = upgrade_action(action, target_tag, rows)
         if count:
@@ -1030,6 +1043,7 @@ def upgrade_all_actions(
             modified_total += count
         else:
             _info("    no changes")
+    bar.finish()
 
     return modified_total
 
