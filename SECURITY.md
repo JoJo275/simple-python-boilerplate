@@ -37,11 +37,9 @@ Instead, please report security vulnerabilities via one of the following methods
    > ℹ️ _If you forked this repo, update the link above to point to your own repository._
 
 2. **Email**
-   Contact the maintainers directly at: `security@example.com`
+   Contact the maintainers directly at: `joseph26584@gmail.com`
 
-   <!-- TODO (template users): ⚠️ IMPORTANT — Replace security@example.com
-        with your actual security contact email BEFORE your first release.
-        Shipping a placeholder means reporters have no way to reach you. -->
+   <!-- Security contact email last verified: 2026-03-03 -->
 
 3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
@@ -49,7 +47,7 @@ Instead, please report security vulnerabilities via one of the following methods
    <!-- TODO (template users): Add your PGP key fingerprint here, or remove
         this section entirely if you don't use PGP. Example:
         Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
-        Public key: https://keys.openpgp.org/search?q=security@example.com
+        Public key: https://keys.openpgp.org/search?q=joseph26584@gmail.com
    -->
 
 ### What to Include

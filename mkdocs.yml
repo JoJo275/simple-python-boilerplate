@@ -126,6 +126,9 @@ nav:
       - 030 – Label Management: adr/030-label-management-as-code.md
       - 031 – Script Conventions: adr/031-script-conventions.md
       - 032 – Dependency Grouping: adr/032-dependency-grouping-strategy.md
+      - 033 – Prettier for Markdown: adr/033-prettier-for-markdown-formatting.md
+      - 034 – Documentation Organization: adr/034-documentation-organization-strategy.md
+      - 035 – Copilot Instructions: adr/035-copilot-instructions-as-context.md
   - Templates:
       - Overview: templates/README.md
       - Security Policy: templates/SECURITY_no_bounty.md

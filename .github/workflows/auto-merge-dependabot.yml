@@ -78,10 +78,11 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           PR_URL: "${{ github.event.pull_request.html_url }}"
+          UPDATE_TYPE: "${{ steps.metadata.outputs.update-type }}"
         run: |
-          echo "::notice::Auto-merging Dependabot PR: $PR_URL (${steps.metadata.outputs.update-type})"
+          echo "::notice::Auto-merging Dependabot PR: $PR_URL ($UPDATE_TYPE)"
           gh pr review "$PR_URL" --approve --body \
-            "Auto-approved: Dependabot ${{ steps.metadata.outputs.update-type }} update."
+            "Auto-approved: Dependabot $UPDATE_TYPE update."
           gh pr merge "$PR_URL" --auto --squash
 
       - name: Skip major updates

@@ -18,24 +18,24 @@
 -r requirements.txt
 
 # Testing
-pytest  # Simple powerful testing with Python (v9.0.2)
-pytest-cov  # Pytest plugin for measuring coverage (v7.0.0)
+pytest>=8.0  # Simple powerful testing with Python (v9.0.2)
+pytest-cov>=6.0  # Pytest plugin for measuring coverage (v7.0.0)
 
 # Linting & Formatting
-ruff  # An extremely fast Python linter and code formatter, written in Rust (v0.15.0)
+ruff>=0.11  # An extremely fast Python linter and code formatter, written in Rust (v0.15.1)
 
 # Type Checking
-mypy  # Optional static typing for Python (v1.19.1)
+mypy>=1.15  # Optional static typing for Python (v1.19.1)
 
 # Security
-bandit  # Security oriented static analyser for python code (v1.9.3)
+bandit>=1.8  # Security oriented static analyser for python code (v1.9.3)
 
 # Git Hooks
-pre-commit  # A framework for managing and maintaining multi-language pre-commit hooks (v4.5.1)
+pre-commit>=4.0  # A framework for managing and maintaining multi-language pre-commit hooks (v4.5.1)
 
 # Commit & Dependency Hygiene
-commitizen  # Conventional commit helper + validator (v4.4.1)
-deptry  # Detect unused, missing, and transitive dependencies (v0.22.0)
+commitizen>=4.4  # Conventional commit helper + validator (v4.13.8)
+deptry>=0.22  # Detect unused, missing, and transitive dependencies (v0.24.0)
 
 # Optional helpful tools (uncomment as needed)
 # pipdeptree      # Dependency tree visualization

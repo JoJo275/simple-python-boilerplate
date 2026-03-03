@@ -19,7 +19,7 @@ documentation:
           - "mkdocs.yml"
           - "**/*.md"
 
-github_actions:
+github-actions:
   - changed-files:
       - any-glob-to-any-file:
           - ".github/workflows/**"

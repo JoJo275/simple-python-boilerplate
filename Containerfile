@@ -58,11 +58,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # OCI image metadata
 # See: https://github.com/opencontainers/image-spec/blob/main/annotations.md
-# TODO (template users): Replace YOURNAME/YOURREPO with your actual GitHub
-#   repository slug (e.g., octocat/my-app). Update the title and description.
+# TODO (template users): Replace the source URL, title, and description below
+#   with your own repository slug and project details.
 LABEL org.opencontainers.image.title="simple-python-boilerplate" \
       org.opencontainers.image.description="A Python boilerplate project" \
-      org.opencontainers.image.source="https://github.com/YOURNAME/YOURREPO" \
+      org.opencontainers.image.source="https://github.com/JoJo275/simple-python-boilerplate" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 # Don't run as root

@@ -10,6 +10,11 @@
     "color": "0366d6"
   },
   {
+    "name": "docker",
+    "description": "Pull requests that update Docker/container configuration",
+    "color": "2496ed"
+  },
+  {
     "name": "documentation",
     "description": "Improvements or additions to documentation",
     "color": "0075ca"
@@ -25,7 +30,7 @@
     "color": "a2eeef"
   },
   {
-    "name": "github_actions",
+    "name": "github-actions",
     "description": "Pull requests that update GitHub Actions code",
     "color": "000000"
   },
@@ -43,6 +48,16 @@
     "name": "invalid",
     "description": "This doesn't seem right",
     "color": "e4e669"
+  },
+  {
+    "name": "pinned",
+    "description": "Exempt from stale bot; kept open indefinitely",
+    "color": "006b75"
+  },
+  {
+    "name": "python",
+    "description": "Pull requests that update Python dependencies",
+    "color": "3572a5"
   },
   {
     "name": "question",
@@ -88,5 +103,15 @@
     "name": "priority: backlog",
     "description": "Accepted but not scheduled",
     "color": "bfdadc"
+  },
+  {
+    "name": "security",
+    "description": "Security-related; exempt from stale bot",
+    "color": "ee0701"
+  },
+  {
+    "name": "stale",
+    "description": "Inactive; may be closed if no response",
+    "color": "eeeeee"
   }
 ]
