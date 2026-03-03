@@ -218,12 +218,14 @@ For macOS/Linux/WSL users who prefer shell scripts:
 
 ## Baseline set
 
-GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(24 labels = 9 GitHub defaults + 15 extras)**
+GitHub's default labels plus useful extras for basic triage and prioritization. Good for small-to-medium projects. **(26 labels = 9 GitHub defaults + 17 extras)**
 
-> GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate adds 15 extras: automation-friendly labels (`dependencies`, `docker`, `github-actions`, `python`), process labels (`pinned`, `security`, `stale`), a minimal `status:` subset (`needs-triage`, `needs-info`, `blocked`), and `priority:` labels (`p1-high`, `p2-medium`, `p3-low`, `backlog`).
+> GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate adds 17 extras: release-please labels (`autorelease: pending`, `autorelease: tagged`), automation-friendly labels (`dependencies`, `docker`, `github-actions`, `python`), process labels (`pinned`, `security`, `stale`), a minimal `status:` subset (`needs-triage`, `needs-info`, `blocked`), and `priority:` labels (`p1-high`, `p2-medium`, `p3-low`, `backlog`).
 
 | Label                  | Description                                            | Color     |
 | ---------------------- | ------------------------------------------------------ | --------- |
+| `autorelease: pending` | Release PR is open and waiting to be merged            | `#ededed` |
+| `autorelease: tagged`  | Release PR was merged and the release tag was created  | `#ededed` |
 | `bug`                  | Something isn't working                                | `#d73a4a` |
 | `dependencies`         | Pull requests that update a dependency file            | `#0366d6` |
 | `docker`               | Pull requests that update Docker/container config      | `#2496ed` |
@@ -250,7 +252,7 @@ GitHub's default labels plus useful extras for basic triage and prioritization. 
 
 ## Extended set
 
-Includes everything in baseline plus more granular `status:`, `priority:`, `area:`, `type:`, `triage:`, `release:`, `contrib:`, and `meta:` labels for larger projects with heavier triage needs. **(71 labels = 24 baseline + 47 extras)**
+Includes everything in baseline plus more granular `status:`, `priority:`, `area:`, `type:`, `triage:`, `release:`, `contrib:`, and `meta:` labels for larger projects with heavier triage needs. **(73 labels = 26 baseline + 47 extras)**
 
 **Notes:**
 
@@ -259,6 +261,8 @@ Includes everything in baseline plus more granular `status:`, `priority:`, `area
 
 | Label                           | Description                                       | Color     |
 | ------------------------------- | ------------------------------------------------- | --------- |
+| `autorelease: pending`          | Release PR is open and waiting to be merged       | `#ededed` |
+| `autorelease: tagged`           | Release PR merged; release tag was created        | `#ededed` |
 | `bug`                           | Something isn't working                           | `#d73a4a` |
 | `dependencies`                  | Pull requests that update a dependency file       | `#0366d6` |
 | `docker`                        | Pull requests that update Docker/container config | `#2496ed` |

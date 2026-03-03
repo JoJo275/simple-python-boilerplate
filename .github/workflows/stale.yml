@@ -94,5 +94,5 @@ jobs:
 
           # ── Exemptions ────────────────────────────────────
           # Issues/PRs with these labels are never marked stale
-          exempt-issue-labels: "pinned,security,bug"
-          exempt-pr-labels: "pinned,security"
+          exempt-issue-labels: "pinned,security,type: security,bug"
+          exempt-pr-labels: "pinned,security,type: security"
