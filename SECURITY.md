@@ -44,10 +44,18 @@ Instead, please report security vulnerabilities via one of the following methods
 3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
 
-   <!-- TODO (template users): Add your PGP key fingerprint here, or remove
-        this section entirely if you don't use PGP. Example:
-        Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
-        Public key: https://keys.openpgp.org/search?q=joseph26584@gmail.com
+   <!-- TODO (template users): Enable PGP for security reports:
+        1. Generate a key:   gpg --full-generate-key  (RSA 4096-bit recommended)
+        2. Get fingerprint:  gpg --fingerprint YOUR_EMAIL
+        3. Publish to keyserver: gpg --keyserver keys.openpgp.org --send-keys FINGERPRINT
+        4. Optionally export: gpg --armor --export YOUR_EMAIL > pgp-key.asc
+           and commit pgp-key.asc to the repo root (or host elsewhere).
+        5. Uncomment the block below and fill in your fingerprint + URL.
+   -->
+
+   <!--
+   Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
+   Public key: https://keys.openpgp.org/search?q=joseph26584@gmail.com
    -->
 
 ### What to Include

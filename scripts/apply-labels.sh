@@ -20,4 +20,5 @@ if [[ -z "${SET}" || ! "${SET}" =~ ^(baseline|extended)$ ]]; then
   exit 2
 fi
 
+echo "Applying ${SET} labels… (this may take a moment)"
 python3 "${SCRIPT_DIR}/apply_labels.py" --set "${SET}" "${EXTRA_ARGS[@]}"

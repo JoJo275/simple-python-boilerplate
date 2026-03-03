@@ -25,15 +25,81 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess  # nosec B404
 import sys
 import urllib.parse
 from pathlib import Path
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
+
+
+def _terminal_width() -> int:
+    """Get terminal width, with a sensible fallback."""
+    return shutil.get_terminal_size((80, 24)).columns
+
+
+def _is_interactive() -> bool:
+    """Return True if stdout is a TTY (not piped/redirected)."""
+    return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+
+
+def _print_progress(
+    current: int,
+    total: int,
+    label_name: str,
+    *,
+    bar_width: int | None = None,
+) -> None:
+    """Print an inline progress bar that overwrites itself.
+
+    Example output::
+
+        Applying labels  [████████████░░░░░░░░]  12/72 (17%)  bug
+
+    Degrades gracefully:
+    - If stdout is not a TTY (piped), prints nothing (final summary suffices).
+    - On narrow terminals the bar shrinks or is omitted.
+    """
+    if not _is_interactive():
+        return
+
+    pct = int(current / total * 100) if total else 0
+    counter = f"{current}/{total} ({pct:>3}%)"
+    prefix = "Applying labels  "
+
+    # Truncate long label names so the bar fits one line
+    max_label_len = 30
+    display_name = (
+        label_name[: max_label_len - 1] + "…"
+        if len(label_name) > max_label_len
+        else label_name
+    )
+
+    if bar_width is None:
+        # Reserve space for: prefix + [bar] + counter + label + padding
+        overhead = (
+            len(prefix) + len(counter) + len(display_name) + 8
+        )  # brackets + spaces
+        bar_width = max(_terminal_width() - overhead, 10)
+
+    filled = int(bar_width * current / total) if total else 0
+    bar = "█" * filled + "░" * (bar_width - filled)
+
+    line = f"\r{prefix}[{bar}]  {counter}  {display_name}"
+    # Pad with spaces to clear leftover chars from previous longer lines
+    sys.stdout.write(line.ljust(_terminal_width()))
+    sys.stdout.flush()
+
+
+def _finish_progress() -> None:
+    """Move to a new line after the progress bar is complete."""
+    if _is_interactive():
+        sys.stdout.write("\n")
+        sys.stdout.flush()
 
 
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
@@ -121,13 +187,18 @@ def main() -> int:
             print(f"  upsert: {name} (#{color}) - {desc}")
         return 0
 
+    total = len(labels)
+    print(f"Processing {total} labels for {repo}…")
+
     created = updated = 0
     failures: list[str] = []
 
-    for lab in labels:
+    for i, lab in enumerate(labels, start=1):
         name = lab["name"]
         color = lab["color"].lstrip("#")
         desc = lab.get("description", "")
+
+        _print_progress(i, total, name)
 
         # Try create
         p = gh_api(
@@ -158,6 +229,7 @@ def main() -> int:
             error_msg += f"\n  PATCH error: {p2.stderr.strip()}"
         failures.append(error_msg)
 
+    _finish_progress()
     print(f"Done. Created: {created}, Updated: {updated}. Repo: {repo}")
 
     if failures:
