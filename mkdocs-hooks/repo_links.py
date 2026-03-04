@@ -71,8 +71,8 @@ log = logging.getLogger("mkdocs.hooks.repo_links")
 
 # Files without extensions that should use blob/ (not tree/).
 # TODO (template users): If your repo contains extensionless files beyond
-#   these common ones (e.g., ``Brewfile``, ``Justfile``), add them here so
-#   the hook generates ``blob/`` URLs instead of ``tree/``.
+#   these common ones, add them here so the hook generates ``blob/`` URLs
+#   instead of ``tree/``.
 _EXTENSIONLESS_FILES: frozenset[str] = frozenset(
     {
         "Brewfile",
@@ -275,6 +275,10 @@ def on_page_markdown(
     """
     repo_url: str = config.get("repo_url", "").rstrip("/")
     if not repo_url:
+        log.debug(
+            "[repo_links] %s: no repo_url configured — skipping",
+            page.file.src_path,
+        )
         return markdown
 
     extra: dict[str, object] = config.get("extra", {}) or {}

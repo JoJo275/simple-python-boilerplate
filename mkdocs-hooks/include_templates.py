@@ -80,6 +80,10 @@ def on_files(files: Files, *, config: MkDocsConfig, **kwargs: object) -> Files:
     templates_dir = docs_dir / _TEMPLATES_DIR
 
     if not templates_dir.is_dir():
+        log.debug(
+            "templates directory not found at %s — nothing to re-add",
+            templates_dir,
+        )
         return files
 
     # Build a set of already-included source paths for fast lookup

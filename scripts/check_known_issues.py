@@ -65,6 +65,10 @@ _TABLE_ROW_RE = re.compile(
 )
 _DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
+# Accept common heading variants:
+#   ## Resolved   |   ## Resolved Issues   |   ## Resolved Known Issues
+_RESOLVED_HEADING_RE = re.compile(r"^##\s+Resolved", re.IGNORECASE)
+
 log = logging.getLogger(__name__)
 
 
@@ -86,15 +90,11 @@ def parse_resolved_entries(text: str) -> list[dict[str, str]]:
     in_resolved = False
     entries: list[dict[str, str]] = []
 
-    # Accept common heading variants:
-    #   ## Resolved   |   ## Resolved Issues   |   ## Resolved Known Issues
-    _resolved_heading_re = re.compile(r"^##\s+Resolved", re.IGNORECASE)
-
     for line in text.splitlines():
         stripped = line.strip()
 
         # Detect the "## Resolved" heading (and common variants)
-        if _resolved_heading_re.match(stripped):
+        if _RESOLVED_HEADING_RE.match(stripped):
             in_resolved = True
             continue
 
@@ -231,6 +231,9 @@ def build_parser() -> argparse.ArgumentParser:
         action="version",
         version=f"%(prog)s {SCRIPT_VERSION}",
     )
+    # TODO: Consider adding a --warn flag that exits 0 but prints
+    #   warnings instead of failing.  Useful for advisory CI checks
+    #   that shouldn't block merges.
     return parser
 
 
@@ -279,9 +282,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, indent=2, default=str))
     elif not args.quiet:
         if stale:
+            noun = "entry" if len(stale) == 1 else "entries"
             log.info(
-                "Found %d stale resolved entry/entries (older than %d days):",
+                "Found %d stale resolved %s (older than %d days):",
                 len(stale),
+                noun,
                 args.days,
             )
             for entry in stale:

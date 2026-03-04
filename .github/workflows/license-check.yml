@@ -9,6 +9,26 @@
 # license not in the allowed set — useful for projects with
 # strict license policies (e.g., no GPL deps in an Apache project).
 #
+# ── Why license compatibility matters ─────────────────────────
+# Software licenses are legally binding.  If your project uses
+# a permissive license (MIT, Apache 2.0, BSD) but depends on a
+# library with a copyleft license (GPL, AGPL), the copyleft
+# terms can "infect" your distribution — anyone who distributes
+# your project (as a binary, container image, or bundled app)
+# may be legally required to release their entire source under
+# the copyleft license, even though they chose your project
+# *because* it was permissively licensed.
+#
+# Even without copyleft, some licenses have incompatible clauses
+# (e.g., advertising requirements, patent retaliation) that
+# conflict with your project's license terms.  This workflow
+# catches incompatible dependencies **before** they ship, so
+# your users and downstream consumers are never surprised by
+# license obligations they didn't expect.
+#
+# In short: one bad dependency can change the legal terms for
+# every user of your project.  This check prevents that.
+#
 # Triggers:
 #   - Pull requests targeting main (catch new deps early)
 #   - Push to main

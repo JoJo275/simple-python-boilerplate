@@ -49,6 +49,7 @@ Flags::
 from __future__ import annotations
 
 import argparse
+import ast
 import logging
 import re
 import subprocess  # nosec B404
@@ -65,11 +66,12 @@ PRECOMMIT_DIR = SCRIPTS_DIR / "precommit"
 TASKFILE = ROOT / "Taskfile.yml"
 OUTPUT = ROOT / "docs" / "reference" / "commands.md"
 
-# Scripts to skip (not user-facing CLIs)
-# TODO (template users): Add any internal/library scripts you create to this
-#   set so they are excluded from the command reference.
+# Scripts to skip (not user-facing CLIs).
+# Note: scripts starting with '_' are already excluded by _collect_scripts().
+# This set is for explicitly skipping scripts that don't start with '_'
+# but still aren't user-facing CLIs.
+# TODO (template users): Add any non-CLI scripts you create here.
 _SKIP_SCRIPTS = {
-    "_progress.py",  # shared library, not a CLI
     "__init__.py",
 }
 
@@ -85,21 +87,21 @@ def _escape_md_brackets(text: str) -> str:
 
 
 def _extract_module_description(path: Path) -> str:
-    """Extract the first sentence of a Python module's docstring.
+    """Extract the first line of a Python module's docstring.
 
-    Reads the file and looks for a module-level docstring (triple-quoted).
-    Returns the first line of the docstring stripped of quotes, or a
-    placeholder if no docstring is found.
+    Uses ``ast.parse`` to reliably read the module-level docstring,
+    falling back to a placeholder if the file can't be parsed or has
+    no docstring.
     """
     try:
         source = path.read_text(encoding="utf-8")
-    except OSError:
+        tree = ast.parse(source)
+    except (OSError, SyntaxError):
         return "*(no description)*"
 
-    # Match the first triple-quoted string at module level
-    match = re.search(r'^"""(.+?)(?:\.|\n|""")', source, re.DOTALL)
-    if match:
-        first_line = match.group(1).strip().split("\n")[0].strip()
+    docstring = ast.get_docstring(tree)
+    if docstring:
+        first_line = docstring.strip().split("\n")[0].strip()
         if first_line:
             return first_line.rstrip(".")
     return "*(no description)*"
