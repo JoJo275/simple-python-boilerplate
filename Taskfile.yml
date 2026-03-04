@@ -372,3 +372,12 @@ tasks:
     desc: Check if the command reference page is stale (exit 1 if outdated)
     cmds:
       - hatch run python scripts/generate_command_reference.py --check
+
+  # ── Known Issues ───────────────────────────────────────────
+  # Check for stale resolved entries in docs/known-issues.md.
+  # Entries that have been in the Resolved table longer than --days
+  # are flagged so they can be cleaned up after a release cycle.
+  issues:check:
+    desc: Flag stale Resolved entries in docs/known-issues.md
+    cmds:
+      - hatch run python scripts/check_known_issues.py {{.CLI_ARGS}}

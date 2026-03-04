@@ -66,6 +66,7 @@ Promote to a plugin if the logic is reusable across multiple projects.
 | :---------------------- | :----------------- | :------------------------------------------------------------------ |
 | `repo_links.py`         | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs |
 | `generate_commands.py`  | `on_pre_build`     | Auto-regenerate `docs/reference/commands.md` before each build      |
+| `include_templates.py`  | `on_files`         | Force-include `docs/templates/` on all MkDocs versions (workaround for 1.6+ default exclusion) |
 
 `repo_links.py` handles standard Markdown links, HTML `<a href>` links,
 and reference-style link definitions (`[ref]: ../path`). Code blocks,

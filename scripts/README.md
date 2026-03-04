@@ -15,6 +15,7 @@ Utility scripts for development and maintenance.
 | [archive_todos.py](archive_todos.py)               | Archive completed TODO items from todo.md                                |
 | [bootstrap.py](bootstrap.py)                       | One-command setup for fresh clones                                       |
 | [changelog_check.py](changelog_check.py)           | Validate CHANGELOG.md has an entry for the current PR                    |
+| [check_known_issues.py](check_known_issues.py)     | Flag stale Resolved entries in docs/known-issues.md                      |
 | [check_nul_bytes.py](precommit/check_nul_bytes.py) | Detect NUL (0x00) bytes in staged files                                  |
 | [check_todos.py](check_todos.py)                   | Scan for `TODO (template users)` comments                                |
 | [clean.py](clean.py)                               | Remove build artifacts and caches                                        |
