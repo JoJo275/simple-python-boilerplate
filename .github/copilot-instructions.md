@@ -71,7 +71,7 @@ Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows
 
-~33 workflow files in `.github/workflows/`, all SHA-pinned
+~34 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
 **Canonical inventory:** `docs/workflows.md` — that file is authoritative;
@@ -85,6 +85,7 @@ the summary below is for quick orientation only.
 - **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
+- **Community:** welcome (first-time contributor greeting on issues/PRs)
 - **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor
 - **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](../docs/adr/024-ci-gate-pattern.md))
 
