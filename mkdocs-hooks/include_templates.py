@@ -43,6 +43,8 @@ HOOK_VERSION = "1.0.0"
 log = logging.getLogger("mkdocs.hooks.include_templates")
 
 # Subdirectory under docs_dir that MkDocs 1.6+ silently excludes.
+# TODO (template users): If you rename docs/templates/ to something else,
+#   update this constant to match your chosen directory name.
 _TEMPLATES_DIR = "templates"
 
 

@@ -263,6 +263,8 @@ def _generate() -> str:
         "Internal modules in `scripts/` used by multiple scripts. "
         "Not intended to be run directly.\n\n"
     )
+    # TODO (template users): If you add new shared modules (scripts/_*.py),
+    #   add a row here so they appear in the command reference.
     parts.append("| Module | Description |\n")
     parts.append("| ------ | ----------- |\n")
     parts.append(

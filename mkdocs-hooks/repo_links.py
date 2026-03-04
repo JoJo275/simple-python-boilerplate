@@ -68,6 +68,9 @@ _DEFAULT_BRANCH = "main"
 log = logging.getLogger("mkdocs.hooks.repo_links")
 
 # Files without extensions that should use blob/ (not tree/).
+# TODO (template users): If your repo contains extensionless files beyond
+#   these common ones (e.g., ``Brewfile``, ``Justfile``), add them here so
+#   the hook generates ``blob/`` URLs instead of ``tree/``.
 _EXTENSIONLESS_FILES: frozenset[str] = frozenset(
     {
         "Containerfile",

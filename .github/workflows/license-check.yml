@@ -2,12 +2,12 @@
 # License Check Workflow
 # ──────────────────────────────────────────────────────────────
 # Verifies that all installed Python dependency licenses are
-# compatible with the project's license (MIT by default).
+# compatible with the project's license (Apache 2.0 by default).
 #
 # Uses pip-licenses to enumerate dependency licenses and checks
 # them against an allow-list.  Fails if any dependency uses a
 # license not in the allowed set — useful for projects with
-# strict license policies (e.g., no GPL deps in an MIT project).
+# strict license policies (e.g., no GPL deps in an Apache project).
 #
 # Triggers:
 #   - Pull requests targeting main (catch new deps early)
@@ -111,11 +111,13 @@ jobs:
         run: |
           # ── Allowed licenses ───────────────────────────────
           # These are common permissive licenses compatible with
-          # MIT.  Adjust this list for your project's needs.
+          # Apache 2.0.  Adjust this list for your project's needs.
           #
           # The --allow-only flag causes pip-licenses to exit 1
           # if ANY installed package uses a license not in this
-          # semicolon-separated list.
+          # semicolon-separated list.  pip-licenses uses exact
+          # string matching against its own license classifier
+          # database, so each entry must match precisely.
           #
           # TODO (template users): Review and adjust this list.
           #   - For GPL projects: add 'GNU General Public License v3 (GPLv3)'
@@ -123,19 +125,20 @@ jobs:
           #   - Run `pip-licenses --format=table` to see what your
           #     current deps actually use, then allow those.
           pip-licenses --allow-only="\
+          Apache Software License;\
+          Apache License 2.0;\
           MIT License;\
           BSD License;\
           BSD 2-Clause License;\
           BSD 3-Clause License;\
           ISC License (ISCL);\
           ISC;\
-          Apache Software License;\
-          Apache License 2.0;\
           Python Software Foundation License;\
           Mozilla Public License 2.0 (MPL 2.0);\
           The Unlicense (Unlicense);\
           Public Domain;\
           Historical Permission Notice and Disclaimer (HPND);\
+          license_check;\
           "
 
       - name: Write job summary

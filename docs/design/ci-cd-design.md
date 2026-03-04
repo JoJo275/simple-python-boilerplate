@@ -140,7 +140,7 @@ The three opt-in methods (in order of convenience):
 
 ### Which Workflows Are Guarded
 
-All 29 workflows use the guard — no workflow runs by default on a
+All 33 workflows use the guard — no workflow runs by default on a
 fresh fork or clone.
 
 <!-- TODO (template users): After enabling workflows via customize.py or

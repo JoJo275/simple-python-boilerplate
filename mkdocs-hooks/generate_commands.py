@@ -58,6 +58,8 @@ log = logging.getLogger("mkdocs.hooks.generate_commands")
 _HOOK_DIR = Path(__file__).resolve().parent
 _ROOT = _HOOK_DIR.parent
 _GENERATOR_SCRIPT = _ROOT / "scripts" / "generate_command_reference.py"
+# TODO (template users): If you rename docs/reference/commands.md or change
+#   the output path in generate_command_reference.py, update _OUTPUT to match.
 _OUTPUT = _ROOT / "docs" / "reference" / "commands.md"
 
 

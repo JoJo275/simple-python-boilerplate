@@ -231,7 +231,7 @@ Version is derived from git tags at build time via `hatch-vcs`
 
 ## CI/CD Architecture
 
-29 workflow files in `.github/workflows/`, all SHA-pinned
+33 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../adr/011-repository-guard-pattern.md)).
 
@@ -254,6 +254,8 @@ PR opened / push to main
   ├── container-scan.yml    (Trivy scan)
   ├── docs-build.yml        (MkDocs build — CI gate check)
   ├── docs-deploy.yml       (GitHub Pages deployment, path-filtered)
+  ├── todo-check.yml        (report remaining TODO markers, warn-only)
+  ├── repo-doctor.yml       (repo structure checks, warn-only)
   └── ci-gate.yml           (fan-in: single "gate" required check)
                            └── polls Checks API for all required jobs
                            └── only check listed in branch protection
@@ -262,6 +264,10 @@ push to main (release-please)
   └── release-please.yml → creates Release PR → git tag → GitHub Release
       ├── release.yml    → build sdist/wheel → publish
       └── sbom.yml       → generate SBOM
+
+push (path-filtered) / scheduled
+  ├── license-check.yml     (dependency license audit, weekly + path-filtered)
+  └── known-issues-check.yml (stale resolved entries, weekly + tag push)
 
 scheduled / maintenance
   ├── nightly-security.yml    (comprehensive scan)
