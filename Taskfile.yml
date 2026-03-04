@@ -352,3 +352,24 @@ tasks:
     desc: Remove all build artifacts and caches
     cmds:
       - python scripts/clean.py {{.CLI_ARGS}}
+
+  # ── Reference Generation ───────────────────────────────────
+  # The command reference (docs/reference/commands.md) is a point-in-time
+  # snapshot generated from Taskfile tasks, script --help text, and Hatch
+  # environments. It is NOT auto-generated during mkdocs build/serve —
+  # you must regenerate it manually when tasks or scripts change.
+  # Use docs:commands to regenerate, docs:commands:check to verify freshness.
+  # TODO (template users): Consider adding docs:commands:check to your CI
+  #   pipeline or pre-push hooks to catch stale command references.
+  docs:commands:
+    desc: Regenerate the command reference page (docs/reference/commands.md)
+    cmds:
+      - hatch run python scripts/generate_command_reference.py {{.CLI_ARGS}}
+
+  # CI staleness check: exits non-zero if the committed commands.md differs
+  # from what generate_command_reference.py would produce. Useful in CI
+  # or pre-push hooks to catch forgotten regenerations.
+  docs:commands:check:
+    desc: Check if the command reference page is stale (exit 1 if outdated)
+    cmds:
+      - hatch run python scripts/generate_command_reference.py --check

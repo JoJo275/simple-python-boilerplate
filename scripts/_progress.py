@@ -3,6 +3,9 @@
 Provides a lightweight, zero-dependency progress bar and spinner that
 adapt to terminal capabilities (Unicode vs ASCII fallback).
 
+This module is intended to be imported by other scripts in the
+``scripts/`` directory — it is not a CLI and should not be run directly.
+
 Usage::
 
     from _progress import ProgressBar, Spinner
@@ -23,8 +26,15 @@ Usage::
 from __future__ import annotations
 
 import locale
+import logging
 import shutil
 import sys
+
+SCRIPT_VERSION = "1.1.0"
+
+__all__ = ["ProgressBar", "Spinner"]
+
+logger = logging.getLogger(__name__)
 
 
 def _terminal_width() -> int:
@@ -102,6 +112,17 @@ class ProgressBar:
         self.current = 0
         self._interactive = _is_interactive()
         self._fill, self._empty, self._lb, self._rb = _pick_bar_style()
+        if total <= 0:
+            logger.warning(
+                "ProgressBar created with total=%d; progress will not render.", total
+            )
+
+    def __enter__(self) -> ProgressBar:
+        """Support context-manager usage."""
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.finish()
 
     def update(self, item_name: str = "") -> None:
         """Advance by one step and redraw."""

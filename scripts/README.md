@@ -20,6 +20,7 @@ Utility scripts for development and maintenance.
 | [clean.py](clean.py)                               | Remove build artifacts and caches                                        |
 | [customize.py](customize.py)                       | Interactive project customization — replaces boilerplate placeholders    |
 | [dep_versions.py](dep_versions.py)                 | Show/update dependency versions in pyproject.toml and requirements files |
+| [generate_command_reference.py](generate_command_reference.py) | Generate docs/reference/commands.md from project commands           |
 | [doctor.py](doctor.py)                             | Print diagnostics bundle for bug reports                                 |
 | [env_doctor.py](env_doctor.py)                     | Environment health check                                                 |
 | [repo_doctor.py](repo_doctor.py)                   | Warn-only repo health checker driven by `.repo-doctor.toml` rules        |

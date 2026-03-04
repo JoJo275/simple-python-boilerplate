@@ -65,6 +65,7 @@ task typecheck         # Run mypy
 task check             # All quality gates at once
 task docs:serve        # Live-reload docs at localhost:8000
 task docs:build        # Build docs (strict mode)
+task docs:commands     # Regenerate command reference
 task security          # Run bandit security linter
 ```
 
@@ -121,20 +122,21 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 
 ## Utility Scripts
 
-| Script                         | Purpose                                                                  |
-| :----------------------------- | :----------------------------------------------------------------------- |
-| `scripts/bootstrap.py`         | One-command setup for fresh clones                                       |
-| `scripts/customize.py`         | Interactive project customization (placeholders, license, optional dirs) |
-| `scripts/repo_doctor.py`       | Health checker with `--fix` support                                      |
-| `scripts/env_doctor.py`        | Quick environment health check                                           |
-| `scripts/doctor.py`            | Diagnostics bundle for bug reports                                       |
-| `scripts/dep_versions.py`      | Show/update dependency versions                                          |
-| `scripts/workflow_versions.py` | Show/update SHA-pinned action versions                                   |
-| `scripts/apply_labels.py`      | Apply GitHub labels (`--set baseline\|extended`)                         |
-| `scripts/check_todos.py`       | Scan for `TODO (template users)` comments                                |
-| `scripts/archive_todos.py`     | Archive resolved TODOs                                                   |
-| `scripts/changelog_check.py`   | Verify CHANGELOG.md matches git tags                                     |
-| `scripts/clean.py`             | Remove build artifacts and caches                                        |
+| Script                                  | Purpose                                                                  |
+| :-------------------------------------- | :----------------------------------------------------------------------- |
+| `scripts/bootstrap.py`                  | One-command setup for fresh clones                                       |
+| `scripts/customize.py`                  | Interactive project customization (placeholders, license, optional dirs) |
+| `scripts/repo_doctor.py`                | Health checker with `--fix` support                                      |
+| `scripts/env_doctor.py`                 | Quick environment health check                                           |
+| `scripts/doctor.py`                     | Diagnostics bundle for bug reports                                       |
+| `scripts/dep_versions.py`               | Show/update dependency versions                                          |
+| `scripts/workflow_versions.py`          | Show/update SHA-pinned action versions                                   |
+| `scripts/generate_command_reference.py` | Generate docs/reference/commands.md from project commands                |
+| `scripts/apply_labels.py`               | Apply GitHub labels (`--set baseline\|extended`)                         |
+| `scripts/check_todos.py`               | Scan for `TODO (template users)` comments                                |
+| `scripts/archive_todos.py`             | Archive resolved TODOs                                                   |
+| `scripts/changelog_check.py`           | Verify CHANGELOG.md matches git tags                                     |
+| `scripts/clean.py`                     | Remove build artifacts and caches                                        |
 
 ## Using This Template
 

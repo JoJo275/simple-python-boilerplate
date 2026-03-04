@@ -119,6 +119,8 @@ Key scripts:
 - `customize.py` — Interactive project customization (use `--enable-workflows OWNER/REPO` for quick workflow enablement)
 - `clean.py` — Remove build artifacts/caches
 - `doctor.py` — Diagnostics bundle for bug reports
+- `generate_command_reference.py` — Regenerate `docs/reference/commands.md`
+- `_progress.py` — Shared progress-indicator module (not a CLI)
 
 Run scripts directly (`python scripts/bootstrap.py`) or via Taskfile
 shortcuts where available.
@@ -177,6 +179,7 @@ exists in the project. Key templates:
 - **Migration** → `db/migrations/001_example_migration.sql`
 - **Seed** → `db/seeds/001_example_seed.sql`
 - **Script** → review `scripts/` for naming and shebang conventions. **Important:** After creating a script with a shebang (`#!/usr/bin/env python3`), mark it executable: `git add --chmod=+x scripts/my_script.py`
+- **Shared script module** → `scripts/_progress.py` for conventions; use `_` prefix for internal-only modules
 - **MkDocs hook** → review `mkdocs-hooks/repo_links.py` for conventions; update `mkdocs-hooks/README.md` inventory and register in `mkdocs.yml` under `hooks:`
 - **Security policy** → `docs/templates/SECURITY_no_bounty.md` or `SECURITY_with_bounty.md` — copy to repo root as `SECURITY.md`
 - **Bug bounty** → `docs/templates/BUG_BOUNTY.md` — standalone bounty policy linked from SECURITY.md
@@ -190,6 +193,7 @@ changed and update them too. Examples:
 - Adding a workflow → update `docs/workflows.md` and the categories list in this file
 - Adding a pre-commit hook → update ADR 008's hook inventory and the hook table in this file
 - Adding an MkDocs hook → register in `mkdocs.yml` under `hooks:`, update `mkdocs-hooks/README.md` inventory
+- Adding a script → update `scripts/README.md` inventory and re-run `python scripts/generate_command_reference.py` to refresh the command reference
 - Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
 - Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
 - Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
@@ -346,6 +350,27 @@ and move on.
 - Type checking uses **mypy** (strict mode) — prefer fixes compatible with mypy
 - Docstrings in Google style format
 - Constants in UPPER_SNAKE_CASE
+- **Prefer existing shared modules** over reimplementing common patterns:
+  - `scripts/_progress.py` — `ProgressBar` (determinate) and `Spinner`
+    (indeterminate) with automatic Unicode/ASCII fallback. Import and use
+    these instead of writing ad-hoc progress output with `print()`/`\r`.
+  - `pathlib.Path` over `os.path` for all file operations
+  - `subprocess.run()` with argument lists over `shell=True`
+  - `tomllib` (stdlib 3.11+) for TOML reading — no third-party TOML lib
+  - `importlib.metadata` for installed-package introspection
+  - `shutil.get_terminal_size()` for terminal dimensions
+  - `argparse` for all script CLIs (consistent `--help`, `--version`,
+    `--dry-run` flags across every script)
+  - `logging` for status/diagnostic messages in scripts — prefer
+    `logging.info()` / `logging.warning()` / `logging.error()` over
+    bare `print()`. Reserve `print()` only for primary output that is
+    the script's purpose (e.g., generated Markdown, JSON, tables).
+    Configure logging in `main()` with `logging.basicConfig()`.
+- **When adding a new utility function** that two or more scripts could use,
+  put it in an existing shared module (e.g., `scripts/_progress.py`) or
+  create a new `scripts/_<name>.py` module. The underscore prefix signals
+  "internal library, not a CLI" and is excluded from the command reference
+  generator.
 
 ### Project Structure
 
