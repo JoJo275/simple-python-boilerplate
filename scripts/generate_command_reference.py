@@ -17,10 +17,14 @@ Re-run this script whenever scripts or tasks change.
 
 .. note::
 
-    The command reference is a **point-in-time snapshot**. It is NOT
-    regenerated automatically during ``mkdocs build`` or ``mkdocs serve``.
-    Run this script before building/deploying docs to ensure freshness.
-    Use ``--check`` in CI to catch stale files.
+    The ``mkdocs-hooks/generate_commands.py`` MkDocs hook calls
+    ``_generate()`` automatically during ``mkdocs build`` and
+    ``mkdocs serve``, so the command reference is always fresh when
+    building docs. This script is still useful for:
+
+    - ``--check`` mode in CI (detect stale committed files)
+    - ``--dry-run`` to preview output
+    - Manual regeneration outside of mkdocs
 
 Requirements:
     - Python 3.11+

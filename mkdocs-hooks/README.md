@@ -62,9 +62,10 @@ Promote to a plugin if the logic is reusable across multiple projects.
 
 ## Inventory
 
-| Hook            | Event              | Purpose                                                             |
-| :-------------- | :----------------- | :------------------------------------------------------------------ |
-| `repo_links.py` | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs |
+| Hook                    | Event              | Purpose                                                             |
+| :---------------------- | :----------------- | :------------------------------------------------------------------ |
+| `repo_links.py`         | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs |
+| `generate_commands.py`  | `on_pre_build`     | Auto-regenerate `docs/reference/commands.md` before each build      |
 
 `repo_links.py` handles standard Markdown links, HTML `<a href>` links,
 and reference-style link definitions (`[ref]: ../path`). Code blocks,
@@ -81,6 +82,7 @@ inline code, and HTML comments are automatically protected from rewriting.
    ```yaml
    hooks:
      - mkdocs-hooks/repo_links.py
+     - mkdocs-hooks/generate_commands.py
      - mkdocs-hooks/my_hook.py
    ```
 

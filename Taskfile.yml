@@ -354,11 +354,10 @@ tasks:
       - python scripts/clean.py {{.CLI_ARGS}}
 
   # ── Reference Generation ───────────────────────────────────
-  # The command reference (docs/reference/commands.md) is a point-in-time
-  # snapshot generated from Taskfile tasks, script --help text, and Hatch
-  # environments. It is NOT auto-generated during mkdocs build/serve —
-  # you must regenerate it manually when tasks or scripts change.
-  # Use docs:commands to regenerate, docs:commands:check to verify freshness.
+  # The command reference (docs/reference/commands.md) is auto-regenerated
+  # by the mkdocs-hooks/generate_commands.py hook during mkdocs build/serve.
+  # These tasks are for manual use outside mkdocs (e.g. CI staleness checks,
+  # previewing output, or regenerating without a full docs build).
   # TODO (template users): Consider adding docs:commands:check to your CI
   #   pipeline or pre-push hooks to catch stale command references.
   docs:commands:
