@@ -156,10 +156,18 @@ class ProgressBar:
         sys.stdout.write(line.ljust(width))
         sys.stdout.flush()
 
-    def finish(self) -> None:
-        """Complete the bar and move to a new line."""
+    def finish(self, message: str = "") -> None:
+        """Complete the bar and move to a new line.
+
+        Args:
+            message: Optional final message to display (replaces the bar line).
+        """
         if self._interactive:
-            sys.stdout.write("\n")
+            if message:
+                width = _terminal_width()
+                sys.stdout.write(f"\r{message}".ljust(width) + "\n")
+            else:
+                sys.stdout.write("\n")
             sys.stdout.flush()
 
 
