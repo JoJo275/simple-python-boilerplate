@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **29 workflow files** in `.github/workflows/`. All workflows
+This project has **33 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -21,6 +21,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov   |
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes              |
 | **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes |
+| **TODO Check**         | [todo-check.yml](../.github/workflows/todo-check.yml)                 | push, PR, manual | `Check template TODOs`                 | Reports remaining TODO (template users) markers |
 
 ### Security
 
@@ -33,6 +34,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                | `Build container image`, `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
 | **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                           | Multiple (SBOM rescan, pip-audit, container scans)                                                       | Consolidated nightly sweep against latest vuln databases |
 | **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                             | `Scorecard analysis`                                                                                     | Evaluates repo security practices via OpenSSF Scorecard  |
+| **License Check**     | [license-check.yml](../.github/workflows/license-check.yml)         | push (path-filtered), PR (path-filtered), weekly, manual | `Verify dependency licenses`                                                                             | Verifies dependency licenses are compatible with project |
 
 ### PR Hygiene
 
@@ -72,7 +74,9 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Link Checker**          | [link-checker.yml](../.github/workflows/link-checker.yml)                   | push (path-filtered), PR (path-filtered), weekly, manual | `Check links`              | Checks Markdown/HTML for broken links using lychee                                            |
 | **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target                                      | `Auto-approve & merge`     | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes                     |
 | **Cache Cleanup**         | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml)                 | PR closed, manual                                        | `Clean branch caches`      | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
-| **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files` | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
+| **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files`     | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
+| **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v*), manual                            | `Check stale resolved issues`  | Flags stale entries in docs/known-issues.md Resolved table                                    |
+| **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`            | Warn-only repo structure checks (missing files, broken conventions)                           |
 
 ### Gate
 
@@ -114,11 +118,15 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 | `Validate commit messages`  | commit-lint.yml       |
 | `Build docs`                | docs-build.yml        |
 
-**Excluded from gate** (path-filtered — don't run on every PR):
+**Excluded from gate** (path-filtered, schedule-only, or warn-only — don't run on every PR or don't block):
 
 - `bandit.yml` — only runs on `src/**`, `scripts/**`, `experiments/**`, `pyproject.toml` changes
 - `docs-deploy.yml` — only runs on `docs/**`, `mkdocs.yml`, `src/**/*.py`, `pyproject.toml` changes (deploy only)
 - `link-checker.yml` — only runs on `**/*.md`, `**/*.html`, `docs/**` changes
+- `license-check.yml` — only runs on `pyproject.toml`, `requirements*.txt` changes
+- `known-issues-check.yml` — schedule + tag-push only (no PR trigger)
+- `todo-check.yml` — non-blocking (continue-on-error); informational only
+- `repo-doctor.yml` — warn-only (always exits 0); informational only
 
 These still report status when they run and also run on push to main + schedules.
 

@@ -115,6 +115,12 @@ Run any task with `task <name>`. Pass extra arguments with `-- <args>` (e.g., `t
 | `task fmt:check` | Check formatting without applying |
 | `task fmt:markdown` | Format Markdown files (table alignment via prettier) |
 
+### Issues
+
+| Command | Description |
+| ------- | ----------- |
+| `task issues:check` | Flag stale Resolved entries in docs/known-issues.md |
+
 ### Labels
 
 | Command | Description |
@@ -254,6 +260,28 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
                             Path to CHANGELOG.md (default: C:\Users\ID136\OneDrive
                             \Documents\VSCode\Workspaces\simple-python-
                             boilerplate\CHANGELOG.md)
+    ```
+
+### `check_known_issues.py`
+
+**File:** [`scripts/check_known_issues.py`](../../scripts/check_known_issues.py)
+
+??? note "Full `--help` output"
+
+    ```text
+    usage: check_known_issues.py [-h] [--days N] [--issues-path PATH] [--json]
+                                 [-q] [--version]
+
+    Check docs/known-issues.md for stale resolved entries. Exits non-zero if any
+    entry has been in the Resolved table longer than --days.
+
+    options:
+      -h, --help          show this help message and exit
+      --days N            Max age in days for resolved entries (default: 90)
+      --issues-path PATH  Path to known-issues.md (default: docs/known-issues.md)
+      --json              Output results as JSON
+      -q, --quiet         Suppress output; exit code only
+      --version           show program's version number and exit
     ```
 
 ### `check_todos.py`

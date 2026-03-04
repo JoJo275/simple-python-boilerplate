@@ -282,7 +282,7 @@ skip on forks and clones.
 
 ### Disabling Workflows You Don't Need
 
-Not every project needs all 29 workflows:
+Not every project needs all 33 workflows:
 
 | If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
 | :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |
@@ -307,16 +307,16 @@ Not every project needs all 29 workflows:
 
 ### Workflow Categories
 
-| Category          | Workflows                                                                                      | Always run?                                  |
-| :---------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------- |
-| **Quality**       | test, lint-format, type-check, coverage, spellcheck, spellcheck-autofix                        | Yes — in CI gate (except spellcheck-autofix) |
-| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard          | Mixed — some path-filtered                   |
-| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                 | Yes — in CI gate                             |
-| **Release**       | release-please, release, sbom                                                                  | Push to main / tags only                     |
-| **Documentation** | docs-build, docs-deploy                                                                        | docs-build in gate; deploy is path-filtered  |
-| **Container**     | container-build, container-scan                                                                | container-build in gate                      |
-| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files | Scheduled / event-triggered                  |
-| **Gate**          | ci-gate                                                                                        | Yes — the single required check              |
+| Category          | Workflows                                                                                                                | Always run?                                  |
+| :---------------- | :----------------------------------------------------------------------------------------------------------------------- | :------------------------------------------- |
+| **Quality**       | test, lint-format, type-check, coverage, spellcheck, spellcheck-autofix, todo-check                                      | Yes — in CI gate (except spellcheck-autofix, todo-check) |
+| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard, license-check                      | Mixed — some path-filtered                   |
+| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                                            | Yes — in CI gate                             |
+| **Release**       | release-please, release, sbom                                                                                             | Push to main / tags only                     |
+| **Documentation** | docs-build, docs-deploy                                                                                                   | docs-build in gate; deploy is path-filtered  |
+| **Container**     | container-build, container-scan                                                                                           | container-build in gate                      |
+| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor | Scheduled / event-triggered             |
+| **Gate**          | ci-gate                                                                                                                   | Yes — the single required check              |
 
 ---
 
@@ -400,6 +400,7 @@ the top of each file).
 | [`check_todos.py`](../scripts/check_todos.py)             | Scan for remaining TODO (template users) comments              | `--count`, `--json`                                         |
 | [`archive_todos.py`](../scripts/archive_todos.py)         | Archive completed TODOs from notes                             | `--dry-run`, `--no-backup`                                  |
 | [`changelog_check.py`](../scripts/changelog_check.py)     | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                      |
+| [`check_known_issues.py`](../scripts/check_known_issues.py) | Flag stale Resolved entries in known-issues.md               | `--days N`, `--json`, `--quiet`                             |
 | [`apply_labels.py`](../scripts/apply_labels.py)           | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                    |
 
 Full inventory with additional details: [`scripts/README.md`](../scripts/README.md)

@@ -21,9 +21,20 @@ repo_url: https://github.com/JoJo275/simple-python-boilerplate
 repo_name: JoJo275/simple-python-boilerplate
 
 # README.md is excluded because it conflicts with index.md (MkDocs treats
-# README.md as index.md by default).
+# README.md as index.md by default).  We use path-specific patterns so that
+# README.md files in the nav (adr/, templates/) are still built as pages.
+#
+# MkDocs 1.6+ silently excludes docs/templates/ by default (it treats
+# the directory name as "drafts/scaffolding").  Rather than using the
+# 1.6-specific `!templates/` negation in exclude_docs, the
+# include_templates.py hook re-adds excluded template files in a
+# version-agnostic way.  See mkdocs-hooks/include_templates.py.
 exclude_docs: |
-  README.md
+  /README.md
+  reference/README.md
+  design/README.md
+  development/README.md
+  notes/README.md
 
 # Many docs link to repo files outside docs/ (pyproject.toml, workflows, etc.).
 # These links work on GitHub but MkDocs can't resolve them. Downgrade to info
@@ -152,6 +163,7 @@ nav:
 hooks:
   - mkdocs-hooks/repo_links.py
   - mkdocs-hooks/generate_commands.py
+  - mkdocs-hooks/include_templates.py
 
 plugins:
   - search
@@ -170,19 +182,16 @@ plugins:
             docstring_style: google
 
 # Files that live in docs/ but are not part of the site navigation.
-# These are repo-facing files (READMEs, templates) or the mkdocs/ example
-# directory kept as a reference.  Without this list, --strict mode would
-# warn about files not included in nav.
+# These are built as pages but don't appear in the sidebar — useful for
+# files that are linked to from other pages but aren't primary navigation
+# targets.  Without this list, --strict mode would warn about files not
+# included in nav.
 # TODO (template users): Update this list when adding/removing docs that
 #   aren't in the nav. Remove template-specific entries (ADR archives,
 #   issue templates) if you don't use them.
 not_in_nav: |
-  README.md
   adr/template.md
   adr/archive/**
-  design/README.md
-  development/README.md
-  notes/README.md
   templates/issue_templates/issue_forms/**
   templates/issue_templates/legacy_markdown/**
 

@@ -24,6 +24,8 @@ they're resolved; add new ones as they're found.
 | **Security** | PGP key fingerprint is a TODO      | `SECURITY.md` has contact email but PGP key fingerprint is still a placeholder.                                                                                            | Low      |
 | **Hatch**    | Stale env after dependency removal | After removing a dependency from `pyproject.toml`, the old package silently remains until `hatch env remove default` is run. Hatch doesn't auto-uninstall.                 | Medium   |
 | **Scripts**  | `_SKIP_SCRIPTS` is hardcoded       | `generate_command_reference.py` has a hardcoded skip list. Should be configurable via `pyproject.toml` or a config file.                                                   | Low      |
+| **Tooling**  | Global pip footgun                 | Running bare `pip install <pkg>` outside a Hatch env is easy to do and silently pollutes the global Python. No guardrail beyond convention.                                | Medium   |
+| **Scripts**  | Shebang requires manual chmod      | After adding a shebang (`#!/usr/bin/env python3`) to a script, you must `git add --chmod=+x` it separately. The pre-commit hook catches it, but only at commit time.      | Low      |
 
 ## Resolved
 

@@ -71,7 +71,7 @@ Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows
 
-~29 workflow files in `.github/workflows/`, all SHA-pinned
+~33 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
 **Canonical inventory:** `docs/workflows.md` — that file is authoritative;
@@ -79,18 +79,19 @@ the summary below is for quick orientation only.
 
 **Categories at a glance:**
 
-- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck, spellcheck-autofix
-- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy + Grype container scans, nightly scan, OpenSSF Scorecard
+- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck, spellcheck-autofix, todo-check
+- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy + Grype container scans, nightly scan, OpenSSF Scorecard, license-check
 - **PR hygiene:** commit-lint, pr-title, labeler
 - **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
 - **Release:** release-please → release → SBOM
 - **Container:** container-build, container-scan
-- **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files
+- **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor
 - **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](../docs/adr/024-ci-gate-pattern.md))
 
-Path-filtered workflows (bandit, docs-deploy, link-checker) are excluded from
-required checks because they don't run on every PR. `docs-build` runs on all
-PRs and IS in the CI gate.
+Path-filtered workflows (bandit, docs-deploy, link-checker, license-check) are excluded from
+required checks because they don't run on every PR. Schedule-only and warn-only
+workflows (known-issues-check, todo-check, repo-doctor) are also excluded.
+`docs-build` runs on all PRs and IS in the CI gate.
 
 ### Task Runner — Taskfile
 
