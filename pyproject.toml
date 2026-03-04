@@ -64,6 +64,7 @@ Changelog = "https://github.com/JoJo275/simple-python-boilerplate/blob/main/CHAN
 spb = "simple_python_boilerplate.main:main"
 spb-version = "simple_python_boilerplate.main:print_version"
 spb-doctor = "simple_python_boilerplate.main:doctor"
+spb-start = "simple_python_boilerplate.main:start"
 
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]

@@ -35,7 +35,14 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
+
+# Ensure _progress is importable from the same scripts/ directory
+_SCRIPTS_DIR = str(Path(__file__).resolve().parent)
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+
+from _progress import ProgressBar  # noqa: E402
 
 # Top-level cache directories to remove
 CACHE_DIRS = [
@@ -128,6 +135,8 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
     """
     removed = 0
     errors = 0
+    # Per-section counters for the summary
+    section_counts: dict[str, int] = {}
 
     # Track directories removed in previous phases so we don't double-count
     # files inside them (e.g. .pyc files inside already-removed __pycache__).
@@ -143,55 +152,113 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
         elif result is None:
             errors += 1
 
-    # Top-level cache directories
-    log.info("Cleaning cache directories...")
+    action = "Scanning" if dry_run else "Removing"
+    separator = "─" * 50
+
+    # ── Section 1: Cache directories ─────────────────────────
+    log.info("\n%s", separator)
+    log.info("  %s cache directories", action)
+    log.info("%s", separator)
+    section_start = removed
+    bar = ProgressBar(
+        total=len(CACHE_DIRS) + len(CACHE_FILES),
+        label="Caches",
+    )
     for name in CACHE_DIRS:
         path = ROOT / name
         _track(remove_path(path, dry_run=dry_run), path)
-
-    # Top-level cache files
+        bar.update(name)
     for name in CACHE_FILES:
         _track(remove_path(ROOT / name, dry_run=dry_run))
+        bar.update(name)
+    section_counts["cache items"] = removed - section_start
+    bar.finish()
 
-    # Top-level build directories
-    log.info("Cleaning build directories...")
+    # ── Section 2: Build directories ─────────────────────────
+    log.info("\n%s", separator)
+    log.info("  %s build directories", action)
+    log.info("%s", separator)
+    section_start = removed
+    bar = ProgressBar(total=len(BUILD_DIRS), label="Build")
     for name in BUILD_DIRS:
         path = ROOT / name
         _track(remove_path(path, dry_run=dry_run), path)
+        bar.update(name)
+    section_counts["build directories"] = removed - section_start
+    bar.finish()
 
-    # Recursive directories (__pycache__, *.egg-info)
-    log.info("Cleaning recursive directories...")
+    # ── Section 3: Recursive directories ─────────────────────
+    log.info("\n%s", separator)
+    log.info("  %s __pycache__ & *.egg-info (recursive)", action)
+    log.info("%s", separator)
+    section_start = removed
+    # Collect all targets first for an accurate progress bar
+    recursive_targets: list[Path] = []
     for pattern in RECURSIVE_DIRS:
         for path in sorted(ROOT.rglob(pattern)):
-            # Skip .venv directories unless explicitly requested
             if ".venv" in path.parts and not include_venv:
                 continue
+            recursive_targets.append(path)
+    if recursive_targets:
+        bar = ProgressBar(total=len(recursive_targets), label="Recursive")
+        for path in recursive_targets:
             _track(remove_path(path, dry_run=dry_run), path)
+            bar.update(path.name)
+        bar.finish()
+    section_counts["recursive directories"] = removed - section_start
 
-    # File patterns (skip files inside already-removed directories)
-    log.info("Cleaning file patterns...")
+    # ── Section 4: Stale file patterns ───────────────────────
+    log.info("\n%s", separator)
+    log.info("  %s stale files (*.pyc, *.pyo, .coverage.*)", action)
+    log.info("%s", separator)
+    section_start = removed
+    file_targets: list[Path] = []
     for pattern in FILE_PATTERNS:
         for path in sorted(ROOT.rglob(pattern)):
             if ".venv" in path.parts and not include_venv:
                 continue
-            # Skip files inside directories already removed (or marked for
-            # removal in dry-run) to avoid double-counting.
             if any(path.is_relative_to(d) for d in removed_dirs):
                 continue
+            file_targets.append(path)
+    if file_targets:
+        bar = ProgressBar(total=len(file_targets), label="Files")
+        for path in file_targets:
             _track(remove_path(path, dry_run=dry_run))
+            bar.update(path.name)
+        bar.finish()
+    section_counts["stale files"] = removed - section_start
 
-    # Virtual environments (only if requested)
+    # ── Section 5: Virtual environments (optional) ───────────
     if include_venv:
-        log.info("Cleaning virtual environments...")
-        for venv_dir in sorted(ROOT.glob(".venv*")):
-            if venv_dir.is_dir():
+        log.info("\n%s", separator)
+        log.info("  %s virtual environments", action)
+        log.info("%s", separator)
+        section_start = removed
+        venv_targets = [d for d in sorted(ROOT.glob(".venv*")) if d.is_dir()]
+        if venv_targets:
+            bar = ProgressBar(total=len(venv_targets), label="Venvs")
+            for venv_dir in venv_targets:
                 _track(remove_path(venv_dir, dry_run=dry_run), venv_dir)
+                bar.update(venv_dir.name)
+            bar.finish()
+        section_counts["virtual environments"] = removed - section_start
 
-    # Summary
-    action = "Would remove" if dry_run else "Removed"
-    log.info("\n%s %d item(s).", action, removed)
+    # ── Summary ──────────────────────────────────────────────
+    verb = "Would remove" if dry_run else "Cleaned"
+    log.info("\n%s", "═" * 50)
+    log.info("  Summary")
+    log.info("%s", "═" * 50)
+    for label, count in section_counts.items():
+        if count > 0:
+            log.info("  ✓ %s %d %s", verb, count, label)
+    if removed == 0:
+        log.info("  Nothing to clean — already tidy!")
+    else:
+        log.info("  ─────────────────────────────────")
+        log.info("  Total: %s %d item(s)", verb.lower(), removed)
     if errors:
-        log.warning("%d item(s) failed to remove.", errors)
+        log.warning("  ✗ %d item(s) failed to remove", errors)
+
     return removed, errors
 
 
