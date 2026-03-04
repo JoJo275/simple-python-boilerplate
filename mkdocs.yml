@@ -145,6 +145,7 @@ nav:
   - Reference:
       - Overview: reference/index.md
       - API: reference/api.md
+      - Commands: reference/commands.md
 
 hooks:
   - mkdocs-hooks/repo_links.py
