@@ -22,6 +22,13 @@ Usage::
             spin.update(pkg)
     # spinner auto-finishes on context-manager exit
 
+    # CI logging — emit log.info() every N steps in non-TTY
+    # environments (GitHub Actions, Jenkins, etc.) so CI output
+    # isn't silent during long-running loops.  Has no effect on
+    # interactive terminals (the visual bar/spinner is used instead).
+    bar = ProgressBar(total=100, label="Deploying", log_interval=10)
+    spin = Spinner("Scanning", log_interval=25)
+
 .. note::
     This is a shared internal module (prefixed with ``_``). It is excluded
     from the command reference generator and is not intended as a standalone
@@ -35,7 +42,7 @@ import logging
 import shutil
 import sys
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 __all__ = ["ProgressBar", "Spinner"]
 
@@ -111,16 +118,27 @@ class ProgressBar:
         bar.finish()
     """
 
-    def __init__(self, total: int, label: str = "Progress") -> None:
+    def __init__(
+        self,
+        total: int,
+        label: str = "Progress",
+        log_interval: int = 0,
+    ) -> None:
         self.total = total
         self.label = label
         self.current = 0
         self._interactive = _is_interactive()
         self._fill, self._empty, self._lb, self._rb = _pick_bar_style()
-        # TODO (template users): If you need progress logging in CI (non-TTY),
-        #   set log_interval to a positive int — every N steps a log.info() is
-        #   emitted so CI output isn't completely silent for long loops.
-        self._log_interval = 0
+        # CI logging: In non-interactive environments (CI pipelines like
+        # GitHub Actions, Jenkins, etc.) there is no TTY, so progress bars
+        # are invisible — the runner just captures text logs.  Setting
+        # log_interval to a positive int (e.g. 10) causes a log.info()
+        # message every N steps, so CI output shows periodic progress
+        # instead of silence during long-running loops.
+        #
+        # Default is 0 (off) — progress is only drawn on interactive TTYs.
+        # Set to a positive int for CI visibility.
+        self._log_interval = log_interval
         if total <= 0:
             logger.warning(
                 "ProgressBar created with total=%d; progress will not render.", total
@@ -210,12 +228,18 @@ class Spinner:
         spin.finish()
     """
 
-    def __init__(self, label: str = "Working") -> None:
+    def __init__(
+        self,
+        label: str = "Working",
+        log_interval: int = 0,
+    ) -> None:
         self.label = label
         self.count = 0
         self._interactive = _is_interactive()
         self._frames = _pick_spinner_frames()
-        self._log_interval = 0  # same CI logging pattern as ProgressBar
+        # CI logging interval — see ProgressBar.__init__ for explanation.
+        # Default is 0 (off).  Set to a positive int for CI visibility.
+        self._log_interval = log_interval
 
     def __enter__(self) -> Spinner:
         return self

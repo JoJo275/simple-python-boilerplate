@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 # Metadata
 # ---------------------------------------------------------------------------
 
-HOOK_VERSION = "1.1.0"
+HOOK_VERSION = "1.2.0"
 
 __all__ = ["on_pre_build"]
 
@@ -70,6 +70,11 @@ _OUTPUT = _ROOT / "docs" / "reference" / "commands.md"
 # ---------------------------------------------------------------------------
 
 
+# Cache the loaded generator module to avoid re-importing on
+# successive builds (e.g. during mkdocs serve with live-reload).
+_cached_generator: object | None = None
+
+
 def _load_generator() -> object:
     """Dynamically import generate_command_reference.py as a module.
 
@@ -82,6 +87,10 @@ def _load_generator() -> object:
         is acceptable for MkDocs hooks (single-threaded build), but do
         not call from multi-threaded contexts.
     """
+    global _cached_generator
+    if _cached_generator is not None:
+        return _cached_generator
+
     spec = importlib.util.spec_from_file_location(
         "generate_command_reference",
         str(_GENERATOR_SCRIPT),
@@ -102,6 +111,8 @@ def _load_generator() -> object:
     finally:
         if added:
             sys.path.remove(scripts_dir)
+
+    _cached_generator = module
     return module
 
 
