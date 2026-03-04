@@ -35,7 +35,7 @@ import logging
 import shutil
 import sys
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 __all__ = ["ProgressBar", "Spinner"]
 
@@ -117,6 +117,10 @@ class ProgressBar:
         self.current = 0
         self._interactive = _is_interactive()
         self._fill, self._empty, self._lb, self._rb = _pick_bar_style()
+        # TODO (template users): If you need progress logging in CI (non-TTY),
+        #   set log_interval to a positive int — every N steps a log.info() is
+        #   emitted so CI output isn't completely silent for long loops.
+        self._log_interval = 0
         if total <= 0:
             logger.warning(
                 "ProgressBar created with total=%d; progress will not render.", total
@@ -130,15 +134,27 @@ class ProgressBar:
         self.finish()
 
     def update(self, item_name: str = "") -> None:
-        """Advance by one step and redraw."""
-        self.current += 1
+        """Advance by one step and redraw.
+
+        The counter is capped at ``total`` to prevent bar overflow if
+        ``update()`` is called more times than expected.
+        """
+        self.current = min(self.current + 1, max(self.total, 1))
         if not self._interactive:
+            # Emit periodic log messages in non-interactive mode (CI)
+            if self._log_interval > 0 and self.current % self._log_interval == 0:
+                logger.info("%s: %d/%d", self.label, self.current, self.total)
             return
         self._draw(item_name)
 
+    def reset(self) -> None:
+        """Reset the counter to zero for reuse."""
+        self.current = 0
+
     def _draw(self, item_name: str = "") -> None:
         width = _terminal_width()
-        pct = int(self.current / self.total * 100) if self.total else 0
+        # Guard against division by zero when total <= 0
+        pct = int(self.current / self.total * 100) if self.total > 0 else 0
         counter = f"{self.current}/{self.total} ({pct:>3}%)"
         prefix = f"{self.label}  "
         display_name = _truncate(item_name, 30)
@@ -154,7 +170,7 @@ class ProgressBar:
         )
         bar_width = max(width - overhead, 10)
 
-        filled = int(bar_width * self.current / self.total) if self.total else 0
+        filled = int(bar_width * self.current / self.total) if self.total > 0 else 0
         bar = self._fill * filled + self._empty * (bar_width - filled)
 
         line = f"\r{prefix}{self._lb}{bar}{self._rb}  {counter}  {display_name}"
@@ -199,6 +215,7 @@ class Spinner:
         self.count = 0
         self._interactive = _is_interactive()
         self._frames = _pick_spinner_frames()
+        self._log_interval = 0  # same CI logging pattern as ProgressBar
 
     def __enter__(self) -> Spinner:
         return self
@@ -210,8 +227,14 @@ class Spinner:
         """Tick the spinner forward and redraw."""
         self.count += 1
         if not self._interactive:
+            if self._log_interval > 0 and self.count % self._log_interval == 0:
+                logger.info("%s: %d items", self.label, self.count)
             return
         self._draw(item_name)
+
+    def reset(self) -> None:
+        """Reset the counter to zero for reuse."""
+        self.count = 0
 
     def _draw(self, item_name: str = "") -> None:
         width = _terminal_width()

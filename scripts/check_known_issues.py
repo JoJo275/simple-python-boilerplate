@@ -45,7 +45,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 # TODO (template users): If you move or rename docs/known-issues.md, update
 #   this default path and the --issues-path help text below.
 DEFAULT_ISSUES_PATH = ROOT / "docs" / "known-issues.md"
@@ -53,6 +53,9 @@ DEFAULT_MAX_AGE_DAYS = 90
 
 # Matches a Markdown table row with 4 cells: | Area | Issue | Resolution | Date |
 # The date cell is expected to contain an ISO date (YYYY-MM-DD) or be empty.
+# TODO: This regex does not handle escaped pipes (\|) inside cells.
+#   In practice this is rare in known-issues.md, but if you see false
+#   negatives in CI, consider switching to a proper Markdown table parser.
 _TABLE_ROW_RE = re.compile(
     r"^\|"
     r"\s*(?P<area>[^|]*?)\s*\|"
@@ -83,11 +86,15 @@ def parse_resolved_entries(text: str) -> list[dict[str, str]]:
     in_resolved = False
     entries: list[dict[str, str]] = []
 
+    # Accept common heading variants:
+    #   ## Resolved   |   ## Resolved Issues   |   ## Resolved Known Issues
+    _resolved_heading_re = re.compile(r"^##\s+Resolved", re.IGNORECASE)
+
     for line in text.splitlines():
         stripped = line.strip()
 
-        # Detect the "## Resolved" heading
-        if stripped.startswith("## Resolved"):
+        # Detect the "## Resolved" heading (and common variants)
+        if _resolved_heading_re.match(stripped):
             in_resolved = True
             continue
 

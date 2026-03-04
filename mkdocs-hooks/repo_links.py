@@ -57,7 +57,9 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 # Semantic version of this hook — bump when behaviour changes.
-HOOK_VERSION = "1.3.0"
+HOOK_VERSION = "1.4.0"
+
+__all__ = ["on_page_markdown"]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -73,9 +75,11 @@ log = logging.getLogger("mkdocs.hooks.repo_links")
 #   the hook generates ``blob/`` URLs instead of ``tree/``.
 _EXTENSIONLESS_FILES: frozenset[str] = frozenset(
     {
+        "Brewfile",
         "Containerfile",
         "Dockerfile",
         "Gemfile",
+        "Justfile",
         "LICENSE",
         "Makefile",
         "Procfile",
@@ -256,7 +260,8 @@ def on_page_markdown(
     *,
     page: Page,
     config: MkDocsConfig,
-    files: Files,
+    files: Files,  # required by MkDocs hook API but unused here
+    **kwargs: object,
 ) -> str:
     """Rewrite repo-relative links to absolute GitHub URLs.
 

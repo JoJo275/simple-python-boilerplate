@@ -55,7 +55,7 @@ import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,27 @@ _SKIP_SCRIPTS = {
 def _escape_md_brackets(text: str) -> str:
     """Escape square brackets in text to prevent Markdown link interpretation."""
     return text.replace("[", "\\[").replace("]", "\\]")
+
+
+def _extract_module_description(path: Path) -> str:
+    """Extract the first sentence of a Python module's docstring.
+
+    Reads the file and looks for a module-level docstring (triple-quoted).
+    Returns the first line of the docstring stripped of quotes, or a
+    placeholder if no docstring is found.
+    """
+    try:
+        source = path.read_text(encoding="utf-8")
+    except OSError:
+        return "*(no description)*"
+
+    # Match the first triple-quoted string at module level
+    match = re.search(r'^"""(.+?)(?:\.|\n|""")', source, re.DOTALL)
+    if match:
+        first_line = match.group(1).strip().split("\n")[0].strip()
+        if first_line:
+            return first_line.rstrip(".")
+    return "*(no description)*"
 
 
 def _run(cmd: list[str], *, timeout: int = 30) -> str | None:
@@ -156,9 +177,15 @@ def _script_help(script_path: Path) -> str | None:
 
 
 def _collect_scripts() -> list[Path]:
-    """Return all user-facing .py scripts, sorted alphabetically."""
+    """Return all user-facing .py scripts, sorted alphabetically.
+
+    Scripts whose name starts with ``_`` or matches ``_SKIP_SCRIPTS``
+    are excluded (they are shared modules, not CLIs).
+    """
     scripts: list[Path] = [
-        p for p in sorted(SCRIPTS_DIR.glob("*.py")) if p.name not in _SKIP_SCRIPTS
+        p
+        for p in sorted(SCRIPTS_DIR.glob("*.py"))
+        if p.name not in _SKIP_SCRIPTS and not p.name.startswith("_")
     ]
 
     # scripts/precommit/
@@ -263,15 +290,19 @@ def _generate() -> str:
         "Internal modules in `scripts/` used by multiple scripts. "
         "Not intended to be run directly.\n\n"
     )
-    # TODO (template users): If you add new shared modules (scripts/_*.py),
-    #   add a row here so they appear in the command reference.
-    parts.append("| Module | Description |\n")
-    parts.append("| ------ | ----------- |\n")
-    parts.append(
-        "| [`_progress.py`](../../scripts/_progress.py) "
-        "| Progress bar and spinner utilities (Unicode/ASCII) |\n"
-    )
-    parts.append("\n")
+    # Auto-discover shared modules (scripts/_*.py)
+    shared_modules = sorted(SCRIPTS_DIR.glob("_*.py"))
+    if shared_modules:
+        parts.append("| Module | Description |\n")
+        parts.append("| ------ | ----------- |\n")
+        for mod_path in shared_modules:
+            # Extract the first line of the module docstring as description
+            desc = _extract_module_description(mod_path)
+            rel_path = mod_path.relative_to(ROOT).as_posix()
+            parts.append(f"| [`{mod_path.name}`](../../{rel_path}) | {desc} |\n")
+        parts.append("\n")
+    else:
+        parts.append("*No shared modules found.*\n\n")
 
     # ── Hatch environments ────────────────────────────────────
     parts.append("## Hatch Environments\n\n")
@@ -291,6 +322,10 @@ def _generate() -> str:
         )
 
     # ── Quick-reference table ─────────────────────────────────
+    # TODO: This quick-reference table is hardcoded and can
+    #   drift from actual Taskfile definitions. Consider
+    #   generating it from parsed tasks, or audit it when
+    #   Taskfile.yml changes.
     parts.append("## Quick Reference\n\n")
     parts.append("Common operations and the fastest way to run them.\n\n")
     parts.append("| What | Command |\n")

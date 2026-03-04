@@ -46,7 +46,9 @@ if TYPE_CHECKING:
 # Metadata
 # ---------------------------------------------------------------------------
 
-HOOK_VERSION = "1.0.0"
+HOOK_VERSION = "1.1.0"
+
+__all__ = ["on_pre_build"]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -74,6 +76,11 @@ def _load_generator() -> object:
     We import dynamically rather than with a normal ``import`` because
     ``scripts/`` is not a package on ``sys.path`` — and we don't want
     to pollute ``sys.path`` permanently.
+
+    .. warning::
+        The temporary ``sys.path`` mutation is **not thread-safe**.  This
+        is acceptable for MkDocs hooks (single-threaded build), but do
+        not call from multi-threaded contexts.
     """
     spec = importlib.util.spec_from_file_location(
         "generate_command_reference",
