@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **33 workflow files** in `.github/workflows/`. All workflows
+This project has **34 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -78,6 +78,12 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v*), manual                            | `Check stale resolved issues`  | Flags stale entries in docs/known-issues.md Resolved table                                    |
 | **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`            | Warn-only repo structure checks (missing files, broken conventions)                           |
 
+### Community
+
+| Workflow    | File                                              | Triggers             | Job name(s)                        | Purpose                                                          |
+| ----------- | ------------------------------------------------- | -------------------- | ---------------------------------- | ---------------------------------------------------------------- |
+| **Welcome** | [welcome.yml](../.github/workflows/welcome.yml)   | issue opened, PR opened | `Welcome first-time contributors` | Posts a welcome comment on first-time contributors' first issue or PR |
+
 ### Gate
 
 | Workflow    | File                                            | Triggers         | Job name(s) | Purpose                                                                                       |
@@ -127,6 +133,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 - `known-issues-check.yml` — schedule + tag-push only (no PR trigger)
 - `todo-check.yml` — non-blocking (continue-on-error); informational only
 - `repo-doctor.yml` — warn-only (always exits 0); informational only
+- `welcome.yml` — community engagement; no quality gate relevance
 
 These still report status when they run and also run on push to main + schedules.
 
