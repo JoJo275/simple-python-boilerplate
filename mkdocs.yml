@@ -146,6 +146,8 @@ nav:
       - Overview: reference/index.md
       - API: reference/api.md
       - Commands: reference/commands.md
+      - Template Inventory: reference/template-inventory.md
+      - Known Issues: known-issues.md
 
 hooks:
   - mkdocs-hooks/repo_links.py

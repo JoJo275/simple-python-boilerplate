@@ -508,16 +508,18 @@ and the docs you don't need.
 
 ## Further Reading
 
-| Topic                    | Document                                      |
-| :----------------------- | :-------------------------------------------- |
-| Repo layout explained    | [repo-layout.md](repo-layout.md)              |
-| All tools at a glance    | [tooling.md](tooling.md)                      |
-| Why each tool was chosen | [tool-decisions.md](design/tool-decisions.md) |
-| Architecture overview    | [architecture.md](design/architecture.md)     |
-| Learning resources       | [resources.md](notes/resources.md)            |
-| Release policy           | [releasing.md](releasing.md)                  |
-| Contributing guide       | [CONTRIBUTING.md](../CONTRIBUTING.md)         |
-| ADR index                | [docs/adr/](adr/README.md)                    |
+| Topic                              | Document                                                           |
+| :--------------------------------- | :----------------------------------------------------------------- |
+| Repo layout explained              | [repo-layout.md](repo-layout.md)                                  |
+| All tools at a glance              | [tooling.md](tooling.md)                                          |
+| Why each tool was chosen           | [tool-decisions.md](design/tool-decisions.md)                     |
+| Architecture overview              | [architecture.md](design/architecture.md)                         |
+| Templates & examples inventory     | [template-inventory.md](reference/template-inventory.md)          |
+| Known issues & tech debt           | [known-issues.md](known-issues.md)                                |
+| Learning resources                 | [resources.md](notes/resources.md)                                |
+| Release policy                     | [releasing.md](releasing.md)                                      |
+| Contributing guide                 | [CONTRIBUTING.md](../CONTRIBUTING.md)                             |
+| ADR index                          | [docs/adr/](adr/README.md)                                        |
 
 ---
 

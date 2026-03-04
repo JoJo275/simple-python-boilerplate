@@ -171,20 +171,13 @@ TODOs should be actionable and specific — not just "fill this in" but
 
 ### Check Templates Before Creating Files
 
-Before creating a new file, check whether a relevant template or example
-exists in the project. Key templates:
+Before creating a new file, check the
+[template inventory](../docs/reference/template-inventory.md) for existing
+templates, examples, and conventions. Key ones: ADR template, workflow
+pattern, script conventions, MkDocs hook pattern, SQL migrations.
 
-- **ADR** → `docs/adr/template.md` — follow this structure for new ADRs
-- **Workflow** → review an existing `.github/workflows/*.yml` for the
-  repository guard pattern, SHA-pinned actions, and naming conventions
-- **Migration** → `db/migrations/001_example_migration.sql`
-- **Seed** → `db/seeds/001_example_seed.sql`
-- **Script** → review `scripts/` for naming and shebang conventions. **Important:** After creating a script with a shebang (`#!/usr/bin/env python3`), mark it executable: `git add --chmod=+x scripts/my_script.py`
-- **Shared script module** → `scripts/_progress.py` for conventions; use `_` prefix for internal-only modules
-- **MkDocs hook** → review `mkdocs-hooks/repo_links.py` for conventions; update `mkdocs-hooks/README.md` inventory and register in `mkdocs.yml` under `hooks:`
-- **Security policy** → `docs/templates/SECURITY_no_bounty.md` or `SECURITY_with_bounty.md` — copy to repo root as `SECURITY.md`
-- **Bug bounty** → `docs/templates/BUG_BOUNTY.md` — standalone bounty policy linked from SECURITY.md
-- **VS Code workspace** → `*.code-workspace` — review for settings, extensions, and file exclusions before adding new workspace-level config
+The inventory also documents conventions for each file type (shebangs,
+logging, argparse, registration steps, etc.).
 
 ### Keep Related Files in Sync
 
@@ -441,25 +434,14 @@ are maintained as the source of truth.
 
 Key ADRs that most affect day-to-day work:
 
-| ADR | Decision                                                    |
-| --- | ----------------------------------------------------------- |
-| 001 | src/ layout for package structure                           |
-| 002 | pyproject.toml for all configuration                        |
-| 005 | Ruff for linting and formatting                             |
-| 008 | Pre-commit hooks (full inventory)                           |
-| 009 | Conventional commits                                        |
-| 011 | Repository guard pattern                                    |
-| 016 | Hatchling and Hatch                                         |
-| 024 | CI gate pattern                                             |
-| 026 | No pip-tools for dependency management                      |
-| 029 | Testing strategy (unit/integration split, coverage, matrix) |
-| 031 | Script conventions                                          |
-| 032 | Dependency grouping strategy                                |
-| 033 | Prettier for Markdown formatting                            |
-| 034 | Documentation organization strategy                         |
-| 035 | Copilot instructions as developer context                   |
+| ADR | Decision                                             |
+| --- | ---------------------------------------------------- |
+| 001 | src/ layout for package structure                    |
+| 008 | Pre-commit hooks (full inventory, 43 hooks)          |
+| 024 | CI gate pattern (single required check)              |
+| 031 | Script conventions (argparse, logging, shebang, etc) |
 
-Full index: `docs/adr/README.md`
+Full index (35 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
 
 ## Common Issues to Catch
 
@@ -475,15 +457,5 @@ Full index: `docs/adr/README.md`
 
 ## Known Limitations / Tech Debt
 
-Acknowledged gaps that don't need to be rediscovered each session:
-
-| Area         | Issue                             | Notes                                                                                                                                                                 |
-| ------------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CI**       | Container scan is advisory-only   | `container-scan.yml` results don't block PRs (intentional — but worth knowing).                                                                                       |
-| **CI**       | Docs deploy is path-filtered      | `docs-deploy.yml` only runs on docs/src changes on push to main. Docs _build_ validation is handled by `docs-build.yml` which runs on every PR and IS in the CI gate. |
-| **Docs**     | `docs/workflows.md` can drift     | It's manually maintained. When adding/removing workflows, update it or it becomes misleading fast.                                                                    |
-| **Template** | Placeholder source code           | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely.                                                           |
-| **Security** | Security email updated            | `SECURITY.md` uses `joseph26584@gmail.com`. PGP key fingerprint is still a TODO.                                                                                       |
-| **CI**       | Workflow guards use `YOURNAME`    | Workflow `if:` guards still reference `YOURNAME/YOURREPO` — intentional per ADR 011 (disabled by default for forks). Template users enable via repo variables.        |
-
-<!-- Add new entries here as they're discovered. Remove entries when resolved. -->
+See [`docs/known-issues.md`](../docs/known-issues.md) for the current list.
+That file is the canonical tracker — add new entries there, not here.

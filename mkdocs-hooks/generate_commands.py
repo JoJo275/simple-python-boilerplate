@@ -121,6 +121,12 @@ def on_pre_build(config: MkDocsConfig, **kwargs: object) -> None:
 
     try:
         generator = _load_generator()
+        if not hasattr(generator, "_generate"):
+            log.warning(
+                "Generator module has no _generate() function — skipping. "
+                "Was scripts/generate_command_reference.py refactored?",
+            )
+            return
         content: str = generator._generate()  # type: ignore[attr-defined]
     except Exception:
         log.exception("Failed to generate command reference — skipping")
