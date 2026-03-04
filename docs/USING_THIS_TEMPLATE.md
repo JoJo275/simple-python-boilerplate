@@ -282,7 +282,7 @@ skip on forks and clones.
 
 ### Disabling Workflows You Don't Need
 
-Not every project needs all 33 workflows:
+Not every project needs all 34 workflows:
 
 | If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
 | :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |

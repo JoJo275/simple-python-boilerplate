@@ -231,7 +231,7 @@ Version is derived from git tags at build time via `hatch-vcs`
 
 ## CI/CD Architecture
 
-33 workflow files in `.github/workflows/`, all SHA-pinned
+34 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../adr/011-repository-guard-pattern.md)).
 

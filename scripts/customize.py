@@ -52,17 +52,27 @@ import datetime
 import logging
 import re
 import shutil
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
+# Allow importing sibling modules (e.g. _progress) when running as a script
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _progress import ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
-# Original placeholders baked into the template
+# Original placeholders baked into the template.
+# These are the values that get replaced during customization.
+# NOTE: If you forked this template and changed these values before
+# running customize.py, update them here so the script can find them.
 TEMPLATE_PROJECT_NAME = "simple-python-boilerplate"
 TEMPLATE_PACKAGE_NAME = "simple_python_boilerplate"
 TEMPLATE_GITHUB_USER = "JoJo275"
@@ -130,6 +140,9 @@ SKIP_FILES: set[Path] = {
 }
 
 # Optional directories / files that can be stripped
+# TODO (template users): Add your own optional directory groups here if
+#   your project has components that downstream users might not need
+#   (e.g., "mobile-app", "admin-panel", "legacy-api").
 STRIPPABLE: dict[str, dict[str, object]] = {
     "db": {
         "label": "Database directory (schema, migrations, seeds, queries)",
@@ -166,6 +179,11 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # License templates
 # ---------------------------------------------------------------------------
+
+# TODO (template users): If your organization uses a different license
+#   (e.g., GPL-3.0, MPL-2.0, proprietary), add it to LICENSE_CHOICES below
+#   and provide a template string. The script will write it to LICENSE and
+#   update the classifier in pyproject.toml.
 
 MIT_LICENSE = """\
 MIT License
@@ -399,8 +417,23 @@ def _validate_project_name(name: str) -> str | None:
     if not re.match(r"^[a-z][a-z0-9]+(-[a-z0-9]+)*$", name):
         return (
             "Use lowercase letters, digits, and hyphens "
-            "(e.g. my-cool-project). Must start with a letter."
+            "(e.g. my-cool-project). Must start with a letter "
+            "and be at least 2 characters."
         )
+    return None
+
+
+def _validate_package_name(name: str) -> str | None:
+    """Return an error message if *name* is not a valid Python identifier."""
+    if not re.match(r"^[a-z][a-z0-9_]*$", name):
+        return (
+            "Use lowercase letters, digits, and underscores "
+            "(e.g. my_project). Must start with a letter."
+        )
+    if name.startswith("_") or name.endswith("_"):
+        return "Should not start or end with an underscore."
+    if "__" in name:
+        return "Avoid double underscores (reserved for Python internals)."
     return None
 
 
@@ -408,27 +441,44 @@ def gather_config_interactive() -> Config:
     """Run an interactive Q&A session and return a populated Config."""
     cfg = Config()
 
-    print("\n=== Project Customization ===\n")
-    print("Replace boilerplate placeholders with your project's values.")
-    print("Press Enter to accept [defaults].\n")
+    print()
+    print("┌─────────────────────────────────────────┐")
+    print("│       Project Customization Wizard       │")
+    print("└─────────────────────────────────────────┘")
+    print()
+    print("  This wizard replaces boilerplate placeholders with your")
+    print("  project's real values. Press Enter to accept [defaults].")
+    print()
+    print("  Tip: re-run with --dry-run first to preview changes.")
 
     # --- Project identity ---------------------------------------------------
-    print("── Project Identity ──")
+    print()
+    print("── Step 1/4: Project Identity ──────────────────────────")
+    print()
     while True:
-        cfg.project_name = _prompt("Project name (lowercase-hyphenated)")
+        cfg.project_name = _prompt(
+            "Project name (lowercase, hyphens OK, e.g. my-cool-app)"
+        )
         err = _validate_project_name(cfg.project_name)
         if err is None:
             break
-        print(f"    {err}")
+        print(f"    ✗ Invalid: '{cfg.project_name}' — {err}")
 
-    cfg.package_name = _prompt(
-        "Package name (underscored)",
-        cfg.project_name.replace("-", "_"),
-    )
-    cfg.author = _prompt("Author name")
-    cfg.github_user = _prompt("GitHub username or org")
+    default_pkg = cfg.project_name.replace("-", "_")
+    while True:
+        cfg.package_name = _prompt(
+            "Package name (Python import name, underscored)",
+            default_pkg,
+        )
+        err = _validate_package_name(cfg.package_name)
+        if err is None:
+            break
+        print(f"    \u2717 Invalid: '{cfg.package_name}' \u2014 {err}")
+
+    cfg.author = _prompt("Author / maintainer name")
+    cfg.github_user = _prompt("GitHub username or organization")
     cfg.description = _prompt(
-        "One-line description",
+        "One-line project description",
         f"{cfg.project_name} — a Python project",
     )
 
@@ -437,18 +487,31 @@ def gather_config_interactive() -> Config:
     default_cli = (
         "".join(p[0] for p in parts if p) if len(parts) > 1 else cfg.project_name
     )
-    cfg.cli_prefix = _prompt("CLI command prefix", default_cli)
+    cfg.cli_prefix = _prompt(
+        "CLI command prefix (used for entry points like <prefix>-version)",
+        default_cli,
+    )
 
     # --- License ------------------------------------------------------------
-    print("\n── License ──")
+    print()
+    print("── Step 2/4: License ──────────────────────────────────")
+    print()
     license_options = {k: str(v["name"]) for k, v in LICENSE_CHOICES.items()}
     cfg.license_id = _prompt_choice("Choose a license:", license_options, "apache-2.0")
 
     # --- Strip optional directories -----------------------------------------
-    print("\n── Optional Directories ──")
-    print("  The following directories are optional and can be removed:")
+    print()
+    print("── Step 3/4: Optional Directories ─────────────────────")
+    print()
+    print("  These directories ship with the template but are optional.")
+    print("  Select any you don't need — they'll be deleted.")
+    print()
     strip_options = {k: str(v["label"]) for k, v in STRIPPABLE.items()}
     cfg.strip_dirs = _prompt_multi("Remove any of these?", strip_options)
+
+    # --- Summary / confirm --------------------------------------------------
+    print()
+    print("── Step 4/4: Review ───────────────────────────────────")
 
     return cfg
 
@@ -573,25 +636,47 @@ def _should_process(path: Path) -> bool:
     return rel not in SKIP_FILES
 
 
+def _collect_eligible_files() -> list[Path]:
+    """Gather all text files eligible for replacement scanning.
+
+    Returns:
+        Sorted list of file paths that pass the processing filter.
+    """
+    return sorted(p for p in ROOT.rglob("*") if _should_process(p))
+
+
 def apply_replacements(
     replacements: list[Replacement],
     *,
     dry_run: bool = False,
+    show_progress: bool = True,
 ) -> dict[Path, int]:
     """Apply text replacements across all eligible files in the project.
 
     Args:
         replacements: Ordered substitutions (applied in sequence per file).
         dry_run: If ``True``, report changes without writing files.
+        show_progress: If ``True``, display a progress bar during processing.
 
     Returns:
         Mapping of modified file paths to number of individual substitutions.
     """
+    eligible = _collect_eligible_files()
     modified: dict[Path, int] = {}
 
-    for path in sorted(ROOT.rglob("*")):
-        if not _should_process(path):
-            continue
+    bar: ProgressBar | None = None
+    if show_progress and eligible:
+        bar = ProgressBar(
+            total=len(eligible),
+            label="Scanning files",
+            log_interval=20,
+        )
+
+    for path in eligible:
+        rel = path.relative_to(ROOT)
+        if bar is not None:
+            bar.update(str(rel))
+
         try:
             original = path.read_text(encoding="utf-8", errors="ignore")
         except (OSError, PermissionError):
@@ -609,6 +694,14 @@ def apply_replacements(
             modified[path] = count
             if not dry_run:
                 path.write_text(text, encoding="utf-8")
+
+    if bar is not None:
+        total_subs = sum(modified.values())
+        bar.finish(
+            f"  Scanned {len(eligible)} files — "
+            f"{total_subs} replacement{'s' if total_subs != 1 else ''} "
+            f"in {len(modified)} file{'s' if len(modified) != 1 else ''}"
+        )
 
     return modified
 
@@ -781,30 +874,42 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
         cfg: Customization config.
         replacements: Planned text substitutions.
     """
-    print("\n=== Customization Plan ===\n")
+    print()
+    print("┌─────────────────────────────────────────┐")
+    print("│          Customization Plan              │")
+    print("└─────────────────────────────────────────┘")
 
-    print("Text replacements:")
+    # Count eligible files upfront for context
+    eligible_count = len(_collect_eligible_files())
+
+    print(
+        f"\n  Text replacements ({len(replacements)} rules, ~{eligible_count} files to scan):"
+    )
     for r in replacements:
-        print(f"  - {r.description}")
+        print(f"    • {r.description}")
 
     if cfg.package_name != TEMPLATE_PACKAGE_NAME:
-        print("\nDirectory rename:")
-        print(f"  - src/{TEMPLATE_PACKAGE_NAME}/ -> src/{cfg.package_name}/")
+        print("\n  Directory rename:")
+        print(f"    • src/{TEMPLATE_PACKAGE_NAME}/ → src/{cfg.package_name}/")
 
     if cfg.license_id != "apache-2.0":
         name = LICENSE_CHOICES[cfg.license_id]["name"]
-        print(f"\nLicense: switch to {name}")
+        print(f"\n  License: switch to {name}")
+    else:
+        print("\n  License: keeping Apache-2.0 (no change)")
 
     if cfg.strip_dirs:
-        print("\nDirectories to remove:")
+        print("\n  Directories to remove:")
         for key in cfg.strip_dirs:
             entry = STRIPPABLE[key]
-            print(f"  - {entry['label']}")
+            print(f"    • {entry['label']}")
             paths: list[str] = entry["paths"]  # type: ignore[assignment]
             for p in paths:
                 exists = (ROOT / p).exists()
-                marker = "" if exists else " (not found)"
-                print(f"      {p}{marker}")
+                marker = "" if exists else " (not found — skipped)"
+                print(f"        {p}{marker}")
+    else:
+        print("\n  Directories to remove: none")
 
     print()
 
@@ -928,7 +1033,20 @@ def config_from_args(args: argparse.Namespace) -> Config:
         log.error("--non-interactive requires: %s", ", ".join(missing))
         raise SystemExit(2)
 
+    # Validate project name
+    name_err = _validate_project_name(args.project_name)
+    if name_err:
+        log.error("Invalid --project-name '%s': %s", args.project_name, name_err)
+        raise SystemExit(2)
+
     package_name = args.package_name or args.project_name.replace("-", "_")
+
+    # Validate package name
+    pkg_err = _validate_package_name(package_name)
+    if pkg_err:
+        log.error("Invalid package name '%s': %s", package_name, pkg_err)
+        raise SystemExit(2)
+
     parts = args.project_name.split("-")
     cli_prefix = args.cli_prefix or (
         "".join(p[0] for p in parts if p) if len(parts) > 1 else args.project_name
@@ -989,12 +1107,13 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
     print(f"{tag}Enabling workflows with repo slug: {repo_slug}")
     print()
 
-    modified = apply_replacements(replacements, dry_run=dry_run)
+    modified = apply_replacements(replacements, dry_run=dry_run, show_progress=True)
 
     if not modified:
-        print("No files needed updating (placeholder may already be replaced).")
+        print("✓ No files needed updating (placeholder may already be replaced).")
         return 0
 
+    # Show individual file results
     for path, count in modified.items():
         rel = path.relative_to(ROOT)
         print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
@@ -1008,8 +1127,10 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
 
     if dry_run:
         print("\nDry run complete — no files were modified.")
+        print("Re-run without --dry-run to apply.")
     else:
-        print("\nWorkflows enabled! They will now run on your repository.")
+        print("\n✓ Workflows enabled! They will now run on your repository.")
+        print("\nNext step: push to GitHub and check the Actions tab.")
 
     return 0
 
@@ -1062,13 +1183,13 @@ def main() -> int:
     print_plan(cfg, replacements)
 
     # Confirm (interactive only, skip for dry-run since it's non-destructive)
-    if (
-        not args.non_interactive
-        and not cfg.dry_run
-        and not _prompt_yn("Proceed with these changes?")
-    ):
-        print("Aborted.")
-        return 0
+    if not args.non_interactive and not cfg.dry_run:
+        print("  ⚠  This will modify files in-place. Make sure you have a")
+        print("     clean git state or a backup before proceeding.")
+        print()
+        if not _prompt_yn("Proceed with these changes?"):
+            print("Aborted.")
+            return 0
 
     tag = "DRY RUN — " if cfg.dry_run else ""
 
@@ -1079,10 +1200,16 @@ def main() -> int:
 
     # Step 2: Text replacements across all files
     print(f"\n{tag}Applying text replacements...")
-    modified = apply_replacements(replacements, dry_run=cfg.dry_run)
-    for path, count in modified.items():
-        rel = path.relative_to(ROOT)
-        print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
+    modified = apply_replacements(
+        replacements,
+        dry_run=cfg.dry_run,
+        show_progress=not args.quiet,
+    )
+    if cfg.dry_run:
+        # In dry-run mode, list every affected file for review
+        for path, count in modified.items():
+            rel = path.relative_to(ROOT)
+            print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
     total = sum(modified.values())
     n_files = len(modified)
     print(
@@ -1102,9 +1229,12 @@ def main() -> int:
 
     # Done
     if cfg.dry_run:
-        print("\nDry run complete — no files were modified.")
+        print("\n" + "─" * 50)
+        print("Dry run complete — no files were modified.")
+        print("Re-run without --dry-run to apply changes.")
     else:
-        print("\nCustomization complete!")
+        print("\n" + "─" * 50)
+        print("✓ Customization complete!")
         ws_file = ROOT / f"{TEMPLATE_PROJECT_NAME}.code-workspace"
         print("\nNext steps:")
         print("  1. Review the changes:  git diff")
@@ -1114,8 +1244,11 @@ def main() -> int:
         if ws_file.exists():
             print(
                 f"  5. Rename workspace:    {TEMPLATE_PROJECT_NAME}.code-workspace"
-                f" -> {cfg.project_name}.code-workspace"
+                f" → {cfg.project_name}.code-workspace"
             )
+        # TODO (template users): Add any project-specific post-customization
+        #   steps here (e.g., "6. Configure your database connection",
+        #   "7. Set up your .env file").
 
     return 0
 
