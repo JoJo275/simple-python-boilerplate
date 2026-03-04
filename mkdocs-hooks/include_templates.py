@@ -34,7 +34,9 @@ if TYPE_CHECKING:
 # Metadata
 # ---------------------------------------------------------------------------
 
-HOOK_VERSION = "1.0.0"
+HOOK_VERSION = "1.1.0"
+
+__all__ = ["on_files"]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -71,6 +73,7 @@ def on_files(files: Files, *, config: MkDocsConfig, **kwargs: object) -> Files:
     # Allow disabling via mkdocs.yml extra config
     extra = config.get("extra", {})  # type: ignore[arg-type]
     if not extra.get("include_templates", True):  # type: ignore[union-attr]
+        log.debug("include_templates hook disabled via extra.include_templates")
         return files
 
     docs_dir = Path(str(config["docs_dir"]))
