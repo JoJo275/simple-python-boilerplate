@@ -238,7 +238,7 @@ check items off as you go.
 
 ## CI/CD Workflows Included
 
-This template ships with **29 GitHub Actions workflows** in
+This template ships with **33 GitHub Actions workflows** in
 [.github/workflows/](../.github/workflows/) covering quality, security, PR
 hygiene, releases, docs, containers, and maintenance.
 

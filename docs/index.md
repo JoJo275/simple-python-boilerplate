@@ -23,7 +23,7 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 - **MkDocs + Material** — documentation with auto-generated API reference.
 - **43 pre-commit hooks** — across 4 stages: pre-commit, commit-msg,
   pre-push, manual ([ADR 008](adr/008-pre-commit-hooks.md)).
-- **~29 GitHub Actions workflows** — all SHA-pinned, with repository
+- **33 GitHub Actions workflows** — all SHA-pinned, with repository
   guard pattern ([ADR 004](adr/004-pin-action-shas.md),
   [ADR 011](adr/011-repository-guard-pattern.md)).
 - **Security scanning** — Bandit, pip-audit, CodeQL, Trivy, Gitleaks,
@@ -65,7 +65,7 @@ scripts/              # Utility scripts (bootstrap, clean, doctor, etc.)
 db/                   # Database schema, migrations, seeds, queries
 experiments/          # Scratch files for exploration (not packaged)
 .github/
-  workflows/          # ~29 GitHub Actions workflows (SHA-pinned)
+  workflows/          # 33 GitHub Actions workflows (SHA-pinned)
   ISSUE_TEMPLATE/     # Issue form templates
 pyproject.toml        # Project configuration (single source of truth)
 Taskfile.yml          # Task runner shortcuts

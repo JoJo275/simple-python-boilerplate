@@ -21,6 +21,11 @@ Usage::
         for pkg in packages:
             spin.update(pkg)
     # spinner auto-finishes on context-manager exit
+
+.. note::
+    This is a shared internal module (prefixed with ``_``). It is excluded
+    from the command reference generator and is not intended as a standalone
+    CLI. See ADR 031 for script conventions.
 """
 
 from __future__ import annotations

@@ -46,6 +46,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_VERSION = "1.0.0"
+# TODO (template users): If you move or rename docs/known-issues.md, update
+#   this default path and the --issues-path help text below.
 DEFAULT_ISSUES_PATH = ROOT / "docs" / "known-issues.md"
 DEFAULT_MAX_AGE_DAYS = 90
 
