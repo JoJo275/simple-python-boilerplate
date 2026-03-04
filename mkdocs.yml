@@ -149,6 +149,7 @@ nav:
 
 hooks:
   - mkdocs-hooks/repo_links.py
+  - mkdocs-hooks/generate_commands.py
 
 plugins:
   - search
