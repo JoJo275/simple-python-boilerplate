@@ -43,6 +43,33 @@ def print_version() -> None:
     print(f"Python {info['python_full']}")
 
 
+def start() -> None:
+    """Bootstrap the project for first-time setup.
+
+    Runs ``scripts/bootstrap.py`` from the repository root so new
+    contributors can type ``spb-start`` instead of remembering the
+    full ``python scripts/bootstrap.py`` path.
+
+    All arguments are forwarded to the bootstrap script, so
+    ``spb-start --dry-run`` works exactly like
+    ``python scripts/bootstrap.py --dry-run``.
+    """
+    import subprocess  # nosec B404
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent.parent
+    bootstrap = root / "scripts" / "bootstrap.py"
+    if not bootstrap.exists():
+        print(f"Error: bootstrap script not found at {bootstrap}")
+        sys.exit(1)
+    raise SystemExit(
+        subprocess.call(  # nosec B603
+            [sys.executable, str(bootstrap), *sys.argv[1:]],
+            cwd=str(root),
+        )
+    )
+
+
 def doctor() -> None:
     """Diagnose environment and configuration issues.
 
