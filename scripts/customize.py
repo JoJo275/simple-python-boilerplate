@@ -443,7 +443,7 @@ def gather_config_interactive() -> Config:
 
     print()
     print("┌─────────────────────────────────────────┐")
-    print("│       Project Customization Wizard       │")
+    print("│       Project Customization Wizard      │")
     print("└─────────────────────────────────────────┘")
     print()
     print("  This wizard replaces boilerplate placeholders with your")
