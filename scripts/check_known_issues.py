@@ -40,11 +40,13 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
+from _imports import find_repo_root
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 SCRIPT_VERSION = "1.1.0"
 # TODO (template users): If you move or rename docs/known-issues.md, update
 #   this default path and the --issues-path help text below.
