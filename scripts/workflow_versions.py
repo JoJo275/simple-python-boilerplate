@@ -77,7 +77,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from _progress import ProgressBar, Spinner
+from _imports import import_sibling
+
+_progress = import_sibling("_progress")
+ProgressBar = _progress.ProgressBar
+Spinner = _progress.Spinner
 
 # ---------------------------------------------------------------------------
 # Constants

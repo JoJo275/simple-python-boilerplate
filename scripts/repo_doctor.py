@@ -20,6 +20,7 @@ Flags::
     --no-hints           Hide hint lines
     --no-links           Hide link/reference lines
     --no-color           Disable colored output
+    --show-passed        Show checks that passed (in addition to warnings)
     --version            Print version and exit
 
 Usage::
@@ -84,6 +85,14 @@ class Rule:
 @dataclass
 class Warning:
     """A single diagnostic produced during evaluation."""
+
+    rule: Rule
+    message: str
+
+
+@dataclass
+class PassedCheck:
+    """A rule that was evaluated and passed."""
 
     rule: Rule
     message: str
@@ -338,9 +347,10 @@ def _evaluate_rules(
     *,
     check_missing: bool,
     deleted: set[str],
-) -> list[Warning]:
-    """Evaluate all rules and return a list of warnings."""
+) -> tuple[list[Warning], list[PassedCheck]]:
+    """Evaluate all rules and return warnings and passed checks."""
     warnings: list[Warning] = []
+    passed: list[PassedCheck] = []
 
     # Track paths that already have a deletion warning to avoid duplicates
     deleted_rule_paths: set[str] = set()
@@ -355,12 +365,19 @@ def _evaluate_rules(
                     deleted_rule_paths.add(rule.path)
                     break
 
+    # Track which rules already produced a warning (by id) so we can
+    # classify the rest as passed.
+    warned_rules: set[int] = set()
+
     # Rule checks
     for rule in rules:
         if rule.only_if and not _file_contains_regex(
             root, rule.only_if.path, rule.only_if.regex
         ):
+            # Skipped due to only_if gate — not a pass or fail
             continue
+
+        failed = False
 
         if rule.type == "exists":
             if (
@@ -369,19 +386,24 @@ def _evaluate_rules(
                 and rule.path not in deleted_rule_paths
             ):
                 warnings.append(Warning(rule=rule, message=f"Missing: {rule.path}"))
+                failed = True
 
         elif rule.type == "regex_present":
             if not _exists_kind(root, rule.path, "any"):
                 if check_missing and rule.path not in deleted_rule_paths:
                     warnings.append(Warning(rule=rule, message=f"Missing: {rule.path}"))
-                continue
-            if rule.regex and not _file_contains_regex(root, rule.path, rule.regex):
+                    failed = True
+                else:
+                    # File missing but not checking missing — skip (not pass/fail)
+                    continue
+            elif rule.regex and not _file_contains_regex(root, rule.path, rule.regex):
                 warnings.append(
                     Warning(
                         rule=rule,
                         message=f"Check failed: expected pattern in {rule.path}",
                     )
                 )
+                failed = True
 
         elif rule.type == "toml_has_path":
             if not _exists_kind(root, rule.path, "file"):
@@ -404,6 +426,7 @@ def _evaluate_rules(
                         ),
                     )
                 )
+                failed = True
 
         else:
             warnings.append(
@@ -415,8 +438,14 @@ def _evaluate_rules(
                     ),
                 )
             )
+            failed = True
 
-    return warnings
+        if not failed and id(rule) not in warned_rules:
+            passed.append(PassedCheck(rule=rule, message=f"OK: {rule.path}"))
+        if failed:
+            warned_rules.add(id(rule))
+
+    return warnings, passed
 
 
 # ---------------------------------------------------------------------------
@@ -555,6 +584,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable colored output.",
     )
+    parser.add_argument(
+        "--show-passed",
+        action="store_true",
+        help="Show checks that passed (in addition to warnings).",
+    )
     return parser
 
 
@@ -602,7 +636,24 @@ def main() -> int:
 
     deleted = set(_list_deleted_paths(root, staged=args.staged, diff_range=args.diff))
 
-    warnings = _evaluate_rules(root, rules, check_missing=args.missing, deleted=deleted)
+    warnings, passed = _evaluate_rules(
+        root, rules, check_missing=args.missing, deleted=deleted
+    )
+
+    if args.show_passed and passed:
+        print(
+            _colorize(
+                "Passed checks:",
+                "32",
+                use_color=use_color,
+            )
+        )
+        for p in passed:
+            cat = f" ({p.rule.category})" if p.rule.category else ""
+            print(
+                f"  {_colorize('[pass]', '32', use_color=use_color)}{cat} {p.message}"
+            )
+        print()
 
     if warnings:
         print(
@@ -624,7 +675,7 @@ def main() -> int:
                 )
             )
             print()
-    else:
+    elif not args.show_passed:
         print(
             _colorize(
                 "Repo doctor: all checks passed.",
@@ -632,6 +683,15 @@ def main() -> int:
                 use_color=use_color,
             )
         )
+
+    # Summary line
+    total = len(passed) + len(warnings)
+    summary = (
+        f"Summary: {len(passed)} passed, {len(warnings)} warning(s)"
+        f" out of {total} checks"
+    )
+    color = "32" if not warnings else "33"
+    print(_colorize(summary, color, use_color=use_color))
 
     return 0
 

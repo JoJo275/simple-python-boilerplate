@@ -62,42 +62,16 @@ from __future__ import annotations
 
 import argparse
 import datetime
-import importlib.util
 import keyword
 import logging
 import re
 import shutil
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from types import ModuleType
 
+from _imports import import_sibling
 
-def _import_sibling(name: str) -> ModuleType:
-    """Import a module from the same directory as this script.
-
-    Uses importlib.util to load from an explicit file path instead of
-    polluting sys.path — safer and works regardless of working directory
-    or invocation method.
-
-    Args:
-        name: Module name (without .py extension).
-
-    Returns:
-        The imported module.
-    """
-    path = Path(__file__).resolve().parent / f"{name}.py"
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        msg = f"Cannot find module '{name}' at {path}"
-        raise ImportError(msg)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-_progress = _import_sibling("_progress")
+_progress = import_sibling("_progress")
 ProgressBar = _progress.ProgressBar
 
 # ---------------------------------------------------------------------------
@@ -254,47 +228,37 @@ ESSENTIAL_WORKFLOWS: set[str] = {
     "docs-build.yml",
 }
 
+
+def _discover_adr_paths() -> list[str]:
+    """Dynamically discover ADR files and subdirectories in docs/adr/.
+
+    Returns all numbered ADR markdown files (NNN-*.md) plus subdirectories
+    like archive/. Excludes README.md and template.md so users keep those.
+    """
+    adr_dir = ROOT / "docs" / "adr"
+    paths: list[str] = []
+    if not adr_dir.is_dir():
+        return paths
+    for entry in sorted(adr_dir.iterdir()):
+        rel = f"docs/adr/{entry.name}"
+        if entry.is_dir():
+            # Include subdirectories like archive/
+            if entry.name not in {"__pycache__"}:
+                paths.append(f"{rel}/")
+        elif (
+            entry.is_file()
+            and entry.suffix == ".md"
+            and re.match(r"^\d{3}-", entry.name)
+        ):
+            # Include numbered ADRs (NNN-*.md), skip README and template
+            paths.append(rel)
+    return paths
+
+
 TEMPLATE_CLEANUP: dict[str, dict[str, object]] = {
     "adr-files": {
         "label": "ADR files (docs/adr/ — template design decisions)",
-        "paths": [
-            "docs/adr/001-src-layout.md",
-            "docs/adr/002-pyproject-toml.md",
-            "docs/adr/003-separate-workflow-files.md",
-            "docs/adr/004-pin-action-shas.md",
-            "docs/adr/005-ruff-for-linting-formatting.md",
-            "docs/adr/006-pytest-for-testing.md",
-            "docs/adr/007-mypy-for-type-checking.md",
-            "docs/adr/008-pre-commit-hooks.md",
-            "docs/adr/009-conventional-commits.md",
-            "docs/adr/010-dependabot-for-dependency-updates.md",
-            "docs/adr/011-repository-guard-pattern.md",
-            "docs/adr/012-multi-layer-security-scanning.md",
-            "docs/adr/013-sbom-bill-of-materials.md",
-            "docs/adr/014-no-template-engine.md",
-            "docs/adr/015-no-github-directory-readme.md",
-            "docs/adr/016-hatchling-and-hatch.md",
-            "docs/adr/017-task-runner.md",
-            "docs/adr/018-bandit-for-security-linting.md",
-            "docs/adr/019-containerfile.md",
-            "docs/adr/020-mkdocs-documentation-stack.md",
-            "docs/adr/021-automated-release-pipeline.md",
-            "docs/adr/022-rebase-merge-strategy.md",
-            "docs/adr/023-branch-protection-rules.md",
-            "docs/adr/024-ci-gate-pattern.md",
-            "docs/adr/025-container-strategy.md",
-            "docs/adr/026-no-pip-tools.md",
-            "docs/adr/027-database-strategy.md",
-            "docs/adr/028-git-branching-strategy.md",
-            "docs/adr/029-testing-strategy.md",
-            "docs/adr/030-label-management-as-code.md",
-            "docs/adr/031-script-conventions.md",
-            "docs/adr/032-dependency-grouping-strategy.md",
-            "docs/adr/033-prettier-for-markdown-formatting.md",
-            "docs/adr/034-documentation-organization-strategy.md",
-            "docs/adr/035-copilot-instructions-as-context.md",
-            "docs/adr/archive/",
-        ],
+        "paths": _discover_adr_paths(),
         "disclaimer": (
             "ADRs document WHY tools and patterns were chosen. Removing "
             "them means future contributors won't know the rationale behind "
