@@ -187,17 +187,18 @@ Don't let documentation drift from reality.
 ### Keep Copilot Instructions Current
 
 If a change to the project affects how Copilot should understand or work with
-the codebase, update this file (`copilot-instructions.md`) as part of the same
-change. Examples worth capturing:
+the codebase, update the relevant instruction file as part of the same change:
 
-- New tool added or removed (update "How This Project Works" section)
-- New workflow or hook (update the relevant table)
-- New convention or pattern adopted (add to "Conventions")
-- New ADR created (add to the ADR table)
-- New template or example file (add to "Check Templates" list)
+- **Targeted `.instructions.md` files first** — if a convention applies to a
+  specific file type (workflows, scripts, tests, docs, ADRs), update the
+  matching `.instructions.md` from the table above.
+- **This file** (`copilot-instructions.md`) — for project-wide changes:
+  new tool added/removed, new convention, new ADR, structural changes.
+- When adding or renaming a `.instructions.md` file, update the
+  "Targeted Instruction Files" table in this file.
 
-The goal is to keep this file as a reliable, up-to-date briefing so Copilot
-doesn't have to rediscover project structure from scratch each session.
+The goal is to keep instruction files up-to-date so Copilot doesn't have
+to rediscover project structure from scratch each session.
 
 ### Provide Feedback and Pushback
 

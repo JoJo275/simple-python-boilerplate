@@ -546,6 +546,7 @@ behaviour in VS Code. They use three complementary mechanisms:
 | File                                          | Scope                              |
 | --------------------------------------------- | ---------------------------------- |
 | `.github/copilot-instructions.md`             | Project-wide rules and context     |
+| `.github/SKILL.md`                            | Multi-step component procedures    |
 | `.github/workflows/.instructions.md`          | Workflow YAML conventions          |
 | `scripts/.instructions.md`                    | Script conventions                 |
 | `docs/.instructions.md`                       | Documentation conventions          |
