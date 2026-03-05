@@ -2,9 +2,10 @@
 """Interactive project customization — replace boilerplate placeholders.
 
 Replaces template placeholders with your project's values, renames the
-package directory, strips optional directories, and optionally swaps the
-license.  A lightweight alternative to template engines like Copier or
-Cookiecutter — runs once after cloning with no external dependencies.
+package directory, strips optional directories, cleans up template-specific
+files, and optionally swaps the license.  A lightweight alternative to
+template engines like Copier or Cookiecutter — runs once after cloning
+with no external dependencies.
 
 See ADR 014 for the design rationale behind manual customization.
 
@@ -21,7 +22,13 @@ Flags::
     --cli-prefix PREFIX     CLI command prefix (default: initials of project name)
     --license ID            License to use (default: apache-2.0; choices:
                             apache-2.0, mit, bsd-3-clause, …)
-    --strip DIR [DIR ...]   Optional directories to remove: db, experiments, var
+    --strip DIR [DIR ...]   Optional directories to remove: db, experiments, var,
+                            container, optional-workflows, labels, repo-doctor, …
+    --template-cleanup ITEM [ITEM ...]
+                            Template-specific items to clean up: adr-files,
+                            docs-notes, docs-design, docs-reference,
+                            docs-development, docs-guide, placeholder-code,
+                            utility-scripts, advanced-workflows
     --force                 Skip the already-customized safety check
     --enable-workflows SLUG Replace YOURNAME/YOURREPO in all workflow files with
                             your repo slug (runs only this operation)
@@ -41,6 +48,12 @@ Usage::
         --project-name my-project --author "Jane Doe" \\
         --github-user janedoe --strip db experiments
 
+    # Non-interactive with template cleanup
+    python scripts/customize.py --non-interactive \\
+        --project-name my-project --author "Jane Doe" \\
+        --github-user janedoe \\
+        --template-cleanup adr-files docs-notes placeholder-code
+
     # Just enable workflows
     python scripts/customize.py --enable-workflows janedoe/my-project
 """
@@ -49,18 +62,43 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import importlib.util
+import keyword
 import logging
 import re
 import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from types import ModuleType
 
-# Allow importing sibling modules (e.g. _progress) when running as a script
-if str(Path(__file__).resolve().parent) not in sys.path:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _progress import ProgressBar
+def _import_sibling(name: str) -> ModuleType:
+    """Import a module from the same directory as this script.
+
+    Uses importlib.util to load from an explicit file path instead of
+    polluting sys.path — safer and works regardless of working directory
+    or invocation method.
+
+    Args:
+        name: Module name (without .py extension).
+
+    Returns:
+        The imported module.
+    """
+    path = Path(__file__).resolve().parent / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        msg = f"Cannot find module '{name}' at {path}"
+        raise ImportError(msg)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+_progress = _import_sibling("_progress")
+ProgressBar = _progress.ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -161,16 +199,196 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         "paths": ["var/"],
     },
     "docs-templates": {
-        "label": "Security-policy templates (docs/templates/)",
+        "label": "Security-policy & issue templates (docs/templates/)",
         "paths": ["docs/templates/"],
     },
     "container": {
-        "label": "Container build files and scan workflows",
+        "label": "Container files (Containerfile, container build & scan workflows)",
         "paths": [
             "Containerfile",
+            "docker-compose.yml",
             ".github/workflows/container-build.yml",
             ".github/workflows/container-scan.yml",
         ],
+    },
+    "optional-workflows": {
+        "label": "Optional workflow templates (.github/workflows-optional/)",
+        "paths": [".github/workflows-optional/"],
+    },
+    "labels": {
+        "label": "Label management files (labels/, apply scripts)",
+        "paths": [
+            "labels/",
+            "scripts/apply_labels.py",
+            "scripts/apply-labels.sh",
+        ],
+    },
+    "repo-doctor": {
+        "label": "Repo doctor checks (repo_doctor.d/, doctor scripts)",
+        "paths": [
+            "repo_doctor.d/",
+            "scripts/repo_doctor.py",
+            "scripts/doctor.py",
+            "scripts/env_doctor.py",
+        ],
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Template cleanup — items specific to the template repo's own development
+# ---------------------------------------------------------------------------
+# These are files and directories that exist to support the template repo
+# itself and are not useful to template users building their own project.
+# Each entry includes a disclaimer about potential negative effects.
+
+# Workflows to KEEP when the user selects "advanced-workflows" cleanup.
+# These are the essential CI workflows most projects need.
+ESSENTIAL_WORKFLOWS: set[str] = {
+    "ci-gate.yml",
+    "test.yml",
+    "lint-format.yml",
+    "type-check.yml",
+    "coverage.yml",
+    "security-audit.yml",
+    "dependency-review.yml",
+    "docs-build.yml",
+}
+
+TEMPLATE_CLEANUP: dict[str, dict[str, object]] = {
+    "adr-files": {
+        "label": "ADR files (docs/adr/ — template design decisions)",
+        "paths": [
+            "docs/adr/001-src-layout.md",
+            "docs/adr/002-pyproject-toml.md",
+            "docs/adr/003-separate-workflow-files.md",
+            "docs/adr/004-pin-action-shas.md",
+            "docs/adr/005-ruff-for-linting-formatting.md",
+            "docs/adr/006-pytest-for-testing.md",
+            "docs/adr/007-mypy-for-type-checking.md",
+            "docs/adr/008-pre-commit-hooks.md",
+            "docs/adr/009-conventional-commits.md",
+            "docs/adr/010-dependabot-for-dependency-updates.md",
+            "docs/adr/011-repository-guard-pattern.md",
+            "docs/adr/012-multi-layer-security-scanning.md",
+            "docs/adr/013-sbom-bill-of-materials.md",
+            "docs/adr/014-no-template-engine.md",
+            "docs/adr/015-no-github-directory-readme.md",
+            "docs/adr/016-hatchling-and-hatch.md",
+            "docs/adr/017-task-runner.md",
+            "docs/adr/018-bandit-for-security-linting.md",
+            "docs/adr/019-containerfile.md",
+            "docs/adr/020-mkdocs-documentation-stack.md",
+            "docs/adr/021-automated-release-pipeline.md",
+            "docs/adr/022-rebase-merge-strategy.md",
+            "docs/adr/023-branch-protection-rules.md",
+            "docs/adr/024-ci-gate-pattern.md",
+            "docs/adr/025-container-strategy.md",
+            "docs/adr/026-no-pip-tools.md",
+            "docs/adr/027-database-strategy.md",
+            "docs/adr/028-git-branching-strategy.md",
+            "docs/adr/029-testing-strategy.md",
+            "docs/adr/030-label-management-as-code.md",
+            "docs/adr/031-script-conventions.md",
+            "docs/adr/032-dependency-grouping-strategy.md",
+            "docs/adr/033-prettier-for-markdown-formatting.md",
+            "docs/adr/034-documentation-organization-strategy.md",
+            "docs/adr/035-copilot-instructions-as-context.md",
+            "docs/adr/archive/",
+        ],
+        "disclaimer": (
+            "ADRs document WHY tools and patterns were chosen. Removing "
+            "them means future contributors won't know the rationale behind "
+            "project decisions. Consider keeping the template and README so "
+            "you can record your own ADRs."
+        ),
+    },
+    "docs-notes": {
+        "label": "Developer notes (docs/notes/ — learning, resources, TODOs)",
+        "paths": ["docs/notes/"],
+        "disclaimer": (
+            "These are scratchpad notes from template development. Safe to "
+            "remove — no project functionality depends on them."
+        ),
+    },
+    "docs-design": {
+        "label": "Design docs (docs/design/ — architecture, tool decisions)",
+        "paths": ["docs/design/"],
+        "disclaimer": (
+            "Contains architecture overview and tool-decision rationale. "
+            "Removing this means losing the 'why' behind CI/CD design and "
+            "dependency choices. The copilot-instructions.md file references "
+            "these docs — Copilot will lose context for architectural questions."
+        ),
+    },
+    "docs-reference": {
+        "label": "Reference docs (docs/reference/ — API, commands, inventory)",
+        "paths": ["docs/reference/"],
+        "disclaimer": (
+            "Contains auto-generated command reference and template inventory. "
+            "The command reference will need to be regenerated if you add new "
+            "scripts. The template inventory is only useful during initial setup."
+        ),
+    },
+    "docs-development": {
+        "label": "Development guides (docs/development/ — dev setup, PR guide)",
+        "paths": ["docs/development/"],
+        "disclaimer": (
+            "Contains developer onboarding docs: dev setup, PR workflow, "
+            "command reference. Removing these makes it harder for new "
+            "contributors to get started. Consider replacing with your own."
+        ),
+    },
+    "docs-guide": {
+        "label": "User guides (docs/guide/ — getting started, troubleshooting)",
+        "paths": ["docs/guide/"],
+        "disclaimer": (
+            "Contains getting-started and troubleshooting guides. Consider "
+            "replacing with project-specific guides rather than deleting."
+        ),
+    },
+    "placeholder-code": {
+        "label": "Placeholder source & test files (clear src/ and tests/ content)",
+        "paths": [],  # Handled specially — clears file content, not deletion
+        "disclaimer": (
+            "Replaces placeholder code in src/ modules (api.py, cli.py, "
+            "engine.py, main.py) and test files (test_example.py, etc.) "
+            "with minimal stubs. Keeps the file structure so you can fill "
+            "in your own code. __init__.py, _version.py, conftest.py, and "
+            "py.typed are preserved as-is."
+        ),
+    },
+    "utility-scripts": {
+        "label": "Template utility scripts (scripts/ — most helper scripts)",
+        "paths": [
+            "scripts/archive_todos.py",
+            "scripts/changelog_check.py",
+            "scripts/check_known_issues.py",
+            "scripts/check_todos.py",
+            "scripts/dep_versions.py",
+            "scripts/generate_command_reference.py",
+            "scripts/workflow_versions.py",
+            "scripts/precommit/",
+        ],
+        "disclaimer": (
+            "These scripts support template maintenance (TODO checking, "
+            "changelog validation, dependency reporting). bootstrap.py, "
+            "clean.py, and customize.py are kept. Removing these also "
+            "means Taskfile tasks that call them will break — update "
+            "Taskfile.yml accordingly."
+        ),
+    },
+    "advanced-workflows": {
+        "label": "Advanced workflows (keep only essential CI subset)",
+        "paths": [],  # Handled specially — deletes all except ESSENTIAL_WORKFLOWS
+        "disclaimer": (
+            "Keeps: ci-gate, test, lint-format, type-check, coverage, "
+            "security-audit, dependency-review, docs-build. Removes ~26 "
+            "workflows including: release automation, container builds, "
+            "nightly scans, Scorecard, SBOM, spellcheck, label management, "
+            "welcome bot, stale issues, and more. You'll lose significant "
+            "CI/CD automation. You can always re-add individual workflows "
+            "from git history or the .github/workflows-optional/ directory."
+        ),
     },
 }
 
@@ -276,6 +494,7 @@ class Config:
     cli_prefix: str = ""
     license_id: str = "apache-2.0"
     strip_dirs: list[str] = field(default_factory=list)
+    template_cleanup: list[str] = field(default_factory=list)
     dry_run: bool = False
 
 
@@ -423,17 +642,59 @@ def _validate_project_name(name: str) -> str | None:
     return None
 
 
+# Common builtins that would cause subtle bugs if used as package names
+_SHADOWED_BUILTINS: set[str] = {
+    "list",
+    "dict",
+    "set",
+    "type",
+    "map",
+    "filter",
+    "input",
+    "hash",
+    "id",
+    "open",
+    "print",
+    "format",
+    "object",
+    "property",
+    "range",
+    "slice",
+    "super",
+    "tuple",
+    "bytes",
+    "str",
+    "int",
+    "float",
+    "bool",
+    "complex",
+}
+
+
 def _validate_package_name(name: str) -> str | None:
-    """Return an error message if *name* is not a valid Python identifier."""
+    """Return an error message if *name* is not a valid Python package name.
+
+    Checks for PEP 8 naming, minimum length, Python keywords, and
+    names that shadow common builtins.
+    """
     if not re.match(r"^[a-z][a-z0-9_]*$", name):
         return (
             "Use lowercase letters, digits, and underscores "
             "(e.g. my_project). Must start with a letter."
         )
-    if name.startswith("_") or name.endswith("_"):
-        return "Should not start or end with an underscore."
+    if len(name) < 2:
+        return "Package name must be at least 2 characters."
+    if name.endswith("_"):
+        return "Should not end with an underscore."
     if "__" in name:
         return "Avoid double underscores (reserved for Python internals)."
+    if keyword.iskeyword(name) or keyword.issoftkeyword(name):
+        return f"'{name}' is a Python keyword and cannot be used as a package name."
+    if name in _SHADOWED_BUILTINS:
+        return (
+            f"'{name}' shadows a Python builtin. This will cause subtle "
+            f"bugs when importing. Choose a more specific name."
+        )
     return None
 
 
@@ -453,7 +714,7 @@ def gather_config_interactive() -> Config:
 
     # --- Project identity ---------------------------------------------------
     print()
-    print("── Step 1/4: Project Identity ──────────────────────────")
+    print("── Step 1/5: Project Identity ──────────────────────────")
     print()
     while True:
         cfg.project_name = _prompt(
@@ -494,14 +755,14 @@ def gather_config_interactive() -> Config:
 
     # --- License ------------------------------------------------------------
     print()
-    print("── Step 2/4: License ──────────────────────────────────")
+    print("── Step 2/5: License ──────────────────────────────────")
     print()
     license_options = {k: str(v["name"]) for k, v in LICENSE_CHOICES.items()}
     cfg.license_id = _prompt_choice("Choose a license:", license_options, "apache-2.0")
 
     # --- Strip optional directories -----------------------------------------
     print()
-    print("── Step 3/4: Optional Directories ─────────────────────")
+    print("── Step 3/5: Optional Directories ─────────────────────")
     print()
     print("  These directories ship with the template but are optional.")
     print("  Select any you don't need — they'll be deleted.")
@@ -509,9 +770,52 @@ def gather_config_interactive() -> Config:
     strip_options = {k: str(v["label"]) for k, v in STRIPPABLE.items()}
     cfg.strip_dirs = _prompt_multi("Remove any of these?", strip_options)
 
+    # --- Template cleanup ---------------------------------------------------
+    print()
+    print("── Step 4/5: Template Cleanup ─────────────────────────")
+    print()
+    print("  The items below exist to support the template repository's")
+    print("  own development. Most template users won't need them.")
+    print()
+    print("  ⚠  Each item has trade-offs — read the disclaimers before")
+    print("     committing. You can always recover files from git history.")
+    print()
+    cleanup_options: dict[str, str] = {}
+    for key, entry in TEMPLATE_CLEANUP.items():
+        cleanup_options[key] = str(entry["label"])
+    selected_cleanup = _prompt_multi(
+        "Clean up any template-specific items?", cleanup_options
+    )
+
+    # Show disclaimers for selected items and confirm
+    if selected_cleanup:
+        print()
+        print("  Disclaimers for selected items:")
+        for key in selected_cleanup:
+            entry = TEMPLATE_CLEANUP[key]
+            print(f"\n    [{key}]")
+            disclaimer = str(entry.get("disclaimer", ""))
+            # Word-wrap disclaimer to ~60 chars with indent
+            words = disclaimer.split()
+            line = "      "
+            for word in words:
+                if len(line) + len(word) + 1 > 72:
+                    print(line)
+                    line = "      " + word
+                else:
+                    line += (" " if line.strip() else "") + word
+            if line.strip():
+                print(line)
+        print()
+        if not _prompt_yn("Proceed with these cleanup selections?"):
+            print("  (skipping template cleanup)")
+            selected_cleanup = []
+
+    cfg.template_cleanup = selected_cleanup
+
     # --- Summary / confirm --------------------------------------------------
     print()
-    print("── Step 4/4: Review ───────────────────────────────────")
+    print("── Step 5/5: Review ───────────────────────────────────")
 
     return cfg
 
@@ -794,6 +1098,313 @@ def strip_directories(
     return removed
 
 
+# ---------------------------------------------------------------------------
+# Placeholder file stubs
+# ---------------------------------------------------------------------------
+
+# Minimal stub content for src/ placeholder files. These replace the full
+# boilerplate examples so template users start with a clean slate but keep
+# the file structure as a guide.
+
+_STUB_API = '''\
+"""HTTP/REST API interface.
+
+TODO (template users): Implement your API endpoints here.
+"""
+
+from typing import Any
+
+
+def create_app() -> Any:
+    """Create and configure the API application.
+
+    Returns:
+        Configured application instance.
+    """
+    raise NotImplementedError("Implement your API framework setup here")
+'''
+
+_STUB_CLI = '''\
+"""Command-line interface definitions and argument parsing.
+
+TODO (template users): Define your CLI commands and arguments here.
+"""
+
+import argparse
+from collections.abc import Sequence
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create and configure the argument parser.
+
+    Returns:
+        Configured ArgumentParser instance.
+    """
+    parser = argparse.ArgumentParser(
+        description="TODO: describe your project",
+    )
+    return parser
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    """Parse command-line arguments.
+
+    Args:
+        argv: Argument list (defaults to sys.argv[1:]).
+
+    Returns:
+        Parsed arguments namespace.
+    """
+    return create_parser().parse_args(argv)
+
+
+def run(args: argparse.Namespace) -> int:
+    """Execute the CLI command.
+
+    Args:
+        args: Parsed arguments.
+
+    Returns:
+        Exit code (0 for success).
+    """
+    return 0
+'''
+
+_STUB_ENGINE = '''\
+"""Core business logic and processing engine.
+
+TODO (template users): Implement your domain logic here.
+"""
+
+
+def process() -> None:
+    """Main processing function.
+
+    TODO: Replace with your core logic.
+    """
+    raise NotImplementedError("Implement your business logic here")
+'''
+
+_STUB_MAIN = '''\
+"""Application entry points (thin wrappers).
+
+Entry points configured in pyproject.toml. These should be thin
+wrappers that delegate to cli.py for argument parsing and engine.py
+for logic.
+
+TODO (template users): Update entry points to match your project.
+"""
+
+import sys
+
+
+def main() -> None:
+    """Main CLI entry point."""
+    from {package_name} import cli
+
+    sys.exit(cli.run(cli.parse_args()))
+'''
+
+_STUB_TEST = '''\
+"""Unit tests.
+
+TODO (template users): Replace with tests for your code.
+"""
+
+
+def test_placeholder() -> None:
+    """Placeholder test — replace with real tests."""
+    assert True
+'''
+
+# Map of src/ files to their stub content (relative to the package dir)
+_SRC_STUBS: dict[str, str] = {
+    "api.py": _STUB_API,
+    "cli.py": _STUB_CLI,
+    "engine.py": _STUB_ENGINE,
+    "main.py": _STUB_MAIN,
+}
+
+# Files in src/ to never touch during placeholder cleanup
+_SRC_PRESERVE: set[str] = {
+    "__init__.py",
+    "_version.py",
+    "py.typed",
+}
+
+# Test files to stub out (relative to tests/)
+_TEST_STUB_PATTERNS: set[str] = {
+    "test_example.py",
+}
+
+
+def apply_template_cleanup(
+    keys: list[str],
+    cfg: Config,
+    *,
+    dry_run: bool = False,
+) -> list[str]:
+    """Execute template cleanup operations.
+
+    Handles both file/directory deletion and special operations like
+    clearing placeholder code and trimming workflows.
+
+    Args:
+        keys: Keys from :data:`TEMPLATE_CLEANUP` identifying what to clean.
+        cfg: Config with package_name for stub generation.
+        dry_run: If ``True``, report without modifying.
+
+    Returns:
+        List of descriptions of actions taken.
+    """
+    actions: list[str] = []
+
+    for key in keys:
+        entry = TEMPLATE_CLEANUP.get(key)
+        if entry is None:
+            continue
+
+        # Special handling: placeholder code
+        if key == "placeholder-code":
+            actions.extend(_cleanup_placeholder_code(cfg.package_name, dry_run=dry_run))
+            continue
+
+        # Special handling: advanced workflows
+        if key == "advanced-workflows":
+            actions.extend(_cleanup_advanced_workflows(dry_run=dry_run))
+            continue
+
+        # Standard path-based deletion
+        paths: list[str] = entry["paths"]  # type: ignore[assignment]
+        for rel_path in paths:
+            target = ROOT / rel_path
+            if not target.exists():
+                continue
+            if dry_run:
+                kind = "directory" if target.is_dir() else "file"
+                print(f"  Would remove {kind}: {rel_path}")
+            else:
+                try:
+                    if target.is_dir():
+                        shutil.rmtree(target)
+                        print(f"  Removed directory: {rel_path}")
+                    else:
+                        target.unlink()
+                        print(f"  Removed file: {rel_path}")
+                except (OSError, PermissionError) as exc:
+                    log.warning("  Failed to remove %s: %s", rel_path, exc)
+            actions.append(f"Removed: {rel_path}")
+
+    return actions
+
+
+def _cleanup_placeholder_code(
+    package_name: str,
+    *,
+    dry_run: bool = False,
+) -> list[str]:
+    """Replace placeholder source and test files with minimal stubs.
+
+    Preserves file structure, __init__.py, _version.py, and conftest.py.
+
+    Args:
+        package_name: The (possibly renamed) package name.
+        dry_run: If ``True``, report without modifying.
+
+    Returns:
+        List of action descriptions.
+    """
+    actions: list[str] = []
+
+    # Determine the actual package directory (may have been renamed already)
+    pkg_dir = ROOT / "src" / package_name
+    if not pkg_dir.is_dir():
+        # Fall back to template name if not renamed yet
+        pkg_dir = ROOT / "src" / TEMPLATE_PACKAGE_NAME
+
+    if pkg_dir.is_dir():
+        for filename, stub in _SRC_STUBS.items():
+            target = pkg_dir / filename
+            if not target.is_file():
+                continue
+            content = stub.format(package_name=package_name)
+            if dry_run:
+                print(f"  Would replace with stub: src/{pkg_dir.name}/{filename}")
+            else:
+                target.write_text(content, encoding="utf-8")
+                print(f"  Replaced with stub: src/{pkg_dir.name}/{filename}")
+            actions.append(f"Stubbed: src/{pkg_dir.name}/{filename}")
+
+        # Clear dev_tools/ contents but keep __init__.py
+        dev_tools = pkg_dir / "dev_tools"
+        if dev_tools.is_dir():
+            for child in dev_tools.iterdir():
+                if child.name == "__init__.py":
+                    continue
+                if dry_run:
+                    print(f"  Would remove: src/{pkg_dir.name}/dev_tools/{child.name}")
+                else:
+                    if child.is_dir():
+                        shutil.rmtree(child)
+                    else:
+                        child.unlink()
+                    print(f"  Removed: src/{pkg_dir.name}/dev_tools/{child.name}")
+                actions.append(f"Removed: src/{pkg_dir.name}/dev_tools/{child.name}")
+
+    # Stub out test files
+    tests_dir = ROOT / "tests"
+    if tests_dir.is_dir():
+        for test_file in tests_dir.rglob("test_*.py"):
+            rel = test_file.relative_to(ROOT)
+            # Only stub the example/placeholder test files;
+            # keep script-specific tests since those test real functionality
+            if test_file.name in _TEST_STUB_PATTERNS:
+                if dry_run:
+                    print(f"  Would replace with stub: {rel}")
+                else:
+                    test_file.write_text(_STUB_TEST, encoding="utf-8")
+                    print(f"  Replaced with stub: {rel}")
+                actions.append(f"Stubbed: {rel}")
+
+    return actions
+
+
+def _cleanup_advanced_workflows(*, dry_run: bool = False) -> list[str]:
+    """Remove non-essential workflows, keeping only the core CI set.
+
+    Keeps workflows listed in :data:`ESSENTIAL_WORKFLOWS`.
+
+    Args:
+        dry_run: If ``True``, report without deleting.
+
+    Returns:
+        List of action descriptions.
+    """
+    actions: list[str] = []
+    workflows_dir = ROOT / ".github" / "workflows"
+
+    if not workflows_dir.is_dir():
+        return actions
+
+    for wf in sorted(workflows_dir.iterdir()):
+        if not wf.is_file() or wf.suffix != ".yml":
+            continue
+        if wf.name in ESSENTIAL_WORKFLOWS:
+            continue
+        rel = f".github/workflows/{wf.name}"
+        if dry_run:
+            print(f"  Would remove workflow: {rel}")
+        else:
+            try:
+                wf.unlink()
+                print(f"  Removed workflow: {rel}")
+            except (OSError, PermissionError) as exc:
+                log.warning("  Failed to remove %s: %s", rel, exc)
+        actions.append(f"Removed: {rel}")
+
+    return actions
+
+
 def apply_license(cfg: Config, *, dry_run: bool = False) -> bool:
     """Write the chosen license file and update the pyproject.toml classifier.
 
@@ -911,6 +1522,25 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
     else:
         print("\n  Directories to remove: none")
 
+    if cfg.template_cleanup:
+        print("\n  Template cleanup:")
+        for key in cfg.template_cleanup:
+            entry = TEMPLATE_CLEANUP[key]
+            print(f"    • {entry['label']}")
+            if key == "placeholder-code":
+                print("        (Replace src/ and test placeholders with stubs)")
+            elif key == "advanced-workflows":
+                kept = ", ".join(sorted(ESSENTIAL_WORKFLOWS))
+                print(f"        (Keep only: {kept})")
+            else:
+                cleanup_paths: list[str] = entry["paths"]  # type: ignore[assignment]
+                for p in cleanup_paths:
+                    exists = (ROOT / p).exists()
+                    marker = "" if exists else " (not found — skipped)"
+                    print(f"        {p}{marker}")
+    else:
+        print("\n  Template cleanup: none")
+
     print()
 
 
@@ -994,6 +1624,17 @@ examples:
         ),
     )
     parser.add_argument(
+        "--template-cleanup",
+        nargs="*",
+        choices=list(TEMPLATE_CLEANUP.keys()),
+        default=[],
+        metavar="ITEM",
+        help=(
+            "Template-specific items to clean up. "
+            f"Choices: {', '.join(TEMPLATE_CLEANUP.keys())}"
+        ),
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Skip the already-customized safety check",
@@ -1062,6 +1703,7 @@ def config_from_args(args: argparse.Namespace) -> Config:
         cli_prefix=cli_prefix,
         license_id=args.license_id,
         strip_dirs=args.strip or [],
+        template_cleanup=args.template_cleanup or [],
         dry_run=args.dry_run,
     )
 
@@ -1226,6 +1868,13 @@ def main() -> int:
     print(f"\n{tag}License...")
     if not apply_license(cfg, dry_run=cfg.dry_run):
         print("  (keeping Apache-2.0)")
+
+    # Step 5: Template cleanup
+    if cfg.template_cleanup:
+        print(f"\n{tag}Template cleanup...")
+        apply_template_cleanup(cfg.template_cleanup, cfg, dry_run=cfg.dry_run)
+    else:
+        print(f"\n{tag}Template cleanup: none")
 
     # Done
     if cfg.dry_run:
