@@ -677,7 +677,12 @@ template but listed here so you see how they compare to alternatives.
 
 ## Need Help?
 
+<!-- TODO (template users): Update the repo URL and Discussions link below
+     to point to YOUR repository. Delete the Discussions bullet if you
+     haven't enabled GitHub Discussions. -->
+
 - **[Troubleshooting & FAQ](guide/troubleshooting.md)** — covers common errors
   for installation, pre-commit, CI/CD, testing, linting, Git, containers, and more
+- **[GitHub Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions)** — ask questions, share ideas, or get help from the community
 - **[Learning resources](notes/resources.md)** — curated links by topic
 - Open an issue on the [template repository](https://github.com/JoJo275/simple-python-boilerplate)

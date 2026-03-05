@@ -33,11 +33,36 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
-__all__ = ["import_sibling"]
+__all__ = ["find_repo_root", "import_sibling"]
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 
 _SCRIPTS_DIR = Path(__file__).resolve().parent
+
+
+def find_repo_root(start: Path | None = None) -> Path:
+    """Walk up from *start* until a directory containing ``pyproject.toml`` is found.
+
+    This replaces the brittle ``Path(__file__).resolve().parent.parent``
+    pattern that breaks if a script is moved to a different directory depth.
+
+    Args:
+        start: Starting directory.  Defaults to the ``scripts/`` directory
+            (i.e. ``_SCRIPTS_DIR``).
+
+    Returns:
+        The repository root directory.
+
+    Raises:
+        FileNotFoundError: If no ``pyproject.toml`` is found before the
+            filesystem root.
+    """
+    current = (start or _SCRIPTS_DIR).resolve()
+    for parent in (current, *current.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent
+    msg = f"Cannot find repo root (no pyproject.toml above {current})"
+    raise FileNotFoundError(msg)
 
 
 def import_sibling(name: str) -> ModuleType:
