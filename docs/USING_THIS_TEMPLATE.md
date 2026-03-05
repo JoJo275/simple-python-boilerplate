@@ -523,7 +523,51 @@ and the docs you don't need.
 | ADR index                          | [docs/adr/](adr/README.md)                                        |
 
 ---
+## Copilot Customization
 
+<!-- TODO (template users): After forking, update these files to match YOUR
+     project. The boilerplate ships with sensible defaults, but Copilot is
+     far more useful when instructions reflect your actual codebase. -->
+
+This template ships with a set of files that configure GitHub Copilot's
+behaviour in VS Code. They use three complementary mechanisms:
+
+### How It Works
+
+| Mechanism            | File pattern          | When Copilot reads it                         | Use for                                    |
+| :------------------- | :-------------------- | :-------------------------------------------- | :----------------------------------------- |
+| **Instructions**     | `.instructions.md`    | Automatically, when editing files matching `applyTo` glob | File-type-specific rules (e.g., "all workflow YAML files must use SHA-pinned actions") |
+| **Global instructions** | `copilot-instructions.md` | Every interaction in the workspace        | Project-wide context, conventions, review priorities |
+| **Skills**           | `SKILL.md`            | When Copilot determines the skill is relevant | Multi-step procedures (e.g., "add a new ADR") |
+| **Agents**           | `AGENTS.md`           | When the named agent is invoked              | Specialized personas with tool restrictions |
+
+### Files Included
+
+| File                                          | Scope                              |
+| --------------------------------------------- | ---------------------------------- |
+| `.github/copilot-instructions.md`             | Project-wide rules and context     |
+| `.github/workflows/.instructions.md`          | Workflow YAML conventions          |
+| `scripts/.instructions.md`                    | Script conventions                 |
+| `docs/.instructions.md`                       | Documentation conventions          |
+| `docs/adr/.instructions.md`                   | ADR creation procedure             |
+| `tests/.instructions.md`                      | Test conventions                   |
+
+### Customizing for Your Project
+
+1. **Start with `copilot-instructions.md`.** Replace the "Domain / Business
+   Context" section with 2–3 sentences describing what your application does.
+   This single change dramatically improves Copilot's suggestions.
+2. **Update targeted files.** Edit each `.instructions.md` to reflect your
+   conventions. Remove rules that don't apply, add ones specific to your stack.
+3. **Add new instruction files** for other file types as needed (e.g.,
+   `src/.instructions.md` for application-specific patterns).
+4. **Consider adding skills** for repeatable multi-step procedures unique to
+   your project.
+
+For details on each mechanism, see the
+[VS Code Copilot customization docs](https://code.visualstudio.com/docs/copilot/copilot-customization).
+
+---
 ## Optional Tools to Consider
 
 Not included in the template, but worth evaluating. Some overlap with
