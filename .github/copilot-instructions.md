@@ -170,17 +170,9 @@ logging, argparse, registration steps, etc.).
 ### Keep Related Files in Sync
 
 When updating a file, check whether other files reference or depend on what
-changed and update them too. Key sync points:
-
-- Adding a workflow → update `docs/workflows.md`
-- Adding a script → update `scripts/README.md` inventory and re-run `python scripts/generate_command_reference.py`
-- Adding an ADR → update `docs/adr/README.md` index
-- Adding a pre-commit hook → update ADR 008's hook inventory
-- Adding an MkDocs hook → register in `mkdocs.yml`, update `mkdocs-hooks/README.md`
-- Changing a dependency → update `docs/design/tool-decisions.md` if listed
-- Renaming a script/entry point → update `Taskfile.yml`, README, and referencing docs
-
-See the targeted `.instructions.md` files for detailed procedures per file type.
+changed and update them too. Full step-by-step procedures for adding new
+components (workflows, scripts, ADRs, hooks, dependencies) are in
+`.github/SKILL.md` — use that as a checklist.
 
 Don't let documentation drift from reality.
 
@@ -373,8 +365,8 @@ Issues/Refs: #<issue number if applicable, otherwise omit>
 
 ### CI/CD
 
-- GitHub Actions pinned to full commit SHAs (not tags)
-- Workflows separated by concern (e.g., test, lint, release)
+See `.github/workflows/.instructions.md` for workflow conventions (SHA
+pinning, repo guard, CI gate).
 
 ## Ignore / Don't Flag
 
@@ -419,8 +411,6 @@ Full index (35 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
 5. **Unused imports/variables** — Ruff catches these, but flag if missed
 6. **Hatch env stale after dependency removal** — After removing a dependency from `pyproject.toml`, run `hatch env remove default` then re-create. Hatch doesn't auto-uninstall removed packages; the old package silently remains.
 7. **Installing packages outside a venv** — Never run bare `pip install <package>`. Always use a Hatch env, `.venv`, or `pipx`. This is easy to forget and causes global pollution.
-8. **CI gate check name drift** — If you rename a workflow job's `name:` field, the CI gate will silently stop finding it and timeout. Always update `REQUIRED_CHECKS` in `ci-gate.yml` when renaming job display names.
-9. **Scripts with shebangs must be executable** — If you add a shebang (`#!/usr/bin/env python3`) to a script, mark it executable in git: `git add --chmod=+x scripts/my_script.py`. The pre-commit hook `check-shebang-scripts-are-executable` will fail otherwise.
 
 ## Known Limitations / Tech Debt
 
