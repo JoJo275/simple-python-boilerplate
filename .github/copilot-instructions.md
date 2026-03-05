@@ -74,25 +74,10 @@ Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 ~34 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
-**Canonical inventory:** `docs/workflows.md` — that file is authoritative;
-the summary below is for quick orientation only.
+**Canonical inventory:** `docs/workflows.md` — that file is authoritative.
 
-**Categories at a glance:**
-
-- **Quality:** test (3.11–3.13 matrix), lint-format (Ruff), type-check (mypy), coverage, spellcheck, spellcheck-autofix, todo-check
-- **Security:** bandit, pip-audit, CodeQL, dependency-review, Trivy + Grype container scans, nightly scan, OpenSSF Scorecard, license-check
-- **PR hygiene:** commit-lint, pr-title, labeler
-- **Documentation:** docs-build (MkDocs strict build, CI gate), docs-deploy (GitHub Pages deployment)
-- **Release:** release-please → release → SBOM
-- **Container:** container-build, container-scan
-- **Community:** welcome (first-time contributor greeting on issues/PRs)
-- **Maintenance:** pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor
-- **Gate:** `ci-gate.yml` — single required check for branch protection ([ADR 024](../docs/adr/024-ci-gate-pattern.md))
-
-Path-filtered workflows (bandit, docs-deploy, link-checker, license-check) are excluded from
-required checks because they don't run on every PR. Schedule-only and warn-only
-workflows (known-issues-check, todo-check, repo-doctor) are also excluded.
-`docs-build` runs on all PRs and IS in the CI gate.
+See `.github/workflows/.instructions.md` for SHA pinning, repo guard, and
+CI gate conventions.
 
 ### Task Runner — Taskfile
 
@@ -111,30 +96,14 @@ list available tasks. Key ones:
 
 ### Scripts
 
-Utility scripts live in `scripts/`. They are standalone tools, not part of
-the installed package. See [`scripts/README.md`](../scripts/README.md) for the
-full inventory.
-
-Key scripts:
-
-- `bootstrap.py` — One-command setup for fresh clones
-- `customize.py` — Interactive project customization (use `--enable-workflows OWNER/REPO` for quick workflow enablement)
-- `clean.py` — Remove build artifacts/caches
-- `doctor.py` — Diagnostics bundle for bug reports
-- `generate_command_reference.py` — Regenerate `docs/reference/commands.md`
-- `_progress.py` — Shared progress-indicator module (not a CLI)
-
-Run scripts directly (`python scripts/bootstrap.py`) or via Taskfile
-shortcuts where available.
+Utility scripts live in `scripts/`. See [`scripts/README.md`](../scripts/README.md)
+for the full inventory and `scripts/.instructions.md` for conventions.
 
 ### Documentation
 
-- **MkDocs Material** stack: `mkdocs.yml` + `docs/` directory
-- **MkDocs hooks** in `mkdocs-hooks/` — custom build hooks registered in `mkdocs.yml` under `hooks:`
-- **ADRs** in `docs/adr/` — template at `docs/adr/template.md`
-- **Tool decisions** (lightweight notes) in `docs/design/tool-decisions.md`
-- **Architecture docs** in `docs/design/`
-- Serve locally: `hatch run docs:serve`
+MkDocs Material stack. See `docs/.instructions.md` for conventions and
+`docs/adr/.instructions.md` for ADR procedures. Serve locally:
+`hatch run docs:serve`.
 
 ### Key Configuration Files
 
@@ -152,6 +121,23 @@ shortcuts where available.
 | `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 | `mkdocs-hooks/generate_commands.py` | MkDocs build hook: auto-regenerates `docs/reference/commands.md` before each build                                   |
 | `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config                                                           |
+
+### Targeted Instruction Files
+
+File-type-specific rules live in `.instructions.md` files closer to the code
+they govern. Copilot loads them automatically when the `applyTo` glob matches
+the file being edited.
+
+| File                                          | Scope                        |
+| --------------------------------------------- | ---------------------------- |
+| `.github/workflows/.instructions.md`          | Workflow YAML conventions    |
+| `scripts/.instructions.md`                    | Script conventions           |
+| `docs/.instructions.md`                       | Documentation conventions    |
+| `docs/adr/.instructions.md`                   | ADR creation procedure       |
+| `tests/.instructions.md`                      | Test conventions             |
+
+This file covers **project-wide** rules. For file-type-specific details,
+Copilot should prefer the targeted instruction file.
 
 ---
 
@@ -184,23 +170,17 @@ logging, argparse, registration steps, etc.).
 ### Keep Related Files in Sync
 
 When updating a file, check whether other files reference or depend on what
-changed and update them too. Examples:
+changed and update them too. Key sync points:
 
-- Adding a workflow → update `docs/workflows.md` and the categories list in this file
-- Adding a pre-commit hook → update ADR 008's hook inventory and the hook table in this file
-- Adding an MkDocs hook → register in `mkdocs.yml` under `hooks:`, update `mkdocs-hooks/README.md` inventory
-- Adding a script → update `scripts/README.md` inventory and re-run `python scripts/generate_command_reference.py` to refresh the command reference
-- Adding an ADR → update `docs/adr/README.md` index and the ADR table in this file
-- Changing a dependency → update `docs/design/tool-decisions.md` if the tool is listed there
-- Renaming a script or entry point → update `Taskfile.yml`, README, and any docs that reference it
-- Making an architectural or tooling choice → update `docs/design/architecture.md`
-  and/or `docs/design/tool-decisions.md` to reflect the current state
-- Making a _significant_ decision (new pattern, new tool category, new
-  convention) → propose creating an ADR in `docs/adr/`. Use the template at
-  `docs/adr/template.md`. Not every change needs an ADR — reserve them for
-  decisions that are hard to reverse, affect multiple parts of the project, or
-  would be useful context for future contributors. When an ADR is created,
-  update `docs/adr/README.md` index and the ADR table in this file.
+- Adding a workflow → update `docs/workflows.md`
+- Adding a script → update `scripts/README.md` inventory and re-run `python scripts/generate_command_reference.py`
+- Adding an ADR → update `docs/adr/README.md` index
+- Adding a pre-commit hook → update ADR 008's hook inventory
+- Adding an MkDocs hook → register in `mkdocs.yml`, update `mkdocs-hooks/README.md`
+- Changing a dependency → update `docs/design/tool-decisions.md` if listed
+- Renaming a script/entry point → update `Taskfile.yml`, README, and referencing docs
+
+See the targeted `.instructions.md` files for detailed procedures per file type.
 
 Don't let documentation drift from reality.
 
@@ -346,27 +326,11 @@ and move on.
 - Type checking uses **mypy** (strict mode) — prefer fixes compatible with mypy
 - Docstrings in Google style format
 - Constants in UPPER_SNAKE_CASE
-- **Prefer existing shared modules** over reimplementing common patterns:
-  - `scripts/_progress.py` — `ProgressBar` (determinate) and `Spinner`
-    (indeterminate) with automatic Unicode/ASCII fallback. Import and use
-    these instead of writing ad-hoc progress output with `print()`/`\r`.
-  - `pathlib.Path` over `os.path` for all file operations
-  - `subprocess.run()` with argument lists over `shell=True`
-  - `tomllib` (stdlib 3.11+) for TOML reading — no third-party TOML lib
-  - `importlib.metadata` for installed-package introspection
-  - `shutil.get_terminal_size()` for terminal dimensions
-  - `argparse` for all script CLIs (consistent `--help`, `--version`,
-    `--dry-run` flags across every script)
-  - `logging` for status/diagnostic messages in scripts — prefer
-    `logging.info()` / `logging.warning()` / `logging.error()` over
-    bare `print()`. Reserve `print()` only for primary output that is
-    the script's purpose (e.g., generated Markdown, JSON, tables).
-    Configure logging in `main()` with `logging.basicConfig()`.
-- **When adding a new utility function** that two or more scripts could use,
-  put it in an existing shared module (e.g., `scripts/_progress.py`) or
-  create a new `scripts/_<name>.py` module. The underscore prefix signals
-  "internal library, not a CLI" and is excluded from the command reference
-  generator.
+- `pathlib.Path` over `os.path`; `subprocess.run()` with arg lists (never `shell=True`)
+- `tomllib` (stdlib 3.11+) for TOML; `importlib.metadata` for package introspection
+
+Script-specific conventions (argparse, logging, shared modules) are in
+`scripts/.instructions.md`.
 
 ### Project Structure
 
@@ -415,7 +379,7 @@ Issues/Refs: #<issue number if applicable, otherwise omit>
 
 - **Line length (E501)** — Disabled in this project; don't request rewrapping docstrings or comments unless readability is impacted
 - **Generated files** — `*.egg-info/`, `__pycache__/`, `.venv/`
-- **Types in tests** — Be less strict; don't require full annotations for mocks, fixtures, or test helpers. Don't require annotations for pytest fixtures unless they clarify intent.
+- **Types in tests** — See `tests/.instructions.md` for test-specific leniency
 
 ## Architecture & Design References
 
