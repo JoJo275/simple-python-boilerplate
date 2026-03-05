@@ -281,10 +281,19 @@ TEMPLATE_CLEANUP: dict[str, dict[str, object]] = {
         "paths": ["docs/notes/"],
         "disclaimer": (
             "⚠ Removes the entire docs/notes/ directory, including: "
-            "learning.md, resources.md, todo.md, tool-comparison.md, "
-            "archive.md, and README.md. These are scratchpad notes from "
-            "template development. Safe to remove — no project functionality "
-            "depends on them."
+            "learning.md (Python packaging lessons, mental models for "
+            "Hatch vs Hatchling, lockfile strategies), resources.md "
+            "(curated links to official docs for every tool in the stack), "
+            "tool-comparison.md (side-by-side evaluations of formatters, "
+            "linters, type checkers, task runners, etc.), todo.md (roadmap "
+            "and checklist of remaining template work), archive.md "
+            "(completed items for historical context), and README.md. "
+            "No project functionality depends on these files, but they "
+            "contain valuable context — especially learning.md and "
+            "resources.md — that can accelerate onboarding for developers "
+            "unfamiliar with the tooling stack. Consider keeping them as "
+            "reference material, or extracting useful content into your "
+            "own docs before removing."
         ),
     },
     "docs-design": {
