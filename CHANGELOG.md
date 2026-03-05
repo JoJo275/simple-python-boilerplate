@@ -9,6 +9,44 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.4.0...v0.5.0) (2026-03-05)
+
+
+### Features
+
+* add command reference generation and update documentation ([238b393](https://github.com/JoJo275/simple-python-boilerplate/commit/238b393a9b4e2a78c9b58516d3528c85aab17755))
+* add detailed instructions for GitHub Copilot customization and workflow conventions ([9aca9d6](https://github.com/JoJo275/simple-python-boilerplate/commit/9aca9d60446db80ef4306de23b1893e9f79c91c8))
+* add shared progress-indicator utilities and integrate with existing scripts ([308ab52](https://github.com/JoJo275/simple-python-boilerplate/commit/308ab52d8b0543647ba9552a34c70212ac00c080))
+* add SKILL.md for multi-step procedures and update documentation references ([1fd7b69](https://github.com/JoJo275/simple-python-boilerplate/commit/1fd7b69a97910401c69c0bd14a79b2387ee05db7))
+* add suggestion feature for non-conventional PR titles in workflow ([59267e6](https://github.com/JoJo275/simple-python-boilerplate/commit/59267e6d9a8fbae1b80a4f76fb21b8f87dd6c8af))
+* add welcome workflow for first-time contributors and update workflow inventory ([c4ff207](https://github.com/JoJo275/simple-python-boilerplate/commit/c4ff2071e08f6230e02fb688f6cd1339f454a584))
+* Add workflows for license checking, repo health, and TODO checks ([6c73845](https://github.com/JoJo275/simple-python-boilerplate/commit/6c73845ce3c6f7e308f06c5f0fa85ab1b2c11625))
+* bump hook and script versions; enhance module descriptions and logging ([e918b5e](https://github.com/JoJo275/simple-python-boilerplate/commit/e918b5e3ee00053579947dfea535ab39e8187d37))
+* enhance clean and customize scripts with improved module imports and template cleanup options ([ad24000](https://github.com/JoJo275/simple-python-boilerplate/commit/ad240005f7a4fc9d747a474addb1a426a4d98501))
+* enhance copilot instructions and update TODO checklist for improved project management ([c057f06](https://github.com/JoJo275/simple-python-boilerplate/commit/c057f06d1af6245c2cd513fa9b564bb9b435dd36))
+* enhance disclaimer in _discover_adr_paths for clarity on removable documentation ([555747e](https://github.com/JoJo275/simple-python-boilerplate/commit/555747ed47ddefb78af5678d03ef396e68b48b40))
+* enhance documentation and templates; add known issues tracking ([8e18ada](https://github.com/JoJo275/simple-python-boilerplate/commit/8e18ada1622179329c68cc1b2092372052a25715))
+* enhance documentation with additional resources and programming conventions ([55ce284](https://github.com/JoJo275/simple-python-boilerplate/commit/55ce284f7ecd10ac28dfd2d7ffafdcc7a38a3018))
+* enhance license check workflow documentation; update versioning and improve logging in progress indicators ([1282daf](https://github.com/JoJo275/simple-python-boilerplate/commit/1282daf9ae74625200b9d182d0ec8dd82aa4a380))
+* enhance progress bar functionality with Unicode/ASCII support and improved terminal adaptability ([26657b1](https://github.com/JoJo275/simple-python-boilerplate/commit/26657b16f30fe74d0ad89ffd289ded1a7bc2b84a))
+* enhance security policy documentation, add PGP instructions, and improve SQL setup/teardown scripts with test data and comments ([6e55db2](https://github.com/JoJo275/simple-python-boilerplate/commit/6e55db2f6084405d0466cd12a977b9f1d4d0fba3))
+* implement auto-generation of command reference during MkDocs build ([23e98c9](https://github.com/JoJo275/simple-python-boilerplate/commit/23e98c99052cf1b52e000fdc659f14d17c4a2c4f))
+* implement find_repo_root function for improved directory handling and update scripts to utilize it ([0093041](https://github.com/JoJo275/simple-python-boilerplate/commit/0093041ad4049b6dd75a707fd44f47e196b930f4))
+* improved user experience for customize.py script. Update documentation and scripts to reflect the addition of 34 workflows ([483a660](https://github.com/JoJo275/simple-python-boilerplate/commit/483a66099b2ef71f7c9f2248bf060c6af567d4ee))
+* introduce _imports.py for safe sibling module imports and update scripts to utilize it ([0640967](https://github.com/JoJo275/simple-python-boilerplate/commit/0640967e2ee4aa792f04cb06f24364ecf8b24cb6))
+* overhaul documentation and enhance scripts for improved usability and clarity ([e9cb59a](https://github.com/JoJo275/simple-python-boilerplate/commit/e9cb59ab91c0472c9989874ee7f20b107ea88512))
+* refactor scripts to use find_repo_root for improved path handling and update documentation ([7186421](https://github.com/JoJo275/simple-python-boilerplate/commit/71864212fe2a08ddc3dafab9306825e9f955a912))
+* update apply_labels scripts to improve label management and user experience ([c0bc6e4](https://github.com/JoJo275/simple-python-boilerplate/commit/c0bc6e415dda572834bfff38a4bb9d676933755e))
+* update documentation to reflect the addition of 33 GitHub Actions workflows and improve license check workflow details ([0baf7d5](https://github.com/JoJo275/simple-python-boilerplate/commit/0baf7d5bd82a96fdd6ed0308053a26a3c40f7f2f))
+* update SKILL.md and related instructions for improved component addition procedures ([e352005](https://github.com/JoJo275/simple-python-boilerplate/commit/e352005114d05eb8afd9ebd3609904fda034da08))
+* update template project and package names, enhance documentation disclaimers for clarity ([ad92b00](https://github.com/JoJo275/simple-python-boilerplate/commit/ad92b005a0f800eafc42d0fd1aa684fd12bc3077))
+
+
+### Bug Fixes
+
+* change pip-licenses output format from table to plain for consistency in license checks ([71cdddf](https://github.com/JoJo275/simple-python-boilerplate/commit/71cdddf9538bdcd319423ef03496e02a4480c4dc))
+* correct spacing in Project Customization Wizard header ([ef955ec](https://github.com/JoJo275/simple-python-boilerplate/commit/ef955ecf16bae9991f402a40fdecc5ad43b27dc8))
+
 ## [0.4.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.3.0...v0.4.0) (2026-02-28)
 
 ### Features
