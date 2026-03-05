@@ -9,6 +9,7 @@ Utility scripts for development and maintenance.
 
 | Script                                             | Description                                                              |
 | -------------------------------------------------- | ------------------------------------------------------------------------ |
+| [_imports.py](_imports.py)                         | Shared import helper for loading sibling modules safely                  |
 | [_progress.py](_progress.py)                       | Shared progress-indicator utilities (ProgressBar, Spinner)               |
 | [apply_labels.py](apply_labels.py)                 | Apply GitHub labels from JSON                                            |
 | [apply-labels.sh](apply-labels.sh)                 | Shell wrapper for label application                                      |

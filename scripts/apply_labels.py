@@ -30,7 +30,9 @@ import sys
 import urllib.parse
 from pathlib import Path
 
-from _progress import ProgressBar
+from _imports import import_sibling
+
+ProgressBar = import_sibling("_progress").ProgressBar
 
 SCRIPT_VERSION = "1.3.0"
 

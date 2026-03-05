@@ -57,7 +57,9 @@ from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
-from _progress import ProgressBar
+from _imports import import_sibling
+
+ProgressBar = import_sibling("_progress").ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants

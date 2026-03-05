@@ -25,12 +25,12 @@ Usage::
 from __future__ import annotations
 
 import argparse
-import importlib.util
 import logging
 import shutil
 import sys
 from pathlib import Path
-from types import ModuleType
+
+from _imports import import_sibling
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -39,31 +39,7 @@ from types import ModuleType
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_VERSION = "1.2.0"
 
-
-def _import_sibling(name: str) -> ModuleType:
-    """Import a module from the same directory as this script.
-
-    Uses importlib.util to load from an explicit file path instead of
-    polluting sys.path.
-
-    Args:
-        name: Module name (without .py extension).
-
-    Returns:
-        The imported module.
-    """
-    path = Path(__file__).resolve().parent / f"{name}.py"
-    spec = importlib.util.spec_from_file_location(name, path)
-    if spec is None or spec.loader is None:
-        msg = f"Cannot find module '{name}' at {path}"
-        raise ImportError(msg)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-ProgressBar = _import_sibling("_progress").ProgressBar
+ProgressBar = import_sibling("_progress").ProgressBar
 
 # Top-level cache directories to remove
 CACHE_DIRS = [

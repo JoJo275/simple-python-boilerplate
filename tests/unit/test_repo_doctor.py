@@ -428,19 +428,25 @@ class TestEvaluateRules:
 
     def test_missing_file_produces_warning(self, tmp_path: Path) -> None:
         rules = [Rule(type="exists", path="missing.txt")]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert len(warnings) == 1
         assert "Missing" in warnings[0].message
 
     def test_existing_file_no_warning(self, tmp_path: Path) -> None:
         (tmp_path / "present.txt").write_text("ok")
         rules = [Rule(type="exists", path="present.txt")]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert warnings == []
+        assert len(passed) == 1
+        assert "OK" in passed[0].message
 
     def test_deleted_file_produces_warning(self, tmp_path: Path) -> None:
         rules = [Rule(type="exists", path="gone.txt")]
-        warnings = _evaluate_rules(
+        warnings, _passed = _evaluate_rules(
             tmp_path,
             rules,
             check_missing=True,
@@ -456,7 +462,7 @@ class TestEvaluateRules:
     def test_no_duplicate_for_deleted_and_missing(self, tmp_path: Path) -> None:
         """Deleted path should NOT also appear as missing."""
         rules = [Rule(type="exists", path="file.txt")]
-        warnings = _evaluate_rules(
+        warnings, _passed = _evaluate_rules(
             tmp_path,
             rules,
             check_missing=True,
@@ -474,8 +480,11 @@ class TestEvaluateRules:
                 regex=r"name\s*=",
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert warnings == []
+        assert len(passed) == 1
 
     def test_regex_present_failure(self, tmp_path: Path) -> None:
         (tmp_path / "cfg.toml").write_text("empty file")
@@ -486,7 +495,9 @@ class TestEvaluateRules:
                 regex=r"name\s*=",
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert len(warnings) == 1
         assert "Check failed" in warnings[0].message
 
@@ -499,8 +510,11 @@ class TestEvaluateRules:
                 toml_path="project.name",
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert warnings == []
+        assert len(passed) == 1
 
     def test_toml_has_path_missing_key(self, tmp_path: Path) -> None:
         (tmp_path / "p.toml").write_text("[project]\n")
@@ -511,13 +525,17 @@ class TestEvaluateRules:
                 toml_path="project.name",
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert len(warnings) == 1
         assert "missing" in warnings[0].message.lower()
 
     def test_unknown_rule_type(self, tmp_path: Path) -> None:
         rules = [Rule(type="bogus", path="x.txt")]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert len(warnings) == 1
         assert "Unknown rule type" in warnings[0].message
 
@@ -530,8 +548,11 @@ class TestEvaluateRules:
                 only_if=OnlyIf(path="gate.toml", regex="required"),
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert warnings == []
+        assert passed == []  # skipped, not passed
 
     def test_only_if_evaluates_when_condition_true(self, tmp_path: Path) -> None:
         (tmp_path / "gate.toml").write_text("required pattern here")
@@ -542,13 +563,17 @@ class TestEvaluateRules:
                 only_if=OnlyIf(path="gate.toml", regex="required"),
             )
         ]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=True, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=True, deleted=set()
+        )
         assert len(warnings) == 1
         assert "Missing" in warnings[0].message
 
     def test_check_missing_false_skips_exists_check(self, tmp_path: Path) -> None:
         rules = [Rule(type="exists", path="missing.txt")]
-        warnings = _evaluate_rules(tmp_path, rules, check_missing=False, deleted=set())
+        warnings, _passed = _evaluate_rules(
+            tmp_path, rules, check_missing=False, deleted=set()
+        )
         assert warnings == []
 
 
