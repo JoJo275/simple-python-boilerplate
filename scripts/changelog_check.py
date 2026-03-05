@@ -29,13 +29,15 @@ import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
+from _imports import find_repo_root
+
 log = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 CHANGELOG = ROOT / "CHANGELOG.md"
 SCRIPT_VERSION = "1.1.0"
 

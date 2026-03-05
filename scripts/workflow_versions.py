@@ -74,10 +74,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from pathlib import Path
 from typing import Any
 
-from _imports import import_sibling
+from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")
 ProgressBar = _progress.ProgressBar
@@ -89,7 +88,7 @@ Spinner = _progress.Spinner
 
 SCRIPT_VERSION = "1.3.0"
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
 
 # Disk cache for GitHub API responses (1-hour TTL by default)

@@ -339,8 +339,8 @@ Things to explore, implement, or learn more about.
 
 ## Ideas for Later
 
-- [ ] Migrate remaining 11 scripts from brittle `ROOT = Path(__file__).resolve().parent.parent` to `find_repo_root()` from `_imports.py`
-- [ ] Configure setuptools-scm to generate `_version.py` with modern type annotations (avoids ruff UP006/UP007 on every build)
+- [x] Migrate remaining 11 scripts from brittle `ROOT = Path(__file__).resolve().parent.parent` to `find_repo_root()` from `_imports.py`
+- [x] Configure setuptools-scm to generate `_version.py` with modern type annotations (avoids ruff UP006/UP007 on every build) — fixed via ruff per-file-ignores for auto-generated file
 - [ ] Spin-off template repos: "minimal", "library", "cli", "data-science", "web-app"
 - [ ] Keep Containerfile in sync with production pipeline
 - [x] Verify devtools URL (python-devtools.helpmanual.io) — verified 2026-03-02, URL is valid

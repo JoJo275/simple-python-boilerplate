@@ -145,7 +145,8 @@ For the security scanning CI setup, see [ADR 012](adr/012-multi-layer-security-s
 
 After creating your repo, consider enabling:
 
-- [ ] **Discussions** — For Q&A and community conversations
+- [ ] **Discussions** — For Q&A and community conversations (also enables the
+  Discussions link in the [Need Help?](#need-help) section below)
 - [ ] **Private vulnerability reporting** — For security issues
 - [ ] **Dependabot alerts** — For dependency vulnerabilities
 - [ ] **Dependabot security updates** — Auto-create PRs for vulnerable deps

@@ -56,11 +56,13 @@ import subprocess  # nosec B404
 import sys
 from pathlib import Path
 
+from _imports import find_repo_root
+
 SCRIPT_VERSION = "1.2.0"
 
 logger = logging.getLogger(__name__)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 SCRIPTS_DIR = ROOT / "scripts"
 PRECOMMIT_DIR = SCRIPTS_DIR / "precommit"
 TASKFILE = ROOT / "Taskfile.yml"
