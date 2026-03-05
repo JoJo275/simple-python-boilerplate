@@ -125,7 +125,7 @@ jobs:
           python -m pip install pip-licenses
 
       - name: List all dependency licenses
-        run: pip-licenses --format=table --with-urls --order=license
+        run: pip-licenses --format=plain --with-urls --order=license
 
       - name: Check license compatibility
         run: |
@@ -142,7 +142,7 @@ jobs:
           # TODO (template users): Review and adjust this list.
           #   - For GPL projects: add 'GNU General Public License v3 (GPLv3)'
           #   - For proprietary: you may want a stricter list
-          #   - Run `pip-licenses --format=table` to see what your
+          #   - Run `pip-licenses --format=plain` to see what your
           #     current deps actually use, then allow those.
           pip-licenses --allow-only="\
           Apache Software License;\
@@ -166,5 +166,5 @@ jobs:
         run: |
           echo "## License Check" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          pip-licenses --format=table --order=license >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+          pip-licenses --format=plain --order=license >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
