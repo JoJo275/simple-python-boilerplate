@@ -130,6 +130,16 @@ def check_hatch() -> bool:
         else:
             log.error("  Install with: pip install --user hatch")
             log.error("  (Recommended: install pipx first, then: pipx install hatch)")
+            log.error(
+                "  Why pipx? It installs Hatch in an isolated environment, avoiding"
+            )
+            log.error(
+                "  dependency conflicts with your project's packages. pip install"
+            )
+            log.error(
+                "  --user puts Hatch and its dependencies into your global Python,"
+            )
+            log.error("  which can cause version conflicts that are hard to diagnose.")
         return False
 
     result = run_cmd(["hatch", "--version"], capture=True, check=False)

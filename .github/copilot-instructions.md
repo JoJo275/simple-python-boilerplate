@@ -167,12 +167,21 @@ pattern, script conventions, MkDocs hook pattern, SQL migrations.
 The inventory also documents conventions for each file type (shebangs,
 logging, argparse, registration steps, etc.).
 
+### Use SKILL.md for Multi-step Operations
+
+`.github/SKILL.md` contains step-by-step procedures for adding or modifying
+project components (workflows, scripts, ADRs, hooks, dependencies,
+instruction files). **Always read `SKILL.md` before performing multi-step
+operations** — it lists not just the creation steps but also the required
+sync steps (index updates, regeneration, instruction file updates) that are
+easy to forget. If Copilot doesn't auto-load it, request it explicitly with
+`#file:.github/SKILL.md`.
+
 ### Keep Related Files in Sync
 
 When updating a file, check whether other files reference or depend on what
-changed and update them too. Full step-by-step procedures for adding new
-components (workflows, scripts, ADRs, hooks, dependencies) are in
-`.github/SKILL.md` — use that as a checklist.
+changed and update them too. Use the procedures in `.github/SKILL.md` as a
+checklist to ensure all sync steps are completed.
 
 Don't let documentation drift from reality.
 
