@@ -41,13 +41,15 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
+from _imports import find_repo_root
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 SCRIPT_VERSION = "1.0.0"
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 
 # Tools expected in the dev environment

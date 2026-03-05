@@ -69,7 +69,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from _imports import import_sibling
+from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")
 ProgressBar = _progress.ProgressBar
@@ -78,20 +78,28 @@ ProgressBar = _progress.ProgressBar
 # Constants
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 SCRIPT_VERSION = "1.2.0"
 
 # Original placeholders baked into the template.
-# These are the values that get replaced during customization.
-# NOTE: If you forked this template and changed these values before
-# running customize.py, update them here so the script can find them.
-TEMPLATE_PROJECT_NAME = "simple-python-boilerplate"
-TEMPLATE_PACKAGE_NAME = "simple_python_boilerplate"
-TEMPLATE_GITHUB_USER = "JoJo275"
-TEMPLATE_GITHUB_URL_PLACEHOLDER = "YOURNAME/YOURREPO"
-TEMPLATE_AUTHOR = "Joseph"
-TEMPLATE_DESCRIPTION = "Simple Python boilerplate using src/ layout"
-TEMPLATE_CLI_PREFIX = "spb"
+# customize.py searches files for these literal strings and replaces them
+# with the user's values.  plan_replacements() builds the substitution list.
+# NOTE: If you forked this template and changed these values throughout your
+# template clone before running customize.py, update them here so the script can
+# find them.
+TEMPLATE_PROJECT_NAME = (
+    "simple-python-boilerplate"  # -> cfg.project_name  (kebab-case repo/package name)
+)
+TEMPLATE_PACKAGE_NAME = "simple_python_boilerplate"  # -> cfg.package_name  (Python import name, underscored)
+TEMPLATE_GITHUB_USER = "JoJo275"  # -> cfg.github_user   (GitHub username or org)
+TEMPLATE_GITHUB_URL_PLACEHOLDER = (
+    "YOURNAME/YOURREPO"  # -> <github_user>/<project_name>  (full repo slug)
+)
+TEMPLATE_AUTHOR = "Joseph"  # -> cfg.author        (pyproject.toml authors.name)
+TEMPLATE_DESCRIPTION = (
+    "Simple Python boilerplate using src/ layout"  # -> cfg.description
+)
+TEMPLATE_CLI_PREFIX = "spb"  # -> cfg.cli_prefix    (entry-point command prefix)
 
 # Directory names to skip when scanning files (exact match)
 SKIP_DIRS: set[str] = {
@@ -260,10 +268,14 @@ TEMPLATE_CLEANUP: dict[str, dict[str, object]] = {
         "label": "ADR files (docs/adr/ — template design decisions)",
         "paths": _discover_adr_paths(),
         "disclaimer": (
-            "ADRs document WHY tools and patterns were chosen. Removing "
-            "them means future contributors won't know the rationale behind "
-            "project decisions. Consider keeping the template and README so "
-            "you can record your own ADRs."
+            "These ADRs document decisions made for the TEMPLATE "
+            "repository — why Ruff over Black, why src/ layout, why Hatch, "
+            "etc. They do NOT describe decisions in YOUR project. Removing "
+            "them deletes the rationale behind the tooling and patterns you "
+            "inherited, which can make it harder for future contributors to "
+            "understand why things are set up this way. Consider keeping the "
+            "template.md and README.md so you can write your own ADRs for "
+            "decisions specific to your project."
         ),
     },
     "docs-notes": {

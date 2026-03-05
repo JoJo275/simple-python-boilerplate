@@ -30,13 +30,13 @@ import shutil
 import sys
 from pathlib import Path
 
-from _imports import import_sibling
+from _imports import find_repo_root, import_sibling
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 SCRIPT_VERSION = "1.2.0"
 
 ProgressBar = import_sibling("_progress").ProgressBar

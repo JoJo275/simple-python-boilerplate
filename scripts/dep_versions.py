@@ -57,7 +57,7 @@ from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
-from _imports import import_sibling
+from _imports import find_repo_root, import_sibling
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
@@ -67,7 +67,7 @@ ProgressBar = import_sibling("_progress").ProgressBar
 
 SCRIPT_VERSION = "1.3.0"
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 PYPROJECT = ROOT / "pyproject.toml"
 
 

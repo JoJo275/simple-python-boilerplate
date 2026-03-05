@@ -37,11 +37,12 @@ import shutil
 import subprocess  # nosec B404
 import sys
 import time
-from pathlib import Path
+
+from _imports import find_repo_root
 
 log = logging.getLogger(__name__)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
 SCRIPT_VERSION = "1.1.0"

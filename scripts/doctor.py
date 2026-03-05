@@ -35,13 +35,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from pathlib import Path
 
+from _imports import find_repo_root
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 SCRIPT_VERSION = "1.2.0"
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = find_repo_root()
 
 
 def get_version(cmd: list[str]) -> str:
