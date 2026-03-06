@@ -255,7 +255,7 @@ def _check_hatch_env() -> dict[str, str]:
     """Check Hatch environments.
 
     Lists all environments reported by ``hatch env show --json``,
-    including Hatch's internal environments (``hatch-*``).
+    explicitly labelled as *user-defined* or *internal* (``hatch-*``).
     """
     result: dict[str, str] = {}
     hatch_exe = shutil.which("hatch")
@@ -274,15 +274,21 @@ def _check_hatch_env() -> dict[str, str]:
             try:
                 envs = json.loads(proc.stdout)
                 if isinstance(envs, dict):
-                    all_envs = sorted(envs.keys())
-                    result["environments"] = ", ".join(all_envs) if all_envs else "none"
+                    names = sorted(envs.keys())
                 elif isinstance(envs, list):
                     names = [
                         e["name"] for e in envs if isinstance(e, dict) and "name" in e
                     ]
-                    result["environments"] = ", ".join(names) if names else "none found"
                 else:
                     result["environments"] = "unknown format"
+                    return result
+
+                user_envs = [n for n in names if not n.startswith("hatch-")]
+                internal_envs = [n for n in names if n.startswith("hatch-")]
+                result["user_defined"] = ", ".join(user_envs) if user_envs else "none"
+                result["internal"] = (
+                    ", ".join(internal_envs) if internal_envs else "none"
+                )
             except (json.JSONDecodeError, TypeError):
                 # Fallback: just report raw output
                 result["environments"] = proc.stdout.strip()[:100] or "none"
