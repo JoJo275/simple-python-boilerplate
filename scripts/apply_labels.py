@@ -41,7 +41,7 @@ ROOT = find_repo_root()
 # TODO (template users): If you need to authenticate with a GitHub
 #   App token instead of a personal gh CLI session, update gh_exists()
 #   and the gh_api() helper to accept a --token flag.
-def run(cmd: list[str]) -> subprocess.CompletedProcess:
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, text=True, capture_output=True)  # nosec B603
 
 
@@ -61,9 +61,11 @@ def default_repo() -> str | None:
     return (p.stdout or "").strip() or None
 
 
+# TODO (template users): If your workflow needs retry logic or rate-limit
+#   handling for GitHub API calls, wrap gh_api() with a retry decorator.
 def gh_api(
     method: str, endpoint: str, fields: dict[str, str]
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     cmd = ["gh", "api", "-X", method, endpoint]
     for k, v in fields.items():
         cmd += ["-f", f"{k}={v}"]

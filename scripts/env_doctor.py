@@ -60,14 +60,21 @@ SCRIPT_VERSION = "1.4.0"
 logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
+# TODO (template users): Update MIN_PYTHON to match your project's
+#   minimum supported Python version (see pyproject.toml requires-python).
 MIN_PYTHON = (3, 11)
 
+# TODO (template users): Update EXPECTED_TOOLS and OPTIONAL_TOOLS to
+#   match the dev tools your project actually uses. Remove tools you
+#   don't need and add any project-specific ones.
 # Tools expected in the dev environment
 EXPECTED_TOOLS = ["ruff", "mypy", "pytest", "bandit", "pre-commit", "cz", "deptry"]
 
 # Optional tools — reported but don't fail unless --strict
 OPTIONAL_TOOLS = ["actionlint"]
 
+# TODO (template users): If you add or remove pre-commit hook stages,
+#   update HOOK_FILES to match.
 # Pre-commit hook files to check
 HOOK_FILES = {
     "pre-commit": ROOT / ".git" / "hooks" / "pre-commit",

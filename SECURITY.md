@@ -44,14 +44,75 @@ Instead, please report security vulnerabilities via one of the following methods
 3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
 
-   <!-- TODO (template users): Enable PGP for security reports:
-        1. Generate a key:   gpg --full-generate-key  (RSA 4096-bit recommended)
-        2. Get fingerprint:  gpg --fingerprint YOUR_EMAIL
-        3. Publish to keyserver: gpg --keyserver keys.openpgp.org --send-keys FINGERPRINT
-        4. Optionally export: gpg --armor --export YOUR_EMAIL > pgp-key.asc
-           and commit pgp-key.asc to the repo root (or host elsewhere).
-        5. Uncomment the block below and fill in your fingerprint + URL.
+   **What is PGP?** PGP (Pretty Good Privacy) is a public-key encryption
+   system used to sign and encrypt data. In practice, most people use
+   [GnuPG (GPG)](https://gnupg.org/) — the free, open-source implementation
+   of the OpenPGP standard. You generate a key pair: a **public key** you
+   share (so others can encrypt messages to you) and a **private key** you
+   keep secret (to decrypt those messages). PGP is widely used for securing
+   email, verifying software signatures, and signing git commits.
+
+   **Why RSA 4096-bit?** RSA is one of the most widely supported key
+   algorithms. A 4096-bit key length provides a large security margin
+   against brute-force attacks and is recommended for long-lived keys
+   (e.g., security contact keys that may stay in use for years). While
+   3072-bit is currently considered secure, 4096-bit costs little extra
+   and future-proofs the key.
+
+   <!-- TODO (template users): Enable PGP for security reports by following
+        the steps below. Once complete, uncomment the fingerprint/URL block
+        at the bottom of this section.
    -->
+
+   **How to set up PGP with RSA 4096-bit:**
+
+   1. **Generate a key pair:**
+
+      ```bash
+      gpg --full-generate-key
+      ```
+
+      When prompted, select:
+      - Key type: **(1) RSA and RSA**
+      - Key size: **4096**
+      - Expiration: choose an appropriate validity period (e.g., `2y` for 2 years, or `0` for no expiry)
+      - Enter your name and the email address associated with this project
+      - Set a strong passphrase when prompted
+
+   2. **Get your key fingerprint:**
+
+      ```bash
+      gpg --fingerprint YOUR_EMAIL
+      ```
+
+      The fingerprint is the 40-character hex string (e.g.,
+      `ABCD 1234 EFGH 5678 ...`). Copy this — you'll need it below.
+
+   3. **Publish to a keyserver** (so reporters can find your key):
+
+      ```bash
+      gpg --keyserver keys.openpgp.org --send-keys YOUR_FINGERPRINT
+      ```
+
+   4. **Export the public key and commit it to the repo root:**
+
+      ```bash
+      # Export the ASCII-armored public key
+      gpg --armor --export YOUR_EMAIL > pgp-key.asc
+
+      # Stage and commit the key file
+      git add pgp-key.asc
+      git commit -m "chore: add PGP public key for security reports"
+      ```
+
+      <!-- TODO (template users): After committing pgp-key.asc, consider
+           adding a note in your README or CONTRIBUTING.md pointing to it
+           so reporters know where to find the key. -->
+
+      This makes your public key easily discoverable by anyone cloning the
+      repo. Alternatively, you can host it elsewhere and link to it.
+
+   5. **Uncomment the block below** and fill in your fingerprint + URL:
 
    <!--
    Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
