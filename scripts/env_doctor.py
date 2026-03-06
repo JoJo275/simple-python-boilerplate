@@ -53,7 +53,7 @@ from _imports import find_repo_root
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 logger = logging.getLogger(__name__)
 
@@ -319,6 +319,105 @@ def check_pyproject_toml() -> tuple[bool, str]:
     return False, "pyproject.toml missing — project configuration is incomplete"
 
 
+def check_node_available() -> tuple[bool, str]:
+    """Check if Node.js is available (needed by prettier, markdownlint-cli2 hooks).
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    node = shutil.which("node")
+    if not node:
+        return (
+            False,
+            "Node.js not found — needed by prettier/markdownlint pre-commit hooks",
+        )
+    version = get_version(["node", "--version"])
+    if version in ("not found", "error"):
+        return False, "Node.js found but failed to get version"
+    return True, f"Node.js {version}"
+
+
+def check_container_runtime() -> tuple[bool, str]:
+    """Check if Docker or Podman is available for container workflows.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    for runtime in ("docker", "podman"):
+        if shutil.which(runtime):
+            version = get_version([runtime, "--version"])
+            if version not in ("not found", "error"):
+                return True, f"{runtime}: {version}"
+            return True, f"{runtime} available"
+    return False, "No container runtime (docker/podman) found"
+
+
+def check_git_remote() -> tuple[bool, str]:
+    """Check if a git remote origin is configured.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    git = shutil.which("git")
+    if not git:
+        return False, "git not found in PATH"
+    try:
+        result = subprocess.run(  # nosec B603
+            [git, "remote", "get-url", "origin"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=str(ROOT),
+        )
+        url = result.stdout.strip()
+        if url:
+            return True, f"Git remote origin: {url}"
+        return False, "No remote 'origin' configured"
+    except (subprocess.TimeoutExpired, OSError):
+        return False, "Could not check git remote"
+
+
+def check_hatch_env_exists() -> tuple[bool, str]:
+    """Check if the Hatch default environment is created.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    hatch = shutil.which("hatch")
+    if not hatch:
+        return False, "Hatch not found — cannot check env"
+    try:
+        result = subprocess.run(  # nosec B603
+            [hatch, "env", "find", "default"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            cwd=str(ROOT),
+        )
+        env_path = result.stdout.strip()
+        if result.returncode == 0 and env_path and Path(env_path).is_dir():
+            return True, f"Hatch default env exists: {Path(env_path).name}"
+        return False, "Hatch default env not created — run: hatch env create default"
+    except (subprocess.TimeoutExpired, OSError):
+        return False, "Could not check Hatch env"
+
+
+def check_disk_space() -> tuple[bool, str]:
+    """Warn if disk space on the project drive is below 1 GB.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    try:
+        usage = shutil.disk_usage(ROOT)
+        free_gb = usage.free / (1024**3)
+        if free_gb < 1.0:
+            return False, f"Low disk space: {free_gb:.1f} GB free"
+        return True, f"Disk space: {free_gb:.1f} GB free"
+    except OSError:
+        return True, "Could not check disk space"
+
+
 # ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
@@ -328,14 +427,24 @@ CHECKS = [
     ("Python version", check_python_version),
     ("Architecture", check_architecture),
     ("pip", check_pip_version),
+    ("Disk space", check_disk_space),
     ("Git repository", check_git_repo),
     ("Git user config", check_git_user_config),
+    ("Git remote", check_git_remote),
     ("pyproject.toml", check_pyproject_toml),
     ("Virtual environment", check_venv_active),
     ("Editable install", check_editable_install),
     ("Hatch", check_hatch),
+    ("Hatch default env", check_hatch_env_exists),
     ("Task runner", check_task),
     ("Pre-commit hooks", check_pre_commit_hooks),
+]
+
+# Additional optional checks with richer output than simple tool availability.
+# Placed here (after function definitions) to avoid forward references.
+OPTIONAL_CHECKS = [
+    ("Node.js", check_node_available),
+    ("Container runtime", check_container_runtime),
 ]
 
 
@@ -350,7 +459,15 @@ def _collect_results(
     Returns:
         Tuple of (list of result dicts, failure count).
     """
-    optional_checks = {"Task runner", "Architecture", "OS / Platform", "pip"}
+    optional_checks = {
+        "Task runner",
+        "Architecture",
+        "OS / Platform",
+        "pip",
+        "Disk space",
+        "Git remote",
+        "Hatch default env",
+    }
     results: list[dict[str, str]] = []
     failures = 0
 
@@ -391,6 +508,17 @@ def _collect_results(
                 "message": msg,
                 "group": "optional",
             }
+        )
+
+    # Optional checks (richer than simple tool lookup)
+    for name, check_fn in OPTIONAL_CHECKS:
+        passed, msg = check_fn()
+        status = "PASS" if passed else "WARN"
+        if not passed and strict:
+            status = "FAIL"
+            failures += 1
+        results.append(
+            {"name": name, "status": status, "message": msg, "group": "optional"}
         )
 
     return results, failures

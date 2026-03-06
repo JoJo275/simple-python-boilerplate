@@ -326,45 +326,16 @@ def _generate() -> str:
         )
 
     # ── Quick-reference table ─────────────────────────────────
-    # Auto-generated from parsed tasks above, curated to the most
-    # common operations.  Add task names to _QUICK_REF to include
-    # them here.
+    # Auto-generated from all parsed Taskfile tasks — no manual
+    # curation needed.  Adding a task to Taskfile.yml is enough.
     parts.append("## Quick Reference\n\n")
-    parts.append("Common operations and the fastest way to run them.\n\n")
+    parts.append("Flat summary of every available task.\n\n")
 
-    # Curated list: (human-friendly label, task name)
-    _QUICK_REF: list[tuple[str, str]] = [
-        ("Run all quality checks", "check"),
-        ("Run tests", "test"),
-        ("Run tests with coverage", "test:cov"),
-        ("Lint + auto-fix", "lint:fix"),
-        ("Format code", "fmt"),
-        ("Type check", "typecheck"),
-        ("Serve docs locally", "docs:serve"),
-        ("Show dependency versions", "deps:versions"),
-        ("Update dep comments", "deps:update-comments"),
-        ("Show action versions", "actions:versions"),
-        ("Interactive commit", "commit"),
-        ("Enter dev shell", "shell"),
-        ("Bootstrap fresh clone", "bootstrap"),
-        ("Clean build artifacts", "clean:all"),
-        ("Regenerate command reference", "docs:commands"),
-        ("Check reference freshness", "docs:commands:check"),
-    ]
-
-    # Build a lookup set from actually-parsed tasks
-    task_names = {name for name, _ in tasks}
-
-    parts.append("| What | Command |\n")
-    parts.append("| ---- | ------- |\n")
-    for label, task_name in _QUICK_REF:
-        if task_name in task_names:
-            parts.append(f"| {label} | `task {task_name}` |\n")
-        else:
-            logger.warning(
-                "Quick-reference task '%s' not found in Taskfile — skipping",
-                task_name,
-            )
+    if tasks:
+        parts.append("| What | Command |\n")
+        parts.append("| ---- | ------- |\n")
+        for name, desc in tasks:
+            parts.append(f"| {_escape_md_brackets(desc)} | `task {name}` |\n")
     parts.append("\n")
 
     return "".join(parts)
