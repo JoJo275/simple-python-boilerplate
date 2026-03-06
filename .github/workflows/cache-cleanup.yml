@@ -53,15 +53,17 @@ jobs:
       - name: Clean up caches for closed branch
         run: |
           echo "Fetching list of cache keys for branch: $BRANCH"
-          cacheKeysForPR=$(gh actions-cache list -R "$REPO" -B "$BRANCH" --limit 100 | cut -f 1)
+          cacheKeysForPR=$(gh cache list -R "$REPO" -B "$BRANCH" --limit 100 | cut -f 1)
 
           # Set the internal field separator to newline
           echo "Deleting caches..."
           count=0
           while IFS= read -r cacheKey; do
-            gh actions-cache delete "$cacheKey" -R "$REPO" -B "$BRANCH" --confirm
-            count=$((count + 1))
-            echo "  Deleted: $cacheKey"
+            if [ -n "$cacheKey" ]; then
+              gh cache delete "$cacheKey" -R "$REPO" --confirm
+              count=$((count + 1))
+              echo "  Deleted: $cacheKey"
+            fi
           done <<< "$cacheKeysForPR"
           echo "Done. Deleted $count cache(s) for branch: $BRANCH"
         env:

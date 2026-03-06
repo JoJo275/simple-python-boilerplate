@@ -48,6 +48,9 @@ https?://\[::1\][:/].*
 # Conventional commits - sometimes has certificate issues in CI
 https://www\.conventionalcommits\.org
 
+# The Hitchhiker's Guide to Python - intermittent certificate errors
+https://docs\.python-guide\.org
+
 # Taskfile.dev - occasionally has certificate issues
 https://taskfile\.dev
 

@@ -628,6 +628,46 @@ The package version comes from **git tags** via hatch-vcs:
 
 ## Troubleshooting
 
+### CI Checks Not Running on Release PR
+
+GitHub Actions prevents `pull_request` events from firing when a PR is
+created or updated using `GITHUB_TOKEN` (anti-recursion safeguard). Since
+release-please creates and updates its Release PR via a workflow, CI checks
+never trigger and the CI gate times out waiting for them.
+
+**Fix:** The release-please workflow uses a **GitHub App installation token**
+instead of `GITHUB_TOKEN`. This requires a one-time setup:
+
+1. **Create a GitHub App:**
+   - Go to **Settings → Developer settings → GitHub Apps → New GitHub App**
+     (for a personal account) or **Organization Settings → Developer settings
+     → GitHub Apps** (for an org).
+   - **App name:** e.g. `yourproject-release-bot` (must be globally unique)
+   - **Homepage URL:** your repository URL
+   - **Webhook:** uncheck "Active" (not needed)
+   - **Permissions → Repository:**
+     - `Contents: Read and write` (create tags and releases)
+     - `Pull requests: Read and write` (create/update the Release PR)
+   - Click **Create GitHub App**
+
+2. **Generate a private key:**
+   - On the App's settings page, scroll to **Private keys → Generate a
+     private key**
+   - Save the downloaded `.pem` file securely
+
+3. **Install the App on your repository:**
+   - On the App's settings page, click **Install App** in the left sidebar
+   - Select the account/org and grant access to **only this repository**
+
+4. **Add secrets to the repository:**
+   - Go to **Settings → Secrets and variables → Actions → New repository secret**
+   - `RELEASE_APP_ID` — the App ID (numeric, shown on the App's settings page)
+   - `RELEASE_APP_PRIVATE_KEY` — paste the entire contents of the `.pem` file
+
+The workflow's `actions/create-github-app-token` step generates a short-lived
+installation token from these credentials. The token auto-expires after 1 hour
+and is scoped only to the permissions you granted above.
+
 ### Release PR Not Appearing
 
 - Ensure `ENABLE_RELEASE_PLEASE` variable is set to `true`
