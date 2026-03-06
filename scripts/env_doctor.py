@@ -33,7 +33,9 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import logging
 import os
+import platform
 import shutil
 import struct
 import subprocess  # nosec B404
@@ -51,7 +53,9 @@ from _imports import find_repo_root
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
@@ -98,6 +102,36 @@ def check_architecture() -> tuple[bool, str]:
     """
     bits = struct.calcsize("P") * 8
     return True, f"{bits}-bit Python"
+
+
+def check_os_platform() -> tuple[bool, str]:
+    """Report the operating system and platform.
+
+    Returns:
+        Tuple of (passed, message). Always passes (informational).
+    """
+    os_name = platform.system()
+    os_version = platform.version()
+    machine = platform.machine()
+    return True, f"{os_name} {os_version} ({machine})"
+
+
+def check_pip_version() -> tuple[bool, str]:
+    """Check if pip is available and report its version.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    version = get_version([sys.executable, "-m", "pip", "--version"])
+    if version == "not found":
+        return False, "pip not found"
+    if version == "error":
+        return False, "pip found but failed to run"
+    # pip --version outputs: "pip X.Y.Z from /path ..." — extract version
+    parts = version.split()
+    if len(parts) >= 2:
+        return True, f"pip {parts[1]}"
+    return True, version
 
 
 def check_venv_active() -> tuple[bool, str]:
@@ -290,8 +324,10 @@ def check_pyproject_toml() -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 
 CHECKS = [
+    ("OS / Platform", check_os_platform),
     ("Python version", check_python_version),
     ("Architecture", check_architecture),
+    ("pip", check_pip_version),
     ("Git repository", check_git_repo),
     ("Git user config", check_git_user_config),
     ("pyproject.toml", check_pyproject_toml),
@@ -314,7 +350,7 @@ def _collect_results(
     Returns:
         Tuple of (list of result dicts, failure count).
     """
-    optional_checks = {"Task runner", "Architecture"}
+    optional_checks = {"Task runner", "Architecture", "OS / Platform", "pip"}
     results: list[dict[str, str]] = []
     failures = 0
 
@@ -468,6 +504,12 @@ def main() -> int:
         help="Output results as JSON (for CI integration)",
     )
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
     color = False if args.no_color else None
     return run_checks(strict=args.strict, color=color, output_json=args.json)
 

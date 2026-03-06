@@ -20,7 +20,6 @@ from workflow_versions import (
     _ansi_pad,
     _build_parser,
     _cached_gh_api,
-    _info,
     _normalize_version,
     _repo_slug,
     _shorten_description,
@@ -304,26 +303,6 @@ class TestColors:
 
 
 # ---------------------------------------------------------------------------
-# _info
-# ---------------------------------------------------------------------------
-
-
-class TestInfo:
-    """Tests for the _info stderr helper."""
-
-    def test_writes_to_stderr(self, capsys: pytest.CaptureFixture[str]) -> None:
-        _info("hello stderr")
-        captured = capsys.readouterr()
-        assert captured.out == ""
-        assert "hello stderr" in captured.err
-
-    def test_empty_default(self, capsys: pytest.CaptureFixture[str]) -> None:
-        _info()
-        captured = capsys.readouterr()
-        assert captured.err == "\n"
-
-
-# ---------------------------------------------------------------------------
 # _build_parser
 # ---------------------------------------------------------------------------
 
@@ -530,7 +509,7 @@ class TestMain:
     """Integration-style tests for the main entry point."""
 
     def test_returns_1_when_no_workflows_dir(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         from workflow_versions import main
 
@@ -540,10 +519,11 @@ class TestMain:
                 tmp_path / "missing",
             ),
             patch("sys.argv", ["workflow_versions", "show"]),
+            caplog.at_level("ERROR"),
         ):
             ret = main()
         assert ret == 1
-        assert "No workflows directory" in capsys.readouterr().err
+        assert "No workflows directory" in caplog.text
 
     def test_show_json_empty(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
@@ -720,7 +700,7 @@ class TestMain:
         assert data[0]["stale"] == "yes"
 
     def test_header_goes_to_stderr(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         from workflow_versions import main
 
@@ -733,12 +713,10 @@ class TestMain:
                 "sys.argv",
                 ["workflow_versions", "show", "--offline"],
             ),
+            caplog.at_level("INFO"),
         ):
             main()
-        captured = capsys.readouterr()
-        assert "Workflow action versions" in captured.err
-        # Header should NOT be on stdout
-        assert "Workflow action versions" not in captured.out
+        assert "Workflow action versions" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -905,7 +883,7 @@ class TestUpdateComments:
         assert count == 0
 
     def test_skips_deleted_file(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         wf_dir = tmp_path / "workflows"
         wf_dir.mkdir()
@@ -929,12 +907,12 @@ class TestUpdateComments:
         with (
             patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
             patch("workflow_versions._action_description", return_value=None),
+            caplog.at_level("WARNING"),
         ):
             count = update_comments(rows)
 
         assert count == 0
-        err = capsys.readouterr().err
-        assert "Cannot read" in err
+        assert "Cannot read" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -1009,7 +987,7 @@ class TestUpgradeAction:
         assert count == 0
 
     def test_skips_deleted_file(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         wf_dir = tmp_path / "workflows"
         wf_dir.mkdir()
@@ -1037,12 +1015,12 @@ class TestUpgradeAction:
                 "workflow_versions._resolve_sha_for_tag",
                 return_value=new_sha,
             ),
+            caplog.at_level("WARNING"),
         ):
             count = upgrade_action("actions/checkout", "v4.2.0", rows)
 
         assert count == 0
-        err = capsys.readouterr().err
-        assert "Cannot read" in err
+        assert "Cannot read" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -1179,22 +1157,24 @@ class TestScanWorkflowsErrorHandling:
     """Tests for graceful handling of file errors during scanning."""
 
     def test_skips_non_utf8_file(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         wf_dir = tmp_path / "workflows"
         wf_dir.mkdir()
         # Write invalid UTF-8 bytes
         (wf_dir / "bad.yml").write_bytes(b"\xff\xfe invalid utf-8")
 
-        with patch("workflow_versions.WORKFLOWS_DIR", wf_dir):
+        with (
+            patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
+            caplog.at_level("WARNING"),
+        ):
             rows = scan_workflows(resolve_tags=False)
 
         assert rows == []
-        err = capsys.readouterr().err
-        assert "Non-UTF-8" in err
+        assert "Non-UTF-8" in caplog.text
 
     def test_skips_deleted_file_during_scan(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         wf_dir = tmp_path / "workflows"
         wf_dir.mkdir()
@@ -1214,14 +1194,14 @@ class TestScanWorkflowsErrorHandling:
         with (
             patch("workflow_versions.WORKFLOWS_DIR", wf_dir),
             patch.object(Path, "glob", patched_glob),
+            caplog.at_level("WARNING"),
         ):
             rows = scan_workflows(resolve_tags=False)
 
         # Should have scanned ci.yml successfully and skipped ghost.yml
         assert len(rows) == 1
         assert rows[0]["action"] == "actions/checkout"
-        err = capsys.readouterr().err
-        assert "disappeared" in err
+        assert "disappeared" in caplog.text
 
 
 # ---------------------------------------------------------------------------

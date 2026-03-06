@@ -68,9 +68,9 @@ import base64
 import contextlib
 import hashlib
 import json
+import logging
 import os
 import re
-import sys
 import time
 import urllib.error
 import urllib.request
@@ -87,7 +87,9 @@ Spinner = _progress.Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
+
+logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
@@ -126,11 +128,6 @@ _colors = Colors()
 _rate_limit: dict[str, int | None] = {"remaining": None}
 
 
-def _info(msg: str = "", **kwargs: Any) -> None:
-    """Print a status/progress message to stderr."""
-    print(msg, file=sys.stderr, **kwargs)
-
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -160,31 +157,21 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
         if exc.code == 403:
-            print(
-                "  [!] GitHub API rate limit reached."
+            logger.warning(
+                "GitHub API rate limit reached."
                 " Set GITHUB_TOKEN env var for 5,000 req/hr"
-                " (current: 60/hr unauthenticated).",
-                file=sys.stderr,
+                " (current: 60/hr unauthenticated)."
             )
         elif exc.code == 404:
             pass  # repo or ref not found — expected for some lookups
         else:
-            print(
-                f"  [!] GitHub API error: HTTP {exc.code} for {url}",
-                file=sys.stderr,
-            )
+            logger.warning("GitHub API error: HTTP %d for %s", exc.code, url)
         return None
     except urllib.error.URLError as exc:
-        print(
-            f"  [!] Network error: {exc.reason}",
-            file=sys.stderr,
-        )
+        logger.warning("Network error: %s", exc.reason)
         return None
     except TimeoutError:
-        print(
-            "  [!] GitHub API request timed out.",
-            file=sys.stderr,
-        )
+        logger.warning("GitHub API request timed out.")
         return None
     except json.JSONDecodeError:
         return None
@@ -551,10 +538,10 @@ def scan_workflows(
         try:
             text = wf.read_text(encoding="utf-8")
         except FileNotFoundError:
-            _info(f"  [!] File disappeared: {wf.name} (skipping)")
+            logger.warning("File disappeared: %s (skipping)", wf.name)
             continue
         except UnicodeDecodeError:
-            _info(f"  [!] Non-UTF-8 file: {wf.name} (skipping)")
+            logger.warning("Non-UTF-8 file: %s (skipping)", wf.name)
             continue
         for lineno, line in enumerate(text.splitlines(), start=1):
             m = _USES_RE.match(line)
@@ -775,12 +762,12 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
     }
     actions_needing_desc.discard("")
     if actions_needing_desc:
-        _info(f"\n  Fetching descriptions for {len(actions_needing_desc)} action(s) …")
+        logger.info("Fetching descriptions for %d action(s)", len(actions_needing_desc))
     for action in sorted(actions_needing_desc):
         if action not in desc_cache:
             desc_cache[action] = _action_description(action)
             status = desc_cache[action] or "(not found)"
-            _info(f"    {action}: {status}")
+            logger.info("  %s: %s", action, status)
 
     modified_total = 0
 
@@ -789,7 +776,7 @@ def update_comments(rows: list[dict[str, str | None]]) -> int:
         try:
             text = wf_path.read_text(encoding="utf-8")
         except (FileNotFoundError, UnicodeDecodeError) as exc:
-            _info(f"  [!] Cannot read {fname}: {exc} (skipping)")
+            logger.warning("Cannot read %s: %s (skipping)", fname, exc)
             continue
         lines = text.splitlines(keepends=True)
         modified = 0
@@ -884,7 +871,7 @@ def upgrade_action(
     slug = _repo_slug(action)
     new_sha = _resolve_sha_for_tag(slug, target_tag)
     if not new_sha:
-        _info(f"  [!] Could not resolve {target_tag} for {slug}")
+        logger.warning("Could not resolve %s for %s", target_tag, slug)
         return 0
 
     # Group affected rows by file
@@ -901,7 +888,7 @@ def upgrade_action(
         try:
             text = wf_path.read_text(encoding="utf-8")
         except (FileNotFoundError, UnicodeDecodeError) as exc:
-            _info(f"  [!] Cannot read {fname}: {exc} (skipping)")
+            logger.warning("Cannot read %s: %s (skipping)", fname, exc)
             continue
         lines = text.splitlines(keepends=True)
         modified = 0
@@ -981,13 +968,13 @@ def upgrade_all_actions(
     for action, target_tag in upgrades:
         slug = _repo_slug(action)
         bar.update(slug)
-        _info(f"  {slug}: upgrading to {target_tag} …")
+        logger.info("%s: upgrading to %s", slug, target_tag)
         count = upgrade_action(action, target_tag, rows)
         if count:
-            _info(f"    updated {count} line(s)")
+            logger.info("  updated %d line(s)", count)
             modified_total += count
         else:
-            _info("    no changes")
+            logger.info("  no changes")
     bar.finish()
 
     return modified_total
@@ -1121,15 +1108,22 @@ def main() -> int:
     command = args.command or "show"
     quiet = getattr(args, "quiet", False)
 
+    logging.basicConfig(
+        level=logging.WARNING if quiet else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
     # Initialize color support based on CLI flags
     _colors = Colors(enabled=args.color)
 
-    _info(
-        f"\n{_colors.bold('Workflow action versions')} for {_colors.cyan(ROOT.name)}\n"
+    logger.info(
+        "%s for %s",
+        _colors.bold("Workflow action versions"),
+        _colors.cyan(ROOT.name),
     )
 
     if not WORKFLOWS_DIR.is_dir():
-        _info(f"  No workflows directory found at {WORKFLOWS_DIR}")
+        logger.error("No workflows directory found at %s", WORKFLOWS_DIR)
         return 1
 
     if command == "show":
@@ -1224,20 +1218,20 @@ def main() -> int:
         dry_run = getattr(args, "dry_run", False)
 
         if dry_run:
-            _info(f"  {_colors.yellow('[DRY RUN]')} No files will be modified.\n")
+            logger.info("%s No files will be modified.", _colors.yellow("[DRY RUN]"))
 
         if action_arg:
             # Upgrade a specific action
             rows = scan_workflows(resolve_tags=True, check_latest=True)
             if not rows:
-                _info("  No SHA-pinned actions found.")
+                logger.warning("No SHA-pinned actions found.")
                 return 1
 
             # Verify the action exists in workflows
             slug = _repo_slug(action_arg)
             matching = [r for r in rows if _repo_slug(r["action"] or "") == slug]
             if not matching:
-                _info(f"  '{action_arg}' not found in workflow files.")
+                logger.warning("'%s' not found in workflow files.", action_arg)
                 return 1
 
             if version_arg:
@@ -1245,7 +1239,7 @@ def main() -> int:
             else:
                 target = matching[0].get("latest_tag")
                 if not target:
-                    _info(f"  Could not determine latest tag for {slug}.")
+                    logger.warning("Could not determine latest tag for %s.", slug)
                     return 1
 
             current = matching[0].get("resolved_tag") or matching[0].get("comment_tag")
@@ -1296,7 +1290,7 @@ def main() -> int:
                         f"    {_colors.cyan(slug)}: {current} -> {_colors.green(latest)}"
                     )
             else:
-                _info(f"\n  Upgrading {_colors.yellow(str(len(unique)))} action(s) …\n")
+                logger.info("Upgrading %s action(s)", _colors.yellow(str(len(unique))))
                 count = upgrade_all_actions(rows)
                 if count:
                     print(
@@ -1307,9 +1301,8 @@ def main() -> int:
 
     # Display remaining API rate limit
     if _rate_limit["remaining"] is not None:
-        _info(f"  GitHub API rate limit remaining: {_rate_limit['remaining']}")
+        logger.info("GitHub API rate limit remaining: %s", _rate_limit["remaining"])
 
-    _info()
     return 0
 
 

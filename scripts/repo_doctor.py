@@ -36,6 +36,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import logging
 import re
 import shutil
 import subprocess  # nosec B404
@@ -111,6 +112,8 @@ class DoctorConfig:
 _LEVEL_ORDER: dict[str, int] = {"info": 0, "warn": 1}
 
 SCRIPT_VERSION = "1.0.0"
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -329,10 +332,7 @@ def _load_profile_rules(root: Path, profiles: list[str]) -> list[Rule]:
         try:
             data = tomllib.loads(fpath.read_text(encoding="utf-8"))
         except (OSError, ValueError, TypeError) as exc:
-            print(
-                f"Warning: could not load profile {fpath.name}: {exc}",
-                file=sys.stderr,
-            )
+            logger.warning("Could not load profile %s: %s", fpath.name, exc)
             continue
         all_rules.extend(_parse_rule_entries(data.get("rule", [])))
     return all_rules
@@ -579,6 +579,11 @@ def main() -> int:
     parser = _build_parser()
     args = parser.parse_args()
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
     use_color = False if args.no_color else _supports_color(sys.stdout)
 
     # Default: check missing + staged
@@ -597,9 +602,8 @@ def main() -> int:
         rules.extend(_load_profile_rules(root, profile_names))
 
     if not rules:
-        print(
-            "Repo doctor: no rules found"
-            " (missing .repo-doctor.toml or TOML parser unavailable)."
+        logger.info(
+            "No rules found (missing .repo-doctor.toml or TOML parser unavailable)."
         )
         return 0
 

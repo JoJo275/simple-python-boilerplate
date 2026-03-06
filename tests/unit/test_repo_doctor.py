@@ -403,16 +403,15 @@ class TestLoadProfileRules:
         assert len(rules) == 2
 
     def test_invalid_profile_logs_to_stderr(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         profile_dir = tmp_path / "repo_doctor.d"
         profile_dir.mkdir()
         (profile_dir / "bad.toml").write_text("invalid [[[toml")
-        rules = _load_profile_rules(tmp_path, ["bad"])
+        with caplog.at_level("WARNING"):
+            rules = _load_profile_rules(tmp_path, ["bad"])
         assert rules == []
-        captured = capsys.readouterr()
-        assert "Warning" in captured.err
-        assert "bad.toml" in captured.err
+        assert "bad.toml" in caplog.text
 
     def test_missing_profile_ignored(self, tmp_path: Path) -> None:
         profile_dir = tmp_path / "repo_doctor.d"
@@ -765,7 +764,7 @@ class TestMain:
     """Integration-style tests for the main entry point."""
 
     def test_no_rules_prints_message(
-        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         from repo_doctor import main
 
@@ -775,10 +774,11 @@ class TestMain:
                 "repo_doctor._build_parser",
                 return_value=self._parser([]),
             ),
+            caplog.at_level("INFO"),
         ):
             ret = main()
         assert ret == 0
-        assert "no rules found" in capsys.readouterr().out
+        assert "no rules found" in caplog.text.lower()
 
     def test_all_checks_pass(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
