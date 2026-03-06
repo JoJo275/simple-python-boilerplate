@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -13,7 +14,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"
 
 from doctor import (
     SCRIPT_VERSION,
+    _collect_problems,
     _git_info,
+    _supports_color,
     check_path_exists,
     format_json,
     format_markdown,
@@ -315,3 +318,174 @@ class TestCollectDiagnostics:
         ts = info["timestamp"]
         assert isinstance(ts, str)
         assert "+00:00" in ts
+
+    def test_problems_section_present(self) -> None:
+        """Diagnostics should include a 'problems' summary section."""
+        from doctor import collect_diagnostics
+
+        info = collect_diagnostics()
+        assert "problems" in info
+        assert isinstance(info["problems"], dict)
+
+    def test_tools_include_bandit_and_deptry(self) -> None:
+        """bandit and deptry should appear in the tools section."""
+        from doctor import collect_diagnostics
+
+        info = collect_diagnostics()
+        tools = info["tools"]
+        assert isinstance(tools, dict)
+        assert "bandit" in tools
+        assert "deptry" in tools
+
+
+# ---------------------------------------------------------------------------
+# _collect_problems
+# ---------------------------------------------------------------------------
+
+
+class TestCollectProblems:
+    """Tests for the problems summary collector."""
+
+    def test_no_problems_returns_status_key(self) -> None:
+        """When everything is fine, should report 'no problems detected'."""
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {"compatible": "yes"},
+            "hooks": {
+                "pre-commit": "installed",
+                "commit-msg": "installed",
+                "pre-push": "installed",
+            },
+            "config_files": {"pyproject.toml": "present"},
+            "tools": {"ruff": "ruff 0.9.0"},
+        }
+        result = _collect_problems(info)
+        assert result == {"status": "no problems detected"}
+
+    def test_detects_no_venv(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "no"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {},
+            "hooks": {},
+            "config_files": {},
+            "tools": {},
+        }
+        result = _collect_problems(info)
+        assert "no_venv" in result
+
+    def test_detects_missing_install(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "no"},
+            "python_compat": {},
+            "hooks": {},
+            "config_files": {},
+            "tools": {},
+        }
+        result = _collect_problems(info)
+        assert "not_installed" in result
+
+    def test_detects_python_compat_failure(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {"compatible": "NO (need >=3.11)"},
+            "hooks": {},
+            "config_files": {},
+            "tools": {},
+        }
+        result = _collect_problems(info)
+        assert "python_compat" in result
+
+    def test_detects_missing_hooks(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {},
+            "hooks": {"pre-commit": "missing", "commit-msg": "installed"},
+            "config_files": {},
+            "tools": {},
+        }
+        result = _collect_problems(info)
+        assert "hooks_missing" in result
+        assert "pre-commit" in result["hooks_missing"]
+
+    def test_detects_missing_config_files(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {},
+            "hooks": {},
+            "config_files": {"mkdocs.yml": "MISSING"},
+            "tools": {},
+        }
+        result = _collect_problems(info)
+        assert "config_missing" in result
+
+    def test_detects_missing_tools(self) -> None:
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {},
+            "hooks": {},
+            "config_files": {},
+            "tools": {"ruff": "ruff 0.9.0", "mypy": "not found"},
+        }
+        result = _collect_problems(info)
+        assert "tools_missing" in result
+        assert "mypy" in result["tools_missing"]
+
+    def test_actionlint_missing_is_optional(self) -> None:
+        """actionlint is optional — should not appear in tools_missing."""
+        info: dict[str, str | dict[str, str]] = {
+            "environment": {"activated": "yes"},
+            "pip_install": {"installed": "yes"},
+            "python_compat": {},
+            "hooks": {},
+            "config_files": {},
+            "tools": {"ruff": "ruff 0.9.0", "actionlint": "not found"},
+        }
+        result = _collect_problems(info)
+        assert "tools_missing" not in result
+        assert "tools_optional" in result
+        assert "actionlint" in result["tools_optional"]
+
+
+# ---------------------------------------------------------------------------
+# _supports_color
+# ---------------------------------------------------------------------------
+
+
+class TestSupportsColor:
+    """Tests for color detection."""
+
+    def test_no_color_env_disables(self) -> None:
+        stream = MagicMock()
+        stream.isatty.return_value = True
+        with patch.dict(os.environ, {"NO_COLOR": "1"}, clear=False):
+            assert _supports_color(stream) is False
+
+    def test_force_color_env_enables(self) -> None:
+        stream = MagicMock()
+        stream.isatty.return_value = False
+        with patch.dict(os.environ, {"FORCE_COLOR": "1"}, clear=False):
+            # Remove NO_COLOR if set
+            env = os.environ.copy()
+            env.pop("NO_COLOR", None)
+            with patch.dict(os.environ, env, clear=True):
+                assert _supports_color(stream) is True
+
+    def test_tty_stream_returns_true(self) -> None:
+        stream = MagicMock()
+        stream.isatty.return_value = True
+        with patch.dict(os.environ, {}, clear=False):
+            env = os.environ.copy()
+            env.pop("NO_COLOR", None)
+            env.pop("FORCE_COLOR", None)
+            with (
+                patch.dict(os.environ, env, clear=True),
+                patch("_colors._enable_windows_ansi", return_value=True),
+            ):
+                assert _supports_color(stream) is True

@@ -76,6 +76,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
+from _colors import Colors
 from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")
@@ -118,67 +119,8 @@ _USES_RE = re.compile(
 _SEMVER_RE = re.compile(r"^v?\d+\.\d+")
 
 
-# ---------------------------------------------------------------------------
-# Color support
-# ---------------------------------------------------------------------------
-
-
-class _Colors:
-    """ANSI color codes with auto-detection and manual override."""
-
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    CYAN = "\033[36m"
-    WHITE = "\033[37m"
-
-    def __init__(self, *, enabled: bool | None = None) -> None:
-        if enabled is None:
-            enabled = self._auto_detect()
-        self.enabled = enabled
-
-    @staticmethod
-    def _auto_detect() -> bool:
-        """Enable color when stdout is a TTY and NO_COLOR is not set."""
-        if os.environ.get("NO_COLOR"):
-            return False
-        if os.environ.get("FORCE_COLOR"):
-            return True
-        return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
-
-    def _wrap(self, code: str, text: str) -> str:
-        if not self.enabled:
-            return text
-        return f"{code}{text}{self.RESET}"
-
-    def bold(self, text: str) -> str:
-        return self._wrap(self.BOLD, text)
-
-    def dim(self, text: str) -> str:
-        return self._wrap(self.DIM, text)
-
-    def red(self, text: str) -> str:
-        return self._wrap(self.RED, text)
-
-    def green(self, text: str) -> str:
-        return self._wrap(self.GREEN, text)
-
-    def yellow(self, text: str) -> str:
-        return self._wrap(self.YELLOW, text)
-
-    def blue(self, text: str) -> str:
-        return self._wrap(self.BLUE, text)
-
-    def cyan(self, text: str) -> str:
-        return self._wrap(self.CYAN, text)
-
-
-# Global instance — overridden by CLI flags
-_colors = _Colors()
+# Global color instance — overridden by CLI flags
+_colors = Colors()
 
 # Rate-limit tracking (updated by _gh_api on every successful response)
 _rate_limit: dict[str, int | None] = {"remaining": None}
@@ -1180,7 +1122,7 @@ def main() -> int:
     quiet = getattr(args, "quiet", False)
 
     # Initialize color support based on CLI flags
-    _colors = _Colors(enabled=args.color)
+    _colors = Colors(enabled=args.color)
 
     _info(
         f"\n{_colors.bold('Workflow action versions')} for {_colors.cyan(ROOT.name)}\n"

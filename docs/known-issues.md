@@ -26,6 +26,7 @@ they're resolved; add new ones as they're found.
 | **Scripts**  | `_SKIP_SCRIPTS` is hardcoded       | `generate_command_reference.py` has a hardcoded skip list. Should be configurable via `pyproject.toml` or a config file.                                                   | Low      |
 | **Tooling**  | Global pip footgun                 | Running bare `pip install <pkg>` outside a Hatch env is easy to do and silently pollutes the global Python. No guardrail beyond convention.                                | Medium   |
 | **Scripts**  | Shebang requires manual chmod      | After adding a shebang (`#!/usr/bin/env python3`) to a script, you must `git add --chmod=+x` it separately. The pre-commit hook catches it, but only at commit time.      | Low      |
+| **Scripts**  | Doctor scripts overlap              | `doctor.py`, `env_doctor.py`, and `engine.py:diagnose_environment()` all check venv status, editable install, tool availability, and pre-commit hooks independently. Color duplication resolved via `_colors.py`; remaining overlap is the check logic itself. Consider extracting shared helpers into `_doctor_common.py`. | Low      |
 
 ## Resolved
 

@@ -13,13 +13,13 @@ import pytest
 # scripts/ is not an installed package — add it to sys.path so we can import
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 
+from _colors import Colors
 from workflow_versions import (
     _USES_RE,
     SCRIPT_VERSION,
     _ansi_pad,
     _build_parser,
     _cached_gh_api,
-    _Colors,
     _info,
     _normalize_version,
     _repo_slug,
@@ -256,7 +256,7 @@ class TestVersionsEqual:
 
 
 # ---------------------------------------------------------------------------
-# _Colors
+# Colors
 # ---------------------------------------------------------------------------
 
 
@@ -264,20 +264,20 @@ class TestColors:
     """Tests for the color support class."""
 
     def test_enabled_wraps_text(self) -> None:
-        c = _Colors(enabled=True)
+        c = Colors(enabled=True)
         result = c.red("error")
         assert "\033[31m" in result
         assert "\033[0m" in result
         assert "error" in result
 
     def test_disabled_returns_plain_text(self) -> None:
-        c = _Colors(enabled=False)
+        c = Colors(enabled=False)
         assert c.red("error") == "error"
         assert c.green("ok") == "ok"
         assert c.bold("title") == "title"
 
     def test_all_color_methods(self) -> None:
-        c = _Colors(enabled=True)
+        c = Colors(enabled=True)
         for method in ("bold", "dim", "red", "green", "yellow", "blue", "cyan"):
             result = getattr(c, method)("test")
             assert "test" in result
@@ -285,7 +285,7 @@ class TestColors:
 
     def test_auto_detect_respects_no_color_env(self) -> None:
         with patch.dict("os.environ", {"NO_COLOR": "1"}, clear=False):
-            c = _Colors()
+            c = Colors()
             assert c.enabled is False
 
     def test_auto_detect_respects_force_color_env(self) -> None:
@@ -299,7 +299,7 @@ class TestColors:
             env.pop("NO_COLOR", None)
             env["FORCE_COLOR"] = "1"
             with patch.dict("os.environ", env, clear=True):
-                c = _Colors()
+                c = Colors()
                 assert c.enabled is True
 
 
@@ -753,7 +753,7 @@ class TestAnsiPad:
         assert _ansi_pad("hello", "hello") == 0
 
     def test_colored_text_returns_escape_len(self) -> None:
-        c = _Colors(enabled=True)
+        c = Colors(enabled=True)
         raw = "error"
         colored = c.red(raw)
         pad = _ansi_pad(colored, raw)
@@ -762,7 +762,7 @@ class TestAnsiPad:
         assert pad > 0
 
     def test_different_color_methods(self) -> None:
-        c = _Colors(enabled=True)
+        c = Colors(enabled=True)
         for method in ("bold", "dim", "red", "green", "yellow", "blue", "cyan"):
             raw = "test"
             colored = getattr(c, method)(raw)
