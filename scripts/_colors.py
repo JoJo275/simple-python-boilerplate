@@ -37,12 +37,13 @@ Usage::
 from __future__ import annotations
 
 import os
+import re
 import sys
 from typing import TextIO
 
-__all__ = ["Colors", "colorize", "status_icon", "supports_color"]
+__all__ = ["Colors", "colorize", "status_icon", "strip_ansi", "supports_color"]
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 
 # ---------------------------------------------------------------------------
@@ -129,6 +130,24 @@ def supports_color(stream: TextIO | None = None) -> bool:
     return True
 
 
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
+
+
+def strip_ansi(text: str) -> str:
+    """Remove all ANSI escape sequences from *text*.
+
+    Useful for writing colored output to files or comparing
+    strings that may contain escape codes.
+
+    Args:
+        text: String potentially containing ANSI codes.
+
+    Returns:
+        Plain text with all ``\\033[…m`` sequences removed.
+    """
+    return _ANSI_RE.sub("", text)
+
+
 def colorize(text: str, code: str, *, use_color: bool) -> str:
     """Wrap *text* in ANSI escape codes when *use_color* is True.
 
@@ -185,8 +204,12 @@ class Colors:
     GREEN = "\033[32m"
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
     CYAN = "\033[36m"
     WHITE = "\033[37m"
+
+    # TODO (template users): Add bright/high-intensity variants (e.g.
+    #   BRIGHT_RED = "\033[91m") if you need them for your output styling.
 
     def __init__(self, *, enabled: bool | None = None) -> None:
         if enabled is None:
@@ -225,6 +248,10 @@ class Colors:
     def blue(self, text: str) -> str:
         """Blue text (info, headers)."""
         return self._wrap(self.BLUE, text)
+
+    def magenta(self, text: str) -> str:
+        """Magenta text."""
+        return self._wrap(self.MAGENTA, text)
 
     def cyan(self, text: str) -> str:
         """Cyan text (hints, links)."""

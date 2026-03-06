@@ -26,7 +26,6 @@ import argparse
 import logging
 import re
 import subprocess  # nosec B404
-import sys
 from pathlib import Path
 
 from _imports import find_repo_root
@@ -41,6 +40,9 @@ ROOT = find_repo_root()
 CHANGELOG = ROOT / "CHANGELOG.md"
 SCRIPT_VERSION = "1.1.0"
 
+# TODO (template users): If your project uses a different changelog
+#   format (e.g. Keep a Changelog without release-please), update
+#   VERSION_HEADING_RE to match your heading style.
 # Matches release-please style headings: ## [1.2.3](url) (date) or ## 1.2.3
 VERSION_HEADING_RE = re.compile(
     r"^##\s+\[?(\d+\.\d+\.\d+(?:[a-zA-Z0-9.+-]*)?)\]?",
@@ -309,4 +311,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

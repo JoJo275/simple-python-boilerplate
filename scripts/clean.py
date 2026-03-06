@@ -42,6 +42,8 @@ SCRIPT_VERSION = "1.2.0"
 ProgressBar = import_sibling("_progress").ProgressBar
 
 # Top-level cache directories to remove
+# TODO (template users): Add any project-specific cache directories here
+#   (e.g. ".tox", ".nox", ".hypothesis") if your toolchain generates them.
 CACHE_DIRS = [
     ".cache",
     ".pytest_cache",

@@ -47,6 +47,10 @@ SCRIPT_VERSION = "1.1.0"
 DEFAULT_TODO = ROOT / "docs" / "notes" / "todo.md"
 DEFAULT_ARCHIVE = ROOT / "docs" / "notes" / "archive.md"
 
+# TODO (template users): If your project uses a different file for
+#   tracking tasks (e.g. TODO.md at root), update DEFAULT_TODO and
+#   DEFAULT_ARCHIVE paths above.
+
 log = logging.getLogger(__name__)
 
 # Matches a top-level completed item and any indented continuation lines

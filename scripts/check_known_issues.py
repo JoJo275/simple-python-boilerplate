@@ -36,7 +36,6 @@ import argparse
 import json
 import logging
 import re
-import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -310,4 +309,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
