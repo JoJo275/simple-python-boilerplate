@@ -84,6 +84,9 @@ def import_sibling(name: str) -> ModuleType:
     if name in sys.modules:
         return sys.modules[name]
     path = _SCRIPTS_DIR / f"{name}.py"
+    if not path.is_file():
+        msg = f"Cannot find module '{name}' at {path}"
+        raise ImportError(msg)
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         msg = f"Cannot find module '{name}' at {path}"

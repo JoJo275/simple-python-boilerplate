@@ -7,6 +7,22 @@ except ImportError:
     __version__ = "0.4.0"  # x-release-please-version
     # Derive tuple from the string so release-please only needs to
     # update one line.  The marker above is the single source of truth.
-    __version_tuple__ = tuple(int(x) for x in __version__.split("."))
+    # Only parse leading numeric segments; pre-release/local suffixes
+    # (e.g. 1.2.3rc1, 1.2.3+abc) get a default 0 to avoid ValueError.
+
+    def _parse_version_tuple(v: str) -> tuple[int, ...]:
+        parts: list[int] = []
+        for segment in v.split("."):
+            digits = ""
+            for ch in segment:
+                if ch.isdigit():
+                    digits += ch
+                else:
+                    break
+            parts.append(int(digits) if digits else 0)
+        return tuple(parts)
+
+    __version_tuple__ = _parse_version_tuple(__version__)
+    del _parse_version_tuple
 
 __all__ = ["__version__", "__version_tuple__"]

@@ -710,7 +710,10 @@ scoped only to the permissions you grant — no broader access than needed.
      retroactively get CI checks. You have two options:
    - **Option A (recommended):** Close the existing Release PR. The next
      push to `main` re-runs release-please, which now uses the App token
-     to create a fresh PR — CI checks will fire.
+     to create a fresh PR — CI checks will fire. **Closing the PR does not
+     lose any changes** — release-please regenerates its content by scanning
+     commits on `main`, which are the source of truth. The PR branch is a
+     derived artifact and is fully reproducible.
    - **Option B:** Merge the existing PR manually if you trust the changes
      (it only contains CHANGELOG + version bump). The next Release PR will
      use the App token correctly.

@@ -355,6 +355,10 @@ def _evaluate_rules(
     # Track paths that already have a deletion warning to avoid duplicates
     deleted_rule_paths: set[str] = set()
 
+    # Track which rules already produced a warning (by id) so we can
+    # classify the rest as passed.
+    warned_rules: set[int] = set()
+
     # Deletion warnings
     if deleted:
         for rule in rules:
@@ -363,11 +367,8 @@ def _evaluate_rules(
                 if _matches_deletion(rule.path, kind, deleted_path):
                     warnings.append(Warning(rule=rule, message=f"Deleted: {rule.path}"))
                     deleted_rule_paths.add(rule.path)
+                    warned_rules.add(id(rule))
                     break
-
-    # Track which rules already produced a warning (by id) so we can
-    # classify the rest as passed.
-    warned_rules: set[int] = set()
 
     # Rule checks
     for rule in rules:
