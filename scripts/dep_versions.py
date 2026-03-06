@@ -70,6 +70,10 @@ SCRIPT_VERSION = "1.3.0"
 ROOT = find_repo_root()
 PYPROJECT = ROOT / "pyproject.toml"
 
+# TODO (template users): If you use a monorepo with multiple
+#   pyproject.toml files, update PYPROJECT to point to the correct one
+#   or extend the script to accept a --pyproject flag.
+
 
 def _get_req_files() -> list[Path]:
     """Return requirements files, discovered fresh each call.

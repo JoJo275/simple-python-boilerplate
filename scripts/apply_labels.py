@@ -28,18 +28,19 @@ import json
 import subprocess  # nosec B404
 import sys
 import urllib.parse
-from pathlib import Path
 
-from _imports import import_sibling
+from _imports import find_repo_root, import_sibling
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
 SCRIPT_VERSION = "1.3.0"
 
-HERE = Path(__file__).resolve().parent
-ROOT = HERE.parent
+ROOT = find_repo_root()
 
 
+# TODO (template users): If you need to authenticate with a GitHub
+#   App token instead of a personal gh CLI session, update gh_exists()
+#   and the gh_api() helper to accept a --token flag.
 def run(cmd: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, text=True, capture_output=True)  # nosec B603
 

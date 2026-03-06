@@ -38,6 +38,10 @@ SCRIPT_VERSION = "1.0.0"
 # Pre-commit hook stages that this project expects installed.
 HOOK_STAGES = ("pre-commit", "commit-msg", "pre-push")
 
+# TODO (template users): If your project adds custom git hook stages
+#   (e.g. post-merge, post-checkout), add them to HOOK_STAGES above
+#   so doctor scripts can verify they're installed.
+
 
 # ---------------------------------------------------------------------------
 # Command execution

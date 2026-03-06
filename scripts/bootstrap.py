@@ -47,6 +47,10 @@ MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
 SCRIPT_VERSION = "1.1.0"
 
+# TODO (template users): Update MIN_PYTHON if your project supports
+#   a different minimum Python version. Update TOTAL_STEPS if you
+#   add or remove setup phases.
+
 # Default timeout for subprocess calls (5 minutes). Prevents hanging forever
 # if a command (e.g., hatch env create) gets stuck.
 _TIMEOUT = 300
@@ -281,6 +285,9 @@ def verify_setup(*, dry_run: bool = False) -> bool:
 
 def print_next_steps() -> None:
     """Print helpful next steps."""
+    # TODO (template users): Update the package name and URLs below
+    #   after running customize.py, or remove this function if your
+    #   bootstrap has different post-setup instructions.
     log.info("\n" + "=" * 60)
     log.info("SETUP COMPLETE")
     log.info("=" * 60)

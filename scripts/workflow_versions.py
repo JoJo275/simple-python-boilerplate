@@ -95,6 +95,9 @@ ROOT = find_repo_root()
 WORKFLOWS_DIR = ROOT / ".github" / "workflows"
 
 # Disk cache for GitHub API responses (1-hour TTL by default)
+# TODO (template users): If you self-host GitHub Enterprise, update
+#   _gh_api() to use your instance's API base URL instead of
+#   api.github.com.
 _CACHE_DIR = ROOT / ".cache" / "workflow-versions"
 _CACHE_TTL = int(os.environ.get("WV_CACHE_TTL", "3600"))  # seconds
 
