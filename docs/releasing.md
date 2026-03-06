@@ -671,7 +671,7 @@ scoped only to the permissions you grant — no broader access than needed.
    |---|---|---|
    | **Contents** | Read and write | Create git tags and GitHub Releases |
    | **Pull requests** | Read and write | Create and update the Release PR |
-   | **Metadata** | Read-only | Pre-selected, can't be changed |
+   | **Metadata** | Read-only | Preselected, can't be changed |
 
    - Leave all other permissions as **No access**
    - Under **Where can this GitHub App be installed?** select
