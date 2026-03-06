@@ -360,6 +360,8 @@ convention = "google"  # Enforce Google-style docstrings
 "src/simple_python_boilerplate/_version.py" = ["UP006", "UP007", "UP035", "I001", "RUF022"]
 # Allow print() and skip docstring rules in tests, scripts, and experiments
 "tests/**" = ["T20", "D"]
+# Dynamic module loading via importlib requires mid-file imports
+"tests/unit/test_include_templates.py" = ["T20", "D", "E402"]
 "scripts/**" = ["T20", "D"]
 "experiments/**" = ["T20", "D"]
 # CLI entry points use print() for terminal output
