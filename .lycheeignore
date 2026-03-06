@@ -48,6 +48,14 @@ https?://\[::1\][:/].*
 # Conventional commits - sometimes has certificate issues in CI
 https://www\.conventionalcommits\.org
 
+# ──────────────────────────────────────────────────────────────
+# Release-please compare URLs
+# ──────────────────────────────────────────────────────────────
+# Release-please generates compare URLs (e.g. v0.4.0...v0.5.0) in
+# CHANGELOG.md before the tag exists.  The URL 404s until the
+# release PR is merged and the tag is created.
+https://github\.com/.*/compare/v.*\.\.\.v.*
+
 # The Hitchhiker's Guide to Python - intermittent certificate errors
 https://docs\.python-guide\.org
 
