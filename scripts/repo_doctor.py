@@ -36,20 +36,22 @@ Usage::
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import shutil
 import subprocess  # nosec B404
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any
 
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore[assignment]
 
+
+from _colors import colorize as _colorize
+from _colors import supports_color as _supports_color
 
 # ---------------------------------------------------------------------------
 # Models
@@ -447,27 +449,6 @@ def _evaluate_rules(
             warned_rules.add(id(rule))
 
     return warnings, passed
-
-
-# ---------------------------------------------------------------------------
-# Color output helpers
-# ---------------------------------------------------------------------------
-
-
-def _supports_color(stream: TextIO) -> bool:
-    """Detect whether the output stream supports ANSI color."""
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("FORCE_COLOR"):
-        return True
-    return hasattr(stream, "isatty") and stream.isatty()
-
-
-def _colorize(text: str, code: str, *, use_color: bool) -> str:
-    """Wrap text in ANSI escape codes if color is enabled."""
-    if not use_color:
-        return text
-    return f"\033[{code}m{text}\033[0m"
 
 
 # ---------------------------------------------------------------------------

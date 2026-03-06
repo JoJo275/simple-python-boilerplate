@@ -11,6 +11,7 @@ Flags::
     --markdown           Output as markdown (for GitHub issues)
     --json               Output as JSON (machine-readable)
     -q, --quiet          Print a one-line summary only
+    --no-color           Disable colored output
     --version            Print version and exit
 
 Usage::
@@ -27,6 +28,7 @@ from __future__ import annotations
 import argparse
 import importlib.metadata
 import json
+import logging
 import os
 import platform
 import re
@@ -42,62 +44,35 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore[assignment]
 
-from _imports import find_repo_root
+from _colors import Colors, supports_color
+from _doctor_common import (
+    check_hook_installed,
+    check_path_exists,
+    get_package_version,
+    get_version,
+)
+from _imports import find_repo_root, import_sibling
+
+_progress = import_sibling("_progress")
+Spinner = _progress.Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "2.0.0"
+SCRIPT_VERSION = "2.4.0"
 
 ROOT = find_repo_root()
 
+log = logging.getLogger(__name__)
 
-def get_version(cmd: list[str]) -> str:
-    """Run a command and extract its version output.
-
-    Handles both PATH-based lookups (``["ruff", "--version"]``) and
-    absolute-path commands (``[sys.executable, "-m", "pip", ...]``).
-    """
-    first = cmd[0]
-    # If it's already an absolute path that exists, use it directly;
-    # otherwise look it up on PATH via shutil.which.
-    if Path(first).is_absolute() and Path(first).exists():
-        exe: str = first
-    else:
-        found = shutil.which(first)
-        if not found:
-            return "not found"
-        exe = found
-    try:
-        result = subprocess.run(  # nosec B603
-            [exe, *cmd[1:]],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        return (
-            result.stdout.strip().split("\n")[0] or result.stderr.strip().split("\n")[0]
-        )
-    except (subprocess.TimeoutExpired, OSError):
-        return "error"
+# Tools that are optional — reported but don't trigger a "problem" if missing.
+# These are typically external binaries not installed via pip.
+OPTIONAL_TOOLS = frozenset({"actionlint"})
 
 
-def get_package_version(package: str) -> str:
-    """Get installed package version."""
-    try:
-        return importlib.metadata.version(package)
-    except importlib.metadata.PackageNotFoundError:
-        return "not installed"
-
-
-def check_path_exists(path: Path) -> str:
-    """Check if a path exists and its type."""
-    if not path.exists():
-        return "missing"
-    if path.is_dir():
-        return "directory"
-    return "file"
+# get_version, get_package_version, check_path_exists, check_hook_installed
+# are imported from _doctor_common above.
 
 
 def _git_info() -> dict[str, str]:
@@ -126,7 +101,10 @@ def _git_info() -> dict[str, str]:
 
     # Dirty = uncommitted changes exist
     dirty_check = _run_git("status", "--porcelain")
-    result["dirty"] = "yes" if dirty_check else "no"
+    if dirty_check:
+        result["dirty"] = "yes (uncommitted changes in working tree)"
+    else:
+        result["dirty"] = "no (working tree clean)"
 
     return result
 
@@ -136,43 +114,32 @@ def _git_info() -> dict[str, str]:
 # ---------------------------------------------------------------------------
 
 
-def _check_hook_installed(hook_path: Path) -> str:
-    """Check if a git hook file is a real pre-commit hook (not a sample).
-
-    Returns:
-        ``"installed"`` if the hook exists and appears to be managed by
-        pre-commit, ``"sample"`` if it's a Git sample hook, ``"custom"``
-        if it's some other script, or ``"missing"`` if absent.
-    """
-    if not hook_path.is_file():
-        return "missing"
-    try:
-        content = hook_path.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
-        return "missing"
-    if "pre-commit" in content:
-        return "installed"
-    if "This sample" in content or ".sample" in hook_path.name:
-        return "sample"
-    return "custom"
-
-
 def _check_precommit_hooks(root: Path) -> dict[str, str]:
     """Check whether the three expected pre-commit hook stages are installed."""
     hooks_dir = root / ".git" / "hooks"
     return {
-        "pre-commit": _check_hook_installed(hooks_dir / "pre-commit"),
-        "commit-msg": _check_hook_installed(hooks_dir / "commit-msg"),
-        "pre-push": _check_hook_installed(hooks_dir / "pre-push"),
+        "pre-commit": check_hook_installed(hooks_dir / "pre-commit"),
+        "commit-msg": check_hook_installed(hooks_dir / "commit-msg"),
+        "pre-push": check_hook_installed(hooks_dir / "pre-push"),
     }
 
 
 def _check_editable_install() -> dict[str, str]:
     """Check if the package is importable and where it's installed from."""
+    # TODO (template users): Replace "simple-python-boilerplate" with your
+    # actual package name (the [project].name from pyproject.toml).
     result: dict[str, str] = {}
     try:
         dist = importlib.metadata.distribution("simple-python-boilerplate")
-        location = str(dist._path.parent) if hasattr(dist, "_path") else "unknown"  # type: ignore[attr-defined]
+        # Use public files() API to find install location; fall back to
+        # package metadata directory. Avoids reliance on the private
+        # dist._path attribute that may change across Python versions.
+        location = "unknown"
+        dist_files = dist.files
+        if dist_files:
+            first_file = dist_files[0]
+            located = first_file.locate()
+            location = str(located.parent) if located else "unknown"
         result["installed"] = "yes"
         result["version"] = dist.metadata["Version"] or "unknown"
         # Check if it's an editable install (src/ in the path)
@@ -267,6 +234,9 @@ def _check_python_compat(root: Path) -> dict[str, str]:
 
 def _check_key_config_files(root: Path) -> dict[str, str]:
     """Check presence of key configuration files."""
+    # TODO (template users): Update this list to match your project's
+    # key configuration files. Remove entries for tools you don't use
+    # and add any project-specific config files.
     files = {
         ".pre-commit-config.yaml": root / ".pre-commit-config.yaml",
         "Taskfile.yml": root / "Taskfile.yml",
@@ -274,12 +244,19 @@ def _check_key_config_files(root: Path) -> dict[str, str]:
         ".repo-doctor.toml": root / ".repo-doctor.toml",
         "release-please-config.json": root / "release-please-config.json",
         ".release-please-manifest.json": root / ".release-please-manifest.json",
+        "codecov.yml": root / "codecov.yml",
+        ".github/dependabot.yml": root / ".github" / "dependabot.yml",
+        "_typos.toml": root / "_typos.toml",
     }
     return {name: "present" if p.is_file() else "MISSING" for name, p in files.items()}
 
 
 def _check_hatch_env() -> dict[str, str]:
-    """Check if hatch default environment exists."""
+    """Check Hatch environments.
+
+    Lists all environments reported by ``hatch env show --json``,
+    including Hatch's internal environments (``hatch-*``).
+    """
     result: dict[str, str] = {}
     hatch_exe = shutil.which("hatch")
     if not hatch_exe:
@@ -297,7 +274,8 @@ def _check_hatch_env() -> dict[str, str]:
             try:
                 envs = json.loads(proc.stdout)
                 if isinstance(envs, dict):
-                    result["environments"] = ", ".join(sorted(envs.keys()))
+                    all_envs = sorted(envs.keys())
+                    result["environments"] = ", ".join(all_envs) if all_envs else "none"
                 elif isinstance(envs, list):
                     names = [
                         e["name"] for e in envs if isinstance(e, dict) and "name" in e
@@ -352,11 +330,18 @@ def _check_venv_activation() -> dict[str, str]:
 
 
 def collect_diagnostics() -> dict[str, str | dict[str, str]]:
-    """Collect all diagnostic information."""
+    """Collect all diagnostic information.
+
+    Shows a spinner on interactive terminals while gathering tool
+    versions and running health checks.
+    """
     info: dict[str, str | dict[str, str]] = {}
+
+    spinner = Spinner("Collecting diagnostics")
 
     # Timestamp (UTC for unambiguous reports)
     info["timestamp"] = datetime.now(tz=UTC).isoformat()
+    spinner.update("timestamp")
 
     # System
     info["system"] = {
@@ -367,11 +352,15 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
         "python_path": sys.executable,
         "python_bits": "64-bit" if sys.maxsize > 2**32 else "32-bit",
     }
+    spinner.update("system info")
 
     # Virtual Environment (enhanced)
     info["environment"] = _check_venv_activation()
+    spinner.update("environment")
 
     # Tool versions — collected in parallel to reduce wall-clock time
+    # TODO (template users): Update this tool list to match your project's
+    # toolchain. Remove tools you don't use and add any project-specific ones.
     tool_cmds: dict[str, list[str]] = {
         "hatch": ["hatch", "--version"],
         "pip": [sys.executable, "-m", "pip", "--version"],
@@ -380,6 +369,8 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
         "mypy": ["mypy", "--version"],
         "pytest": ["pytest", "--version"],
         "pre-commit": ["pre-commit", "--version"],
+        "bandit": ["bandit", "--version"],
+        "deptry": ["deptry", "--version"],
         "git": ["git", "--version"],
         "actionlint": ["actionlint", "--version"],
         "cz": ["cz", "version"],
@@ -391,18 +382,22 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
             pool.submit(get_version, cmd): name for name, cmd in tool_cmds.items()
         }
         for future in as_completed(futures):
-            tools[futures[future]] = future.result()
+            name = futures[future]
+            tools[name] = future.result()
+            spinner.update(name)
 
     # Preserve a stable key order (same as tool_cmds definition)
     info["tools"] = {name: tools[name] for name in tool_cmds}
 
     # Git repository — also collected in parallel with tools above
     info["git"] = _git_info()
+    spinner.update("git info")
 
     # Package status
     info["package"] = {
         "simple-python-boilerplate": get_package_version("simple-python-boilerplate"),
     }
+    spinner.update("package status")
 
     # Key paths
     info["paths"] = {
@@ -418,6 +413,7 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
         ),
         ".git/hooks/pre-push": check_path_exists(ROOT / ".git" / "hooks" / "pre-push"),
     }
+    spinner.update("paths")
 
     # -----------------------------------------------------------------------
     # Health checks
@@ -425,34 +421,142 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
 
     # Pre-commit hook installation
     info["hooks"] = _check_precommit_hooks(ROOT)
+    spinner.update("hooks")
 
-    # Editable install check
-    info["install"] = _check_editable_install()
+    # Editable install check — whether the package is pip-installed
+    # (so that `import simple_python_boilerplate` works)
+    info["pip_install"] = _check_editable_install()
+    spinner.update("install check")
 
     # Python version compatibility
     info["python_compat"] = _check_python_compat(ROOT)
+    spinner.update("python compat")
 
     # pyproject.toml validation
     info["pyproject"] = _check_pyproject(ROOT)
+    spinner.update("pyproject")
 
     # Key config files
     info["config_files"] = _check_key_config_files(ROOT)
+    spinner.update("config files")
 
     # Hatch environment status
     info["hatch_envs"] = _check_hatch_env()
+    spinner.update("hatch envs")
+
+    # Summary — surface problems so callers don't have to scan every section
+    info["problems"] = _collect_problems(info)
+
+    spinner.finish()
 
     return info
 
 
-def format_plain(info: dict[str, str | dict[str, str]]) -> str:
-    """Format diagnostics as plain text."""
-    lines = ["=" * 60, "DIAGNOSTICS REPORT", "=" * 60, ""]
+def _collect_problems(info: dict[str, str | dict[str, str]]) -> dict[str, str]:
+    """Scan collected diagnostics and flag potential issues."""
+    problems: dict[str, str] = {}
+
+    # Environment: no venv active
+    env = info.get("environment", {})
+    if isinstance(env, dict) and env.get("activated") == "no":
+        problems["no_venv"] = "No virtual environment active"
+
+    # Install: package not installed
+    install = info.get("pip_install", {})
+    if isinstance(install, dict) and install.get("installed") == "no":
+        problems["not_installed"] = "Package not installed (editable install missing)"
+
+    # Python compatibility
+    compat = info.get("python_compat", {})
+    if isinstance(compat, dict) and compat.get("compatible", "").startswith("NO"):
+        problems["python_compat"] = compat["compatible"]
+
+    # Pre-commit hooks not installed
+    hooks = info.get("hooks", {})
+    if isinstance(hooks, dict):
+        missing_hooks = [k for k, v in hooks.items() if v != "installed"]
+        if missing_hooks:
+            problems["hooks_missing"] = (
+                f"Pre-commit hooks not installed: {', '.join(missing_hooks)}"
+            )
+
+    # Missing config files
+    cfg = info.get("config_files", {})
+    if isinstance(cfg, dict):
+        missing_files = [k for k, v in cfg.items() if v == "MISSING"]
+        if missing_files:
+            problems["config_missing"] = (
+                f"Config files missing: {', '.join(missing_files)}"
+            )
+
+    # Tools not found (skip optional tools like actionlint)
+    tools = info.get("tools", {})
+    if isinstance(tools, dict):
+        missing_tools = [
+            k for k, v in tools.items() if v == "not found" and k not in OPTIONAL_TOOLS
+        ]
+        if missing_tools:
+            problems["tools_missing"] = f"Tools not found: {', '.join(missing_tools)}"
+        # Report optional tools separately as info, not a problem
+        optional_missing = [
+            k for k, v in tools.items() if v == "not found" and k in OPTIONAL_TOOLS
+        ]
+        if optional_missing:
+            problems["tools_optional"] = (
+                f"Optional tools not found: {', '.join(optional_missing)}"
+            )
+
+    if not problems:
+        problems["status"] = "no problems detected"
+
+    return problems
+
+
+def format_plain(
+    info: dict[str, str | dict[str, str]],
+    *,
+    use_color: bool = False,
+) -> str:
+    """Format diagnostics as plain text with optional color."""
+    c = Colors(enabled=use_color)
+    lines = [
+        c.bold("=" * 60),
+        c.bold("DIAGNOSTICS REPORT"),
+        c.bold("=" * 60),
+        "",
+    ]
+
+    # Human-friendly section labels
+    _section_labels = {
+        "pip_install": "PIP_INSTALL (is the package pip-installed?)",
+    }
 
     for section, data in info.items():
-        lines.append(f"[{section.upper()}]")
+        display_name = _section_labels.get(section, section.upper())
+        header = f"[{display_name}]"
+        # Color the problems section differently
+        if section == "problems":
+            has_issues = isinstance(data, dict) and "status" not in data
+            header = c.red(header) if has_issues else c.green(header)
+        else:
+            header = c.cyan(header)
+        lines.append(header)
         if isinstance(data, dict):
             for key, value in data.items():
-                lines.append(f"  {key}: {value}")
+                val_str = str(value)
+                # Highlight problematic values
+                if val_str in ("missing", "MISSING", "no", "N/A", "not found", "error"):
+                    val_str = c.red(val_str)
+                elif val_str.startswith(("yes", "installed", "present")) or val_str in (
+                    "file",
+                    "directory",
+                ):
+                    val_str = c.green(val_str)
+                elif val_str.startswith("NO ") or val_str.startswith("no "):
+                    val_str = c.red(val_str)
+                elif key == "tools_optional":
+                    val_str = c.yellow(val_str)
+                lines.append(f"  {c.dim(key + ':')} {val_str}")
         else:
             lines.append(f"  {data}")
         lines.append("")
@@ -484,6 +588,14 @@ def format_markdown(info: dict[str, str | dict[str, str]]) -> str:
 def format_json(info: dict[str, str | dict[str, str]]) -> str:
     """Format diagnostics as JSON for scripting and automation."""
     return json.dumps(info, indent=2)
+
+
+# ---------------------------------------------------------------------------
+# Color output helpers (delegated to shared _colors module)
+# ---------------------------------------------------------------------------
+
+# Re-export for backward compatibility and tests
+_supports_color = supports_color
 
 
 def main() -> int:
@@ -521,26 +633,46 @@ def main() -> int:
         action="store_true",
         help="Print a one-line summary only",
     )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored output",
+    )
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+    )
 
     info = collect_diagnostics()
 
+    use_color = False if args.no_color else supports_color()
+
+    # Quiet mode: summarise problems instead of blindly claiming "all OK"
     if args.quiet:
-        section_count = len(info)
-        output = f"doctor {SCRIPT_VERSION} — {section_count} sections collected, all OK"
+        problems = info.get("problems", {})
+        c = Colors(enabled=use_color)
+        if isinstance(problems, dict) and "status" in problems:
+            output = c.green(f"doctor {SCRIPT_VERSION} \u2014 no problems detected")
+        else:
+            count = len(problems) if isinstance(problems, dict) else 0
+            output = c.yellow(
+                f"doctor {SCRIPT_VERSION} \u2014 {count} problem(s) found"
+            )
     elif args.json:
         output = format_json(info)
     elif args.markdown:
         output = format_markdown(info)
     else:
-        output = format_plain(info)
+        output = format_plain(info, use_color=use_color)
 
     print(output)
 
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(output, encoding="utf-8")
-        print(f"\nSaved to: {args.output}")
+        log.info("Saved to: %s", args.output)
 
     return 0
 

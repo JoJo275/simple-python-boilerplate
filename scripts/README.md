@@ -11,6 +11,7 @@ Utility scripts for development and maintenance.
 | -------------------------------------------------- | ------------------------------------------------------------------------ |
 | [_imports.py](_imports.py)                         | Shared import helper for loading sibling modules safely                  |
 | [_progress.py](_progress.py)                       | Shared progress-indicator utilities (ProgressBar, Spinner)               |
+| [_colors.py](_colors.py)                           | Shared ANSI color utilities (color detection, Colors class)              |
 | [apply_labels.py](apply_labels.py)                 | Apply GitHub labels from JSON                                            |
 | [apply-labels.sh](apply-labels.sh)                 | Shell wrapper for label application                                      |
 | [archive_todos.py](archive_todos.py)               | Archive completed TODO items from todo.md                                |

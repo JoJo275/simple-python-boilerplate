@@ -13,12 +13,12 @@ import pytest
 # scripts/ is not an installed package — add it to sys.path so we can import
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 
+from _colors import colorize as _colorize
 from env_doctor import (
     EXPECTED_TOOLS,
     OPTIONAL_TOOLS,
     SCRIPT_VERSION,
     _collect_results,
-    _colorize,
     _icon,
     _supports_color,
     check_architecture,
@@ -140,28 +140,24 @@ class TestCheckEditableInstall:
     """Tests for editable install check."""
 
     def test_passes_when_installed(self) -> None:
-        with patch("env_doctor.importlib.metadata.version", return_value="1.0.0"):
+        with patch("env_doctor.get_package_version", return_value="1.0.0"):
             passed, msg = check_editable_install()
         assert passed
         assert "1.0.0" in msg
 
     def test_fails_when_not_installed(self) -> None:
-        import importlib.metadata
-
         with patch(
-            "env_doctor.importlib.metadata.version",
-            side_effect=importlib.metadata.PackageNotFoundError,
+            "env_doctor.get_package_version",
+            return_value="not installed",
         ):
             passed, _msg = check_editable_install()
         assert not passed
 
     def test_suggests_hatch_shell(self) -> None:
         """Fix suggestion should mention hatch shell, not just pip."""
-        import importlib.metadata
-
         with patch(
-            "env_doctor.importlib.metadata.version",
-            side_effect=importlib.metadata.PackageNotFoundError,
+            "env_doctor.get_package_version",
+            return_value="not installed",
         ):
             _, msg = check_editable_install()
         assert "hatch shell" in msg
@@ -367,7 +363,9 @@ class TestCheckPreCommitHooks:
         hooks_dir = tmp_path / "hooks"
         hooks_dir.mkdir()
         for name in ("pre-commit", "commit-msg", "pre-push"):
-            (hooks_dir / name).touch()
+            (hooks_dir / name).write_text(
+                "#!/bin/sh\n# pre-commit hook\n", encoding="utf-8"
+            )
 
         fake_hooks = {
             "pre-commit": hooks_dir / "pre-commit",
@@ -403,7 +401,10 @@ class TestSupportsColor:
     def test_tty_enables_color(self) -> None:
         mock_stream = MagicMock()
         mock_stream.isatty.return_value = True
-        with patch.dict("os.environ", {}, clear=True):
+        with (
+            patch.dict("os.environ", {}, clear=True),
+            patch("_colors._enable_windows_ansi", return_value=True),
+        ):
             assert _supports_color(mock_stream) is True
 
     def test_non_tty_disables_color(self) -> None:

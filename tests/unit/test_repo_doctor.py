@@ -75,7 +75,10 @@ class TestSupportsColor:
     def test_tty_stream_returns_true(self) -> None:
         stream = MagicMock()
         stream.isatty.return_value = True
-        with patch.dict("os.environ", {}, clear=True):
+        with (
+            patch.dict("os.environ", {}, clear=True),
+            patch("_colors._enable_windows_ansi", return_value=True),
+        ):
             assert _supports_color(stream) is True
 
     def test_non_tty_stream_returns_false(self) -> None:

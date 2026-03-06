@@ -1,0 +1,243 @@
+"""Shared ANSI color utilities for scripts.
+
+Provides terminal color detection, colorization helpers, and a
+convenience class for styled output.  All scripts that produce
+colored terminal output should import from here instead of
+re-implementing color logic.
+
+The module respects the ``NO_COLOR`` / ``FORCE_COLOR`` environment
+variables (see https://no-color.org/) and auto-detects TTY support.
+
+Usage::
+
+    from _colors import Colors, supports_color
+
+    # Quick one-off colorization
+    c = Colors()                       # auto-detect TTY
+    print(c.green("All checks passed!"))
+    print(c.bold("Section Header"))
+
+    # Force color on/off via CLI flag
+    c = Colors(enabled=not args.no_color)
+
+    # Low-level: wrap text with a raw ANSI code
+    from _colors import colorize
+    print(colorize("warning text", "33", use_color=True))
+
+    # Status icons for pass/fail/warn output
+    from _colors import status_icon
+    print(f"  [{status_icon('PASS', use_color=True)}] check passed")
+
+.. note::
+    This is a shared internal module (prefixed with ``_``). It is excluded
+    from the command reference generator and is not intended as a standalone
+    CLI. See ADR 031 for script conventions.
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from typing import TextIO
+
+__all__ = ["Colors", "colorize", "status_icon", "supports_color"]
+
+SCRIPT_VERSION = "1.1.0"
+
+
+# ---------------------------------------------------------------------------
+# Windows ANSI support
+# ---------------------------------------------------------------------------
+
+_win_vt_enabled: bool | None = None  # sentinel: None = not yet tried
+
+
+def _enable_windows_ansi() -> bool:
+    """Try to enable Virtual Terminal Processing on Windows.
+
+    On Windows 10 1607+ the console supports ANSI escape sequences, but
+    the feature must be explicitly enabled via ``SetConsoleMode``.  If the
+    call fails (older Windows, or redirected handle), we return False so
+    callers can fall back to plain text.
+
+    Returns:
+        True if ANSI escapes should work, False otherwise.
+    """
+    global _win_vt_enabled
+    if _win_vt_enabled is not None:
+        return _win_vt_enabled
+
+    try:
+        import ctypes
+        import ctypes.wintypes
+
+        STD_OUTPUT_HANDLE = -11
+        ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+
+        kernel32 = ctypes.windll.kernel32  # type: ignore[union-attr]
+        handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+        if handle == -1:
+            _win_vt_enabled = False
+            return False
+
+        mode = ctypes.wintypes.DWORD()
+        if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            _win_vt_enabled = False
+            return False
+
+        new_mode = mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        result = kernel32.SetConsoleMode(handle, new_mode)
+        _win_vt_enabled = bool(result)
+    except (AttributeError, OSError, ValueError):
+        # Not Windows, or ctypes unavailable, or console not available
+        _win_vt_enabled = False
+
+    return _win_vt_enabled
+
+
+# ---------------------------------------------------------------------------
+# Low-level helpers
+# ---------------------------------------------------------------------------
+
+
+def supports_color(stream: TextIO | None = None) -> bool:
+    """Detect whether *stream* supports ANSI color escape sequences.
+
+    Checks (in order):
+    1. ``NO_COLOR`` env var → disable
+    2. ``FORCE_COLOR`` env var → enable
+    3. On Windows, attempt to enable Virtual Terminal Processing;
+       if it fails the console cannot render ANSI codes → disable.
+    4. Stream is a TTY → enable
+
+    Args:
+        stream: Output stream to test.  Defaults to ``sys.stdout``.
+
+    Returns:
+        True if color is likely supported.
+    """
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    s = stream or sys.stdout
+    if not (hasattr(s, "isatty") and s.isatty()):
+        return False
+    # On Windows, ANSI support requires VT processing to be enabled
+    if sys.platform == "win32":
+        return _enable_windows_ansi()
+    return True
+
+
+def colorize(text: str, code: str, *, use_color: bool) -> str:
+    """Wrap *text* in ANSI escape codes when *use_color* is True.
+
+    Args:
+        text: The text to colorize.
+        code: ANSI SGR code string (e.g. ``"32"`` for green,
+              ``"1;31"`` for bold red).
+        use_color: Whether to actually apply the escape codes.
+
+    Returns:
+        Colorized string, or plain *text* when color is disabled.
+    """
+    if not use_color:
+        return text
+    return f"\033[{code}m{text}\033[0m"
+
+
+def status_icon(status: str, *, use_color: bool) -> str:
+    """Return a colored PASS / FAIL / WARN label.
+
+    Args:
+        status: One of ``"PASS"``, ``"FAIL"``, ``"WARN"``.
+        use_color: Whether to apply color.
+
+    Returns:
+        The status string, optionally wrapped in green/red/yellow.
+    """
+    codes = {"PASS": "32", "FAIL": "31", "WARN": "33"}  # nosec B105
+    return colorize(status, codes.get(status, "0"), use_color=use_color)
+
+
+# ---------------------------------------------------------------------------
+# High-level Colors class
+# ---------------------------------------------------------------------------
+
+
+class Colors:
+    """Convenience wrapper for named ANSI styles with auto-detection.
+
+    Instantiate once and call methods to wrap text::
+
+        c = Colors()              # auto-detect
+        c = Colors(enabled=True)  # force on
+        print(c.green("ok"), c.red("fail"))
+
+    When ``enabled`` is False every method returns its input unchanged,
+    so callers don't need conditional logic.
+    """
+
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
+
+    def __init__(self, *, enabled: bool | None = None) -> None:
+        if enabled is None:
+            enabled = supports_color()
+        self.enabled = enabled
+
+    # -- internal ------------------------------------------------------------
+
+    def _wrap(self, code: str, text: str) -> str:
+        if not self.enabled:
+            return text
+        return f"{code}{text}{self.RESET}"
+
+    # -- public convenience --------------------------------------------------
+
+    def bold(self, text: str) -> str:
+        """Bold text."""
+        return self._wrap(self.BOLD, text)
+
+    def dim(self, text: str) -> str:
+        """Dim / faint text."""
+        return self._wrap(self.DIM, text)
+
+    def red(self, text: str) -> str:
+        """Red text (errors, failures)."""
+        return self._wrap(self.RED, text)
+
+    def green(self, text: str) -> str:
+        """Green text (success, pass)."""
+        return self._wrap(self.GREEN, text)
+
+    def yellow(self, text: str) -> str:
+        """Yellow text (warnings)."""
+        return self._wrap(self.YELLOW, text)
+
+    def blue(self, text: str) -> str:
+        """Blue text (info, headers)."""
+        return self._wrap(self.BLUE, text)
+
+    def cyan(self, text: str) -> str:
+        """Cyan text (hints, links)."""
+        return self._wrap(self.CYAN, text)
+
+    def white(self, text: str) -> str:
+        """Explicit white text."""
+        return self._wrap(self.WHITE, text)
+
+    def icon(self, status: str) -> str:
+        """Colored PASS / FAIL / WARN label.
+
+        Convenience alias for :func:`status_icon` using this
+        instance's ``enabled`` flag.
+        """
+        return status_icon(status, use_color=self.enabled)

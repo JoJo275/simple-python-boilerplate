@@ -31,23 +31,26 @@ Usage::
 from __future__ import annotations
 
 import argparse
-import importlib.metadata
 import json
 import os
 import shutil
 import struct
 import subprocess  # nosec B404
 import sys
+import time
 from pathlib import Path
-from typing import TextIO
 
+from _colors import Colors
+from _colors import status_icon as _icon
+from _colors import supports_color as _supports_color
+from _doctor_common import check_hook_installed, get_package_version, get_version
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.2.0"
 
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
@@ -114,14 +117,13 @@ def check_editable_install() -> tuple[bool, str]:
     Returns:
         Tuple of (passed, message).
     """
-    try:
-        version = importlib.metadata.version("simple-python-boilerplate")
-        return True, f"Editable install OK (v{version})"
-    except importlib.metadata.PackageNotFoundError:
+    version = get_package_version("simple-python-boilerplate")
+    if version == "not installed":
         return (
             False,
             "Package not installed — run: hatch shell (or pip install -e '.[dev]')",
         )
+    return True, f"Editable install OK (v{version})"
 
 
 def check_tool_available(tool: str) -> tuple[bool, str]:
@@ -144,20 +146,16 @@ def check_hatch() -> tuple[bool, str]:
     Returns:
         Tuple of (passed, message).
     """
-    hatch = shutil.which("hatch")
-    if not hatch:
+    version = get_version(["hatch", "--version"])
+    if version == "not found":
         return False, "Hatch not found — install: pipx install hatch"
-    try:
-        result = subprocess.run(  # nosec B603
-            [hatch, "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        version = result.stdout.strip()
-        return True, f"Hatch {version}"
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    if version == "error":
         return False, "Hatch found but failed to run"
+    # hatch --version outputs "Hatch, version X.Y.Z" — avoid
+    # prefixing with "Hatch" again
+    if version.lower().startswith("hatch"):
+        return True, version
+    return True, f"Hatch {version}"
 
 
 def check_task() -> tuple[bool, str]:
@@ -175,6 +173,10 @@ def check_task() -> tuple[bool, str]:
 def check_pre_commit_hooks() -> tuple[bool, str]:
     """Check if all pre-commit hook stages are installed.
 
+    Uses :func:`_doctor_common.check_hook_installed` for detailed
+    hook status detection (distinguishes installed, sample, custom,
+    and missing hooks).
+
     Returns:
         Tuple of (passed, message).
     """
@@ -182,7 +184,8 @@ def check_pre_commit_hooks() -> tuple[bool, str]:
     missing: list[str] = []
 
     for name, path in HOOK_FILES.items():
-        if path.exists():
+        status = check_hook_installed(path)
+        if status == "installed":
             installed.append(name)
         else:
             missing.append(name)
@@ -266,54 +269,6 @@ CHECKS = [
     ("Task runner", check_task),
     ("Pre-commit hooks", check_pre_commit_hooks),
 ]
-
-
-# ---------------------------------------------------------------------------
-# Color output helpers
-# ---------------------------------------------------------------------------
-
-
-def _supports_color(stream: TextIO) -> bool:
-    """Detect whether the output stream supports ANSI color.
-
-    Returns:
-        True if color is likely supported.
-    """
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("FORCE_COLOR"):
-        return True
-    return hasattr(stream, "isatty") and stream.isatty()
-
-
-def _colorize(text: str, code: str, *, use_color: bool) -> str:
-    """Wrap text in ANSI escape codes if color is enabled.
-
-    Args:
-        text: The text to colorize.
-        code: ANSI color code (e.g. '32' for green).
-        use_color: Whether to apply color.
-
-    Returns:
-        Colorized string, or plain text if color is disabled.
-    """
-    if not use_color:
-        return text
-    return f"\033[{code}m{text}\033[0m"
-
-
-def _icon(status: str, *, use_color: bool) -> str:
-    """Return a colored status icon.
-
-    Args:
-        status: One of 'PASS', 'FAIL', 'WARN'.
-        use_color: Whether to apply color.
-
-    Returns:
-        Formatted status string.
-    """
-    colors = {"PASS": "32", "FAIL": "31", "WARN": "33"}  # nosec
-    return _colorize(status, colors.get(status, "0"), use_color=use_color)
 
 
 def _collect_results(
@@ -405,40 +360,43 @@ def run_checks(
         return 1 if failures else 0
 
     use_color = color if color is not None else _supports_color(sys.stdout)
+    c = Colors(enabled=use_color)
 
-    print(_colorize("Environment Health Check", "1", use_color=use_color))
-    print("=" * 50)
+    elapsed_start = time.monotonic()
+
+    print()
+    print(c.bold("Environment Health Check"))
+    print(c.dim("=" * 50))
 
     # Core checks
     for r in results:
         if r["group"] == "core":
             print(
                 f"  [{_icon(r['status'], use_color=use_color)}]"
-                f" {r['name']}: {r['message']}"
+                f" {c.dim(r['name'] + ':')} {r['message']}"
             )
 
     # Dev tool checks
     print()
-    print(_colorize("Development Tools", "1", use_color=use_color))
-    print("-" * 50)
+    print(c.bold("Development Tools"))
+    print(c.dim("-" * 50))
     for r in results:
         if r["group"] in ("tools", "optional"):
             print(f"  [{_icon(r['status'], use_color=use_color)}] {r['message']}")
 
     # Summary
+    elapsed = time.monotonic() - elapsed_start
     print()
     total = len(results)
     passed_count = total - failures
     if failures == 0:
-        print(_colorize(f"All {total} checks passed!", "32", use_color=use_color))
+        summary = f"All {total} checks passed!"
+        print(c.green(summary))
     else:
-        print(
-            _colorize(
-                f"{passed_count}/{total} checks passed, {failures} failed",
-                "31",
-                use_color=use_color,
-            )
-        )
+        summary = f"{passed_count}/{total} checks passed, {failures} failed"
+        print(c.red(summary))
+    print(c.dim(f"Completed in {elapsed:.1f}s"))
+    print()
 
     return 1 if failures else 0
 
