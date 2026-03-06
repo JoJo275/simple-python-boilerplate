@@ -31,6 +31,7 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
 import json
 import os
 import shutil
@@ -112,18 +113,49 @@ def check_venv_active() -> tuple[bool, str]:
 
 
 def check_editable_install() -> tuple[bool, str]:
-    """Check if the project is installed in editable mode.
+    """Check if the project is installed (ideally in editable mode).
+
+    Uses PEP 610 ``direct_url.json`` (via ``importlib.metadata``) to
+    detect editable installs.  Falls back to checking whether the
+    package's ``__file__`` points into the repo's ``src/`` tree.
 
     Returns:
         Tuple of (passed, message).
     """
-    version = get_package_version("simple-python-boilerplate")
+    pkg = "simple-python-boilerplate"
+    version = get_package_version(pkg)
     if version == "not installed":
         return (
             False,
             "Package not installed — run: hatch shell (or pip install -e '.[dev]')",
         )
-    return True, f"Editable install OK (v{version})"
+
+    # --- PEP 610: check direct_url.json for editable marker -----------
+    try:
+        import json as _json
+
+        dist = importlib.metadata.distribution(pkg)
+        du_text = dist.read_text("direct_url.json")
+        if du_text:
+            du = _json.loads(du_text)
+            if du.get("dir_info", {}).get("editable", False):
+                return True, f"Editable install OK (v{version})"
+            return True, f"Installed v{version} (non-editable direct install)"
+    except (importlib.metadata.PackageNotFoundError, KeyError, ValueError):
+        pass
+
+    # --- Fallback: check if imported module lives in src/ tree ---------
+    try:
+        import simple_python_boilerplate as _spb
+
+        mod_path = Path(_spb.__file__).resolve()
+        src_dir = ROOT / "src"
+        if src_dir.exists() and src_dir.resolve() in mod_path.parents:
+            return True, f"Editable install OK (v{version})"
+    except (ImportError, AttributeError, TypeError):
+        pass
+
+    return True, f"Installed v{version} (may not be editable)"
 
 
 def check_tool_available(tool: str) -> tuple[bool, str]:
