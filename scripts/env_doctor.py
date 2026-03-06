@@ -41,6 +41,7 @@ import struct
 import subprocess  # nosec B404
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from _colors import Colors
@@ -48,6 +49,7 @@ from _colors import status_icon as _icon
 from _colors import supports_color as _supports_color
 from _doctor_common import check_hook_installed, get_package_version, get_version
 from _imports import find_repo_root
+from _progress import ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -448,13 +450,23 @@ OPTIONAL_CHECKS = [
 ]
 
 
+def _total_check_count() -> int:
+    """Return the total number of checks that will run."""
+    return (
+        len(CHECKS) + len(EXPECTED_TOOLS) + len(OPTIONAL_TOOLS) + len(OPTIONAL_CHECKS)
+    )
+
+
 def _collect_results(
     strict: bool = False,
+    on_progress: Callable[[str], None] | None = None,
 ) -> tuple[list[dict[str, str]], int]:
     """Run all checks and collect structured results.
 
     Args:
         strict: If True, treat optional items as required.
+        on_progress: Optional callback invoked with the check name
+            after each check completes (drives the progress bar).
 
     Returns:
         Tuple of (list of result dicts, failure count).
@@ -471,6 +483,10 @@ def _collect_results(
     results: list[dict[str, str]] = []
     failures = 0
 
+    def _tick(name: str) -> None:
+        if on_progress:
+            on_progress(name)
+
     # Core checks
     for name, check_fn in CHECKS:
         passed, msg = check_fn()
@@ -483,6 +499,7 @@ def _collect_results(
         results.append(
             {"name": name, "status": status, "message": msg, "group": "core"}
         )
+        _tick(name)
 
     # Required dev tools
     for tool in EXPECTED_TOOLS:
@@ -493,6 +510,7 @@ def _collect_results(
         results.append(
             {"name": tool, "status": status, "message": msg, "group": "tools"}
         )
+        _tick(tool)
 
     # Optional tools
     for tool in OPTIONAL_TOOLS:
@@ -509,6 +527,7 @@ def _collect_results(
                 "group": "optional",
             }
         )
+        _tick(tool)
 
     # Optional checks (richer than simple tool lookup)
     for name, check_fn in OPTIONAL_CHECKS:
@@ -520,6 +539,7 @@ def _collect_results(
         results.append(
             {"name": name, "status": status, "message": msg, "group": "optional"}
         )
+        _tick(name)
 
     return results, failures
 
@@ -540,7 +560,23 @@ def run_checks(
     Returns:
         Exit code: 0 if all passed, 1 if any failed.
     """
-    results, failures = _collect_results(strict)
+    elapsed_start = time.monotonic()
+
+    # Show a progress bar while checks run (interactive terminals only).
+    # JSON mode skips the bar since only machine-readable output matters.
+    total = _total_check_count()
+    bar: ProgressBar | None = None
+    if not output_json:
+        bar = ProgressBar(total=total, label="Checking")
+
+    def _on_progress(name: str) -> None:
+        if bar is not None:
+            bar.update(name)
+
+    results, failures = _collect_results(strict, on_progress=_on_progress)
+
+    if bar is not None:
+        bar.finish()
 
     if output_json:
         total = len(results)
@@ -557,8 +593,6 @@ def run_checks(
 
     use_color = color if color is not None else _supports_color(sys.stdout)
     c = Colors(enabled=use_color)
-
-    elapsed_start = time.monotonic()
 
     print()
     print(c.bold("Environment Health Check"))
