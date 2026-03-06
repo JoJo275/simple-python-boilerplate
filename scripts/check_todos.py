@@ -39,6 +39,9 @@ from _imports import find_repo_root
 
 ROOT = find_repo_root()
 SCRIPT_VERSION = "1.1.0"
+# TODO (template users): Change DEFAULT_PATTERN if your project uses a
+#   different convention for TODO markers (e.g., "FIXME", "HACK", or
+#   "TODO (fork users)").
 DEFAULT_PATTERN = "TODO (template users)"
 
 # Directory names to skip (exact path-component match).

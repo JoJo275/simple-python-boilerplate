@@ -628,6 +628,9 @@ The package version comes from **git tags** via hatch-vcs:
 
 ## Troubleshooting
 
+> For general project troubleshooting (installation, Hatch, pre-commit, etc.),
+> see the [Troubleshooting & FAQ](guide/troubleshooting.md) guide.
+
 ### CI Checks Not Running on Release PR
 
 GitHub Actions has an anti-recursion safeguard: when a workflow creates or
