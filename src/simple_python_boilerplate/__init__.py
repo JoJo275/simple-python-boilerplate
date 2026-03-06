@@ -4,7 +4,7 @@
 try:
     from simple_python_boilerplate._version import __version__, __version_tuple__
 except ImportError:
-    __version__ = "0.4.0"  # x-release-please-version
+    __version__ = "0.5.0"  # x-release-please-version
     # Derive tuple from the string so release-please only needs to
     # update one line.  The marker above is the single source of truth.
     # Only parse leading numeric segments; pre-release/local suffixes
