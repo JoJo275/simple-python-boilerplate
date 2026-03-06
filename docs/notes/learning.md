@@ -1300,6 +1300,88 @@ updates:
 
 ---
 
+## GitHub Apps
+
+### What Is a GitHub App?
+
+A **GitHub App** is a first-class integration identity on GitHub — essentially a bot account with its own name, avatar, and finely scoped permissions. Unlike a personal access token (PAT) which is tied to a human user's account, a GitHub App is an independent entity that acts on its own behalf.
+
+When you see automated commits, PR comments, or status checks from names like `dependabot[bot]`, `github-actions[bot]`, or `renovate[bot]` — those are all GitHub Apps.
+
+### GitHub Apps vs Personal Access Tokens (PATs)
+
+| | GitHub App | Personal Access Token (PAT) |
+|---|---|---|
+| **Identity** | Independent bot identity | Tied to a human user account |
+| **Token lifetime** | Short-lived (1 hour, auto-expires) | Long-lived (up to no expiration) |
+| **Permission scope** | Fine-grained per-repository permissions | Broad (classic) or fine-grained |
+| **Rate limits** | Higher (5,000+/hour per installation) | Standard user limits (5,000/hour) |
+| **Survives user leaving** | Yes — not tied to any person | No — token dies when the user is removed |
+| **Audit trail** | Actions attributed to `app-name[bot]` | Actions attributed to the human user |
+| **Cost** | Free | Free |
+
+### How GitHub Apps Work
+
+1. **You create an App** — give it a name, select which permissions it needs (e.g., read/write pull requests, read/write contents), and generate a private key (a `.pem` file)
+2. **You install the App** on specific repositories — this grants it access only where you choose
+3. **At runtime**, your workflow (or script) exchanges the App's credentials (App ID + private key) for a short-lived **installation token** — this token works like a `GITHUB_TOKEN` but with App-level identity
+4. The token **auto-expires** after 1 hour — no long-lived secrets sitting around
+
+### Why This Project Uses a GitHub App
+
+GitHub has an anti-recursion rule: workflows that use the built-in `GITHUB_TOKEN` to create or update pull requests **will not trigger `pull_request` events**. This prevents infinite workflow loops (workflow creates PR → PR triggers workflow → workflow updates PR → ...).
+
+The side effect: when release-please (running as a GitHub Actions workflow) creates the Release PR using `GITHUB_TOKEN`, none of the CI workflows (lint, test, type-check, etc.) fire for that PR. The CI gate sits waiting for checks that never appear and eventually times out.
+
+A GitHub App token bypasses this because GitHub sees the App as a **different actor** — not the workflow itself. The PR is created by `your-app-name[bot]`, which is a separate identity from `github-actions[bot]`, so `pull_request` events fire normally.
+
+### What Else Can GitHub Apps Do?
+
+GitHub Apps aren't just for working around the `GITHUB_TOKEN` limitation. They're the recommended way to build any automation that interacts with GitHub:
+
+- **CI/CD bots** — Create PRs, merge branches, manage releases
+- **Code review** — Post comments, approve/request changes, add labels
+- **Issue management** — Auto-triage, auto-close stale issues, add labels
+- **Deployment** — Create deployments, update environments, post status checks
+- **Security** — Scan code, report vulnerabilities, enforce policies
+- **Notifications** — Post to Slack/Discord when events happen in repos
+
+Well-known GitHub Apps include Dependabot, Renovate, Codecov, Netlify, Vercel, and Stale.
+
+### Permissions Model
+
+GitHub Apps use a granular permission system. You pick exactly what the App can access:
+
+| Permission | Access levels | Example use |
+|---|---|---|
+| **Contents** | None / Read / Read+Write | Push commits, create tags, manage files |
+| **Pull requests** | None / Read / Read+Write | Create/update/merge PRs, post comments |
+| **Issues** | None / Read / Read+Write | Create/close issues, add labels |
+| **Actions** | None / Read / Read+Write | Manage workflow runs, download artifacts |
+| **Checks** | None / Read / Read+Write | Create check runs, report CI results |
+| **Metadata** | Read (always required) | Basic repo information (always on) |
+
+You grant the minimum permissions needed. If your App only creates Release PRs, it only needs Contents + Pull requests — nothing else.
+
+### Key Terminology
+
+| Term | Meaning |
+|---|---|
+| **GitHub App** | The registration (name, permissions, webhooks) |
+| **Installation** | A specific repo (or org) where the App is installed |
+| **Installation token** | The short-lived credential the App uses to call the GitHub API |
+| **Private key** | The `.pem` file used to authenticate as the App (kept secret) |
+| **App ID** | The numeric identifier for the App (not secret, but needed for auth) |
+| **`[bot]` suffix** | How App actions appear in Git history and PR timelines |
+
+### Further Reading
+
+- [GitHub Docs: About GitHub Apps](https://docs.github.com/en/apps/overview)
+- [GitHub Docs: Creating a GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps)
+- [actions/create-github-app-token](https://github.com/actions/create-github-app-token) — the Action used in this project's release workflow
+
+---
+
 ## GitHub README Priority Order
 
 GitHub has a hidden priority order for which README displays on the repo landing page:

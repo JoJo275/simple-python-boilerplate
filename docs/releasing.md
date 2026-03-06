@@ -630,43 +630,90 @@ The package version comes from **git tags** via hatch-vcs:
 
 ### CI Checks Not Running on Release PR
 
-GitHub Actions prevents `pull_request` events from firing when a PR is
-created or updated using `GITHUB_TOKEN` (anti-recursion safeguard). Since
-release-please creates and updates its Release PR via a workflow, CI checks
-never trigger and the CI gate times out waiting for them.
+GitHub Actions has an anti-recursion safeguard: when a workflow creates or
+updates a pull request using the built-in `GITHUB_TOKEN`, GitHub **will not**
+fire `pull_request` events for that PR. This prevents infinite workflow loops
+but has a side effect — since release-please runs as a GitHub Actions workflow,
+the Release PR it creates never triggers your CI checks (lint, test, type-check,
+etc.). The CI gate sits there "waiting for status to be reported" forever and
+eventually times out.
 
-**Fix:** The release-please workflow uses a **GitHub App installation token**
-instead of `GITHUB_TOKEN`. This requires a one-time setup:
+**The fix:** Use a **GitHub App installation token** instead of `GITHUB_TOKEN`
+for the release-please step. A GitHub App is a bot identity you create and
+install on your repository. When release-please uses this App's token to create
+the PR, GitHub sees it as a different actor (not the workflow itself), so
+`pull_request` events fire normally and all your CI checks run.
+
+The `actions/create-github-app-token` step in the workflow generates a
+short-lived token (auto-expires in 1 hour) from the App's credentials. It's
+scoped only to the permissions you grant — no broader access than needed.
+
+**One-time setup:**
 
 1. **Create a GitHub App:**
-   - Go to **Settings → Developer settings → GitHub Apps → New GitHub App**
-     (for a personal account) or **Organization Settings → Developer settings
-     → GitHub Apps** (for an org).
-   - **App name:** e.g. `yourproject-release-bot` (must be globally unique)
-   - **Homepage URL:** your repository URL
-   - **Webhook:** uncheck "Active" (not needed)
-   - **Permissions → Repository:**
-     - `Contents: Read and write` (create tags and releases)
-     - `Pull requests: Read and write` (create/update the Release PR)
+   - Go to your **GitHub profile icon** (top-right) → **Settings** →
+     scroll down to **Developer settings** (bottom of left sidebar) →
+     **GitHub Apps** → **New GitHub App**
+   - For an organization: **Organization Settings** → **Developer settings**
+     → **GitHub Apps** → **New GitHub App**
+   - Fill in the required fields:
+
+   | Field | Value | Notes |
+   |---|---|---|
+   | **App name** | e.g. `yourproject-release-bot` | Must be globally unique across all of GitHub |
+   | **Homepage URL** | Your repository URL | e.g. `https://github.com/you/yourrepo` |
+   | **Webhook → Active** | **Uncheck** this box | The App doesn't need to receive events |
+   | **Webhook URL** | Leave blank or any URL | Only required if Active is checked (it shouldn't be) |
+
+   - Scroll down to **Permissions → Repository permissions** and set:
+
+   | Permission | Access level | Why |
+   |---|---|---|
+   | **Contents** | Read and write | Create git tags and GitHub Releases |
+   | **Pull requests** | Read and write | Create and update the Release PR |
+   | **Metadata** | Read-only | Pre-selected, can't be changed |
+
+   - Leave all other permissions as **No access**
+   - Under **Where can this GitHub App be installed?** select
+     **Only on this account**
    - Click **Create GitHub App**
 
-2. **Generate a private key:**
-   - On the App's settings page, scroll to **Private keys → Generate a
-     private key**
-   - Save the downloaded `.pem` file securely
+2. **Note the App ID:**
+   - After creation, you'll land on the App's settings page
+   - The **App ID** is the numeric value shown near the top (e.g. `123456`)
+   - Copy this — you'll need it in step 4
 
-3. **Install the App on your repository:**
-   - On the App's settings page, click **Install App** in the left sidebar
-   - Select the account/org and grant access to **only this repository**
+3. **Generate a private key:**
+   - On the same App settings page, scroll down to **Private keys**
+   - Click **Generate a private key**
+   - Your browser downloads a `.pem` file — save it somewhere secure
+   - This file is the App's authentication credential (treat it like a password)
 
-4. **Add secrets to the repository:**
-   - Go to **Settings → Secrets and variables → Actions → New repository secret**
-   - `RELEASE_APP_ID` — the App ID (numeric, shown on the App's settings page)
-   - `RELEASE_APP_PRIVATE_KEY` — paste the entire contents of the `.pem` file
+4. **Install the App on your repository:**
+   - On the App settings page, click **Install App** in the left sidebar
+   - Click **Install** next to your account/org
+   - Select **Only select repositories** and choose your repository
+   - Click **Install**
 
-The workflow's `actions/create-github-app-token` step generates a short-lived
-installation token from these credentials. The token auto-expires after 1 hour
-and is scoped only to the permissions you granted above.
+5. **Add secrets to the repository:**
+   - Go to your **repository** on GitHub → **Settings** → **Secrets and
+     variables** → **Actions** → **New repository secret**
+   - Create two secrets:
+
+   | Secret name | Value |
+   |---|---|
+   | `RELEASE_APP_ID` | The numeric App ID from step 2 |
+   | `RELEASE_APP_PRIVATE_KEY` | The entire contents of the `.pem` file (open it in a text editor, select all, paste) |
+
+6. **Trigger a new Release PR:**
+   - The existing Release PR was created with `GITHUB_TOKEN` so it won't
+     retroactively get CI checks. You have two options:
+   - **Option A (recommended):** Close the existing Release PR. The next
+     push to `main` re-runs release-please, which now uses the App token
+     to create a fresh PR — CI checks will fire.
+   - **Option B:** Merge the existing PR manually if you trust the changes
+     (it only contains CHANGELOG + version bump). The next Release PR will
+     use the App token correctly.
 
 ### Release PR Not Appearing
 
