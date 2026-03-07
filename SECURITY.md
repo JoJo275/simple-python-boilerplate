@@ -168,6 +168,30 @@ Instead, please report security vulnerabilities via one of the following methods
       This makes your public key easily discoverable by anyone cloning the
       repo. Alternatively, you can host it elsewhere and link to it.
 
+      **How reporters use `pgp-key.asc`:**
+
+      When someone discovers a vulnerability, they can encrypt their
+      report so only you can read it:
+
+      ```bash
+      # Reporter imports your public key
+      gpg --import pgp-key.asc
+
+      # Reporter encrypts their vulnerability report
+      gpg --encrypt --armor --recipient YOUR_EMAIL report.txt
+
+      # Reporter sends you the encrypted report.txt.asc file
+      ```
+
+      You then decrypt it with your private key:
+
+      ```bash
+      gpg --decrypt report.txt.asc
+      ```
+
+      This prevents sensitive vulnerability details from being readable
+      if the email is intercepted.
+
    5. **Update the fingerprint and public key URL below:**
 
       Replace the placeholder values with your actual fingerprint and
