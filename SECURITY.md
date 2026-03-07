@@ -56,6 +56,21 @@ Instead, please report security vulnerabilities via one of the following methods
    > On Windows, install [Gpg4win](https://gpg4win.org/) which bundles
    > GnuPG with the Kleopatra key manager GUI.
 
+   > **Windows PATH setup:** After installing Gpg4win, the `gpg` command
+   > may not be available in your terminal. You need to add the GnuPG
+   > `bin` directory to your system PATH. In PowerShell:
+   >
+   > ```powershell
+   > # Temporary — current session only:
+   > $env:Path += ";C:\Program Files (x86)\GnuPG\bin"
+   >
+   > # Permanent — persists across all future sessions (requires admin):
+   > [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files (x86)\GnuPG\bin", "Machine")
+   > ```
+   >
+   > After the permanent fix, **restart your terminal** (or VS Code) for
+   > it to take effect. Verify with: `gpg --version`
+
    **Why RSA 4096-bit?** RSA is one of the most widely supported key
    algorithms. A 4096-bit key length provides a large security margin
    against brute-force attacks and is recommended for long-lived keys
@@ -81,6 +96,10 @@ Instead, please report security vulnerabilities via one of the following methods
       - Key size: **4096**
       - Expiration: choose an appropriate validity period (e.g., `2y` for 2 years, or `0` for no expiry)
       - Enter your name and the email address associated with this project
+      - **Comment** (optional): A short label for the key's purpose, e.g.,
+        `Security contact key for simple-python-boilerplate` — or leave it
+        blank if you prefer. The comment appears in the key's User ID
+        alongside your name and email.
       - Set a strong passphrase when prompted
 
    2. **Get your key fingerprint:**
