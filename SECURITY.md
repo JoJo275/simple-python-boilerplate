@@ -174,8 +174,8 @@ Instead, please report security vulnerabilities via one of the following methods
       keyserver search URL, then remove the `<!-- -->` comment markers
       surrounding the block (if still commented out).
 
-   - **Key fingerprint:** `28D9 F503 F630 CAA3 42DE  6486 673F A94A 2F1C 9513`
-   - **Public key:** <https://keys.openpgp.org/search?q=joseph26584@gmail.com>
+      - **Key fingerprint:** `28D9 F503 F630 CAA3 42DE  6486 673F A94A 2F1C 9513`
+      - **Public key:** <https://keys.openpgp.org/search?q=joseph26584@gmail.com>
 
 ### What to Include
 
