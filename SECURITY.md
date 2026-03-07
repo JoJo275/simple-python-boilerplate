@@ -58,7 +58,9 @@ Instead, please report security vulnerabilities via one of the following methods
 
    > **Windows PATH setup:** After installing Gpg4win, the `gpg` command
    > may not be available in your terminal. You need to add the GnuPG
-   > `bin` directory to your system PATH. In PowerShell:
+   > `bin` directory to your system PATH.
+   >
+   > **Option A — PowerShell commands:**
    >
    > ```powershell
    > # Temporary — current session only:
@@ -68,8 +70,18 @@ Instead, please report security vulnerabilities via one of the following methods
    > [Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files (x86)\GnuPG\bin", "Machine")
    > ```
    >
-   > After the permanent fix, **restart your terminal** (or VS Code) for
-   > it to take effect. Verify with: `gpg --version`
+   > **Option B — Windows GUI:**
+   >
+   > 1. Find the install location (typically
+   >    `C:\Program Files (x86)\GnuPG\bin`)
+   > 2. Open **Start → Settings → System → About → Advanced system
+   >    settings → Environment Variables**
+   > 3. Under **System variables**, select **Path** → **Edit** → **New**
+   > 4. Paste the `bin` path (e.g., `C:\Program Files (x86)\GnuPG\bin`)
+   > 5. Click **OK** on all dialogs
+   >
+   > After either method, **restart your terminal** (or VS Code) for
+   > the change to take effect. Verify with: `gpg --version`
 
    **Why RSA 4096-bit?** RSA is one of the most widely supported key
    algorithms. A 4096-bit key length provides a large security margin
@@ -108,8 +120,12 @@ Instead, please report security vulnerabilities via one of the following methods
       gpg --fingerprint YOUR_EMAIL
       ```
 
-      The fingerprint is the 40-character hex string (e.g.,
-      `ABCD 1234 EFGH 5678 ...`). Copy this — you'll need it below.
+      This will show two fingerprints:
+      - **`pub`** — your primary (master) key, used for signing and
+        certification. **This is the fingerprint you want.** Copy the
+        40-character hex string (e.g., `ABCD 1234 EFGH 5678 ...`).
+      - **`sub`** — your subkey, automatically generated for encryption.
+        You can ignore this one for the steps below.
 
    3. **Publish to a keyserver** (so reporters can find your key):
 
