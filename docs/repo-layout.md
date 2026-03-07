@@ -23,7 +23,7 @@ simple-python-boilerplate/
 │   ├── ISSUE_TEMPLATE/         # Issue templates (bug, feature, etc.)
 │   ├── labeler.yml             # Auto-label rules for PRs
 │   ├── PULL_REQUEST_TEMPLATE.md
-│   ├── workflows/              # GitHub Actions CI/CD (33 files)
+│   ├── workflows/              # GitHub Actions CI/CD (34 files)
 │   │   ├── ci-gate.yml         # Single required check for branch protection
 │   │   ├── lint-format.yml     # Ruff linting and formatting
 │   │   ├── release.yml         # Build artifacts on tag push
