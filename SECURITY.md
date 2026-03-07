@@ -125,7 +125,12 @@ Instead, please report security vulnerabilities via one of the following methods
         certification. **This is the fingerprint you want.** Copy the
         40-character hex string (e.g., `ABCD 1234 EFGH 5678 ...`).
       - **`sub`** — your subkey, automatically generated for encryption.
-        You can ignore this one for the steps below.
+        You can ignore this one for the steps below. It's safely stored
+        in your local GPG keyring — you can always view it again with:
+
+        ```bash
+        gpg --list-keys --keyid-format long YOUR_EMAIL
+        ```
 
    3. **Publish to a keyserver** (so reporters can find your key):
 
@@ -137,6 +142,13 @@ Instead, please report security vulnerabilities via one of the following methods
       > **no spaces** (e.g., `28D9F503F630CAA342DE...`). If you include
       > spaces, GPG treats each chunk as a separate key ID and fails with
       > `"not a key ID: skipping"`.
+
+      > **Keyserver delay:** After uploading, `keys.openpgp.org` requires
+      > you to **verify your email** before the key is publicly searchable
+      > by email address. Check your inbox (and spam folder) for a
+      > verification email from the keyserver. Until you verify, the key
+      > is published but only findable by fingerprint, not by email.
+      > This can take a few minutes to arrive.
 
    4. **Export the public key and commit it to the repo root:**
 
@@ -156,12 +168,14 @@ Instead, please report security vulnerabilities via one of the following methods
       This makes your public key easily discoverable by anyone cloning the
       repo. Alternatively, you can host it elsewhere and link to it.
 
-   5. **Uncomment the block below** and fill in your fingerprint + URL:
+   5. **Update the fingerprint and public key URL below:**
 
-   <!--
-   Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
-   Public key: https://keys.openpgp.org/search?q=joseph26584@gmail.com
-   -->
+      Replace the placeholder values with your actual fingerprint and
+      keyserver search URL, then remove the `<!-- -->` comment markers
+      surrounding the block (if still commented out).
+
+   - **Key fingerprint:** `28D9 F503 F630 CAA3 42DE  6486 673F A94A 2F1C 9513`
+   - **Public key:** <https://keys.openpgp.org/search?q=joseph26584@gmail.com>
 
 ### What to Include
 
