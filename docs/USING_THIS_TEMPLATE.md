@@ -239,7 +239,7 @@ check items off as you go.
 
 ## CI/CD Workflows Included
 
-This template ships with **33 GitHub Actions workflows** in
+This template ships with **34 GitHub Actions workflows** in
 [.github/workflows/](../.github/workflows/) covering quality, security, PR
 hygiene, releases, docs, containers, and maintenance.
 
@@ -422,6 +422,321 @@ This template includes three container-related files
 If you don't need containers, delete `Containerfile`, `docker-compose.yml`,
 and `.devcontainer/`. If you only want production containers, delete
 `.devcontainer/`. If you only want the dev container, delete the other two.
+
+### Containerfile (Production Image)
+
+**What it does:** Builds a minimal, secure production image using a multi-stage
+build. Stage 1 ("builder") installs build tools and compiles a wheel. Stage 2
+("runtime") copies only the installed package into a slim base image — no
+compilers, no source code, no build dependencies.
+
+**What it looks like when built:**
+
+- ~150 MB image (Python 3.12-slim base)
+- Non-root user `app` (UID/GID 1000)
+- Read-only filesystem compatible
+- `PYTHONDONTWRITEBYTECODE=1` and `PYTHONUNBUFFERED=1` set
+- OCI metadata labels for tooling compatibility
+- Entrypoint is the `spb` CLI command (your package's console_scripts entry point)
+
+**Setup:**
+
+```bash
+# Prerequisite: Docker Desktop (or Podman) must be installed and running
+
+# Build the image
+docker build -t simple-python-boilerplate -f Containerfile .
+
+# Build with a specific version (for CI — .git isn't in the container)
+docker build --build-arg VERSION=1.2.0 -t simple-python-boilerplate:1.2.0 -f Containerfile .
+
+# Run it
+docker run --rm simple-python-boilerplate
+
+# Run with arguments
+docker run --rm simple-python-boilerplate --help
+```
+
+**Why use it:** Deploying to Kubernetes, ECS, Cloud Run, or any container
+platform. The multi-stage build keeps the image small and free of build
+tooling, reducing the attack surface.
+
+**After customizing:** Update the `ENTRYPOINT`, OCI labels, and base image
+pin in the Containerfile. The `TODO (template users)` comments mark what to
+change.
+
+### docker-compose.yml (Local Orchestration)
+
+**What it does:** Wraps the Containerfile build into a single command for
+local development and testing. Defines security defaults (read-only filesystem,
+no-new-privileges) and provides commented templates for ports, volumes,
+environment variables, resource limits, and a database service.
+
+**What it looks like running:**
+
+```
+$ docker compose up --build
+[+] Building 12.3s
+[+] Running 1/1
+ ✔ Container simple-python-boilerplate  Created
+Attaching to simple-python-boilerplate
+simple-python-boilerplate  | <your CLI output here>
+```
+
+**Setup:**
+
+```bash
+# Build and run in foreground (see output)
+docker compose up --build
+
+# Build and run in background
+docker compose up -d --build
+
+# Check running containers
+docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Stop and remove containers
+docker compose down
+```
+
+**Turning it into a web service:** To expose an HTTP endpoint (e.g., FastAPI,
+Flask), make these changes:
+
+1. Uncomment `ports: - "8000:8000"` in `docker-compose.yml`
+2. Update your app code to start a server on port 8000
+3. Uncomment the `HEALTHCHECK` in the Containerfile
+4. Optionally uncomment `environment`, `volumes`, and `restart` sections
+
+```bash
+# After enabling ports:
+docker compose up -d --build
+curl http://localhost:8000/health    # health check
+curl http://localhost:8000/api/v1    # your API
+```
+
+**Adding a database:** The compose file includes a commented Postgres service
+template. Uncomment the `db:` service and `volumes:` section, set the
+`POSTGRES_PASSWORD` environment variable, and your app container can connect
+to `db:5432`.
+
+**Why use it:** Consistent local environment that matches production. One
+command to build + run. Easy to add services (databases, caches, queues)
+without polluting your host machine.
+
+### VS Code Dev Container
+
+**What it does:** Defines a full development environment that runs inside a
+container. VS Code connects to it seamlessly — your terminal, editor, debugger,
+and extensions all run inside the container. Also works with GitHub Codespaces.
+
+**This is NOT the same as the Containerfile.** The Containerfile builds a
+minimal production image. The Dev Container sets up a rich development
+environment with all your tools pre-installed.
+
+**What it looks like:**
+
+- Python 3.12 (Debian Bookworm base) with pip, venv, git
+- Node.js LTS (for pre-commit hooks like markdownlint, prettier)
+- Task runner (go-task) for Taskfile.yml commands
+- VS Code extensions auto-installed: Python, Pylance, Ruff, mypy, TOML, YAML,
+  Markdown, GitLens, Git Graph, spell checker, EditorConfig, Task
+- Hatch environments created and pre-commit hooks installed on first launch
+- Runs as non-root `vscode` user
+
+**Setup:**
+
+1. **Install prerequisites:**
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Podman)
+   - [VS Code](https://code.visualstudio.com/)
+   - [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+2. **Open in container:**
+   - Open the project in VS Code
+   - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+   - Run "Dev Containers: Reopen in Container"
+   - Wait for the container to build and `postCreateCommand` to finish
+
+3. **Start working:** Everything is ready — Hatch env, pre-commit hooks,
+   extensions, and settings are all configured.
+
+**For GitHub Codespaces:** No local setup needed. Click "Code → Codespaces →
+Create codespace on main" on GitHub. The same `devcontainer.json` configures
+the Codespace automatically.
+
+**Why use it:** Eliminates "works on my machine" issues. New contributors get a
+fully configured environment in minutes without installing Python, Node, Hatch,
+or any tools on their host. Especially useful for teams, onboarding, and when
+working across multiple projects with different tool versions.
+
+**After customizing:** Update `name`, Python version, extensions list, and
+`postCreateCommand` in `.devcontainer/devcontainer.json`. Uncomment
+`forwardPorts` if your app runs a server.
+
+### Container Structure Tests
+
+[Container structure tests](https://github.com/GoogleContainerTools/container-structure-test)
+validate that your built image meets expected properties — installed packages,
+user/group configuration, environment variables, metadata, and file layout.
+This catches problems like "the package didn't install" or "the image is
+running as root" before deployment.
+
+**What gets tested** (defined in `container-structure-test.yml`):
+
+| Category          | Tests                                                              |
+| :---------------- | :----------------------------------------------------------------- |
+| **Metadata**      | Entrypoint, user, workdir, env vars (PYTHONDONTWRITEBYTECODE, etc) |
+| **Commands**      | Python installed, package importable, pip available, no gcc, non-root user, UID/GID |
+| **File existence**| /app dir exists, /home/app exists                                  |
+| **File content**  | /etc/passwd and /etc/group contain the app user/group              |
+
+**Setup:**
+
+```bash
+# Install container-structure-test (one-time)
+# Option A: Go install
+go install github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test@latest
+
+# Option B: Download binary (Linux/macOS)
+curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64
+chmod +x container-structure-test-linux-amd64
+sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
+
+# Option C: Download binary (Windows) — download from GitHub Releases page
+# https://github.com/GoogleContainerTools/container-structure-test/releases
+```
+
+**Running the tests:**
+
+```bash
+# Build the image first
+docker build -t simple-python-boilerplate:test -f Containerfile .
+
+# Run structure tests against the built image
+container-structure-test test \
+  --image simple-python-boilerplate:test \
+  --config container-structure-test.yml
+```
+
+**Expected output:**
+
+```
+======================================
+====== Test file: container-structure-test.yml ======
+=== RUN: Command Test: Python is installed
+--- PASS
+=== RUN: Command Test: Package is installed
+--- PASS
+=== RUN: Command Test: Non-root user
+--- PASS
+...
+======================================
+PASS
+```
+
+**After customizing:** Update the package import name, entrypoint, and
+Python version in `container-structure-test.yml` to match your project.
+
+### Docker Compose + Test Workflow
+
+A full workflow for building, running, and testing your containerized
+application locally:
+
+**Step 1: Build and start**
+
+```bash
+docker compose up -d --build
+```
+
+**Step 2: Verify the container is running**
+
+```bash
+docker compose ps
+# NAME                         STATUS
+# simple-python-boilerplate    Up 5 seconds
+```
+
+**Step 3: Check logs**
+
+```bash
+docker compose logs -f
+```
+
+**Step 4: Test the running service**
+
+If your app exposes an HTTP endpoint:
+
+```bash
+# Health check
+curl -f http://localhost:8000/health
+
+# Hit your API
+curl http://localhost:8000/api/v1/items
+
+# Run integration tests against the running container
+pytest tests/integration/ -v
+```
+
+If your app is a CLI tool (default template):
+
+```bash
+# Run a command inside the container
+docker compose exec app spb --version
+
+# Or run and check exit code
+docker compose run --rm app --help
+```
+
+**Step 5: Run container structure tests**
+
+```bash
+# Test the image itself (not the running container)
+container-structure-test test \
+  --image simple-python-boilerplate:local \
+  --config container-structure-test.yml
+```
+
+**Step 6: Tear down**
+
+```bash
+docker compose down
+```
+
+**Full CI script example:**
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Build
+docker compose up -d --build
+
+# Wait for health (if HTTP service)
+# for i in {1..30}; do curl -sf http://localhost:8000/health && break || sleep 1; done
+
+# Test
+container-structure-test test \
+  --image simple-python-boilerplate:local \
+  --config container-structure-test.yml
+
+# Integration tests (if applicable)
+# pytest tests/integration/ -v
+
+# Cleanup
+docker compose down
+echo "All container tests passed."
+```
+
+**Troubleshooting:**
+
+| Problem | Solution |
+| :------ | :------- |
+| `failed to connect to the docker API` | Docker Desktop is not running. Start it from the Start menu / system tray. |
+| `port is already allocated` | Another process is using the port. Change the host port in `docker-compose.yml` (e.g., `9000:8000`). |
+| Build fails at `pip install` | Check that `pyproject.toml` and `src/` are correct. Run `python -m build` locally first to verify. |
+| Container exits immediately | Check `docker compose logs`. For CLI tools, this is normal — the command ran and exited. Use `docker compose run` instead of `up`. |
 
 ---
 

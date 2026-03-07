@@ -7,7 +7,7 @@
 # Validate: curl -X POST --data-binary @codecov.yml https://codecov.io/validate
 #
 # TODO (template users): Adjust target thresholds to match your project goals.
-#   80% is a reasonable starting point; increase as your test suite matures.
+#   90% is a strong target; lower it if you're just starting out.
 #   Remove patch.default if you don't want per-PR coverage enforcement.
 # =============================================================================
 

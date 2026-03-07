@@ -557,6 +557,7 @@ class TestRunChecks:
             patch("env_doctor.CHECKS", fake_checks),
             patch("env_doctor.EXPECTED_TOOLS", []),
             patch("env_doctor.OPTIONAL_TOOLS", []),
+            patch("env_doctor.OPTIONAL_CHECKS", []),
         ):
             result = run_checks(color=False, output_json=True)
 
@@ -579,6 +580,7 @@ class TestRunChecks:
             patch("env_doctor.CHECKS", fake_checks),
             patch("env_doctor.EXPECTED_TOOLS", []),
             patch("env_doctor.OPTIONAL_TOOLS", []),
+            patch("env_doctor.OPTIONAL_CHECKS", []),
         ):
             result = run_checks(color=False, output_json=True)
 
@@ -604,6 +606,7 @@ class TestCollectResults:
             patch("env_doctor.CHECKS", fake_checks),
             patch("env_doctor.EXPECTED_TOOLS", []),
             patch("env_doctor.OPTIONAL_TOOLS", []),
+            patch("env_doctor.OPTIONAL_CHECKS", []),
         ):
             results, failures = _collect_results()
         assert failures == 0
