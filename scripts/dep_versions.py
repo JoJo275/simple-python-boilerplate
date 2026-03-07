@@ -57,6 +57,7 @@ from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
+from _colors import Colors
 from _imports import find_repo_root, import_sibling
 
 ProgressBar = import_sibling("_progress").ProgressBar
@@ -65,7 +66,7 @@ ProgressBar = import_sibling("_progress").ProgressBar
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 ROOT = find_repo_root()
 PYPROJECT = ROOT / "pyproject.toml"
@@ -275,7 +276,7 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
     seen.clear()
 
     if check_latest:
-        bar = ProgressBar(total=len(all_deps), label="Querying PyPI")
+        bar = ProgressBar(total=len(all_deps), label="Querying PyPI", color="cyan")
     else:
         bar = None
 
@@ -311,6 +312,7 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
 
 def print_report(rows: list[dict[str, str | None]]) -> None:
     """Pretty-print the dependency report."""
+    c = Colors()
     w_name = max((len(r["name"] or "") for r in rows), default=10)
     w_group = max((len(r["group"] or "") for r in rows), default=10)
     w_spec = max((len(r["specifier"] or "") for r in rows), default=10)
@@ -322,18 +324,25 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         f"{'Specifier':<{w_spec}}  {'Installed':<{w_inst}}  "
         f"{'Latest':<{w_lat}}  Upgrade?"
     )
-    print(hdr)
-    print("  " + "-" * (len(hdr) - 2))
+    print(c.bold(hdr))
+    print(c.dim("  " + "-" * (len(hdr) - 2)))
 
     for r in rows:
-        flag = "^" if r["upgradable"] == "yes" else ""
+        upgradable = r["upgradable"] == "yes"
+        flag = c.yellow("^") if upgradable else ""
         inst = r["installed"] or "-"
         lat = r["latest"] or "-"
-        print(
-            f"  {r['name']:<{w_name}}  {r['group']:<{w_group}}  "
+        name = r["name"] or ""
+        # Build the line with fixed-width columns first, then colorize
+        line = (
+            f"  {name:<{w_name}}  {r['group']:<{w_group}}  "
             f"{r['specifier']:<{w_spec}}  {inst:<{w_inst}}  "
             f"{lat:<{w_lat}}  {flag}"
         )
+        if upgradable:
+            print(c.yellow(line.rstrip()) if not flag else line)
+        else:
+            print(line)
 
 
 # ---------------------------------------------------------------------------
@@ -523,9 +532,10 @@ def upgrade_package(name: str, target_version: str | None = None) -> bool:
     Returns:
         ``True`` if pip returned success.
     """
+    c = Colors()
     spec = f"{name}=={target_version}" if target_version else name
     cmd = [sys.executable, "-m", "pip", "install", "--upgrade", spec]
-    print(f"  pip install --upgrade {spec}")
+    print(f"  pip install --upgrade {c.cyan(spec)}")
     result = subprocess.run(  # nosec B603
         cmd,
         capture_output=True,
@@ -533,11 +543,11 @@ def upgrade_package(name: str, target_version: str | None = None) -> bool:
         timeout=120,
     )
     if result.returncode != 0:
-        print(f"  FAILED: {result.stderr.strip()}")
+        print(f"  {c.red('FAILED')}: {result.stderr.strip()}")
         return False
     # Show what was installed
     new_ver = _installed_version(name)
-    print(f"  -> {name} {new_ver}")
+    print(f"  {c.green('->')} {name} {c.green(new_ver or '?')}")
     return True
 
 
@@ -707,11 +717,12 @@ def main() -> None:
     """Entry point."""
     parser = build_parser()
     args = parser.parse_args()
+    c = Colors()
 
     # Default to "show" when no subcommand given
     command = args.command or "show"
 
-    print(f"\nDependency versions for {PYPROJECT.parent.name}\n")
+    print(f"\n{c.bold('Dependency versions')} for {c.cyan(PYPROJECT.parent.name)}\n")
 
     if command == "show":
         offline = getattr(args, "offline", False)
@@ -731,17 +742,27 @@ def main() -> None:
         # ---- pyproject.toml ----
         count = update_comments(rows)
         if count:
-            print(f"\n  Updated {count} comment(s) in pyproject.toml")
+            _check = "\u2713"
+            print(
+                f"\n  {c.green(_check)} Updated"
+                f" {c.green(str(count))} comment(s)"
+                f" in pyproject.toml"
+            )
         else:
-            print("\n  pyproject.toml: no changes needed.")
+            print(f"\n  {c.dim('pyproject.toml: no changes needed.')}")
 
         # ---- requirements*.txt ----
         req_results = update_requirements_comments()
         for fname, n in req_results.items():
             if n:
-                print(f"  Updated {n} comment(s) in {fname}")
+                _check = "\u2713"
+                print(
+                    f"  {c.green(_check)} Updated"
+                    f" {c.green(str(n))} comment(s)"
+                    f" in {fname}"
+                )
             else:
-                print(f"  {fname}: no changes needed.")
+                print(f"  {c.dim(f'{fname}: no changes needed.')}")
 
     elif command == "upgrade":
         pkg = getattr(args, "package", None)
@@ -782,20 +803,23 @@ def main() -> None:
 
             upgradable = [r for r in rows if r["upgradable"] == "yes"]
             if not upgradable:
-                print("\n  All dependencies are up to date.")
+                _msg = "\u2713 All dependencies are up to date."
+                print(f"\n  {c.green(_msg)}")
                 return
 
             if dry_run:
                 print(
-                    f"\n  [dry-run] {len(upgradable)} package(s) would be upgraded:\n"
+                    f"\n  {c.yellow('[dry-run]')} {c.yellow(str(len(upgradable)))} package(s) would be upgraded:\n"
                 )
                 for r in upgradable:
-                    print(f"    {r['name']}: {r['installed']} -> {r['latest']}")
+                    print(
+                        f"    {c.cyan(r['name'] or '')}: {r['installed']} -> {c.green(r['latest'] or '?')}"
+                    )
                 print("\n  Run without --dry-run to install.")
             else:
-                print(f"\nUpgrading {len(upgradable)} package(s)...\n")
+                print(f"\n{c.bold(f'Upgrading {len(upgradable)} package(s)...')}\n")
                 count = upgrade_all(rows)
-                print(f"\nUpgraded {count} package(s).")
+                print(f"\n{c.green(f'Upgraded {count} package(s).')}")
 
         # After successful upgrade, refresh specifiers and comments
         if not dry_run:

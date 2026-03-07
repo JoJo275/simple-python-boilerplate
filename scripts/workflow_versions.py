@@ -535,7 +535,7 @@ def scan_workflows(
     seen_latest: dict[str, str | None] = {}  # repo_slug -> latest tag
 
     use_spinner = resolve_tags or check_latest
-    spinner = Spinner("Scanning actions") if use_spinner else None
+    spinner = Spinner("Scanning actions", color="cyan") if use_spinner else None
 
     for wf in sorted(WORKFLOWS_DIR.glob("*.yml")):
         try:
@@ -967,7 +967,7 @@ def upgrade_all_actions(
             upgrades.append((action, latest))
 
     modified_total = 0
-    bar = ProgressBar(total=len(upgrades), label="Upgrading actions")
+    bar = ProgressBar(total=len(upgrades), label="Upgrading actions", color="yellow")
     for action, target_tag in upgrades:
         slug = _repo_slug(action)
         bar.update(slug)

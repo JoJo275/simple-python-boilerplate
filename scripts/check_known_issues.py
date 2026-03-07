@@ -39,6 +39,7 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 
+from _colors import Colors
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -46,7 +47,7 @@ from _imports import find_repo_root
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 # TODO (template users): If you move or rename docs/known-issues.md, update
 #   this default path and the --issues-path help text below.
 DEFAULT_ISSUES_PATH = ROOT / "docs" / "known-issues.md"
@@ -268,7 +269,8 @@ def main(argv: list[str] | None = None) -> int:
 
     entries = parse_resolved_entries(text)
     if not entries:
-        log.info("No resolved entries found — nothing to check.")
+        c = Colors()
+        log.info("%s", c.green("No resolved entries found — nothing to check."))
         return 0
 
     stale = find_stale_entries(entries, max_age_days=args.days)
@@ -282,28 +284,41 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(json.dumps(result, indent=2, default=str))
     elif not args.quiet:
+        c = Colors()
+        separator = c.dim("─" * 50)
         if stale:
             noun = "entry" if len(stale) == 1 else "entries"
+            log.info("%s", separator)
             log.info(
-                "Found %d stale resolved %s (older than %d days):",
-                len(stale),
-                noun,
-                args.days,
+                "  %s",
+                c.bold(
+                    c.yellow(
+                        f"Found {len(stale)} stale resolved {noun} "
+                        f"(older than {args.days} days):"
+                    )
+                ),
             )
+            log.info("%s", separator)
             for entry in stale:
                 log.info(
-                    "  [%s] %s — resolved %s (%s days ago)",
-                    entry["area"],
+                    "  %s [%s] %s — resolved %s (%s days ago)",
+                    c.red("✗"),
+                    c.cyan(str(entry["area"])),
                     entry["issue"],
-                    entry["parsed_date"],
-                    entry["age_days"],
+                    c.dim(str(entry["parsed_date"])),
+                    c.yellow(str(entry["age_days"])),
                 )
         else:
+            log.info("%s", separator)
             log.info(
-                "All %d resolved entries are within the %d-day window.",
-                len(entries),
-                args.days,
+                "  %s %s",
+                c.green("✓"),
+                c.green(
+                    f"All {len(entries)} resolved entries are within "
+                    f"the {args.days}-day window."
+                ),
             )
+            log.info("%s", separator)
 
     return 1 if stale else 0
 
