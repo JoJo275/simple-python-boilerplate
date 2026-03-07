@@ -52,6 +52,10 @@ Instead, please report security vulnerabilities via one of the following methods
    keep secret (to decrypt those messages). PGP is widely used for securing
    email, verifying software signatures, and signing git commits.
 
+   > **Download:** [gnupg.org/download](https://gnupg.org/download/) —
+   > On Windows, install [Gpg4win](https://gpg4win.org/) which bundles
+   > GnuPG with the Kleopatra key manager GUI.
+
    **Why RSA 4096-bit?** RSA is one of the most widely supported key
    algorithms. A 4096-bit key length provides a large security margin
    against brute-force attacks and is recommended for long-lived keys
