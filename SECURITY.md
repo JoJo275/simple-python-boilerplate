@@ -133,6 +133,11 @@ Instead, please report security vulnerabilities via one of the following methods
       gpg --keyserver keys.openpgp.org --send-keys YOUR_FINGERPRINT
       ```
 
+      > **Important:** Pass the fingerprint as one continuous string with
+      > **no spaces** (e.g., `28D9F503F630CAA342DE...`). If you include
+      > spaces, GPG treats each chunk as a separate key ID and fails with
+      > `"not a key ID: skipping"`.
+
    4. **Export the public key and commit it to the repo root:**
 
       ```bash
