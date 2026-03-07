@@ -343,7 +343,7 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
     """
     info: dict[str, str | dict[str, str]] = {}
 
-    spinner = Spinner("Collecting diagnostics")
+    spinner = Spinner("Collecting diagnostics", color="cyan")
 
     # Timestamp (UTC for unambiguous reports)
     info["timestamp"] = datetime.now(tz=UTC).isoformat()

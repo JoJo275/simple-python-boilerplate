@@ -574,7 +574,7 @@ def run_checks(
     total = _total_check_count()
     bar: ProgressBar | None = None
     if not output_json:
-        bar = ProgressBar(total=total, label="Checking")
+        bar = ProgressBar(total=total, label="Checking", color="green")
 
     def _on_progress(name: str) -> None:
         if bar is not None:

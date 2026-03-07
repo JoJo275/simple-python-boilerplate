@@ -42,11 +42,27 @@ import logging
 import shutil
 import sys
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 __all__ = ["ProgressBar", "Spinner"]
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Color codes for bar fill (ANSI SGR)
+# ---------------------------------------------------------------------------
+
+_BAR_COLORS: dict[str, str] = {
+    "green": "32",
+    "red": "31",
+    "yellow": "33",
+    "blue": "34",
+    "cyan": "36",
+    "magenta": "35",
+    "white": "37",
+}
+
+_SPINNER_COLORS: dict[str, str] = _BAR_COLORS.copy()
 
 
 def _terminal_width() -> int:
@@ -123,12 +139,14 @@ class ProgressBar:
         total: int,
         label: str = "Progress",
         log_interval: int = 0,
+        color: str | None = None,
     ) -> None:
         self.total = total
         self.label = label
         self.current = 0
         self._interactive = _is_interactive()
         self._fill, self._empty, self._lb, self._rb = _pick_bar_style()
+        self._color_code = _BAR_COLORS.get(color, "") if color else ""
         # CI logging: In non-interactive environments (CI pipelines like
         # GitHub Actions, Jenkins, etc.) there is no TTY, so progress bars
         # are invisible — the runner just captures text logs.  Setting
@@ -189,7 +207,11 @@ class ProgressBar:
         bar_width = max(width - overhead, 10)
 
         filled = int(bar_width * self.current / self.total) if self.total > 0 else 0
-        bar = self._fill * filled + self._empty * (bar_width - filled)
+        filled_str = self._fill * filled
+        empty_str = self._empty * (bar_width - filled)
+        if self._color_code and filled_str:
+            filled_str = f"\033[{self._color_code}m{filled_str}\033[0m"
+        bar = filled_str + empty_str
 
         line = f"\r{prefix}{self._lb}{bar}{self._rb}  {counter}  {display_name}"
         sys.stdout.write(line.ljust(width))
@@ -232,11 +254,13 @@ class Spinner:
         self,
         label: str = "Working",
         log_interval: int = 0,
+        color: str | None = None,
     ) -> None:
         self.label = label
         self.count = 0
         self._interactive = _is_interactive()
         self._frames = _pick_spinner_frames()
+        self._color_code = _SPINNER_COLORS.get(color, "") if color else ""
         # CI logging interval — see ProgressBar.__init__ for explanation.
         # Default is 0 (off).  Set to a positive int for CI visibility.
         self._log_interval = log_interval
@@ -263,6 +287,8 @@ class Spinner:
     def _draw(self, item_name: str = "") -> None:
         width = _terminal_width()
         frame = self._frames[self.count % len(self._frames)]
+        if self._color_code:
+            frame = f"\033[{self._color_code}m{frame}\033[0m"
         display_name = _truncate(item_name, 40)
         line = f"\r  {frame} {self.label}  [{self.count}]  {display_name}"
         sys.stdout.write(line.ljust(width))

@@ -35,6 +35,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
+from _colors import Colors
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -42,7 +43,7 @@ from _imports import find_repo_root
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 DEFAULT_TODO = ROOT / "docs" / "notes" / "todo.md"
 DEFAULT_ARCHIVE = ROOT / "docs" / "notes" / "archive.md"
@@ -165,6 +166,7 @@ def archive_todos(
         Number of items archived, or ``-1`` on error.
     """
     # Validate files exist
+    c = Colors()
     if not todo_file.exists():
         log.error("File not found: %s", todo_file)
         return -1
@@ -180,7 +182,7 @@ def archive_todos(
     completed_blocks = _collect_completed_blocks(todo_content)
 
     if not completed_blocks:
-        log.info("No completed items found in todo.md")
+        log.info("%s", c.green("No completed items found in todo.md"))
         return 0
 
     # Build updated file contents
@@ -195,13 +197,14 @@ def archive_todos(
 
     if dry_run:
         log.info(
-            "Would archive %d item(s) to %s:",
-            len(completed_blocks),
-            current_month,
+            "%s Would archive %s item(s) to %s:",
+            c.yellow("[dry-run]"),
+            c.yellow(str(len(completed_blocks))),
+            c.cyan(current_month),
         )
         for block in completed_blocks:
             for line in block.splitlines():
-                log.info("  %s", line)
+                log.info("  %s", c.dim(line))
         return len(completed_blocks)
 
     # Backup before writing
@@ -214,18 +217,20 @@ def archive_todos(
     archive_file.write_text(new_archive_content, encoding="utf-8")
 
     log.info(
-        "Archived %d completed item(s) to %s:",
-        len(completed_blocks),
-        current_month,
+        "%s Archived %s completed item(s) to %s:",
+        c.green("✓"),
+        c.green(str(len(completed_blocks))),
+        c.cyan(current_month),
     )
     for block in completed_blocks:
         for line in block.splitlines():
-            log.info("  %s", line)
+            log.info("  %s", c.dim(line))
     if backup:
         log.info(
-            "Backups: %s, %s",
-            todo_file.with_suffix(".md.bak").name,
-            archive_file.with_suffix(".md.bak").name,
+            "%s Backups: %s, %s",
+            c.dim("\u2139"),
+            c.dim(todo_file.with_suffix(".md.bak").name),
+            c.dim(archive_file.with_suffix(".md.bak").name),
         )
 
     return len(completed_blocks)

@@ -147,7 +147,7 @@ def main() -> int:
 
     created = updated = up_to_date = 0
     failures: list[str] = []
-    bar = ProgressBar(total=total, label="Applying labels")
+    bar = ProgressBar(total=total, label="Applying labels", color="magenta")
 
     for lab in labels:
         name = lab["name"]

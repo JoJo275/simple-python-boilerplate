@@ -989,6 +989,7 @@ def apply_replacements(
             total=len(eligible),
             label="Scanning files",
             log_interval=20,
+            color="cyan",
         )
 
     for path in eligible:

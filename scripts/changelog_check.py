@@ -28,6 +28,7 @@ import re
 import subprocess  # nosec B404
 from pathlib import Path
 
+from _colors import Colors
 from _imports import find_repo_root
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 CHANGELOG = ROOT / "CHANGELOG.md"
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 # TODO (template users): If your project uses a different changelog
 #   format (e.g. Keep a Changelog without release-please), update
@@ -204,6 +205,7 @@ def compare_versions(
     Returns:
         Exit code: 0 if in sync, 1 if drift detected.
     """
+    c = Colors()
     changelog_set = set(changelog_versions)
     tag_set = set(tag_versions)
 
@@ -212,11 +214,11 @@ def compare_versions(
     in_sync = sorted(changelog_set & tag_set, key=_version_key)
 
     # Header first, before sub-checks that may also log
-    log.info("CHANGELOG vs Git Tags")
-    log.info("=" * 50)
-    log.info("  CHANGELOG versions: %d", len(changelog_versions))
-    log.info("  Git tag versions:   %d", len(tag_versions))
-    log.info("  In sync:            %d", len(in_sync))
+    log.info("%s", c.bold("CHANGELOG vs Git Tags"))
+    log.info("%s", c.dim("=" * 50))
+    log.info("  CHANGELOG versions: %s", c.cyan(str(len(changelog_versions))))
+    log.info("  Git tag versions:   %s", c.cyan(str(len(tag_versions))))
+    log.info("  In sync:            %s", c.green(str(len(in_sync))))
 
     # Additional checks (logged under the header)
     duplicates = check_duplicates(changelog_versions)
@@ -230,24 +232,34 @@ def compare_versions(
     )
 
     if in_changelog_not_tagged:
-        log.info("\n  In CHANGELOG but not tagged (%d):", len(in_changelog_not_tagged))
+        log.info(
+            "\n  %s",
+            c.yellow(f"In CHANGELOG but not tagged ({len(in_changelog_not_tagged)}):"),
+        )
         for v in in_changelog_not_tagged:
-            log.info("    - %s", v)
+            log.info("    - %s", c.yellow(v))
 
     if tagged_not_in_changelog:
-        log.info("\n  Tagged but not in CHANGELOG (%d):", len(tagged_not_in_changelog))
+        log.info(
+            "\n  %s",
+            c.yellow(f"Tagged but not in CHANGELOG ({len(tagged_not_in_changelog)}):"),
+        )
         for v in tagged_not_in_changelog:
-            log.info("    - %s", v)
+            log.info("    - %s", c.yellow(v))
 
     if verbose and in_sync:
-        log.info("\n  In sync (%d):", len(in_sync))
+        log.info("\n  %s", c.dim(f"In sync ({len(in_sync)}):"))
         for v in in_sync:
-            log.info("    - %s", v)
+            log.info("    - %s", c.dim(v))
 
     if not has_drift:
-        log.info("\nAll versions are in sync.")
+        log.info("\n%s %s", c.green("\u2713"), c.green("All versions are in sync."))
     else:
-        log.warning("\nDrift detected between CHANGELOG.md and git tags.")
+        log.info(
+            "\n%s %s",
+            c.red("\u2717"),
+            c.red("Drift detected between CHANGELOG.md and git tags."),
+        )
 
     return 1 if has_drift else 0
 

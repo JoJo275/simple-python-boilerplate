@@ -31,14 +31,18 @@ import json
 import logging
 from pathlib import Path
 
-from _imports import find_repo_root
+from _colors import Colors
+from _imports import find_repo_root, import_sibling
+
+_progress = import_sibling("_progress")
+Spinner = _progress.Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 # TODO (template users): Change DEFAULT_PATTERN if your project uses a
 #   different convention for TODO markers (e.g., "FIXME", "HACK", or
 #   "TODO (fork users)").
@@ -144,6 +148,8 @@ def find_todos(
     exclude_dirs: set[str],
     extra_excludes: list[str] | None = None,
     exclude_suffixes: set[str] | None = None,
+    *,
+    show_progress: bool = False,
 ) -> dict[Path, list[tuple[int, str]]]:
     """Find all lines matching the pattern, grouped by file.
 
@@ -153,6 +159,7 @@ def find_todos(
         exclude_dirs: Directory names to skip entirely.
         extra_excludes: Additional path prefixes to exclude.
         exclude_suffixes: Directory name suffixes to skip.
+        show_progress: Show a spinner while scanning.
 
     Returns:
         Dict mapping file paths to list of (line_number, line_text) tuples.
@@ -162,6 +169,7 @@ def find_todos(
     extra = [Path(root / e) for e in (extra_excludes or [])]
     suffixes = exclude_suffixes or set()
     files_scanned = 0
+    spinner = Spinner("Scanning files", color="cyan") if show_progress else None
 
     for path in sorted(root.rglob("*")):
         if not path.is_file():
@@ -179,6 +187,8 @@ def find_todos(
             continue
 
         files_scanned += 1
+        if spinner:
+            spinner.update(str(path.relative_to(root)))
         matches = []
         for i, line in enumerate(text.splitlines(), start=1):
             if pattern_lower in line.lower():
@@ -187,6 +197,8 @@ def find_todos(
         if matches:
             results[path] = matches
 
+    if spinner:
+        spinner.finish()
     log.debug("Scanned %d file(s)", files_scanned)
     return results
 
@@ -197,6 +209,7 @@ def format_report(
     *,
     count_only: bool = False,
     as_json: bool = False,
+    colors: Colors | None = None,
 ) -> str:
     """Build a report string for the found TODOs.
 
@@ -205,11 +218,13 @@ def format_report(
         root: Project root (for relative path display).
         count_only: If True, only return summary counts.
         as_json: If True, return a JSON-encoded report.
+        colors: Colors instance for styled output.
 
     Returns:
         Formatted report string.
     """
     total = sum(len(matches) for matches in results.values())
+    c = colors or Colors(enabled=False)
 
     if as_json:
         data = {
@@ -225,23 +240,44 @@ def format_report(
         return json.dumps(data, indent=2)
 
     if count_only:
-        return f"{total} TODO(s) across {len(results)} file(s)"
+        count_str = c.yellow(str(total)) if total else c.green(str(total))
+        return f"{count_str} TODO(s) across {len(results)} file(s)"
 
     if not results:
-        return "No TODOs found — template has been fully customized!"
+        return c.green("✓ No TODOs found — template has been fully customized!")
 
-    lines: list[str] = [f"Found {total} TODO(s) across {len(results)} file(s):\n"]
+    separator = c.dim("─" * 60)
+    lines: list[str] = []
+
+    # Header
+    lines.append(separator)
+    lines.append(
+        c.bold(
+            f"  Found {c.yellow(str(total))} TODO(s) "
+            f"across {c.yellow(str(len(results)))} file(s)"
+        )
+    )
+    lines.append(separator)
+    lines.append("")
 
     for path, matches in results.items():
         rel = path.relative_to(root)
-        lines.append(f"  {rel}")
+        match_count = len(matches)
+        suffix = "es" if match_count != 1 else ""
+        lines.append(c.cyan(f"  {rel}") + c.dim(f"  ({match_count} match{suffix})"))
         for line_num, line_text in matches:
-            # Truncate long lines for readability
             display = line_text.strip()
             if len(display) > 100:
                 display = display[:97] + "..."
-            lines.append(f"    L{line_num}: {display}")
+            lines.append(f"    {c.dim('L' + str(line_num) + ':')} {display}")
         lines.append("")
+
+    # Footer
+    lines.append(separator)
+    lines.append(
+        c.yellow(f"  ⚑ {total} TODO(s) remaining — run with --json for CI integration")
+    )
+    lines.append(separator)
 
     return "\n".join(lines)
 
@@ -320,12 +356,16 @@ def main() -> int:
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)
 
+    c = Colors()
+    show_progress = not args.quiet and not args.json_output and not args.count
+
     results = find_todos(
         root=ROOT,
         pattern=args.pattern,
         exclude_dirs=DEFAULT_EXCLUDE,
         extra_excludes=args.exclude,
         exclude_suffixes=DEFAULT_EXCLUDE_SUFFIXES,
+        show_progress=show_progress,
     )
 
     if not args.quiet:
@@ -334,6 +374,7 @@ def main() -> int:
             ROOT,
             count_only=args.count,
             as_json=args.json_output,
+            colors=c,
         )
         # JSON goes to stdout for easy piping; human text uses logging
         if args.json_output:
