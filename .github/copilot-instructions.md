@@ -120,7 +120,7 @@ MkDocs Material stack. See `docs/.instructions.md` for conventions and
 | `.markdownlint-cli2.jsonc`   | markdownlint rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)                                   |
 | `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 | `mkdocs-hooks/generate_commands.py` | MkDocs build hook: auto-regenerates `docs/reference/commands.md` before each build                                   |
-| `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config                                                           |
+| `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config. **Note:** `${workspaceFolder}` doesn't reliably expand in `.code-workspace` settings — use relative paths instead. |
 
 ### Targeted Instruction Files
 
