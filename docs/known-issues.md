@@ -39,7 +39,7 @@ then delete them after a release cycle.
 | Area | Issue | Resolution | Date |
 | :--- | :---- | :--------- | :--- |
 | **Security** | PGP key fingerprint is a TODO | Fingerprint and keyserver URL added to SECURITY.md | 2026-03 |
-| **VS Code** | `python` interpreter path not found | Changed workspace setting to point to `${workspaceFolder}/.venv/Scripts/python.exe` | 2026-03 |
+| **VS Code** | `python` interpreter path not found | Changed workspace setting from `"python"` to relative `.venv/Scripts/python.exe`. Note: `${workspaceFolder}` doesn't reliably expand in `.code-workspace` files — use relative paths instead. | 2026-03 |
 
 ## How to Use This File
 
