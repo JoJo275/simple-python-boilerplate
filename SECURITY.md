@@ -174,14 +174,23 @@ Instead, please report security vulnerabilities via one of the following methods
       report so only you can read it:
 
       ```bash
-      # Reporter imports your public key
+      # Reporter imports your public key (from the cloned repo root,
+      # or use the full path to the downloaded file)
       gpg --import pgp-key.asc
+      # ...or from any terminal if you downloaded the file elsewhere:
+      # gpg --import /path/to/downloaded/pgp-key.asc
 
       # Reporter encrypts their vulnerability report
       gpg --encrypt --armor --recipient YOUR_EMAIL report.txt
 
       # Reporter sends you the encrypted report.txt.asc file
       ```
+
+      > **Note:** `gpg --import pgp-key.asc` uses a relative path, so
+      > run it from the repo root (where the file lives). Alternatively,
+      > the reporter can download just the `pgp-key.asc` file (e.g.,
+      > from GitHub's raw URL) and import it from any directory by
+      > specifying the full path.
 
       You then decrypt it with your private key:
 

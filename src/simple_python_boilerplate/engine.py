@@ -117,7 +117,9 @@ def process_data(data: str) -> str:
     Returns:
         Processed data string.
     """
-    # Example implementation - replace with actual logic
+    # TODO (template users): Replace this placeholder with your actual
+    # business logic. This is the core processing function that your
+    # CLI and API layers delegate to.
     return f"Processed: {data}"
 
 

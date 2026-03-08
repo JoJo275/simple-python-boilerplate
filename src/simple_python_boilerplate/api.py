@@ -56,6 +56,9 @@ def create_app() -> Any:
     # return app
 
     # Placeholder - replace with actual implementation
+    # TODO (template users): Choose a web framework (FastAPI, Flask, etc.),
+    # add it to [project].dependencies in pyproject.toml, and implement
+    # your API here. Remove this placeholder before 1.0.
     raise NotImplementedError("API not configured. Choose a framework and implement.")
 
 
