@@ -1,6 +1,11 @@
 # Version is set by hatch-vcs from git tags at build/install time.
 # The _version.py file is auto-generated and gitignored.
 # The fallback below is updated by release-please in its Release PR.
+#
+# TODO (template users): Before tagging 1.0.0, ensure:
+#   1. release-please-config.json: set "bump-minor-pre-major" to false
+#   2. pyproject.toml: change classifier to "Development Status :: 5 - Production/Stable"
+#   3. docs/release-policy.md: review the pre-1.0 versioning notes
 try:
     from simple_python_boilerplate._version import __version__, __version_tuple__
 except ImportError:

@@ -10,6 +10,10 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Coverage](https://codecov.io/gh/JoJo275/simple-python-boilerplate/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/JoJo275/simple-python-boilerplate)
 
+<!-- TODO (template users): Replace YOUR_TOKEN in the coverage badge above
+     with your actual Codecov repository token, or remove the badge entirely
+     if you don't use Codecov. The token is found in your Codecov repo settings. -->
+
 ---
 
 ## What's Included

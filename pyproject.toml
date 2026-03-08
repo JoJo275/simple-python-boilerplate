@@ -26,10 +26,12 @@ keywords = [
 ]
 
 # PyPI classifiers - see: https://pypi.org/classifiers/
+# TODO (template users): Before your 1.0 release, change the Development
+# Status classifier from Beta to Production/Stable.
 classifiers = [
     # "Development Status :: 3 - Alpha",
     "Development Status :: 4 - Beta",
-    # "Development Status :: 5 - Production/Stable",
+    # "Development Status :: 5 - Production/Stable",  # Enable at 1.0
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
