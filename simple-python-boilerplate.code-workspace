@@ -6,21 +6,19 @@
 	],
 	"settings": {
 		// ── Python ──────────────────────────────────────────────
-		// Points to the local .venv managed by Hatch or pip.
-		// Uses a relative path (resolved from the workspace root) because
-		// ${workspaceFolder} doesn't reliably expand in .code-workspace
-		// settings files.
+		// The Python extension auto-discovers .venv, Hatch envs, conda,
+		// etc. and stores your choice per-workspace. To pick an
+		// interpreter: Ctrl+Shift+P → "Python: Select Interpreter"
 		//
-		// VS Code also auto-discovers interpreters (Hatch envs, .venv,
-		// conda, etc.) and offers them via the interpreter picker:
-		//   Ctrl+Shift+P → "Python: Select Interpreter"
+		// NOTE: python.defaultInterpreterPath in .code-workspace files
+		// does NOT reliably resolve ${workspaceFolder} or relative paths.
+		// The extension will still find .venv and offer it in the picker.
+		// Once you select an interpreter, the extension remembers it.
 		//
-		// TODO (template users): Adjust the path below for your OS:
-		//   Windows:     .venv/Scripts/python.exe   (or .venv\\Scripts\\python.exe)
-		//   Linux/macOS: .venv/bin/python
-		//   If you use Hatch exclusively and don't have a .venv,
-		//   change this to "python" (relies on PATH resolution).
-		"python.defaultInterpreterPath": ".venv/Scripts/python.exe",
+		// TODO (template users): If the Python extension doesn't auto-detect
+		//   your interpreter, use the Select Interpreter command above, or
+		//   set a .vscode/settings.json with the absolute path:
+		//   { "python.defaultInterpreterPath": "C:/.../your-project/.venv/Scripts/python.exe" }
 		"[python]": {
 			"editor.defaultFormatter": "charliermarsh.ruff",
 			"editor.formatOnSave": true,

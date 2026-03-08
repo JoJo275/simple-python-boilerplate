@@ -190,6 +190,37 @@ tasks:
     cmds:
       - python scripts/repo_doctor.py {{.CLI_ARGS}}
 
+  doctor:all:
+    desc: Run ALL health checks (env, repo, TODOs, known issues) — unified error report
+    cmds:
+      - cmd: echo "──── Environment Health ────"
+        silent: true
+      - cmd: python scripts/env_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "──── Repository Health ────"
+        silent: true
+      - cmd: python scripts/repo_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "──── Template TODOs ────"
+        silent: true
+      - cmd: python scripts/check_todos.py --count
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "──── Stale Known Issues ────"
+        silent: true
+      - cmd: python scripts/check_known_issues.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "──── Diagnostics Bundle ────"
+        silent: true
+      - cmd: python scripts/doctor.py --quiet
+
   customize:
     desc: Interactive project customization
     cmds:

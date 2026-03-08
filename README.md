@@ -67,6 +67,7 @@ task lint:fix          # Auto-fix linting issues
 task fmt               # Apply formatting
 task typecheck         # Run mypy
 task check             # All quality gates at once
+task doctor:all        # All health checks in one report
 task docs:serve        # Live-reload docs at localhost:8000
 task docs:build        # Build docs (strict mode)
 task docs:commands     # Regenerate command reference
