@@ -38,6 +38,7 @@ import subprocess  # nosec B404
 import sys
 import time
 
+from _colors import supports_unicode
 from _imports import find_repo_root
 
 log = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ log = logging.getLogger(__name__)
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 # TODO (template users): Update MIN_PYTHON if your project supports
 #   a different minimum Python version. Update TOTAL_STEPS if you
@@ -96,13 +97,14 @@ def check_python() -> bool:
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
 
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
+    dash = "—" if supports_unicode() else "--"
     if current >= MIN_PYTHON:
-        # TODO: Use _colors.supports_unicode() for Unicode symbols (✓/✗)
-        #   to avoid garbled output on Windows PowerShell.
-        log.info("  ✓ Python %s (>= %s)", cur_str, min_str)
+        log.info("  %s Python %s (>= %s)", ok, cur_str, min_str)
         return True
     else:
-        log.error("  ✗ Python %s — requires >= %s", cur_str, min_str)
+        log.error("  %s Python %s %s requires >= %s", fail, cur_str, dash, min_str)
         log.error("  Install Python %s+: https://www.python.org/downloads/", min_str)
         return False
 
@@ -110,28 +112,32 @@ def check_python() -> bool:
 def check_git() -> bool:
     """Verify Git is installed and we're inside a Git repository."""
     log.info("\n[2/%d] Checking Git...", TOTAL_STEPS)
+    fail = "✗" if supports_unicode() else "X"
     git = shutil.which("git")
     if not git:
-        log.error("  ✗ Git not found")
+        log.error("  %s Git not found", fail)
         log.error("  Install from: https://git-scm.com/downloads")
         return False
 
     git_dir = ROOT / ".git"
+    ok = "✓" if supports_unicode() else "OK"
     if not git_dir.is_dir():
-        log.error("  ✗ Not a Git repository (no .git/ directory)")
+        log.error("  %s Not a Git repository (no .git/ directory)", fail)
         log.error("  Run: git init")
         return False
 
-    log.info("  ✓ Git repository detected")
+    log.info("  %s Git repository detected", ok)
     return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
     log.info("\n[3/%d] Checking Hatch...", TOTAL_STEPS)
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
     hatch = shutil.which("hatch")
     if not hatch:
-        log.error("  ✗ Hatch not found")
+        log.error("  %s Hatch not found", fail)
         if shutil.which("pipx"):
             log.error("  Install with: pipx install hatch")
         else:
@@ -151,9 +157,9 @@ def check_hatch() -> bool:
 
     result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
-        log.info("  ✓ %s", result.stdout.strip())
+        log.info("  %s %s", ok, result.stdout.strip())
         return True
-    log.error("  ✗ Hatch found but failed to run")
+    log.error("  %s Hatch found but failed to run", fail)
     return False
 
 
@@ -174,6 +180,8 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     if not skip_test_matrix:
         envs.extend(["test.py3.11", "test.py3.12", "test.py3.13"])
 
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
     # Query existing environments once (not per-env)
     existing_env_names: set[str] = set()
     if not dry_run:
@@ -186,13 +194,13 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     for env in envs:
         try:
             if not dry_run and env in existing_env_names:
-                log.info("  ✓ %s environment already exists", env)
+                log.info("  %s %s environment already exists", ok, env)
             else:
                 run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
                 label = "Would create" if dry_run else "Created"
-                log.info("  ✓ %s %s environment", label, env)
+                log.info("  %s %s %s environment", ok, label, env)
         except subprocess.CalledProcessError as e:
-            log.error("  ✗ Failed to create %s: %s", env, e)
+            log.error("  %s Failed to create %s: %s", fail, env, e)
             all_ok = False
 
     return all_ok
@@ -209,8 +217,11 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
         True if hooks were installed (or skipped) successfully.
     """
     log.info("\n[5/%d] Installing pre-commit hooks...", TOTAL_STEPS)
+    arrow = "→" if supports_unicode() else "->"
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
     if skip:
-        log.info("  → Skipped (--skip-hooks)")
+        log.info("  %s Skipped (--skip-hooks)", arrow)
         return True
 
     # Build base command: direct pre-commit or via hatch
@@ -229,10 +240,10 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
                 cmd.extend(["--hook-type", stage])
             run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
-        log.info("  ✓ %s all hook stages", label)
+        log.info("  %s %s all hook stages", ok, label)
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  ✗ Failed: %s", e)
+        log.error("  %s Failed: %s", fail, e)
         return False
 
 
@@ -243,11 +254,13 @@ def check_task_runner() -> bool:
         True always — Task is optional so this never blocks setup.
     """
     log.info("\n[6/%d] Checking Task runner...", TOTAL_STEPS)
+    ok = "✓" if supports_unicode() else "OK"
+    warn = "⚠" if supports_unicode() else "!!"
     task = shutil.which("task")
     if task:
-        log.info("  ✓ Task runner available")
+        log.info("  %s Task runner available", ok)
     else:
-        log.warning("  ⚠ Task not found (optional but recommended)")
+        log.warning("  %s Task not found (optional but recommended)", warn)
         log.warning("  Install from: https://taskfile.dev/installation/")
     return True
 
@@ -262,8 +275,11 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         True if the setup is verified (or dry-run mode).
     """
     log.info("\n[7/%d] Verifying setup...", TOTAL_STEPS)
+    arrow = "→" if supports_unicode() else "->"
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
     if dry_run:
-        log.info("  → Would verify package version")
+        log.info("  %s Would verify package version", arrow)
         return True
     try:
         # Quick test run
@@ -278,10 +294,10 @@ def verify_setup(*, dry_run: bool = False) -> bool:
             capture=True,
         )
         version = result.stdout.strip()
-        log.info("  ✓ Package version: %s", version)
+        log.info("  %s Package version: %s", ok, version)
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  ✗ Verification failed: %s", e)
+        log.error("  %s Verification failed: %s", fail, e)
         return False
 
 
@@ -372,8 +388,9 @@ def main() -> int:
     all_ok &= check_git()
     all_ok &= check_hatch()
 
+    fail = "✗" if supports_unicode() else "X"
     if not all_ok:
-        log.error("\n✗ Prerequisites not met. Fix the issues above and re-run.")
+        log.error("\n%s Prerequisites not met. Fix the issues above and re-run.", fail)
         return 1
 
     # Setup steps
@@ -391,7 +408,10 @@ def main() -> int:
         log.info("Completed in %.1fs", elapsed)
         return 0
     else:
-        log.warning("\n⚠ Setup completed with warnings. Review the output above.")
+        warn = "⚠" if supports_unicode() else "!!"
+        log.warning(
+            "\n%s Setup completed with warnings. Review the output above.", warn
+        )
         log.info("Completed in %.1fs", elapsed)
         return 1
 

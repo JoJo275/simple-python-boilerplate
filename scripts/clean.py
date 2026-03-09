@@ -30,7 +30,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from _colors import Colors
+from _colors import Colors, supports_unicode
 from _imports import find_repo_root, import_sibling
 
 # ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ from _imports import find_repo_root, import_sibling
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
@@ -154,9 +154,8 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
             errors += 1
 
     action = "Scanning" if dry_run else "Removing"
-    # TODO: Use _colors.supports_unicode() for the separator character
-    #   to avoid garbled output on Windows PowerShell.
-    separator = c.dim("─" * 50)
+    sep_char = "─" if supports_unicode() else "-"
+    separator = c.dim(sep_char * 50)
 
     # ── Section 1: Cache directories ─────────────────────────
     log.info("\n%s", separator)
@@ -261,19 +260,22 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
 
     # ── Summary ──────────────────────────────────────────────
     verb = "Would remove" if dry_run else "Cleaned"
-    log.info("\n%s", c.bold("═" * 50))
+    summary_char = "═" if supports_unicode() else "="
+    ok = "✓" if supports_unicode() else "OK"
+    fail = "✗" if supports_unicode() else "X"
+    log.info("\n%s", c.bold(summary_char * 50))
     log.info("  %s", c.bold("Summary"))
-    log.info("%s", c.bold("═" * 50))
+    log.info("%s", c.bold(summary_char * 50))
     for label, count in section_counts.items():
         if count > 0:
-            log.info("  %s %s %d %s", c.green("✓"), verb, count, label)
+            log.info("  %s %s %d %s", c.green(ok), verb, count, label)
     if removed == 0:
-        log.info("  %s", c.green("✓ Nothing to clean — already tidy!"))
+        log.info("  %s", c.green(ok + " Nothing to clean — already tidy!"))
     else:
-        log.info("  %s", c.dim("─" * 35))
+        log.info("  %s", c.dim(sep_char * 35))
         log.info("  Total: %s %d item(s)", verb.lower(), removed)
     if errors:
-        log.warning("  %s %d item(s) failed to remove", c.red("✗"), errors)
+        log.warning("  %s %d item(s) failed to remove", c.red(fail), errors)
 
     return removed, errors
 

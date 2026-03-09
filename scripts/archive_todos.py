@@ -35,7 +35,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-from _colors import Colors
+from _colors import Colors, supports_unicode
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ from _imports import find_repo_root
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 DEFAULT_TODO = ROOT / "docs" / "notes" / "todo.md"
 DEFAULT_ARCHIVE = ROOT / "docs" / "notes" / "archive.md"
@@ -216,9 +216,10 @@ def archive_todos(
     todo_file.write_text(new_todo_content, encoding="utf-8")
     archive_file.write_text(new_archive_content, encoding="utf-8")
 
+    ok = "✓" if supports_unicode() else "OK"
     log.info(
         "%s Archived %s completed item(s) to %s:",
-        c.green("✓"),
+        c.green(ok),
         c.green(str(len(completed_blocks))),
         c.cyan(current_month),
     )
@@ -226,9 +227,10 @@ def archive_todos(
         for line in block.splitlines():
             log.info("  %s", c.dim(line))
     if backup:
+        info_icon = "\u2139" if supports_unicode() else "i"
         log.info(
             "%s Backups: %s, %s",
-            c.dim("\u2139"),
+            c.dim(info_icon),
             c.dim(todo_file.with_suffix(".md.bak").name),
             c.dim(archive_file.with_suffix(".md.bak").name),
         )
