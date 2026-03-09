@@ -85,20 +85,30 @@
 
 		// ── Indent Rainbow ──────────────────────────────────────
 		// High-contrast colours for indentation guides. Each indent level
-		// gets a distinct colour so Python's significant whitespace is
-		// immediately visible. Covers both the tab-stop background and the
-		// indent guide lines.
+		// gets a distinct background colour so Python's significant
+		// whitespace is immediately visible.
+		//
+		// rgba(R, G, B, A) format:
+		//   R = red channel   (0–255)
+		//   G = green channel (0–255)
+		//   B = blue channel  (0–255)
+		//   A = alpha/opacity (0.0 = invisible, 1.0 = fully opaque)
+		//
+		// Increase A (e.g. 0.15 → 0.25) for stronger contrast on your theme.
 		"indentRainbow.colors": [
-			"rgba(255, 99, 71, 0.15)",
-			"rgba(255, 165, 0, 0.15)",
-			"rgba(255, 255, 0, 0.15)",
-			"rgba(50, 205, 50, 0.15)",
-			"rgba(0, 191, 255, 0.15)",
-			"rgba(138, 43, 226, 0.15)",
-			"rgba(255, 20, 147, 0.15)"
+			"rgba(255, 99, 71, 0.15)",   // tomato red
+			"rgba(255, 165, 0, 0.15)",   // orange
+			"rgba(255, 255, 0, 0.15)",   // yellow
+			"rgba(50, 205, 50, 0.15)",   // lime green
+			"rgba(0, 191, 255, 0.15)",   // deep sky blue
+			"rgba(138, 43, 226, 0.15)",  // blue-violet
+			"rgba(255, 20, 147, 0.15)"   // deep pink
 		],
-		"indentRainbow.indicatorStyle": "light",
-		"indentRainbow.lightIndicatorStyleLineWidth": 2,
+		// "classic" = coloured tab-stop backgrounds (default behaviour).
+		// "light"   = coloured vertical guide lines only (no backgrounds).
+		// There is no built-in mode that enables both simultaneously.
+		// We use "classic" to keep the coloured tab spacing.
+		"indentRainbow.indicatorStyle": "classic",
 		"indentRainbow.colorOnWhiteSpaceOnly": true
 	},
 	"extensions": {
