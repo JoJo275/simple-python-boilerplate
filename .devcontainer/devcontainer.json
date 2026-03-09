@@ -62,6 +62,8 @@
         "tamasfe.even-better-toml",
         "redhat.vscode-yaml",
         "yzhang.markdown-all-in-one",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
 
         // Git
         "eamodio.gitlens",

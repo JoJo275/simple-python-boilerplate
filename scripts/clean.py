@@ -154,6 +154,8 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
             errors += 1
 
     action = "Scanning" if dry_run else "Removing"
+    # TODO: Use _colors.supports_unicode() for the separator character
+    #   to avoid garbled output on Windows PowerShell.
     separator = c.dim("─" * 50)
 
     # ── Section 1: Cache directories ─────────────────────────

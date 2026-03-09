@@ -61,6 +61,7 @@
 		"recommendations": [
 			// Python
 			"ms-python.python",
+			"ms-python.vscode-pylance",
 			"ms-python.mypy-type-checker",
 			"charliermarsh.ruff",
 
@@ -68,7 +69,8 @@
 			"DavidAnson.vscode-markdownlint",
 			"esbenp.prettier-vscode",
 
-			// YAML
+			// TOML/YAML
+			"tamasfe.even-better-toml",
 			"redhat.vscode-yaml",
 
 			// Git
