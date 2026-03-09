@@ -97,6 +97,8 @@ def check_python() -> bool:
     cur_str = f"{current[0]}.{current[1]}"
 
     if current >= MIN_PYTHON:
+        # TODO: Use _colors.supports_unicode() for Unicode symbols (✓/✗)
+        #   to avoid garbled output on Windows PowerShell.
         log.info("  ✓ Python %s (>= %s)", cur_str, min_str)
         return True
     else:

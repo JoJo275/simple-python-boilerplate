@@ -31,7 +31,7 @@ import json
 import logging
 from pathlib import Path
 
-from _colors import Colors
+from _colors import Colors, supports_unicode
 from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")
@@ -244,9 +244,14 @@ def format_report(
         return f"{count_str} TODO(s) across {len(results)} file(s)"
 
     if not results:
-        return c.green("✓ No TODOs found — template has been fully customized!")
+        check = "✓" if supports_unicode() else "OK"
+        dash = "—" if supports_unicode() else "--"
+        return c.green(
+            f"{check} No TODOs found {dash} template has been fully customized!"
+        )
 
-    separator = c.dim("─" * 60)
+    sep_char = "─" if supports_unicode() else "-"
+    separator = c.dim(sep_char * 60)
     lines: list[str] = []
 
     # Header
@@ -273,9 +278,13 @@ def format_report(
         lines.append("")
 
     # Footer
+    flag = "\u2691" if supports_unicode() else "!"
+    dash = "\u2014" if supports_unicode() else "--"
     lines.append(separator)
     lines.append(
-        c.yellow(f"  ⚑ {total} TODO(s) remaining — run with --json for CI integration")
+        c.yellow(
+            f"  {flag} {total} TODO(s) remaining {dash} run with --json for CI integration"
+        )
     )
     lines.append(separator)
 
@@ -376,11 +385,12 @@ def main() -> int:
             as_json=args.json_output,
             colors=c,
         )
-        # JSON goes to stdout for easy piping; human text uses logging
+        # All human-readable output goes to stdout so that callers
+        # (e.g. Taskfile, PowerShell) don't treat it as an error.
         if args.json_output:
             print(report)
         else:
-            log.info("%s", report)
+            print(report)
 
     # Non-zero exit if TODOs remain (useful in CI)
     return 1 if results else 0

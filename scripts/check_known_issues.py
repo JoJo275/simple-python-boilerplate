@@ -39,7 +39,7 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 
-from _colors import Colors
+from _colors import Colors, supports_unicode
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -270,7 +270,8 @@ def main(argv: list[str] | None = None) -> int:
     entries = parse_resolved_entries(text)
     if not entries:
         c = Colors()
-        log.info("%s", c.green("No resolved entries found — nothing to check."))
+        dash = "\u2014" if supports_unicode() else "--"
+        print(c.green(f"No resolved entries found {dash} nothing to check."))
         return 0
 
     stale = find_stale_entries(entries, max_age_days=args.days)
@@ -285,40 +286,43 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, indent=2, default=str))
     elif not args.quiet:
         c = Colors()
-        separator = c.dim("─" * 50)
+        sep_char = "\u2500" if supports_unicode() else "-"
+        separator = c.dim(sep_char * 50)
+        # All human-readable output goes to stdout so that callers
+        # (e.g. Taskfile, PowerShell) don't treat it as an error.
         if stale:
             noun = "entry" if len(stale) == 1 else "entries"
-            log.info("%s", separator)
-            log.info(
-                "  %s",
-                c.bold(
+            print(separator)
+            print(
+                "  "
+                + c.bold(
                     c.yellow(
                         f"Found {len(stale)} stale resolved {noun} "
                         f"(older than {args.days} days):"
                     )
                 ),
             )
-            log.info("%s", separator)
+            print(separator)
+            dash = "\u2014" if supports_unicode() else "--"
+            cross = "\u2717" if supports_unicode() else "X"
             for entry in stale:
-                log.info(
-                    "  %s [%s] %s — resolved %s (%s days ago)",
-                    c.red("✗"),
-                    c.cyan(str(entry["area"])),
-                    entry["issue"],
-                    c.dim(str(entry["parsed_date"])),
-                    c.yellow(str(entry["age_days"])),
+                print(
+                    f"  {c.red(cross)} [{c.cyan(str(entry['area']))}] "
+                    f"{entry['issue']} {dash} resolved "
+                    f"{c.dim(str(entry['parsed_date']))} "
+                    f"({c.yellow(str(entry['age_days']))} days ago)"
                 )
         else:
-            log.info("%s", separator)
-            log.info(
-                "  %s %s",
-                c.green("✓"),
-                c.green(
+            check = "\u2713" if supports_unicode() else "OK"
+            print(separator)
+            print(
+                f"  {c.green(check)} "
+                + c.green(
                     f"All {len(entries)} resolved entries are within "
                     f"the {args.days}-day window."
-                ),
+                )
             )
-            log.info("%s", separator)
+            print(separator)
 
     return 1 if stale else 0
 

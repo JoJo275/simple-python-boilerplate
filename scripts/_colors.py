@@ -41,7 +41,14 @@ import re
 import sys
 from typing import TextIO
 
-__all__ = ["Colors", "colorize", "status_icon", "strip_ansi", "supports_color"]
+__all__ = [
+    "Colors",
+    "colorize",
+    "status_icon",
+    "strip_ansi",
+    "supports_color",
+    "supports_unicode",
+]
 
 SCRIPT_VERSION = "1.2.0"
 
@@ -128,6 +135,29 @@ def supports_color(stream: TextIO | None = None) -> bool:
     if sys.platform == "win32":
         return _enable_windows_ansi()
     return True
+
+
+def supports_unicode(stream: TextIO | None = None) -> bool:
+    """Detect whether *stream* can render Unicode characters beyond ASCII/Latin-1.
+
+    On Windows, PowerShell and cmd.exe often default to legacy code pages
+    (e.g. CP1252, CP437) that cannot render box-drawing characters (─),
+    check marks (✓), or em-dashes (—).  This function checks the stream's
+    encoding to decide whether Unicode decorations are safe.
+
+    Args:
+        stream: Output stream to test.  Defaults to ``sys.stdout``.
+
+    Returns:
+        True if the stream encoding supports full Unicode output.
+    """
+    # TODO (template users): If your project targets only modern terminals
+    #   (e.g. Windows Terminal, Linux, macOS), you may not need this guard.
+    #   Remove calls to supports_unicode() and use Unicode symbols directly.
+    s = stream or sys.stdout
+    encoding = getattr(s, "encoding", "") or ""
+    normalized = encoding.lower().replace("-", "").replace("_", "")
+    return normalized in ("utf8", "utf16", "utf32", "utf8sig")
 
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")

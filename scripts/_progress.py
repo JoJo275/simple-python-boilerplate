@@ -77,6 +77,9 @@ def _is_interactive() -> bool:
 
 def _supports_unicode() -> bool:
     """Return True if the terminal likely supports Unicode characters."""
+    # TODO: Consolidate with _colors.supports_unicode() to avoid
+    #   duplicating Unicode detection logic. This private version
+    #   also checks locale.getpreferredencoding() as a fallback.
     try:
         encoding = sys.stdout.encoding or locale.getpreferredencoding(False)
         return encoding.lower().replace("-", "") in {"utf8", "utf16", "utf32"}
