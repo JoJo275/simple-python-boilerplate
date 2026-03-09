@@ -44,7 +44,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore[assignment]
 
-from _colors import Colors, supports_color, supports_unicode
+from _colors import Colors, supports_color, unicode_symbols
 from _doctor_common import (
     check_hook_installed,
     check_path_exists,
@@ -659,13 +659,15 @@ def main() -> int:
     if args.quiet:
         problems = info.get("problems", {})
         c = Colors(enabled=use_color)
-        dash = "\u2014" if supports_unicode() else "--"
+        sym = unicode_symbols()
         if isinstance(problems, dict) and "status" in problems:
-            output = c.green(f"doctor {SCRIPT_VERSION} {dash} no problems detected")
+            output = c.green(
+                f"doctor {SCRIPT_VERSION} {sym['dash']} no problems detected"
+            )
         else:
             count = len(problems) if isinstance(problems, dict) else 0
             output = c.yellow(
-                f"doctor {SCRIPT_VERSION} {dash} {count} problem(s) found"
+                f"doctor {SCRIPT_VERSION} {sym['dash']} {count} problem(s) found"
             )
     elif args.json:
         output = format_json(info)

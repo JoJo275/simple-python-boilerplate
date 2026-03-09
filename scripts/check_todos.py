@@ -31,7 +31,7 @@ import json
 import logging
 from pathlib import Path
 
-from _colors import Colors, supports_unicode
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")
@@ -244,14 +244,13 @@ def format_report(
         return f"{count_str} TODO(s) across {len(results)} file(s)"
 
     if not results:
-        check = "✓" if supports_unicode() else "OK"
-        dash = "—" if supports_unicode() else "--"
+        sym = unicode_symbols()
         return c.green(
-            f"{check} No TODOs found {dash} template has been fully customized!"
+            f"{sym['check']} No TODOs found {sym['dash']} template has been fully customized!"
         )
 
-    sep_char = "─" if supports_unicode() else "-"
-    separator = c.dim(sep_char * 60)
+    sym = unicode_symbols()
+    separator = c.dim(sym["sep"] * 60)
     lines: list[str] = []
 
     # Header
@@ -278,12 +277,10 @@ def format_report(
         lines.append("")
 
     # Footer
-    flag = "\u2691" if supports_unicode() else "!"
-    dash = "\u2014" if supports_unicode() else "--"
     lines.append(separator)
     lines.append(
         c.yellow(
-            f"  {flag} {total} TODO(s) remaining {dash} run with --json for CI integration"
+            f"  {sym['flag']} {total} TODO(s) remaining {sym['dash']} run with --json for CI integration"
         )
     )
     lines.append(separator)

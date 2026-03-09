@@ -334,6 +334,9 @@ ignore = [
     "D203",   # Conflicts with D211 (no-blank-line-before-class)
     "D213",   # Conflicts with D212 (multi-line-summary-second-line)
 ]
+allowed-confusables = [
+    "ℹ",  # INFORMATION SOURCE — used in _colors.py unicode_symbols() docs
+]
 # Extended rule sets to consider (can be noisy — enable selectively):
 # select = [
 #     "E",      # pycodestyle errors
