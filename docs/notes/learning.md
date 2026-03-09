@@ -5253,6 +5253,211 @@ much shorter.
 
 ---
 
+## Standard Streams — stdout, stderr, and stdin
+
+Every process on Unix/Windows has three standard I/O streams, opened
+automatically by the OS before `main()` runs:
+
+| Stream   | File Descriptor | Python Object  | Default Destination | Purpose                                    |
+| -------- | --------------- | -------------- | ------------------- | ------------------------------------------ |
+| **stdin**  | 0             | `sys.stdin`    | Keyboard / pipe     | Input data (interactive prompts, piped data) |
+| **stdout** | 1             | `sys.stdout`   | Terminal / pipe      | Normal program output (results, reports)    |
+| **stderr** | 2             | `sys.stderr`   | Terminal / pipe      | Errors, warnings, diagnostics               |
+
+### Why Two Output Streams?
+
+The separation exists so that **data** (stdout) can be piped to another
+program while **diagnostics** (stderr) still reach the human watching
+the terminal. Example:
+
+```bash
+# stdout → file, stderr → terminal
+python scripts/check_todos.py --json > results.json
+# The JSON report goes to the file; errors/warnings still print on screen.
+
+# Both streams explicitly
+python scripts/clean.py 2>errors.log 1>output.log
+```
+
+If everything went to one stream, you couldn't reliably separate a
+program's useful output from its error messages.
+
+### How Python Maps to the Streams
+
+#### `print()` → stdout (fd 1)
+
+```python
+print("Hello")                    # writes to sys.stdout
+print("Error!", file=sys.stderr)  # explicitly writes to stderr
+```
+
+`print()` defaults to `sys.stdout`. This is what downstream consumers
+(pipes, Task runner, CI log parsers) treat as "the program's output."
+
+#### `logging` module → stderr (fd 2)
+
+```python
+import logging
+logging.basicConfig(format="%(message)s", level=logging.INFO)
+log = logging.getLogger(__name__)
+
+log.info("Processing...")   # → stderr
+log.warning("Slow query")  # → stderr
+log.error("Failed!")        # → stderr
+```
+
+Python's `logging` module sends **all levels** to stderr by default
+(via `StreamHandler(sys.stderr)`). This is correct for library code
+and daemons, but it causes problems for CLI scripts that also need
+to produce human-readable status output.
+
+#### `input()` → stdin (fd 0) + stdout
+
+```python
+answer = input("Continue? [y/N] ")  # reads from stdin, prompt on stdout
+```
+
+When stdin is a pipe (not a terminal), `input()` reads from the pipe
+without showing a prompt. Scripts should check `sys.stdin.isatty()`
+before using interactive prompts.
+
+### The Problem: stderr + PowerShell + Task Runner
+
+This project discovered the issue firsthand. Here's what happens:
+
+1. A Python script uses `log.info("✓ All checks passed")` — this goes to **stderr**
+2. The script exits with code 1 (e.g. "TODOs found")
+3. **PowerShell** sees data on stderr from a process with non-zero exit → wraps every
+   stderr line in a red `NativeCommandError` block
+4. **Task runner** pipes both streams through its own buffering, sometimes interleaving them
+
+Result: garbled, duplicated, red-wrapped output that looks broken even though the
+script is working correctly.
+
+#### The Fix
+
+Split output by intent:
+
+| What                        | Stream   | Python API            | Why                                                |
+| --------------------------- | -------- | --------------------- | -------------------------------------------------- |
+| Human status reports        | stdout   | `print()`             | Passes cleanly through pipes, Task, PowerShell     |
+| Errors and warnings         | stderr   | `log.error()` / `log.warning()` | Goes to stderr where it belongs          |
+| Machine-readable output     | stdout   | `print(json.dumps())` | Consumers expect data on stdout                    |
+| Debug/diagnostic info       | stderr   | `log.debug()`         | Hidden unless `--verbose`, doesn't pollute stdout  |
+
+```python
+# Before (broken on PowerShell):
+log.info("  ✓ No TODOs found")              # stderr → NativeCommandError
+
+# After (clean):
+if not args.quiet:
+    print("  ✓ No TODOs found")             # stdout → passes through cleanly
+
+log.error("  ✗ File not found: %s", path)   # stderr → correct: this IS an error
+```
+
+The `--quiet` flag still works: instead of relying on `logging.WARNING` level
+to suppress `log.info()`, the script checks `if not args.quiet` before calling
+`print()`.
+
+### stdin: Interactive vs Piped
+
+Scripts should behave differently when stdin is a terminal vs a pipe:
+
+```python
+import sys
+
+if sys.stdin.isatty():
+    # Interactive: ask for confirmation
+    answer = input("Delete 47 files? [y/N] ")
+    if answer.lower() != "y":
+        sys.exit(0)
+else:
+    # Piped: assume non-interactive, require --yes flag
+    if not args.yes:
+        print("Error: --yes required in non-interactive mode", file=sys.stderr)
+        sys.exit(1)
+```
+
+This pattern appears in `scripts/clean.py` for the `--include-venv` confirmation.
+
+### Stream Encoding and Unicode
+
+Each stream has an encoding (`sys.stdout.encoding`). On modern Linux/macOS,
+it's almost always UTF-8. On Windows, it depends:
+
+| Terminal        | Default Encoding | Unicode Safe? |
+| --------------- | --------------- | ------------- |
+| Windows Terminal | UTF-8           | Yes           |
+| PowerShell 7    | UTF-8           | Yes           |
+| PowerShell 5.1  | Often CP1252    | No — ✓ → garbled |
+| cmd.exe         | CP437/CP1252    | No            |
+| VS Code terminal | UTF-8          | Yes           |
+| GitHub Actions  | UTF-8           | Yes           |
+
+This is why the project has `_colors.supports_unicode()` — it checks
+`sys.stdout.encoding` (with a `locale.getpreferredencoding()` fallback)
+and returns True only for UTF-8/16/32. Scripts use it to choose between
+Unicode decorations (`✓`, `─`, `═`) and ASCII fallbacks (`OK`, `-`, `=`).
+
+### Redirection Cheat Sheet
+
+```bash
+# Redirect stdout to file
+command > output.txt
+
+# Redirect stderr to file
+command 2> errors.txt
+
+# Redirect both to same file
+command > all.txt 2>&1
+
+# Pipe stdout only (stderr still goes to terminal)
+command | grep "pattern"
+
+# Pipe both streams
+command 2>&1 | grep "pattern"
+
+# Discard stderr
+command 2>/dev/null
+
+# Discard stdout, keep stderr
+command > /dev/null
+```
+
+In PowerShell, the syntax differs:
+
+```powershell
+# Redirect stdout
+command > output.txt
+
+# Redirect stderr (PowerShell 7+)
+command 2> errors.txt
+
+# Redirect all streams
+command *> all.txt
+
+# Pipe (PowerShell pipes objects, not byte streams)
+command | Select-String "pattern"
+```
+
+### Key Takeaways
+
+1. **stdout = data**, **stderr = diagnostics**. Don't mix them.
+2. Python's `logging` module sends everything to stderr. For CLI scripts
+   that produce human-readable reports, use `print()` for the report and
+   `logging` for errors/warnings.
+3. Always check encoding before using Unicode symbols on Windows.
+   Use `supports_unicode()` from `_colors.py`, not hardcoded `✓`.
+4. When your script might be piped, check `sys.stdin.isatty()` and
+   `sys.stdout.isatty()` to adjust behavior (skip prompts, skip color,
+   skip progress bars).
+5. PowerShell wraps stderr in error records when exit code is non-zero.
+   This is a PowerShell behavior, not a Python bug — but you need to
+   design around it for scripts that run through task runners.
+
+---
+
 ## Resources
 
 ### Python Packaging

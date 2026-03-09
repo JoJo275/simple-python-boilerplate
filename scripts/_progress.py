@@ -37,12 +37,13 @@ Usage::
 
 from __future__ import annotations
 
-import locale
 import logging
 import shutil
 import sys
 
-SCRIPT_VERSION = "1.4.0"
+from _colors import supports_unicode as _supports_unicode
+
+SCRIPT_VERSION = "1.5.0"
 
 __all__ = ["ProgressBar", "Spinner"]
 
@@ -73,18 +74,6 @@ def _terminal_width() -> int:
 def _is_interactive() -> bool:
     """Return True if stdout is a TTY (not piped/redirected)."""
     return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
-
-
-def _supports_unicode() -> bool:
-    """Return True if the terminal likely supports Unicode characters."""
-    # TODO: Consolidate with _colors.supports_unicode() to avoid
-    #   duplicating Unicode detection logic. This private version
-    #   also checks locale.getpreferredencoding() as a fallback.
-    try:
-        encoding = sys.stdout.encoding or locale.getpreferredencoding(False)
-        return encoding.lower().replace("-", "") in {"utf8", "utf16", "utf32"}
-    except Exception:
-        return False
 
 
 def _truncate(text: str, max_len: int) -> str:

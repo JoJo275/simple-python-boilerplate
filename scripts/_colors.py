@@ -156,6 +156,12 @@ def supports_unicode(stream: TextIO | None = None) -> bool:
     #   Remove calls to supports_unicode() and use Unicode symbols directly.
     s = stream or sys.stdout
     encoding = getattr(s, "encoding", "") or ""
+    if not encoding:
+        # Fallback: check locale preferred encoding (useful when stream
+        # encoding is unavailable, e.g. in some embedded/CI environments).
+        import locale
+
+        encoding = locale.getpreferredencoding(False)
     normalized = encoding.lower().replace("-", "").replace("_", "")
     return normalized in ("utf8", "utf16", "utf32", "utf8sig")
 
