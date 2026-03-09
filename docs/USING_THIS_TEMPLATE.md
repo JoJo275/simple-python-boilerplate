@@ -864,10 +864,12 @@ already have.
 
 ### Recommended Extensions
 
-The workspace includes two categories of extension recommendations:
+All extensions are active by default. The list is split into two tiers —
+**project-essential** tools that directly mirror CI/tooling, and
+**quality-of-life** tools that improve the editing experience. Template users
+should review both and remove or comment out anything that doesn't apply.
 
-**Active recommendations** — project-relevant tools that VS Code will prompt
-you to install:
+**Project-essential** — directly tied to project tooling and CI:
 
 | Extension | Why it's included |
 | :--- | :--- |
@@ -885,23 +887,26 @@ you to install:
 | `EditorConfig.EditorConfig` | Consistent editor settings across editors |
 | `streetsidesoftware.code-spell-checker` | Spell checking in code and docs |
 
-**Commented-out (optional)** — quality-of-life extensions that individual
-developers can uncomment based on preference. These are intentionally not
-active by default to keep the recommendation list focused on project-essential
-tools:
+**Quality-of-life** — improve the editing experience but not project-critical:
 
-- `aaron-bond.better-comments` — colorized TODO/FIXME/HACK comments
-- `usernamehw.errorlens` — inline error/warning display
-- `github.copilot-chat` — AI assistant (pairs with `copilot-instructions.md`)
-- `oderwat.indent-rainbow` — colorized indentation guides
-- `ms-python.vscode-python-envs` — visual Python environment manager
-- `inferrinizzard.prettier-sql-vscode` — SQL formatting (useful if keeping `db/`)
-- `mechatroner.rainbow-csv` — CSV/TSV column highlighting
-- `ms-azuretools.vscode-docker` — Docker/container integration
+| Extension | Why it's included |
+| :--- | :--- |
+| `aaron-bond.better-comments` | Colourised TODO/FIXME/HACK comments |
+| `usernamehw.errorlens` | Inline error/warning display at end of line |
+| `github.copilot-chat` | AI assistant (pairs with `copilot-instructions.md`) |
+| `oderwat.indent-rainbow` | Colourised indentation levels (custom high-contrast colours in settings) |
+| `ms-python.vscode-python-envs` | Visual Python environment manager |
+| `inferrinizzard.prettier-sql-vscode` | SQL formatting (useful if keeping `db/` scaffolding) |
+| `mechatroner.rainbow-csv` | CSV/TSV column highlighting |
+| `ms-azuretools.vscode-docker` | Docker/container integration |
 
-<!-- TODO (template users): Uncomment extensions that are useful for your
-     team, and remove any that don't apply. Add extensions specific to your
-     stack (e.g., database clients, REST clients, framework-specific tools). -->
+<!-- TODO (template users): Review both tiers. Remove QoL extensions your
+     team doesn't need. Add extensions specific to your stack (e.g., database
+     clients, REST clients, framework-specific tools). -->
+
+> **Tip:** This file uses JSONC (JSON with Comments). To disable an extension,
+> just comment out or delete the line — JSONC handles trailing commas and
+> comment gaps gracefully, so you don't need to worry about breaking the array.
 
 ### Customizing After Forking
 
