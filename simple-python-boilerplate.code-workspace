@@ -59,29 +59,46 @@
 	},
 	"extensions": {
 		"recommendations": [
-			// Python
+			// ── Python ──────────────────────────────────────────
 			"ms-python.python",
 			"ms-python.vscode-pylance",
 			"ms-python.mypy-type-checker",
 			"charliermarsh.ruff",
 
-			// Markdown
+			// ── Markdown ────────────────────────────────────────
 			"DavidAnson.vscode-markdownlint",
 			"esbenp.prettier-vscode",
+			"bierner.markdown-mermaid",
 
-			// TOML/YAML
+			// ── TOML / YAML ─────────────────────────────────────
 			"tamasfe.even-better-toml",
 			"redhat.vscode-yaml",
 
-			// Git
+			// ── Git ─────────────────────────────────────────────
 			"eamodio.gitlens",
 
-			// Task runner
+			// ── CI / GitHub Actions ─────────────────────────────
+			"GitHub.vscode-github-actions",
+
+			// ── Task runner ─────────────────────────────────────
 			"task.vscode-task",
 
-			// General
+			// ── General ─────────────────────────────────────────
 			"EditorConfig.EditorConfig",
 			"streetsidesoftware.code-spell-checker"
+
+			// ── Quality of Life (optional) ──────────────────────
+			// TODO (template users): Uncomment any of these that suit
+			//   your team's workflow. They're commented out because they're
+			//   nice-to-have, not project-essential.
+			// "aaron-bond.better-comments",        // colorized TODO/FIXME/HACK comments
+			// "usernamehw.errorlens",               // inline error/warning display
+			// "github.copilot-chat",                // AI assistant (pairs with copilot-instructions.md)
+			// "oderwat.indent-rainbow",             // colorized indentation guides
+			// "ms-python.vscode-python-envs",       // visual Python environment manager
+			// "inferrinizzard.prettier-sql-vscode", // SQL formatting (useful if keeping db/ scaffolding)
+			// "mechatroner.rainbow-csv",            // CSV/TSV column highlighting
+			// "ms-azuretools.vscode-docker"         // Docker/container integration (useful if keeping Containerfile)
 		]
 	}
 }
