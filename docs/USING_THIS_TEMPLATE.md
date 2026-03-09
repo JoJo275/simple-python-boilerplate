@@ -839,6 +839,120 @@ and the docs you don't need.
 | ADR index                          | [docs/adr/](adr/README.md)                                        |
 
 ---
+## VS Code Workspace File
+
+The [`.code-workspace`](../simple-python-boilerplate.code-workspace) file
+provides a shared, version-controlled VS Code configuration for all
+contributors. It eliminates "works on my machine" editor config drift by
+defining formatter choices, format-on-save behaviour, file exclusions, and
+extension recommendations in one place.
+
+### What It Provides
+
+| Section         | What it controls                                                                     |
+| :-------------- | :----------------------------------------------------------------------------------- |
+| **Settings**    | Python formatter (Ruff), format-on-save, Markdown word wrap, file exclusions, rulers |
+| **Extensions**  | Recommended extensions that VS Code prompts to install on first open                 |
+
+### Opening the Workspace
+
+Open the file directly — **File → Open Workspace from File…** and select
+`simple-python-boilerplate.code-workspace`.
+
+VS Code will prompt you to install any recommended extensions you don't
+already have.
+
+### Recommended Extensions
+
+The workspace includes two categories of extension recommendations:
+
+**Active recommendations** — project-relevant tools that VS Code will prompt
+you to install:
+
+| Extension | Why it's included |
+| :--- | :--- |
+| `ms-python.python` + `ms-python.vscode-pylance` | Core Python IntelliSense |
+| `ms-python.mypy-type-checker` | Real-time type error feedback (matches CI mypy) |
+| `charliermarsh.ruff` | In-editor linting + format-on-save (Ruff is the CLI linter, the extension gives live feedback) |
+| `DavidAnson.vscode-markdownlint` | Markdown lint errors inline |
+| `esbenp.prettier-vscode` | Markdown/YAML/JSON formatting |
+| `bierner.markdown-mermaid` | Renders mermaid diagrams in VS Code's Markdown preview (e.g., [releasing.md](releasing.md)) |
+| `tamasfe.even-better-toml` | TOML syntax for `pyproject.toml` |
+| `redhat.vscode-yaml` | YAML validation for workflows and configs |
+| `eamodio.gitlens` | Git blame, history, and annotations |
+| `GitHub.vscode-github-actions` | Workflow syntax validation and auto-complete (34 workflows in this project) |
+| `task.vscode-task` | Task runner integration for `Taskfile.yml` |
+| `EditorConfig.EditorConfig` | Consistent editor settings across editors |
+| `streetsidesoftware.code-spell-checker` | Spell checking in code and docs |
+
+**Commented-out (optional)** — quality-of-life extensions that individual
+developers can uncomment based on preference. These are intentionally not
+active by default to keep the recommendation list focused on project-essential
+tools:
+
+- `aaron-bond.better-comments` — colorized TODO/FIXME/HACK comments
+- `usernamehw.errorlens` — inline error/warning display
+- `github.copilot-chat` — AI assistant (pairs with `copilot-instructions.md`)
+- `oderwat.indent-rainbow` — colorized indentation guides
+- `ms-python.vscode-python-envs` — visual Python environment manager
+- `inferrinizzard.prettier-sql-vscode` — SQL formatting (useful if keeping `db/`)
+- `mechatroner.rainbow-csv` — CSV/TSV column highlighting
+- `ms-azuretools.vscode-docker` — Docker/container integration
+
+<!-- TODO (template users): Uncomment extensions that are useful for your
+     team, and remove any that don't apply. Add extensions specific to your
+     stack (e.g., database clients, REST clients, framework-specific tools). -->
+
+### Customizing After Forking
+
+1. **Rename the file** to match your project: `your-project.code-workspace`
+2. **Review extensions** — uncomment optional ones your team wants, remove
+   ones that don't apply
+3. **Add project-specific settings** — e.g., if using Django, add
+   `"python.analysis.extraPaths"` or a different test framework
+4. **Commit the file** — it belongs in version control so all contributors
+   share the same baseline
+
+### Using with VS Code Profiles
+
+`.code-workspace` and [VS Code Profiles](https://code.visualstudio.com/docs/editor/profiles)
+complement each other:
+
+- **`.code-workspace`** = team baseline (committed, shared via git, recommends extensions)
+- **Profiles** = personal overrides (local to your machine, can enable/disable extensions)
+
+A common pattern: use `code-workspace` for project-agreed settings, and a
+VS Code profile to disable extensions from other projects that clutter your
+sidebar (e.g., Java extensions when doing Python work).
+
+Note that `.code-workspace` can only *recommend* extensions — it cannot
+force-install or force-disable them. For disabling unwanted extension
+suggestions, use the `"unwantedRecommendations"` array in the `extensions`
+block.
+
+### Why Some CLI Tools Also Have VS Code Extensions
+
+Tools like Ruff, mypy, and markdownlint exist both as CLI tools (run in CI
+and pre-commit hooks) and as VS Code extensions. The CLI tools are the source
+of truth — CI enforces them. The VS Code extensions provide **real-time editor
+feedback** (red squiggles, format-on-save, quick-fixes) so you catch issues
+before committing rather than waiting for the linter to run.
+
+### MkDocs-Specific Markdown Preview
+
+VS Code's built-in Markdown preview does not render MkDocs-specific syntax
+like `:::` admonition directives or `mkdocstrings` autodoc blocks. No VS Code
+extension currently supports this. For full-fidelity preview of MkDocs
+content, use the live-reload server:
+
+```bash
+task docs:serve    # http://localhost:8000 with live-reload
+```
+
+The `bierner.markdown-mermaid` extension does handle ` ```mermaid ` blocks
+in VS Code's Markdown preview.
+
+---
 ## Copilot Customization
 
 <!-- TODO (template users): After forking, update these files to match YOUR
