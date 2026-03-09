@@ -48,6 +48,7 @@ __all__ = [
     "strip_ansi",
     "supports_color",
     "supports_unicode",
+    "unicode_symbols",
 ]
 
 SCRIPT_VERSION = "1.2.0"
@@ -164,6 +165,78 @@ def supports_unicode(stream: TextIO | None = None) -> bool:
         encoding = locale.getpreferredencoding(False)
     normalized = encoding.lower().replace("-", "").replace("_", "")
     return normalized in ("utf8", "utf16", "utf32", "utf8sig")
+
+
+# ---------------------------------------------------------------------------
+# Unicode symbol map
+# ---------------------------------------------------------------------------
+
+# Cached result so supports_unicode() is called at most once per process.
+_cached_symbols: dict[str, str] | None = None
+
+
+def unicode_symbols(stream: TextIO | None = None) -> dict[str, str]:
+    """Return a dict of display symbols appropriate for the terminal.
+
+    If the output stream supports Unicode, returns symbols like ``\u2713``
+    (check mark). Otherwise falls back to safe ASCII equivalents.
+
+    The result is cached after the first call (per-process), so repeated
+    calls are free.
+
+    Keys returned::
+
+        check  ✓ / OK     success indicator
+        cross  ✗ / X      failure indicator
+        warn   ⚠ / !!     warning indicator
+        info   ℹ / i      informational indicator
+        dash   — / --     em-dash separator
+        sep    ─ / -      horizontal rule character
+        sep2   ═ / =      double horizontal rule character
+        arrow  → / ->     arrow / pointer
+        flag   ⚑ / !      flag / attention marker
+        bullet ● / *      bullet point
+        ellip  … / ...    ellipsis
+
+    Args:
+        stream: Output stream to test.  Defaults to ``sys.stdout``.
+
+    Returns:
+        Dict mapping symbol names to their string representations.
+    """
+    global _cached_symbols
+    if _cached_symbols is not None:
+        return _cached_symbols
+
+    if supports_unicode(stream):
+        _cached_symbols = {
+            "check": "\u2713",  # ✓
+            "cross": "\u2717",  # ✗
+            "warn": "\u26a0",  # ⚠
+            "info": "\u2139",  # ℹ
+            "dash": "\u2014",  # —
+            "sep": "\u2500",  # ─
+            "sep2": "\u2550",  # ═
+            "arrow": "\u2192",  # →
+            "flag": "\u2691",  # ⚑
+            "bullet": "\u25cf",  # ●
+            "ellip": "\u2026",  # …
+        }
+    else:
+        _cached_symbols = {
+            "check": "OK",
+            "cross": "X",
+            "warn": "!!",
+            "info": "i",
+            "dash": "--",
+            "sep": "-",
+            "sep2": "=",
+            "arrow": "->",
+            "flag": "!",
+            "bullet": "*",
+            "ellip": "...",
+        }
+    return _cached_symbols
 
 
 _ANSI_RE = re.compile(r"\033\[[0-9;]*m")

@@ -38,7 +38,7 @@ import subprocess  # nosec B404
 import sys
 import time
 
-from _colors import supports_unicode
+from _colors import unicode_symbols
 from _imports import find_repo_root
 
 log = logging.getLogger(__name__)
@@ -97,14 +97,18 @@ def check_python() -> bool:
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
 
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
-    dash = "—" if supports_unicode() else "--"
+    sym = unicode_symbols()
     if current >= MIN_PYTHON:
-        log.info("  %s Python %s (>= %s)", ok, cur_str, min_str)
+        log.info("  %s Python %s (>= %s)", sym["check"], cur_str, min_str)
         return True
     else:
-        log.error("  %s Python %s %s requires >= %s", fail, cur_str, dash, min_str)
+        log.error(
+            "  %s Python %s %s requires >= %s",
+            sym["cross"],
+            cur_str,
+            sym["dash"],
+            min_str,
+        )
         log.error("  Install Python %s+: https://www.python.org/downloads/", min_str)
         return False
 
@@ -112,32 +116,30 @@ def check_python() -> bool:
 def check_git() -> bool:
     """Verify Git is installed and we're inside a Git repository."""
     log.info("\n[2/%d] Checking Git...", TOTAL_STEPS)
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     git = shutil.which("git")
     if not git:
-        log.error("  %s Git not found", fail)
+        log.error("  %s Git not found", sym["cross"])
         log.error("  Install from: https://git-scm.com/downloads")
         return False
 
     git_dir = ROOT / ".git"
-    ok = "✓" if supports_unicode() else "OK"
     if not git_dir.is_dir():
-        log.error("  %s Not a Git repository (no .git/ directory)", fail)
+        log.error("  %s Not a Git repository (no .git/ directory)", sym["cross"])
         log.error("  Run: git init")
         return False
 
-    log.info("  %s Git repository detected", ok)
+    log.info("  %s Git repository detected", sym["check"])
     return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
     log.info("\n[3/%d] Checking Hatch...", TOTAL_STEPS)
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     hatch = shutil.which("hatch")
     if not hatch:
-        log.error("  %s Hatch not found", fail)
+        log.error("  %s Hatch not found", sym["cross"])
         if shutil.which("pipx"):
             log.error("  Install with: pipx install hatch")
         else:
@@ -157,9 +159,9 @@ def check_hatch() -> bool:
 
     result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
-        log.info("  %s %s", ok, result.stdout.strip())
+        log.info("  %s %s", sym["check"], result.stdout.strip())
         return True
-    log.error("  %s Hatch found but failed to run", fail)
+    log.error("  %s Hatch found but failed to run", sym["cross"])
     return False
 
 
@@ -180,8 +182,7 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     if not skip_test_matrix:
         envs.extend(["test.py3.11", "test.py3.12", "test.py3.13"])
 
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     # Query existing environments once (not per-env)
     existing_env_names: set[str] = set()
     if not dry_run:
@@ -194,13 +195,13 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     for env in envs:
         try:
             if not dry_run and env in existing_env_names:
-                log.info("  %s %s environment already exists", ok, env)
+                log.info("  %s %s environment already exists", sym["check"], env)
             else:
                 run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
                 label = "Would create" if dry_run else "Created"
-                log.info("  %s %s %s environment", ok, label, env)
+                log.info("  %s %s %s environment", sym["check"], label, env)
         except subprocess.CalledProcessError as e:
-            log.error("  %s Failed to create %s: %s", fail, env, e)
+            log.error("  %s Failed to create %s: %s", sym["cross"], env, e)
             all_ok = False
 
     return all_ok
@@ -217,11 +218,9 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
         True if hooks were installed (or skipped) successfully.
     """
     log.info("\n[5/%d] Installing pre-commit hooks...", TOTAL_STEPS)
-    arrow = "→" if supports_unicode() else "->"
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     if skip:
-        log.info("  %s Skipped (--skip-hooks)", arrow)
+        log.info("  %s Skipped (--skip-hooks)", sym["arrow"])
         return True
 
     # Build base command: direct pre-commit or via hatch
@@ -240,10 +239,10 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
                 cmd.extend(["--hook-type", stage])
             run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
-        log.info("  %s %s all hook stages", ok, label)
+        log.info("  %s %s all hook stages", sym["check"], label)
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  %s Failed: %s", fail, e)
+        log.error("  %s Failed: %s", sym["cross"], e)
         return False
 
 
@@ -254,13 +253,12 @@ def check_task_runner() -> bool:
         True always — Task is optional so this never blocks setup.
     """
     log.info("\n[6/%d] Checking Task runner...", TOTAL_STEPS)
-    ok = "✓" if supports_unicode() else "OK"
-    warn = "⚠" if supports_unicode() else "!!"
+    sym = unicode_symbols()
     task = shutil.which("task")
     if task:
-        log.info("  %s Task runner available", ok)
+        log.info("  %s Task runner available", sym["check"])
     else:
-        log.warning("  %s Task not found (optional but recommended)", warn)
+        log.warning("  %s Task not found (optional but recommended)", sym["warn"])
         log.warning("  Install from: https://taskfile.dev/installation/")
     return True
 
@@ -275,11 +273,9 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         True if the setup is verified (or dry-run mode).
     """
     log.info("\n[7/%d] Verifying setup...", TOTAL_STEPS)
-    arrow = "→" if supports_unicode() else "->"
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     if dry_run:
-        log.info("  %s Would verify package version", arrow)
+        log.info("  %s Would verify package version", sym["arrow"])
         return True
     try:
         # Quick test run
@@ -294,10 +290,10 @@ def verify_setup(*, dry_run: bool = False) -> bool:
             capture=True,
         )
         version = result.stdout.strip()
-        log.info("  %s Package version: %s", ok, version)
+        log.info("  %s Package version: %s", sym["check"], version)
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  %s Verification failed: %s", fail, e)
+        log.error("  %s Verification failed: %s", sym["cross"], e)
         return False
 
 
@@ -388,9 +384,11 @@ def main() -> int:
     all_ok &= check_git()
     all_ok &= check_hatch()
 
-    fail = "✗" if supports_unicode() else "X"
+    sym = unicode_symbols()
     if not all_ok:
-        log.error("\n%s Prerequisites not met. Fix the issues above and re-run.", fail)
+        log.error(
+            "\n%s Prerequisites not met. Fix the issues above and re-run.", sym["cross"]
+        )
         return 1
 
     # Setup steps
@@ -408,9 +406,8 @@ def main() -> int:
         log.info("Completed in %.1fs", elapsed)
         return 0
     else:
-        warn = "⚠" if supports_unicode() else "!!"
         log.warning(
-            "\n%s Setup completed with warnings. Review the output above.", warn
+            "\n%s Setup completed with warnings. Review the output above.", sym["warn"]
         )
         log.info("Completed in %.1fs", elapsed)
         return 1

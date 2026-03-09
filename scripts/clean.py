@@ -30,7 +30,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from _colors import Colors, supports_unicode
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
 
 # ---------------------------------------------------------------------------
@@ -154,8 +154,8 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
             errors += 1
 
     action = "Scanning" if dry_run else "Removing"
-    sep_char = "─" if supports_unicode() else "-"
-    separator = c.dim(sep_char * 50)
+    sym = unicode_symbols()
+    separator = c.dim(sym["sep"] * 50)
 
     # ── Section 1: Cache directories ─────────────────────────
     log.info("\n%s", separator)
@@ -260,9 +260,9 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
 
     # ── Summary ──────────────────────────────────────────────
     verb = "Would remove" if dry_run else "Cleaned"
-    summary_char = "═" if supports_unicode() else "="
-    ok = "✓" if supports_unicode() else "OK"
-    fail = "✗" if supports_unicode() else "X"
+    summary_char = sym["sep2"]
+    ok = sym["check"]
+    fail = sym["cross"]
     log.info("\n%s", c.bold(summary_char * 50))
     log.info("  %s", c.bold("Summary"))
     log.info("%s", c.bold(summary_char * 50))
@@ -272,7 +272,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
     if removed == 0:
         log.info("  %s", c.green(ok + " Nothing to clean — already tidy!"))
     else:
-        log.info("  %s", c.dim(sep_char * 35))
+        log.info("  %s", c.dim(sym["sep"] * 35))
         log.info("  Total: %s %d item(s)", verb.lower(), removed)
     if errors:
         log.warning("  %s %d item(s) failed to remove", c.red(fail), errors)

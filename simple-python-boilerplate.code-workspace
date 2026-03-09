@@ -198,6 +198,12 @@
 			// significant whitespace. Colour settings are in the settings
 			// block above.
 			"oderwat.indent-rainbow",
+			// Indenticator — highlights the current indent level with a
+			// coloured vertical line. Complements indent-rainbow: rainbow
+			// gives per-level background colours, indenticator draws a bold
+			// guide line at the *active* indent depth so you always know
+			// where the cursor's block starts/ends.
+			"sirtori.indenticator",
 			// Python Environments — visual environment manager. Shows all
 			// detected interpreters (venv, Hatch, conda) in a sidebar view
 			// for quick switching.

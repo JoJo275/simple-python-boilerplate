@@ -918,6 +918,40 @@ should review both and remove or comment out anything that doesn't apply.
 4. **Commit the file** — it belongs in version control so all contributors
    share the same baseline
 
+### Settings Override Hierarchy
+
+VS Code applies settings in layers. Each layer overrides the one above it:
+
+| Priority | Source | Where It Lives | Scope |
+| :------: | :----- | :------------- | :---- |
+| 1 (lowest) | **Default settings** | Built into VS Code | All workspaces |
+| 2 | **User settings** | `%APPDATA%/Code/User/settings.json` (Windows) | All workspaces |
+| 3 | **Workspace settings** | `.code-workspace` file → `"settings"` block | Everyone who opens this workspace file |
+| 4 (highest) | **Folder settings** | `.vscode/settings.json` inside a folder | That folder only (multi-root workspaces) |
+
+Within any layer, **language-specific overrides** (e.g.,
+`"[python]": { "editor.formatOnSave": true }`) take precedence over
+general settings at that same layer.
+
+**Where Profiles fit:** A VS Code Profile is *not* a separate layer — it
+*replaces* the User Settings layer entirely. Each profile has its own
+`settings.json`, its own set of enabled extensions, and its own keybindings.
+Switching profiles swaps which User Settings are active. Workspace settings
+(from `.code-workspace`) still override whatever profile is active.
+
+Practical implications:
+
+- Settings in this project’s `.code-workspace` override your personal
+  User / Profile settings. This is intentional — it ensures every
+  contributor uses the same formatter, ruler positions, and file
+  exclusions.
+- If you need a personal override that wins over the workspace file,
+  create a `.vscode/settings.json` inside the repo root (it’s
+  git-ignored by default). This is the Folder Settings layer and
+  has the highest priority.
+- Profile settings let you control which *extensions* are active
+  per project, which the workspace file cannot enforce.
+
 ### Using with VS Code Profiles
 
 `.code-workspace` and [VS Code Profiles](https://code.visualstudio.com/docs/editor/profiles)

@@ -35,7 +35,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-from _colors import Colors, supports_unicode
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -216,10 +216,10 @@ def archive_todos(
     todo_file.write_text(new_todo_content, encoding="utf-8")
     archive_file.write_text(new_archive_content, encoding="utf-8")
 
-    ok = "✓" if supports_unicode() else "OK"
+    sym = unicode_symbols()
     log.info(
         "%s Archived %s completed item(s) to %s:",
-        c.green(ok),
+        c.green(sym["check"]),
         c.green(str(len(completed_blocks))),
         c.cyan(current_month),
     )
@@ -227,10 +227,9 @@ def archive_todos(
         for line in block.splitlines():
             log.info("  %s", c.dim(line))
     if backup:
-        info_icon = "\u2139" if supports_unicode() else "i"
         log.info(
             "%s Backups: %s, %s",
-            c.dim(info_icon),
+            c.dim(sym["info"]),
             c.dim(todo_file.with_suffix(".md.bak").name),
             c.dim(archive_file.with_suffix(".md.bak").name),
         )

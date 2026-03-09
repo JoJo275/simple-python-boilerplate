@@ -39,7 +39,7 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 
-from _colors import Colors, supports_unicode
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
 
 # ---------------------------------------------------------------------------
@@ -270,8 +270,8 @@ def main(argv: list[str] | None = None) -> int:
     entries = parse_resolved_entries(text)
     if not entries:
         c = Colors()
-        dash = "\u2014" if supports_unicode() else "--"
-        print(c.green(f"No resolved entries found {dash} nothing to check."))
+        sym = unicode_symbols()
+        print(c.green(f"No resolved entries found {sym['dash']} nothing to check."))
         return 0
 
     stale = find_stale_entries(entries, max_age_days=args.days)
@@ -286,8 +286,8 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, indent=2, default=str))
     elif not args.quiet:
         c = Colors()
-        sep_char = "\u2500" if supports_unicode() else "-"
-        separator = c.dim(sep_char * 50)
+        sym = unicode_symbols()
+        separator = c.dim(sym["sep"] * 50)
         # All human-readable output goes to stdout so that callers
         # (e.g. Taskfile, PowerShell) don't treat it as an error.
         if stale:
@@ -303,20 +303,17 @@ def main(argv: list[str] | None = None) -> int:
                 ),
             )
             print(separator)
-            dash = "\u2014" if supports_unicode() else "--"
-            cross = "\u2717" if supports_unicode() else "X"
             for entry in stale:
                 print(
-                    f"  {c.red(cross)} [{c.cyan(str(entry['area']))}] "
-                    f"{entry['issue']} {dash} resolved "
+                    f"  {c.red(sym['cross'])} [{c.cyan(str(entry['area']))}] "
+                    f"{entry['issue']} {sym['dash']} resolved "
                     f"{c.dim(str(entry['parsed_date']))} "
                     f"({c.yellow(str(entry['age_days']))} days ago)"
                 )
         else:
-            check = "\u2713" if supports_unicode() else "OK"
             print(separator)
             print(
-                f"  {c.green(check)} "
+                f"  {c.green(sym['check'])} "
                 + c.green(
                     f"All {len(entries)} resolved entries are within "
                     f"the {args.days}-day window."
