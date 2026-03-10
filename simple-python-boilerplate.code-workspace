@@ -8,6 +8,11 @@
 //
 // ── Customizing ────────────────────────────────────────────────────────
 //
+//   This file is highly personalized to the boilerplate author's workflow.
+//   Treat it as a starting point, not gospel. Change anything and
+//   everything to suit your own preferences — theme, extensions,
+//   formatters, keybindings, you name it. It's YOUR editor.
+//
 //   • SETTINGS — Comment out or delete any settings block you don't need
 //     (e.g. remove the [yaml] section if you use a different YAML formatter).
 //     VS Code falls back to your User Settings for anything not set here.
@@ -19,6 +24,11 @@
 //
 //   • This file uses JSONC (JSON with Comments). Comments and trailing
 //     commas are valid — VS Code handles them natively.
+//
+//   • PERSONAL PREFERENCES (theme, font, cursor, etc.) — These are
+//     commented out at the bottom of the settings block as examples.
+//     Uncomment and adjust to taste, or set them in your User Settings
+//     (Ctrl+, → User tab) so they apply to all projects.
 //
 // TODO (template users): Rename this file to match your project
 //   (e.g. your-project.code-workspace), review all sections below, and
@@ -109,7 +119,28 @@
 		// There is no built-in mode that enables both simultaneously.
 		// We use "classic" to keep the coloured tab spacing.
 		"indentRainbow.indicatorStyle": "classic",
-		"indentRainbow.colorOnWhiteSpaceOnly": true
+		"indentRainbow.colorOnWhiteSpaceOnly": true,
+
+		// ── Personal Preferences (examples — uncomment to taste) ──
+		// These are subjective. Uncomment what you like, delete the rest,
+		// or move them to your User Settings so they apply everywhere.
+		//
+		// Theme
+		// "workbench.colorTheme": "Monokai Dimmed",
+		//
+		// Font
+		// "editor.fontFamily": "'Fira Code', Consolas, monospace",
+		// "editor.fontLigatures": true,
+		// "editor.fontSize": 14,
+		//
+		// Cursor & minimap
+		// "editor.cursorBlinking": "smooth",
+		// "editor.cursorSmoothCaretAnimation": "on",
+		// "editor.minimap.enabled": false,
+		//
+		// Bracket colourisation (built-in since VS Code 1.60)
+		// "editor.bracketPairColorization.enabled": true,
+		// "editor.guides.bracketPairs": "active"
 	},
 	"extensions": {
 		"recommendations": [
