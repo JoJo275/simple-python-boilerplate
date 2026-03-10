@@ -713,8 +713,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
-    """Entry point."""
+def main() -> int:
+    """Entry point.
+
+    Returns:
+        Exit code: 0 = success, 1 = errors encountered.
+    """
     parser = build_parser()
     args = parser.parse_args()
     c = Colors()
@@ -785,14 +789,14 @@ def main() -> None:
                     " Only deps listed in [project.optional-dependencies]"
                     " or [project].dependencies can be upgraded."
                 )
-                sys.exit(1)
+                return 1
             if dry_run:
                 latest = _latest_version(normalised)
                 installed = _installed_version(normalised)
                 print(f"  [dry-run] {normalised}: {installed} -> {latest or '?'}")
             else:
                 success = upgrade_package(normalised, ver)
-                sys.exit(0 if success else 1)
+                return 0 if success else 1
         else:
             # Upgrade all
             rows = collect_report(check_latest=True)
@@ -852,7 +856,8 @@ def main() -> None:
                     print(f"  Updated {n} comment(s) in {fname}")
 
     print()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

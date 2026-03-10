@@ -74,6 +74,12 @@
 		},
 
 		// ── Files ───────────────────────────────────────────────
+		// NOTE: If VS Code shows a schema trust warning on this file
+		//   (e.g. "Unable to load schema ... is untrusted"), open VS Code
+		//   settings and set "json.schemaDownload.enable": true, or add
+		//   the markdownlint schema URL to "http.systemCertificates". The
+		//   .vscode/settings.json in this repo already enables schema
+		//   download. The warning is cosmetic — it doesn't break anything.
 		"files.trimTrailingWhitespace": true,
 		"files.insertFinalNewline": true,
 		"files.trimFinalNewlines": true,

@@ -34,6 +34,7 @@ from collections.abc import Callable
 from _colors import Colors
 from _colors import status_icon as _icon
 from _colors import supports_color as _supports_color
+from _colors import supports_unicode as _supports_unicode
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
 
@@ -41,7 +42,7 @@ from _imports import find_repo_root
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +221,45 @@ def get_contributors_count() -> int:
     return len([line for line in out.splitlines() if line.strip()])
 
 
+def get_commit_frequency() -> dict[str, int]:
+    """Return commit counts per day for the last 14 days."""
+    code, out, _ = _run_git(
+        ["log", "--format=%cd", "--date=short", "--since=14 days ago"]
+    )
+    if code != 0 or not out:
+        return {}
+    freq: dict[str, int] = {}
+    for line in out.splitlines():
+        date = line.strip()
+        if date:
+            freq[date] = freq.get(date, 0) + 1
+    return freq
+
+
+def get_file_change_summary() -> dict[str, int]:
+    """Return file change counts from recent commits."""
+    code, out, _ = _run_git(["diff", "--stat", "--shortstat", "HEAD~5..HEAD"])
+    if code != 0 or not out:
+        return {}
+    counts: dict[str, int] = {
+        "files_changed": 0,
+        "insertions": 0,
+        "deletions": 0,
+    }
+    for line in out.splitlines():
+        if "changed" in line:
+            parts = line.strip().split(",")
+            for part in parts:
+                part = part.strip()
+                if "file" in part:
+                    counts["files_changed"] = int(re.sub(r"\D", "", part) or 0)
+                elif "insertion" in part:
+                    counts["insertions"] = int(re.sub(r"\D", "", part) or 0)
+                elif "deletion" in part:
+                    counts["deletions"] = int(re.sub(r"\D", "", part) or 0)
+    return counts
+
+
 def get_working_tree_status() -> dict[str, int]:
     """Return counts of working tree changes."""
     code, out, _ = _run_git(["status", "--porcelain"])
@@ -364,7 +404,7 @@ def check_fetch_recent() -> tuple[bool, str]:
     """Check if a fetch has happened recently (last hour)."""
     fetch_head = ROOT / ".git" / "FETCH_HEAD"
     if not fetch_head.exists():
-        return False, "Never fetched — run: git fetch"
+        return False, "Never fetched - run: git fetch"
 
     age_seconds = time.time() - fetch_head.stat().st_mtime
     age_minutes = age_seconds / 60
@@ -374,7 +414,7 @@ def check_fetch_recent() -> tuple[bool, str]:
     if age_hours < 24:
         return True, f"Last fetch: {age_hours:.1f}h ago"
     days = age_hours / 24
-    return False, f"Last fetch: {days:.0f}d ago — consider running: git fetch"
+    return False, f"Last fetch: {days:.0f}d ago - consider running: git fetch"
 
 
 def check_gitignore_exists() -> tuple[bool, str]:
@@ -407,7 +447,7 @@ def check_branch_protection_alignment() -> tuple[bool, str]:
     if code != 0:
         return (
             False,
-            "Cannot determine default branch — run: git remote set-head origin --auto",
+            "Cannot determine default branch - run: git remote set-head origin --auto",
         )
     default_branch = out.rsplit("/", 1)[-1]
 
@@ -545,6 +585,35 @@ def check_conventional_commits() -> tuple[bool, str]:
     return True, "Recent commits follow Conventional Commits"
 
 
+def check_gitmessage_template() -> tuple[bool, str]:
+    """Check if .gitmessage commit template is configured."""
+    template_path = ROOT / ".gitmessage.txt"
+    if not template_path.is_file():
+        return True, "No .gitmessage.txt (optional)"
+    configured = get_git_config_value("commit.template")
+    if configured:
+        return True, f"Commit template configured: {configured}"
+    return (
+        False,
+        "Found .gitmessage.txt but git commit.template not set "
+        "- run: git config commit.template .gitmessage.txt",
+    )
+
+
+def check_user_identity() -> tuple[bool, str]:
+    """Check that user.name and user.email are configured."""
+    name = get_git_config_value("user.name")
+    email = get_git_config_value("user.email")
+    if name and email:
+        return True, f"Identity: {name} <{email}>"
+    missing: list[str] = []
+    if not name:
+        missing.append("user.name")
+    if not email:
+        missing.append("user.email")
+    return False, f"Missing git config: {', '.join(missing)}"
+
+
 # ---------------------------------------------------------------------------
 # Helpful commands reference
 # ---------------------------------------------------------------------------
@@ -591,6 +660,8 @@ HEALTH_CHECKS: list[tuple[str, CheckFn]] = [
     ("Hook integrity", check_git_hooks_integrity),
     ("Remote health", check_git_remote_health),
     ("Conventional commits", check_conventional_commits),
+    ("Commit template", check_gitmessage_template),
+    ("User identity", check_user_identity),
 ]
 
 
@@ -649,27 +720,29 @@ def run(
     """
     elapsed_start = time.monotonic()
 
-    # Collect info directly (typed) for display
-    current_branch = get_current_branch()
-    default_branch = get_default_branch()
-    remote_url = get_remote_url()
-    upstream_status = get_upstream_status()
-    local_branches = get_local_branches()
-    recent_commits = get_recent_commits(5)
-    tags = get_tags(5)
-    stash_count = get_stash_count()
-    commit_count = get_commit_count()
-    repo_age = get_repo_age()
-    contributors = get_contributors_count()
-    working_tree = get_working_tree_status()
-    rp_branches = find_release_please_branches()
-    user_name = get_git_config_value("user.name")
-    user_email = get_git_config_value("user.email")
+    # Collect info once and reuse for both display and JSON
+    info = _collect_info()
+    current_branch: str = info["current_branch"]  # type: ignore[assignment]
+    default_branch: str = info["default_branch"]  # type: ignore[assignment]
+    remote_url: str = info["remote_url"]  # type: ignore[assignment]
+    upstream_status: str = info["upstream_status"]  # type: ignore[assignment]
+    local_branches: list[dict[str, str]] = info["local_branches"]  # type: ignore[assignment]
+    recent_commits: list[dict[str, str]] = info["recent_commits"]  # type: ignore[assignment]
+    tags: list[str] = info["tags"]  # type: ignore[assignment]
+    stash_count: int = info["stash_count"]  # type: ignore[assignment]
+    commit_count: int = info["commit_count"]  # type: ignore[assignment]
+    repo_age: str = info["repo_age"]  # type: ignore[assignment]
+    contributors: int = info["contributors"]  # type: ignore[assignment]
+    working_tree: dict[str, int] = info["working_tree"]  # type: ignore[assignment]
+    rp_branches: list[str] = info["release_please_branches"]  # type: ignore[assignment]
+    user_name: str = info["user_name"]  # type: ignore[assignment]
+    user_email: str = info["user_email"]  # type: ignore[assignment]
+    commit_freq = get_commit_frequency()
+    file_changes = get_file_change_summary()
 
     health_results, failures = _collect_health()
 
     if output_json:
-        info = _collect_info()
         payload: dict[str, object] = {
             "version": SCRIPT_VERSION,
             "info": info,
@@ -681,6 +754,8 @@ def run(
         return 1 if failures else 0
 
     use_color = color if color is not None else _supports_color(sys.stdout)
+    use_unicode = _supports_unicode(sys.stdout)
+    bar_char = "\u2588" if use_unicode else "#"
     c = Colors(enabled=use_color)
 
     # ── Header ──
@@ -700,6 +775,34 @@ def run(
     print(f"  Commits:        {commit_count}")
     print(f"  Contributors:   {contributors}")
     print(f"  Repo age:       {repo_age}")
+
+    # ── Commit Activity (last 14 days) ──
+    if commit_freq:
+        print()
+        print(c.bold("Commit Activity (last 14 days)"))
+        print(c.dim("-" * 60))
+        max_count = max(commit_freq.values()) if commit_freq else 1
+        for date in sorted(commit_freq):
+            count = commit_freq[date]
+            bar_len = int((count / max_count) * 30) if max_count > 0 else 0
+            bar = c.green(bar_char * bar_len)
+            print(f"  {date}  {bar} {count}")
+        total_recent = sum(commit_freq.values())
+        avg = total_recent / len(commit_freq) if commit_freq else 0
+        print(f"  {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
+
+    # ── File Change Summary (last 5 commits) ──
+    if file_changes and any(file_changes.values()):
+        print()
+        print(c.bold("Recent File Changes (last 5 commits)"))
+        print(c.dim("-" * 60))
+        fc = file_changes
+        ins = fc.get("insertions", 0)
+        dels = fc.get("deletions", 0)
+        files = fc.get("files_changed", 0)
+        print(f"  Files changed:  {files}")
+        print(f"  Insertions:     {c.green(f'+{ins}')}")
+        print(f"  Deletions:      {c.red(f'-{dels}')}")
 
     # ── Working Tree ──
     if any(working_tree.values()):
