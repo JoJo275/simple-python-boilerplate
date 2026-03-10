@@ -20,6 +20,7 @@ Flags::
     --no-hints           Hide hint lines
     --no-links           Hide link/reference lines
     --no-color           Disable colored output
+    --strict             Exit non-zero when warnings are found (CI gating)
     --show-passed        Show checks that passed (in addition to warnings)
     --version            Print version and exit
 
@@ -571,11 +572,20 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show checks that passed (in addition to warnings).",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Exit non-zero when warnings are found (for CI gating).",
+    )
     return parser
 
 
 def main() -> int:
-    """Entry point — always returns 0 (warn-only, never blocks)."""
+    """Entry point.
+
+    Returns 0 by default (warn-only). With ``--strict``, returns 1
+    when any warnings are found.
+    """
     parser = _build_parser()
     args = parser.parse_args()
 
@@ -679,6 +689,8 @@ def main() -> int:
     color = "32" if not warnings else "33"
     print(_colorize(summary, color, use_color=use_color))
 
+    if args.strict and warnings:
+        return 1
     return 0
 
 

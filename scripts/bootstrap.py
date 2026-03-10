@@ -279,6 +279,8 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         return True
     try:
         # Quick test run
+        # TODO (template users): Replace 'simple_python_boilerplate' with
+        #   your package name after running customize.py.
         result = run_cmd(
             [
                 "hatch",
