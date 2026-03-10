@@ -60,7 +60,7 @@ Spinner = _progress.Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "2.4.0"
+SCRIPT_VERSION = "2.5.0"
 
 ROOT = find_repo_root()
 
@@ -68,6 +68,8 @@ log = logging.getLogger(__name__)
 
 # Tools that are optional — reported but don't trigger a "problem" if missing.
 # These are typically external binaries not installed via pip.
+# TODO (template users): Update OPTIONAL_TOOLS if your project has different
+#   optional external binaries (e.g. hadolint, shellcheck, trivy).
 OPTIONAL_TOOLS = frozenset({"actionlint"})
 
 
@@ -139,14 +141,27 @@ def _check_editable_install() -> dict[str, str]:
         if dist_files:
             first_file = dist_files[0]
             located = first_file.locate()
-            location = str(located.parent) if located else "unknown"
+            location = str(Path(located).parent) if located else "unknown"
         result["installed"] = "yes"
         result["version"] = dist.metadata["Version"] or "unknown"
-        # Check if it's an editable install (src/ in the path)
-        if "src" in location or "site-packages" not in location:
-            result["editable"] = "yes"
-        else:
-            result["editable"] = "no"
+        # Detect editable install: check for .egg-link or direct_url.json
+        # with dir_info.editable=true, which is more reliable than path inspection.
+        editable = False
+        try:
+            direct_url = dist.read_text("direct_url.json")
+            if direct_url:
+                import json as _json
+
+                url_info = _json.loads(direct_url)
+                editable = url_info.get("dir_info", {}).get("editable", False)
+        except (ValueError, KeyError, OSError):
+            # direct_url.json missing, malformed, or unreadable — fall
+            # through to the path-based heuristic below.
+            pass
+        if not editable:
+            # Fallback heuristic: src/ in path or not in site-packages
+            editable = "src" in location or "site-packages" not in location
+        result["editable"] = "yes" if editable else "no"
         result["location"] = location
     except importlib.metadata.PackageNotFoundError:
         result["installed"] = "no"
@@ -683,7 +698,15 @@ def main() -> int:
         args.output.write_text(output, encoding="utf-8")
         log.info("Saved to: %s", args.output)
 
-    return 0
+    # Return non-zero exit code when real problems are detected so CI
+    # can gate on `python scripts/doctor.py --quiet`.
+    # Informational entries (tools_optional) don't count as real problems.
+    _INFO_KEYS = frozenset({"status", "tools_optional"})
+    problems = info.get("problems", {})
+    has_problems = isinstance(problems, dict) and any(
+        k not in _INFO_KEYS for k in problems
+    )
+    return 1 if has_problems else 0
 
 
 if __name__ == "__main__":

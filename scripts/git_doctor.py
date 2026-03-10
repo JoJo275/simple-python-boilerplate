@@ -41,13 +41,17 @@ from _imports import find_repo_root
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.2.0"
 
 logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 
 _GIT: str | None = shutil.which("git")
+
+# TODO (template users): Update HEALTH_CHECKS at the bottom of this file
+#   if you add/remove git-related conventions (e.g. signed commits,
+#   different branch naming, or GPG verification).
 
 
 # ---------------------------------------------------------------------------
@@ -189,6 +193,31 @@ def get_tags(count: int = 5) -> list[str]:
     if code != 0 or not out:
         return []
     return [t for t in out.splitlines() if t]
+
+
+def get_commit_count() -> int:
+    """Return total commit count on the current branch."""
+    code, out, _ = _run_git(["rev-list", "--count", "HEAD"])
+    if code != 0 or not out:
+        return 0
+    try:
+        return int(out)
+    except ValueError:
+        return 0
+
+
+def get_repo_age() -> str:
+    """Return the date of the first commit (repo creation proxy)."""
+    code, out, _ = _run_git(["log", "--reverse", "--format=%ar", "-1"])
+    return out if code == 0 and out else "unknown"
+
+
+def get_contributors_count() -> int:
+    """Return unique author count."""
+    code, out, _ = _run_git(["shortlog", "-sn", "--all", "--no-merges"])
+    if code != 0 or not out:
+        return 0
+    return len([line for line in out.splitlines() if line.strip()])
 
 
 def get_working_tree_status() -> dict[str, int]:
@@ -336,12 +365,12 @@ def check_fetch_recent() -> tuple[bool, str]:
     fetch_head = ROOT / ".git" / "FETCH_HEAD"
     if not fetch_head.exists():
         return False, "Never fetched — run: git fetch"
-    import time as _time
 
-    age_seconds = _time.time() - fetch_head.stat().st_mtime
+    age_seconds = time.time() - fetch_head.stat().st_mtime
+    age_minutes = age_seconds / 60
     age_hours = age_seconds / 3600
     if age_hours < 1:
-        return True, f"Last fetch: {age_hours:.0f}m ago"
+        return True, f"Last fetch: {age_minutes:.0f}m ago"
     if age_hours < 24:
         return True, f"Last fetch: {age_hours:.1f}h ago"
     days = age_hours / 24
@@ -488,10 +517,40 @@ def check_git_remote_health() -> tuple[bool, str]:
     return True, f"Remote origin: {url}"
 
 
+def check_conventional_commits() -> tuple[bool, str]:
+    """Check if recent commits follow Conventional Commits format."""
+    code, out, _ = _run_git(["log", "-10", "--format=%s"])
+    if code != 0 or not out:
+        return True, "No commits to check"
+    conventional_re = re.compile(
+        r"^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)"
+        r"(\([^)]+\))?!?: .+"
+    )
+    non_conventional: list[str] = []
+    subjects = out.splitlines()
+    for subject in subjects:
+        # Skip merge commits and release-please commits
+        if subject.startswith(("Merge ", "chore(main):")):
+            continue
+        if not conventional_re.match(subject):
+            non_conventional.append(subject[:50])
+    if non_conventional:
+        count = len(non_conventional)
+        example = non_conventional[0]
+        return (
+            False,
+            f"{count}/{len(subjects)} recent commits non-conventional "
+            f'(e.g. "{example}")',
+        )
+    return True, "Recent commits follow Conventional Commits"
+
+
 # ---------------------------------------------------------------------------
 # Helpful commands reference
 # ---------------------------------------------------------------------------
 
+# TODO (template users): Add or remove helpful commands that match your
+#   team's git workflow (e.g. signed commits, rebase preferences).
 HELPFUL_COMMANDS: list[dict[str, str]] = [
     {
         "cmd": "git fetch --all --prune",
@@ -515,6 +574,9 @@ HELPFUL_COMMANDS: list[dict[str, str]] = [
 
 CheckFn = Callable[[], tuple[bool, str]]
 
+# TODO (template users): Add or remove health checks to match your
+#   project's git conventions (e.g. require signed commits, enforce
+#   branch naming patterns, check for .gitmessage).
 HEALTH_CHECKS: list[tuple[str, CheckFn]] = [
     ("Git installed", check_git_installed),
     ("Inside git repo", check_inside_repo),
@@ -528,6 +590,7 @@ HEALTH_CHECKS: list[tuple[str, CheckFn]] = [
     ("Default branch", check_branch_protection_alignment),
     ("Hook integrity", check_git_hooks_integrity),
     ("Remote health", check_git_remote_health),
+    ("Conventional commits", check_conventional_commits),
 ]
 
 
@@ -547,6 +610,9 @@ def _collect_info() -> dict[
         "recent_commits": get_recent_commits(5),
         "tags": get_tags(5),
         "stash_count": get_stash_count(),
+        "commit_count": get_commit_count(),
+        "repo_age": get_repo_age(),
+        "contributors": get_contributors_count(),
         "working_tree": get_working_tree_status(),
         "release_please_branches": find_release_please_branches(),
         "user_name": get_git_config_value("user.name"),
@@ -592,6 +658,9 @@ def run(
     recent_commits = get_recent_commits(5)
     tags = get_tags(5)
     stash_count = get_stash_count()
+    commit_count = get_commit_count()
+    repo_age = get_repo_age()
+    contributors = get_contributors_count()
     working_tree = get_working_tree_status()
     rp_branches = find_release_please_branches()
     user_name = get_git_config_value("user.name")
@@ -628,6 +697,9 @@ def run(
     print(f"  Default branch: {default_branch}")
     print(f"  Upstream:       {upstream_status}")
     print(f"  User:           {user_name} <{user_email}>")
+    print(f"  Commits:        {commit_count}")
+    print(f"  Contributors:   {contributors}")
+    print(f"  Repo age:       {repo_age}")
 
     # ── Working Tree ──
     if any(working_tree.values()):
