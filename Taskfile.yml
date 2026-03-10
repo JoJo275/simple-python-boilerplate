@@ -190,8 +190,13 @@ tasks:
     cmds:
       - python scripts/repo_doctor.py {{.CLI_ARGS}}
 
+  doctor:git:
+    desc: Git-focused health check and info dashboard
+    cmds:
+      - python scripts/git_doctor.py {{.CLI_ARGS}}
+
   doctor:all:
-    desc: Run ALL health checks (env, repo, TODOs, known issues) -- unified error report
+    desc: Run ALL health checks (env, repo, git, extended, TODOs, known issues) -- unified error report
     cmds:
       - cmd: echo "---- Environment Health ----"
         silent: true
@@ -202,6 +207,12 @@ tasks:
       - cmd: echo "---- Repository Health ----"
         silent: true
       - cmd: python scripts/repo_doctor.py
+        ignore_error: true
+      - cmd: echo ""
+        silent: true
+      - cmd: echo "---- Git Health ----"
+        silent: true
+      - cmd: python scripts/git_doctor.py
         ignore_error: true
       - cmd: echo ""
         silent: true

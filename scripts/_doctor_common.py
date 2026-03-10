@@ -1,16 +1,18 @@
 """Shared utilities for doctor-family scripts.
 
 Provides low-level helpers used by ``doctor.py``, ``env_doctor.py``,
-and potentially other diagnostic scripts.  Centralises command
-execution, package introspection, path checks, and pre-commit hook
-detection so each script doesn't re-implement the same patterns.
+``git_doctor.py``, and other diagnostic scripts.  Centralises command
+execution, package introspection, path checks, TOML parsing, and
+pre-commit hook detection so each script doesn't re-implement the
+same patterns.
 
 Usage::
 
-    from _doctor_common import get_version, get_package_version
+    from _doctor_common import get_version, get_package_version, read_pyproject
 
     version = get_version(["ruff", "--version"])
     pkg = get_package_version("simple-python-boilerplate")
+    pyproject = read_pyproject(root)
 
 .. note::
     This is a shared internal module (prefixed with ``_``).  It is excluded
@@ -21,16 +23,25 @@ Usage::
 from __future__ import annotations
 
 import importlib.metadata
+import re
 import shutil
 import subprocess  # nosec B404
 from pathlib import Path
+
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:  # pragma: no cover
+    tomllib = None  # type: ignore[assignment]
 
 __all__ = [
     "HOOK_STAGES",
     "check_hook_installed",
     "check_path_exists",
+    "extract_repo_slug",
     "get_package_version",
     "get_version",
+    "parse_version_specifier",
+    "read_pyproject",
 ]
 
 SCRIPT_VERSION = "1.0.0"
@@ -163,3 +174,54 @@ def check_hook_installed(hook_path: Path) -> str:
     if "This sample" in content or ".sample" in hook_path.name:
         return "sample"
     return "custom"
+
+
+# ---------------------------------------------------------------------------
+# TOML / pyproject helpers
+# ---------------------------------------------------------------------------
+
+
+def read_pyproject(root: Path) -> dict[str, object] | None:
+    """Read and parse ``pyproject.toml``, returning ``None`` on failure.
+
+    Args:
+        root: Repository root directory.
+
+    Returns:
+        Parsed TOML dict, or ``None`` if the file is missing or unparsable.
+    """
+    if tomllib is None:
+        return None
+    path = root / "pyproject.toml"
+    if not path.is_file():
+        return None
+    try:
+        return tomllib.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def parse_version_specifier(spec: str) -> str:
+    """Extract a normalized package name from a PEP 508 dependency string.
+
+    Args:
+        spec: A dependency string like ``"pytest>=8.0"`` or ``"ruff>=0.11"``.
+
+    Returns:
+        Normalized package name (lowercase, hyphens → underscores).
+    """
+    match = re.match(r"^([A-Za-z0-9][-A-Za-z0-9_.]*)", spec.strip())
+    return match.group(1).lower().replace("-", "_") if match else spec.strip().lower()
+
+
+def extract_repo_slug(url: str) -> str:
+    """Extract ``owner/repo`` from a GitHub URL.
+
+    Args:
+        url: Git remote URL (HTTPS or SSH).
+
+    Returns:
+        ``"owner/repo"`` string, or empty string if not a GitHub URL.
+    """
+    match = re.search(r"github\.com[:/]([^/]+/[^/.]+)", url)
+    return match.group(1) if match else ""

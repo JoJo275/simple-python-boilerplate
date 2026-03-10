@@ -97,7 +97,9 @@ Run any task with `task <name>`. Pass extra arguments with `-- <args>` (e.g., `t
 
 | Command | Description |
 | ------- | ----------- |
+| `task doctor:all` | Run ALL health checks (env, repo, git, extended, TODOs, known issues) -- unified error report |
 | `task doctor:env` | Run environment health check |
+| `task doctor:git` | Git-focused health check and info dashboard |
 | `task doctor:repo` | Run repository health checks |
 
 ### Env
@@ -349,8 +351,8 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
                         [--github-user GITHUB_USER] [--description DESCRIPTION]
                         [--cli-prefix CLI_PREFIX]
                         [--license {apache-2.0,mit,bsd-3-clause}]
-                        [--strip [DIR ...]] [--force]
-                        [--enable-workflows OWNER/REPO]
+                        [--strip [DIR ...]] [--template-cleanup [ITEM ...]]
+                        [--force] [--enable-workflows OWNER/REPO]
 
     Interactive project customization — replaces boilerplate placeholders with your project's values.
 
@@ -376,7 +378,13 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
       --license {apache-2.0,mit,bsd-3-clause}
                             License to use (default: apache-2.0)
       --strip [DIR ...]     Optional directories to remove. Choices: db,
-                            experiments, var, docs-templates, container
+                            experiments, var, docs-templates, container, optional-
+                            workflows, labels, repo-doctor
+      --template-cleanup [ITEM ...]
+                            Template-specific items to clean up. Choices: adr-
+                            files, docs-notes, docs-design, docs-reference, docs-
+                            development, docs-guide, placeholder-code, utility-
+                            scripts, advanced-workflows
       --force               Skip the already-customized safety check
       --enable-workflows OWNER/REPO
                             Enable all GitHub workflows by replacing
@@ -425,7 +433,7 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
 
     ```text
     usage: doctor [-h] [--version] [--output OUTPUT] [--markdown | --json |
-                  --quiet]
+                  --quiet] [--no-color]
 
     Print a diagnostics bundle for bug reports.
 
@@ -436,6 +444,7 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
       --markdown           Output as markdown (for GitHub issues)
       --json               Output as JSON (machine-readable)
       --quiet, -q          Print a one-line summary only
+      --no-color           Disable colored output
     ```
 
 ### `env_doctor.py`
@@ -476,6 +485,24 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
       --version   show program's version number and exit
     ```
 
+### `git_doctor.py`
+
+**File:** [`scripts/git_doctor.py`](../../scripts/git_doctor.py)
+
+??? note "Full `--help` output"
+
+    ```text
+    usage: git_doctor.py [-h] [--version] [--no-color] [--json]
+
+    Git-focused health check and information dashboard.
+
+    options:
+      -h, --help  show this help message and exit
+      --version   show program's version number and exit
+      --no-color  Disable colored output
+      --json      Output results as JSON (for CI integration)
+    ```
+
 ### `repo_doctor.py`
 
 **File:** [`scripts/repo_doctor.py`](../../scripts/repo_doctor.py)
@@ -486,7 +513,7 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
     usage: repo_doctor.py [-h] [--version] [--missing] [--staged] [--diff RANGE]
                           [--category CAT] [--min-level {info,warn}]
                           [--include-info] [--profile NAME] [--no-hints]
-                          [--no-links] [--fix] [--no-color]
+                          [--no-links] [--fix] [--no-color] [--show-passed]
 
     Warn-only repo doctor checks (missing files, deletions, config presence).
 
@@ -510,6 +537,7 @@ Standalone utilities in `scripts/`. Run with `python scripts/<name>.py` or via t
       --no-links            Hide link/reference lines.
       --fix                 Show auto-fix commands for rules that define one.
       --no-color            Disable colored output.
+      --show-passed         Show checks that passed (in addition to warnings).
     ```
 
 ### `workflow_versions.py`
@@ -570,7 +598,10 @@ Internal modules in `scripts/` used by multiple scripts. Not intended to be run 
 
 | Module | Description |
 | ------ | ----------- |
-| [`_progress.py`](../../scripts/_progress.py) | Progress bar and spinner utilities (Unicode/ASCII) |
+| [`_colors.py`](../../scripts/_colors.py) | Shared ANSI color utilities for scripts |
+| [`_doctor_common.py`](../../scripts/_doctor_common.py) | Shared utilities for doctor-family scripts |
+| [`_imports.py`](../../scripts/_imports.py) | Shared import helper for scripts |
+| [`_progress.py`](../../scripts/_progress.py) | Shared progress-indicator utilities for scripts |
 
 ## Hatch Environments
 
@@ -623,23 +654,72 @@ Matrices
 
 ## Quick Reference
 
-Common operations and the fastest way to run them.
+Flat summary of every available task.
 
 | What | Command |
 | ---- | ------- |
-| Run all quality checks | `task check` |
+| CI gate: exit non-zero if any actions are stale or upgradable | `task actions:check` |
+| Update version comments on SHA-pinned actions in workflow files | `task actions:update-comments` |
+| Upgrade SHA-pinned actions (usage: task actions:upgrade, or: task actions:upgrade -- actions/checkout v6.1.0) | `task actions:upgrade` |
+| Preview action upgrades without modifying files | `task actions:upgrade:dry-run` |
+| Show SHA-pinned GitHub Actions with their version tags | `task actions:versions` |
+| One-command setup for fresh clones | `task bootstrap` |
+| Build source and wheel distributions | `task build` |
+| Validate changelog format and consistency | `task changelog:check` |
+| Run all quality checks (lint, format, typecheck, test) | `task check` |
+| Remove all build artifacts and caches | `task clean:all` |
+| Clean build artifacts (hatch only) | `task clean:build` |
+| Archive completed TODO items | `task clean:todo` |
+| Interactive conventional commit (commitizen) | `task commit` |
+| Validate commit messages in a range (default HEAD) | `task commit:check` |
+| Interactive project customization | `task customize` |
+| Reset the local development database | `task db:reset` |
+| List available tasks | `task default` |
+| Check for outdated dependencies | `task deps:outdated` |
+| Update version comments in pyproject.toml to match installed versions | `task deps:update-comments` |
+| Upgrade dependencies (usage: task deps:upgrade, or: task deps:upgrade -- ruff 0.9.0) | `task deps:upgrade` |
+| Show installed and latest versions of all project dependencies | `task deps:versions` |
+| Check for unused, missing, or transitive dependencies | `task deptry` |
+| Build documentation (strict mode) | `task docs:build` |
+| Regenerate the command reference page (docs/reference/commands.md) | `task docs:commands` |
+| Check if the command reference page is stale (exit 1 if outdated) | `task docs:commands:check` |
+| Serve documentation with live-reload | `task docs:serve` |
+| Print diagnostics bundle for bug reports | `task doctor` |
+| Run ALL health checks (env, repo, git, extended, TODOs, known issues) -- unified error report | `task doctor:all` |
+| Run environment health check | `task doctor:env` |
+| Git-focused health check and info dashboard | `task doctor:git` |
+| Run repository health checks | `task doctor:repo` |
+| Remove ALL Hatch environments | `task env:prune` |
+| Remove and recreate the default Hatch environment | `task env:reset` |
+| Show all Hatch environments and scripts | `task env:show` |
+| Apply formatting | `task fmt` |
+| Check formatting without applying | `task fmt:check` |
+| Format Markdown files (table alignment via prettier) | `task fmt:markdown` |
+| Show project metadata | `task info` |
+| Flag stale Resolved entries in docs/known-issues.md | `task issues:check` |
+| Apply GitHub labels (usage: task labels:apply -- --set baseline \[--repo OWNER/REPO\] \[--dry-run\]) | `task labels:apply` |
+| Apply baseline labels to the current repo | `task labels:baseline` |
+| Preview baseline labels without applying | `task labels:dry-run` |
+| Apply extended labels to the current repo | `task labels:full` |
+| Check for linting issues | `task lint` |
+| Auto-fix linting issues | `task lint:fix` |
+| Run a single hook on all files (usage: task pre-commit:hook -- ruff) | `task pre-commit:hook` |
+| Install all pre-commit hooks (pre-commit, commit-msg, pre-push) | `task pre-commit:install` |
+| Run pre-commit on all files | `task pre-commit:run` |
+| Update pre-commit hooks to latest versions | `task pre-commit:update` |
+| Run the application | `task run` |
+| Run bandit security linter | `task security` |
+| Enter the Hatch dev shell | `task shell` |
 | Run tests | `task test` |
 | Run tests with coverage | `task test:cov` |
-| Lint + auto-fix | `task lint:fix` |
-| Format code | `task fmt` |
-| Type check | `task typecheck` |
-| Serve docs locally | `task docs:serve` |
-| Show dependency versions | `task deps:versions` |
-| Update dep comments | `task deps:update-comments` |
-| Show action versions | `task actions:versions` |
-| Interactive commit | `task commit` |
-| Enter dev shell | `task shell` |
-| Bootstrap fresh clone | `task bootstrap` |
-| Clean build artifacts | `task clean:all` |
-| Regenerate command reference | `task docs:commands` |
-| Check reference freshness | `task docs:commands:check` |
+| Run integration tests only | `task test:integration` |
+| Run tests matching keyword (usage: task test:k -- my_test) | `task test:k` |
+| Rerun only last-failed tests | `task test:lf` |
+| Run tests across all Python versions (3.11â€“3.13) | `task test:matrix` |
+| Run tests with coverage across all Python versions | `task test:matrix:cov` |
+| Run unit tests only | `task test:unit` |
+| Run tests with verbose output | `task test:v` |
+| Stop on first test failure | `task test:x` |
+| Find and report TODO items across the codebase | `task todo:check` |
+| Run mypy type checker | `task typecheck` |
+| Show project version | `task version` |

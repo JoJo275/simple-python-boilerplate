@@ -26,7 +26,8 @@ Utility scripts for development and maintenance.
 | [dep_versions.py](dep_versions.py)                 | Show/update dependency versions in pyproject.toml and requirements files |
 | [generate_command_reference.py](generate_command_reference.py) | Generate docs/reference/commands.md from project commands           |
 | [doctor.py](doctor.py)                             | Print diagnostics bundle for bug reports                                 |
-| [env_doctor.py](env_doctor.py)                     | Environment health check                                                 |
+| [env_doctor.py](env_doctor.py)                     | Environment health check + extended project consistency checks            |
+| [git_doctor.py](git_doctor.py)                     | Git-focused health check and information dashboard                       |
 | [repo_doctor.py](repo_doctor.py)                   | Warn-only repo health checker driven by `.repo-doctor.toml` rules        |
 | [workflow_versions.py](workflow_versions.py)       | Show/update version comments on SHA-pinned GitHub Actions                |
 | [precommit/](precommit/)                           | Custom pre-commit hook scripts                                           |
@@ -54,6 +55,11 @@ python scripts/customize.py --dry-run
 
 # Run repo health checks
 python scripts/repo_doctor.py
+
+# Git health check and info dashboard
+python scripts/git_doctor.py
+python scripts/git_doctor.py --json
+
 python scripts/repo_doctor.py --category ci --level warn
 python scripts/repo_doctor.py --fix
 
