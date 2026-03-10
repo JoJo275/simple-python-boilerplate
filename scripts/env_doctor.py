@@ -5,8 +5,10 @@ Verifies that the development environment is correctly set up:
 Python version, virtual environment, editable install, Hatch,
 Task, pre-commit hooks, and key tool availability.
 
-Lighter than repo_doctor.py — focuses on environment readiness
-rather than repository structure.
+Also runs extended checks for project consistency: dependency
+freshness, Python version alignment, stale Hatch environments,
+license format, encoding/BOM, orphaned test files, import cycles,
+pre-commit config staleness, and workflow YAML syntax.
 
 Note:
     The ``cz`` tool check requires the ``commitizen`` package to be
@@ -31,11 +33,13 @@ Usage::
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.metadata
 import json
 import logging
 import os
 import platform
+import re
 import shutil
 import struct
 import subprocess  # nosec B404
@@ -47,7 +51,13 @@ from pathlib import Path
 from _colors import Colors
 from _colors import status_icon as _icon
 from _colors import supports_color as _supports_color
-from _doctor_common import check_hook_installed, get_package_version, get_version
+from _doctor_common import (
+    check_hook_installed,
+    get_package_version,
+    get_version,
+    parse_version_specifier,
+    read_pyproject,
+)
 from _imports import find_repo_root
 from _progress import ProgressBar
 
@@ -55,7 +65,7 @@ from _progress import ProgressBar
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
 
 logger = logging.getLogger(__name__)
 
@@ -428,6 +438,589 @@ def check_disk_space() -> tuple[bool, str]:
 
 
 # ---------------------------------------------------------------------------
+# Extended checks (absorbed from health_checks.py)
+# ---------------------------------------------------------------------------
+
+
+def check_dependency_freshness() -> tuple[bool, str]:
+    """Check if requirements.txt/requirements-dev.txt match pyproject.toml.
+
+    Compares package names listed in requirements files against those
+    in pyproject.toml optional-dependencies to detect drift.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    pyproject = read_pyproject(ROOT)
+    if pyproject is None:
+        return False, "Cannot parse pyproject.toml"
+
+    project = pyproject.get("project", {})
+    if not isinstance(project, dict):
+        return False, "Invalid [project] section in pyproject.toml"
+
+    # Collect runtime deps from pyproject.toml
+    runtime_deps: set[str] = set()
+    for dep in project.get("dependencies", []):
+        if isinstance(dep, str) and not dep.strip().startswith("#"):
+            runtime_deps.add(parse_version_specifier(dep))
+
+    # Collect dev deps from optional-dependencies
+    opt_deps = project.get("optional-dependencies", {})
+    if not isinstance(opt_deps, dict):
+        opt_deps = {}
+    dev_deps_pyproject: set[str] = set()
+    pkg_name = parse_version_specifier(str(project.get("name", "")))
+    for group_deps in opt_deps.values():
+        if isinstance(group_deps, list):
+            for dep in group_deps:
+                if isinstance(dep, str) and not dep.strip().startswith("#"):
+                    name = parse_version_specifier(dep)
+                    if "[" not in dep or name != pkg_name:
+                        dev_deps_pyproject.add(name)
+
+    issues: list[str] = []
+
+    req_file = ROOT / "requirements.txt"
+    if req_file.is_file():
+        req_deps: set[str] = set()
+        for line in req_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith("-"):
+                req_deps.add(parse_version_specifier(line))
+        missing_in_req = runtime_deps - req_deps
+        extra_in_req = req_deps - runtime_deps
+        if missing_in_req:
+            issues.append(
+                f"requirements.txt missing: {', '.join(sorted(missing_in_req))}"
+            )
+        if extra_in_req:
+            issues.append(f"requirements.txt extras: {', '.join(sorted(extra_in_req))}")
+
+    req_dev_file = ROOT / "requirements-dev.txt"
+    if req_dev_file.is_file():
+        req_dev_deps: set[str] = set()
+        for line in req_dev_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith("-"):
+                req_dev_deps.add(parse_version_specifier(line))
+        missing_in_dev = dev_deps_pyproject - req_dev_deps - runtime_deps
+        missing_in_dev.discard(pkg_name)
+        if missing_in_dev:
+            issues.append(
+                f"requirements-dev.txt missing: {', '.join(sorted(missing_in_dev))}"
+            )
+
+    if not issues:
+        return True, "Requirements files in sync with pyproject.toml"
+    return False, "; ".join(issues)
+
+
+def check_python_version_consistency() -> tuple[bool, str]:
+    """Compare Python version requirements across project files.
+
+    Checks MIN_PYTHON in bootstrap.py, requires-python in pyproject.toml,
+    and the test matrix versions.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    issues: list[str] = []
+    found_versions: dict[str, str] = {}
+    pyproject_min: str | None = None
+
+    pyproject = read_pyproject(ROOT)
+    if pyproject is not None:
+        project = pyproject.get("project", {})
+        if isinstance(project, dict):
+            requires_python = project.get("requires-python", "")
+            if isinstance(requires_python, str):
+                found_versions["pyproject.toml requires-python"] = requires_python
+                match = re.search(r">=(\d+\.\d+)", requires_python)
+                pyproject_min = match.group(1) if match else None
+
+        # Test matrix versions
+        hatch_cfg = pyproject.get("tool", {})
+        if isinstance(hatch_cfg, dict):
+            hatch_envs = hatch_cfg.get("hatch", {})
+            if isinstance(hatch_envs, dict):
+                envs = hatch_envs.get("envs", {})
+                if isinstance(envs, dict):
+                    test_env = envs.get("test", {})
+                    if isinstance(test_env, dict):
+                        matrix = test_env.get("matrix", [])
+                        if isinstance(matrix, list):
+                            for entry in matrix:
+                                if isinstance(entry, dict) and "python" in entry:
+                                    versions = entry["python"]
+                                    if isinstance(versions, list):
+                                        found_versions["test matrix"] = str(versions)
+                                        if pyproject_min and versions:
+                                            min_matrix = min(
+                                                versions,
+                                                key=lambda v: tuple(
+                                                    map(int, str(v).split("."))
+                                                ),
+                                            )
+                                            if str(min_matrix) != pyproject_min:
+                                                issues.append(
+                                                    f"Test matrix min ({min_matrix}) != "
+                                                    f"requires-python ({pyproject_min})"
+                                                )
+
+    # bootstrap.py MIN_PYTHON
+    bootstrap_path = ROOT / "scripts" / "bootstrap.py"
+    if bootstrap_path.is_file():
+        content = bootstrap_path.read_text(encoding="utf-8")
+        match = re.search(r"MIN_PYTHON\s*=\s*\((\d+),\s*(\d+)\)", content)
+        if match:
+            bootstrap_min = f"{match.group(1)}.{match.group(2)}"
+            found_versions["bootstrap.py MIN_PYTHON"] = bootstrap_min
+            if pyproject_min and bootstrap_min != pyproject_min:
+                issues.append(
+                    f"bootstrap.py MIN_PYTHON ({bootstrap_min}) != "
+                    f"requires-python ({pyproject_min})"
+                )
+
+    # env_doctor.py MIN_PYTHON (self-check)
+    min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
+    found_versions["env_doctor.py MIN_PYTHON"] = min_str
+    if pyproject_min and min_str != pyproject_min:
+        issues.append(
+            f"env_doctor.py MIN_PYTHON ({min_str}) != requires-python ({pyproject_min})"
+        )
+
+    if not issues:
+        versions_str = ", ".join(f"{k}={v}" for k, v in found_versions.items())
+        return True, f"Python versions consistent: {versions_str}"
+    return False, "; ".join(issues)
+
+
+def check_stale_hatch_envs() -> tuple[bool, str]:
+    """Detect Hatch envs for Python versions no longer in the test matrix.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    hatch = shutil.which("hatch")
+    if not hatch:
+        return True, "Hatch not installed \u2014 skipping stale env check"
+
+    pyproject = read_pyproject(ROOT)
+    if pyproject is None:
+        return True, "Cannot read pyproject.toml \u2014 skipping"
+
+    matrix_versions: set[str] = set()
+    hatch_cfg = pyproject.get("tool", {})
+    if isinstance(hatch_cfg, dict):
+        hatch_envs = hatch_cfg.get("hatch", {})
+        if isinstance(hatch_envs, dict):
+            envs = hatch_envs.get("envs", {})
+            if isinstance(envs, dict):
+                test_env = envs.get("test", {})
+                if isinstance(test_env, dict):
+                    matrix = test_env.get("matrix", [])
+                    if isinstance(matrix, list):
+                        for entry in matrix:
+                            if isinstance(entry, dict) and "python" in entry:
+                                for v in entry["python"]:
+                                    matrix_versions.add(str(v))
+
+    if not matrix_versions:
+        return True, "No test matrix found \u2014 skipping"
+
+    stale: list[str] = []
+    try:
+        for version in ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]:
+            if version not in matrix_versions:
+                env_check = subprocess.run(  # nosec B603
+                    [hatch, "env", "find", f"test.py{version}"],
+                    cwd=str(ROOT),
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if env_check.returncode == 0:
+                    env_path = env_check.stdout.strip()
+                    if env_path and Path(env_path).is_dir():
+                        stale.append(f"test.py{version}")
+    except (subprocess.TimeoutExpired, OSError):
+        return True, "Could not check Hatch env paths \u2014 skipping"
+
+    if stale:
+        return (
+            False,
+            f"Stale Hatch envs: {', '.join(stale)} "
+            f"\u2014 run: hatch env remove {' '.join(stale)}",
+        )
+    return True, "No stale Hatch test environments"
+
+
+def check_license_format() -> tuple[bool, str]:
+    """Verify LICENSE file SPDX identifier matches pyproject.toml.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    license_path = ROOT / "LICENSE"
+    if not license_path.is_file():
+        return False, "LICENSE file missing"
+
+    content = license_path.read_text(encoding="utf-8", errors="ignore")
+
+    detected_spdx: str | None = None
+    license_lower = content.lower()
+    if "apache license" in license_lower and "version 2.0" in license_lower:
+        detected_spdx = "Apache-2.0"
+    elif (
+        "mit license" in license_lower
+        or "permission is hereby granted" in license_lower
+    ):
+        detected_spdx = "MIT"
+    elif "gnu general public license" in license_lower:
+        if "version 3" in license_lower:
+            detected_spdx = "GPL-3.0"
+        elif "version 2" in license_lower:
+            detected_spdx = "GPL-2.0"
+    elif "bsd" in license_lower:
+        detected_spdx = "BSD"
+
+    pyproject = read_pyproject(ROOT)
+    if pyproject is None:
+        return True, f"LICENSE detected as {detected_spdx or 'unknown'}"
+
+    project = pyproject.get("project", {})
+    if not isinstance(project, dict):
+        return True, f"LICENSE detected as {detected_spdx or 'unknown'}"
+
+    classifiers = project.get("classifiers", [])
+    declared_license: str | None = None
+    if isinstance(classifiers, list):
+        for clf in classifiers:
+            if isinstance(clf, str) and "License" in clf and "OSI Approved" in clf:
+                declared_license = clf.split("::")[-1].strip()
+                break
+
+    if detected_spdx and declared_license:
+        if detected_spdx.lower().split("-")[0] in declared_license.lower():
+            return (
+                True,
+                f"LICENSE ({detected_spdx}) matches pyproject.toml ({declared_license})",
+            )
+        return (
+            False,
+            f"LICENSE looks like {detected_spdx} but pyproject.toml "
+            f"declares '{declared_license}'",
+        )
+
+    return True, f"LICENSE detected as {detected_spdx or 'unrecognized'}"
+
+
+def check_encoding_bom() -> tuple[bool, str]:
+    """Scan key files for unexpected BOMs or non-UTF-8 encoding.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    key_files = [
+        "pyproject.toml",
+        "Taskfile.yml",
+        ".pre-commit-config.yaml",
+        "Containerfile",
+        "mkdocs.yml",
+        "README.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+    ]
+
+    bom_files: list[str] = []
+    encoding_issues: list[str] = []
+    utf8_bom = b"\xef\xbb\xbf"
+
+    for rel_path in key_files:
+        fpath = ROOT / rel_path
+        if not fpath.is_file():
+            continue
+        try:
+            raw = fpath.read_bytes()
+        except OSError:
+            continue
+        if raw.startswith(utf8_bom):
+            bom_files.append(rel_path)
+        try:
+            raw.decode("utf-8")
+        except UnicodeDecodeError:
+            encoding_issues.append(rel_path)
+
+    for search_dir in [ROOT / "src", ROOT / "scripts"]:
+        if not search_dir.is_dir():
+            continue
+        for py_file in search_dir.rglob("*.py"):
+            rel = str(py_file.relative_to(ROOT))
+            try:
+                raw = py_file.read_bytes()
+            except OSError:
+                continue
+            if raw.startswith(utf8_bom):
+                bom_files.append(rel)
+            try:
+                raw.decode("utf-8")
+            except UnicodeDecodeError:
+                encoding_issues.append(rel)
+
+    issues: list[str] = []
+    if bom_files:
+        issues.append(f"UTF-8 BOM detected in: {', '.join(bom_files[:5])}")
+    if encoding_issues:
+        issues.append(f"Non-UTF-8 encoding in: {', '.join(encoding_issues[:5])}")
+
+    if not issues:
+        return True, "All key files are clean UTF-8 (no BOM)"
+    return False, "; ".join(issues)
+
+
+def check_orphaned_test_files() -> tuple[bool, str]:
+    """Find test files that don't map to any source module.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    src_dir = ROOT / "src"
+    test_dirs = [ROOT / "tests" / "unit", ROOT / "tests" / "integration"]
+
+    if not src_dir.is_dir():
+        return True, "No src/ directory \u2014 skipping"
+
+    source_modules: set[str] = set()
+    for py_file in src_dir.rglob("*.py"):
+        name = py_file.stem
+        if name != "__init__":
+            source_modules.add(name)
+
+    scripts_dir = ROOT / "scripts"
+    if scripts_dir.is_dir():
+        for py_file in scripts_dir.rglob("*.py"):
+            source_modules.add(py_file.stem)
+
+    hooks_dir = ROOT / "mkdocs-hooks"
+    if hooks_dir.is_dir():
+        for py_file in hooks_dir.glob("*.py"):
+            source_modules.add(py_file.stem)
+
+    orphaned: list[str] = []
+    known_non_module_tests = {
+        "conftest",
+        "__init__",
+        "test_example",
+        "test_init_fallback",
+        "test_main_entry",
+        "test_customize_interactive",
+        "test_cli_smoke",
+        "test_db_example",
+    }
+
+    for test_dir in test_dirs:
+        if not test_dir.is_dir():
+            continue
+        for test_file in test_dir.glob("test_*.py"):
+            test_name = test_file.stem
+            if test_name in known_non_module_tests:
+                continue
+            module_name = test_name.removeprefix("test_")
+            if (
+                module_name not in source_modules
+                and f"_{module_name}" not in source_modules
+            ):
+                orphaned.append(test_name)
+
+    if orphaned:
+        return (
+            False,
+            f"Orphaned test files: {', '.join(sorted(orphaned)[:10])}",
+        )
+    return True, "All test files have matching source modules"
+
+
+def check_import_cycles() -> tuple[bool, str]:
+    """Quick check for circular imports in src/.
+
+    Uses AST parsing to build an import graph and detect cycles.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    pkg_dir = ROOT / "src" / "simple_python_boilerplate"
+    if not pkg_dir.is_dir():
+        return True, "No package directory found \u2014 skipping"
+
+    pkg_name = "simple_python_boilerplate"
+    imports: dict[str, set[str]] = {}
+
+    for py_file in pkg_dir.rglob("*.py"):
+        module = py_file.stem
+        if module == "__init__":
+            rel = py_file.parent.relative_to(pkg_dir)
+            module = str(rel).replace(os.sep, ".") if str(rel) != "." else pkg_name
+        else:
+            rel = py_file.relative_to(pkg_dir)
+            module = str(rel.with_suffix("")).replace(os.sep, ".")
+
+        imports[module] = set()
+        try:
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.name.startswith(pkg_name + "."):
+                        target = alias.name.removeprefix(pkg_name + ".")
+                        imports[module].add(target)
+            elif (
+                isinstance(node, ast.ImportFrom)
+                and node.module
+                and node.module.startswith(pkg_name)
+            ):
+                target = node.module.removeprefix(pkg_name + ".")
+                if target:
+                    imports[module].add(target)
+
+    cycles: list[list[str]] = []
+    visited: set[str] = set()
+    path: list[str] = []
+    on_stack: set[str] = set()
+
+    def dfs(node: str) -> None:
+        if node in on_stack:
+            cycle_start = path.index(node)
+            cycles.append([*path[cycle_start:], node])
+            return
+        if node in visited:
+            return
+        visited.add(node)
+        on_stack.add(node)
+        path.append(node)
+        for dep in imports.get(node, set()):
+            dfs(dep)
+        path.pop()
+        on_stack.discard(node)
+
+    for module in imports:
+        dfs(module)
+
+    if cycles:
+        cycle_strs = [" -> ".join(c) for c in cycles[:3]]
+        return False, f"Import cycles: {'; '.join(cycle_strs)}"
+    return True, "No circular imports detected"
+
+
+def check_precommit_config_staleness() -> tuple[bool, str]:
+    """Check if pre-commit hook revs look outdated.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    config_path = ROOT / ".pre-commit-config.yaml"
+    if not config_path.is_file():
+        return True, "No .pre-commit-config.yaml found"
+
+    try:
+        content = config_path.read_text(encoding="utf-8")
+    except OSError:
+        return False, "Cannot read .pre-commit-config.yaml"
+
+    repo_count = content.count("- repo:")
+    rev_pattern = re.compile(r"rev:\s*['\"]?v?(\d+\.\d+\.\d+)")
+    revs = rev_pattern.findall(content)
+
+    if not revs:
+        return True, f"{repo_count} repos configured (no version revs to check)"
+
+    pre_commit = shutil.which("pre-commit")
+    if pre_commit:
+        try:
+            result = subprocess.run(  # nosec B603
+                [pre_commit, "autoupdate", "--dry-run"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode == 0 and "updating" in result.stdout.lower():
+                update_count = result.stdout.lower().count("updating")
+                return (
+                    False,
+                    f"{update_count} hook(s) have updates \u2014 "
+                    f"run: pre-commit autoupdate",
+                )
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+    return True, f"{repo_count} repos with {len(revs)} version pins"
+
+
+def check_workflow_yaml_syntax() -> tuple[bool, str]:
+    """Run actionlint via pre-commit if available, report error count.
+
+    Returns:
+        Tuple of (passed, message).
+    """
+    workflows_dir = ROOT / ".github" / "workflows"
+    if not workflows_dir.is_dir():
+        return True, "No .github/workflows/ directory"
+
+    # Prefer running via pre-commit (manages the binary automatically)
+    pre_commit = shutil.which("pre-commit")
+    if pre_commit:
+        try:
+            result = subprocess.run(  # nosec B603
+                [pre_commit, "run", "actionlint", "--all-files"],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            if result.returncode == 0:
+                return True, "actionlint (via pre-commit): all workflow files pass"
+            error_lines = [
+                line
+                for line in result.stdout.splitlines()
+                if line.strip() and not line.startswith("- hook id:")
+            ]
+            error_count = len(error_lines)
+            return (
+                False,
+                f"actionlint: {error_count} error(s) in workflow files",
+            )
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+    # Fall back to direct actionlint binary
+    actionlint = shutil.which("actionlint")
+    if actionlint:
+        try:
+            result = subprocess.run(  # nosec B603
+                [actionlint],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode == 0:
+                return True, "actionlint: all workflow files pass"
+            error_lines = [line for line in result.stdout.splitlines() if line.strip()]
+            return (
+                False,
+                f"actionlint: {len(error_lines)} error(s) in workflow files",
+            )
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+    return True, "actionlint not available \u2014 skipping workflow lint"
+
+
+# ---------------------------------------------------------------------------
 # Runner
 # ---------------------------------------------------------------------------
 
@@ -456,11 +1049,29 @@ OPTIONAL_CHECKS = [
     ("Container runtime", check_container_runtime),
 ]
 
+# Extended checks — deeper project consistency validation.
+# Warnings unless --strict is set.
+EXTENDED_CHECKS: list[tuple[str, Callable[[], tuple[bool, str]]]] = [
+    ("Dependency freshness", check_dependency_freshness),
+    ("Python version consistency", check_python_version_consistency),
+    ("Stale Hatch environments", check_stale_hatch_envs),
+    ("License format", check_license_format),
+    ("Encoding / BOM", check_encoding_bom),
+    ("Orphaned test files", check_orphaned_test_files),
+    ("Import cycles", check_import_cycles),
+    ("Pre-commit config staleness", check_precommit_config_staleness),
+    ("Workflow YAML syntax", check_workflow_yaml_syntax),
+]
+
 
 def _total_check_count() -> int:
     """Return the total number of checks that will run."""
     return (
-        len(CHECKS) + len(EXPECTED_TOOLS) + len(OPTIONAL_TOOLS) + len(OPTIONAL_CHECKS)
+        len(CHECKS)
+        + len(EXPECTED_TOOLS)
+        + len(OPTIONAL_TOOLS)
+        + len(OPTIONAL_CHECKS)
+        + len(EXTENDED_CHECKS)
     )
 
 
@@ -548,6 +1159,18 @@ def _collect_results(
         )
         _tick(name)
 
+    # Extended checks (project consistency)
+    for name, check_fn in EXTENDED_CHECKS:
+        passed, msg = check_fn()
+        status = "PASS" if passed else "WARN"
+        if not passed and strict:
+            status = "FAIL"
+            failures += 1
+        results.append(
+            {"name": name, "status": status, "message": msg, "group": "extended"}
+        )
+        _tick(name)
+
     return results, failures
 
 
@@ -620,6 +1243,18 @@ def run_checks(
     for r in results:
         if r["group"] in ("tools", "optional"):
             print(f"  [{_icon(r['status'], use_color=use_color)}] {r['message']}")
+
+    # Extended checks
+    extended = [r for r in results if r["group"] == "extended"]
+    if extended:
+        print()
+        print(c.bold("Extended Checks"))
+        print(c.dim("-" * 50))
+        for r in extended:
+            print(
+                f"  [{_icon(r['status'], use_color=use_color)}]"
+                f" {c.dim(r['name'] + ':')} {r['message']}"
+            )
 
     # Summary
     elapsed = time.monotonic() - elapsed_start
