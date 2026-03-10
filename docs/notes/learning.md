@@ -5498,6 +5498,258 @@ command | Select-String "pattern"
 - [Bandit](https://bandit.readthedocs.io/)
 - [OpenSSF Scorecard](https://securityscorecards.dev/)
 
+---
+
+## VS Code Settings — Hierarchy, Files, and Best Practices
+
+VS Code has a layered settings system. Understanding which file controls what — and
+which one wins when they conflict — is essential for keeping a project consistent
+without fighting contributors' personal preferences.
+
+### The Settings Hierarchy
+
+Settings are evaluated bottom-to-top. **Lower layers override higher layers:**
+
+```text
+┌────────────────────────────────────────────────────┐
+│  1. Default Settings (built into VS Code)          │  ← Lowest priority
+├────────────────────────────────────────────────────┤
+│  2. User Settings (settings.json)                  │
+├────────────────────────────────────────────────────┤
+│  3. Remote Settings (SSH, WSL, container)          │
+├────────────────────────────────────────────────────┤
+│  4. Workspace Settings (.code-workspace)           │
+├────────────────────────────────────────────────────┤
+│  5. Folder Settings (.vscode/settings.json)        │  ← Highest priority
+└────────────────────────────────────────────────────┘
+```
+
+If the same setting is defined at multiple levels, the most specific one wins. For
+example, if User Settings sets `editor.tabSize` to 4 and Folder Settings sets it to 2,
+VS Code uses 2 when editing files in that folder.
+
+### The Settings Files
+
+#### 1. Default Settings (read-only)
+
+Every VS Code setting has a built-in default. You can view them all with:
+`Ctrl+Shift+P` → `Preferences: Open Default Settings (JSON)`
+
+You never edit these — they're the baseline that everything else overrides.
+
+#### 2. User Settings — `settings.json`
+
+| Aspect       | Detail                                                                                  |
+| ------------ | --------------------------------------------------------------------------------------- |
+| **Location** | Windows: `%APPDATA%\Code\User\settings.json` · macOS: `~/Library/Application Support/Code/User/settings.json` · Linux: `~/.config/Code/User/settings.json` |
+| **Scope**    | Applies to **every** VS Code window, every project, every workspace                    |
+| **Commit?**  | **No** — this is personal to your machine                                               |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open User Settings (JSON)`                              |
+
+**What belongs here:**
+
+- Personal editor preferences: font, theme, colour scheme, keybindings
+- Global extension config that you want everywhere (e.g., spell checker language,
+  GitLens AI model, Error Lens settings, Copilot toggle)
+- Default formatters and editor behaviour you prefer across all projects
+- Extension-specific API keys or tokens (though secrets should ideally go in
+  environment variables, not settings files)
+
+**What does NOT belong here:**
+
+- Project-specific tool configs (ruff, mypy, pytest settings)
+- Formatter choices that should be shared with the team
+- File exclusions specific to one project
+
+**Example — personal preferences only:**
+
+```jsonc
+{
+    "workbench.colorTheme": "Monokai Dimmed",
+    "editor.fontSize": 14,
+    "editor.cursorSurroundingLines": 2,
+    "editor.renderWhitespace": "all",
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "errorLens.enabled": true,
+    "cSpell.language": "en"
+}
+```
+
+#### 3. Workspace Settings — `*.code-workspace`
+
+| Aspect       | Detail                                                                       |
+| ------------ | ---------------------------------------------------------------------------- |
+| **Location** | Repo root (e.g., `my-project.code-workspace`)                               |
+| **Scope**    | Applies when you open the workspace file (`File → Open Workspace from File`) |
+| **Commit?**  | **Yes** — this is the team's shared baseline                                 |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Workspace Settings (JSON)`              |
+
+A `.code-workspace` file is a JSON file with three top-level keys:
+
+```jsonc
+{
+    "folders": [{ "path": "." }],       // Which folders are in the workspace
+    "settings": { ... },                // Shared editor settings
+    "extensions": {                     // Recommended extensions
+        "recommendations": [ ... ]
+    }
+}
+```
+
+**What belongs here:**
+
+- Shared formatter and language settings the team should agree on
+  (`[python].editor.defaultFormatter`, `[markdown].editor.formatOnSave`, etc.)
+- File exclusions for project-specific generated/cache directories
+- Editor rulers matching project line-length conventions
+- Extension recommendations so new contributors get prompted to install them
+- Extension-specific settings that affect code quality consistency (indent rainbow
+  colours, markdownlint config path, etc.)
+
+**What does NOT belong here:**
+
+- Personal preferences (theme, font size, keybindings)
+- Machine-specific paths (absolute interpreter paths don't work across machines)
+- Secrets or tokens
+
+**Key gotcha:** `${workspaceFolder}` doesn't reliably resolve in `.code-workspace`
+files. Use relative paths instead, or let extensions auto-discover (e.g., the Python
+extension finds `.venv` automatically).
+
+#### 4. Folder Settings — `.vscode/settings.json`
+
+| Aspect       | Detail                                                              |
+| ------------ | ------------------------------------------------------------------- |
+| **Location** | `.vscode/settings.json` inside the project folder                   |
+| **Scope**    | Applies to files in that specific folder only                       |
+| **Commit?**  | **It depends** — see below                                          |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Folder Settings (JSON)`        |
+
+This is the **highest priority** settings file. It overrides everything above it.
+
+**When to commit `.vscode/settings.json`:**
+
+- When your project doesn't use a `.code-workspace` file and you need shared settings
+- When you need machine-specific overrides that the workspace file can't handle
+  (e.g., `python.defaultInterpreterPath` with an absolute path)
+
+**When NOT to commit it:**
+
+- When you already have a `.code-workspace` file with shared settings (avoid
+  duplication and conflicts)
+- When it contains only personal preferences
+
+**Common pattern:** `.gitignore` the entire `.vscode/` directory, then use the
+`.code-workspace` file for shared settings. Or commit only specific files like
+`.vscode/launch.json` (debug configs) and `.vscode/tasks.json` (build tasks)
+while ignoring `.vscode/settings.json`.
+
+### Workspace File vs Folder Settings — When to Use Which
+
+| Scenario                                     | Use                        |
+| -------------------------------------------- | -------------------------- |
+| Team-shared settings for a single-root repo  | `.code-workspace` file     |
+| Multi-root workspace (multiple project dirs) | `.code-workspace` file     |
+| Machine-specific overrides (interpreter path)| `.vscode/settings.json`    |
+| Project doesn't use a workspace file         | `.vscode/settings.json`    |
+| Personal preferences (not project-specific)  | User `settings.json`       |
+
+### What Happens When Settings Conflict
+
+When the same setting appears at multiple levels, VS Code uses the most specific one:
+
+```text
+User:      editor.tabSize = 4
+Workspace: editor.tabSize = 2      ← Workspace wins when workspace is open
+Folder:    editor.tabSize = 3      ← Folder wins over everything
+```
+
+This means:
+
+- A contributor can set their personal theme in User Settings without affecting anyone
+- The workspace file enforces project conventions (formatter, rulers, exclusions)
+- Folder settings can override workspace settings for edge cases
+
+### Structuring Settings Files Well
+
+**User Settings — organize by category:**
+
+```jsonc
+{
+    // ── Editor ──────────────────────────────────────
+    "editor.fontSize": 14,
+    "editor.renderWhitespace": "all",
+    "workbench.colorTheme": "Monokai Dimmed",
+
+    // ── Language Overrides ──────────────────────────
+    "[python]": { "editor.formatOnSave": true },
+    "[markdown]": { "editor.wordWrap": "on" },
+
+    // ── Extensions ──────────────────────────────────
+    "gitlens.ai.model": "vscode",
+    "errorLens.enabled": true
+}
+```
+
+**Workspace file — project conventions only:**
+
+```jsonc
+{
+    "folders": [{ "path": "." }],
+    "settings": {
+        // Language-specific formatters the team agreed on
+        "[python]": {
+            "editor.defaultFormatter": "charliermarsh.ruff",
+            "editor.formatOnSave": true
+        },
+        // Project-specific file exclusions
+        "files.exclude": {
+            "**/__pycache__": true,
+            "**/*.egg-info": true
+        },
+        // Line-length rulers matching project config
+        "editor.rulers": [88, 120]
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "charliermarsh.ruff"
+        ]
+    }
+}
+```
+
+### Common Mistakes
+
+1. **Duplicating settings across User and Workspace** — If the workspace file sets
+   `[python].editor.defaultFormatter`, don't also set it in User Settings. The
+   workspace wins anyway, and duplication makes it confusing to debug.
+
+2. **Putting personal preferences in the workspace file** — Theme, font size, and
+   keybindings are personal. Don't force them on the team.
+
+3. **Absolute paths in committed files** — `python.defaultInterpreterPath` with
+   `C:\Users\yourname\...` breaks on every other machine. Let the Python extension
+   auto-discover, or use `.vscode/settings.json` (gitignored) for machine-local paths.
+
+4. **Ignoring the workspace file** — If a project has a `.code-workspace` file, open
+   it with `File → Open Workspace from File` (not `Open Folder`). Opening the folder
+   directly skips all workspace settings and extension recommendations.
+
+5. **Settings in the wrong scope** — A setting that only makes sense for one project
+   (like `editor.rulers: [88, 120]` matching ruff's line length) belongs in the
+   workspace file, not User Settings. Conversely, `editor.fontSize` is personal and
+   belongs in User Settings.
+
+### Where This Project Defines Settings
+
+| File                                        | What it defines                                              |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| `simple-python-boilerplate.code-workspace`  | Shared formatter choices, file exclusions, rulers, indent rainbow colours, recommended extensions |
+| User `settings.json` (your machine)         | Personal theme, font, GitLens AI model, Error Lens, Copilot, spell checker, terminal profile     |
+| `.vscode/settings.json`                     | Not committed — used for machine-local overrides if needed   |
+
 ### Release & Versioning
 
 - [python-semantic-release](https://python-semantic-release.readthedocs.io/)
