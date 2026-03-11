@@ -2,9 +2,8 @@
 """Git-focused health check and information dashboard.
 
 Displays a comprehensive overview of the repository's git state:
-branches, remotes, current working branch, recent commits, open
-PRs/issues status, release-please branches, and git-related health
-checks.
+branches, remotes, current working branch, recent commits,
+release-please branches, and git-related health checks.
 
 Flags::
 
@@ -24,11 +23,20 @@ Customisation notes:
   warns when the default branch is >10 commits ahead of the merge-base.
   Adjust the threshold (``default_ahead <= 10``) if your workflow merges
   main less frequently.
-- **Branch divergence on large repos**: ``get_first_commit_on_branch()``
-  uses ``git log --reverse`` on the commit range between the merge-base
-  and HEAD, limited to ``-1``.  This is fast for typical feature branches
-  but could be slow on mono-repos with extremely large diverged histories.
-  If performance is a concern, remove or guard the call in ``_collect_info``.
+- **Branch commit counts**: ``get_recent_branches_with_stats()`` shows
+  commits *unique* to each branch (since diverging from default), not
+  total reachable commits.  ``get_branch_commit_count()`` still returns
+  the total if needed.
+- **Unmerged branches**: Branches whose remote tracking ref is ``[gone]``
+  (deleted on the remote) are excluded by default — they were almost
+  certainly merged via PR (rebase-merge or squash-merge).  See the TODO
+  in ``get_unmerged_branches()`` if your team's workflow differs.
+- **Branch activity accuracy**: ``get_recent_branches_with_stats()`` uses
+  ``origin/<default>`` (not the local ref) as the comparison base so
+  that stats remain accurate even when the local default branch is stale.
+- **Auto-fetch**: The script runs ``git fetch --all --prune`` at startup
+  to ensure remote-tracking refs are current and deleted remote branches
+  are cleaned up.
 """
 
 from __future__ import annotations
@@ -56,7 +64,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.7.0"
+SCRIPT_VERSION = "1.9.0"
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +99,28 @@ def _run_git(args: list[str], *, timeout: int = 15) -> tuple[int, str, str]:
         return 1, "", "git command timed out"
     except OSError as exc:
         return 1, "", str(exc)
+
+
+# ---------------------------------------------------------------------------
+# Fetch & prune (keep remote-tracking refs current)
+# ---------------------------------------------------------------------------
+
+
+def _fetch_and_prune(*, timeout: int = 30) -> tuple[bool, str]:
+    """Run ``git fetch --all --prune`` to refresh remote-tracking refs.
+
+    This ensures the branch activity section works with accurate data
+    and that deleted remote branches are cleaned up before we enumerate
+    them.  Errors are non-fatal — the rest of the script still runs.
+    """
+    # TODO (template users): Increase the timeout if your repository has
+    #   many remotes or a slow network connection.  Set to 0 to disable
+    #   the auto-fetch entirely (the script will use whatever refs are
+    #   already cached locally).
+    code, out, err = _run_git(["fetch", "--all", "--prune"], timeout=timeout)
+    if code == 0:
+        return True, out or "fetched successfully"
+    return False, err or "fetch failed"
 
 
 # ---------------------------------------------------------------------------
@@ -375,7 +405,12 @@ def get_branch_diff_stats(branch: str, base: str) -> dict[str, int]:
 
 
 def get_branch_commit_count(ref: str) -> int:
-    """Return total commit count reachable from *ref*."""
+    """Return total commit count reachable from *ref*.
+
+    .. note:: This counts the **entire history** reachable from the ref,
+       not just commits unique to a branch.  For branch-specific counts
+       use ``get_branch_unique_commit_count()`` instead.
+    """
     code, out, _ = _run_git(["rev-list", "--count", ref])
     if code != 0 or not out:
         return 0
@@ -385,11 +420,51 @@ def get_branch_commit_count(ref: str) -> int:
         return 0
 
 
+def get_branch_unique_commit_count(branch: str, base: str) -> int:
+    """Return commits on *branch* not reachable from *base*.
+
+    This gives the number of commits unique to *branch* since it
+    diverged from *base* (typically the default branch).
+    """
+    code, out, _ = _run_git(["rev-list", "--count", f"{base}..{branch}"])
+    if code != 0 or not out:
+        return 0
+    try:
+        return int(out)
+    except ValueError:
+        return 0
+
+
+def _resolve_comparison_base(default: str) -> str:
+    """Return the best ref to compare branches against.
+
+    Prefers ``origin/<default>`` because the local default branch may be
+    stale (behind origin).  Using the local ref inflates commit counts
+    and diff stats for every remote branch.
+    """
+    if default == "(unknown)":
+        return default
+    origin_ref = f"origin/{default}"
+    # Verify origin ref exists
+    code, _, _ = _run_git(["rev-parse", "--verify", origin_ref])
+    if code == 0:
+        return origin_ref
+    return default
+
+
 def get_recent_branches_with_stats(
     count: int = 5,
 ) -> list[dict[str, object]]:
-    """Return most recent branches (local + remote) with diff stats vs default."""
+    """Return most recent branches (local + remote) with diff stats vs default.
+
+    Uses ``origin/<default>`` as the comparison base so stats remain
+    accurate even when the local default branch is behind the remote.
+    Stale remote-tracking refs are avoided by running ``git fetch --prune``
+    before this function is called.
+    """
     default = get_default_branch()
+    base = _resolve_comparison_base(default)
+
     code, out, _ = _run_git(
         [
             "for-each-ref",
@@ -412,11 +487,25 @@ def get_recent_branches_with_stats(
         name, date, sha, ref = parts[0], parts[1], parts[2], parts[3]
         if "HEAD" in name:
             continue
-        # Deduplicate local/remote pairs
+        # Skip the default branch itself (both local and remote)
         base_name = name.split("/", 1)[-1] if name.startswith("origin/") else name
+        if base_name == default:
+            continue
+        # Deduplicate local/remote pairs
         if base_name in seen:
             continue
         seen.add(base_name)
+
+        # Verify ref is still reachable (deleted remote branches may linger)
+        verify_code, _, _ = _run_git(["rev-parse", "--verify", name])
+        if verify_code != 0:
+            continue
+
+        # Count only commits unique to this branch (not entire repo history)
+        if base != "(unknown)":
+            unique_commits = get_branch_unique_commit_count(name, base)
+        else:
+            unique_commits = get_branch_commit_count(name)
 
         entry: dict[str, object] = {
             "name": name,
@@ -424,13 +513,13 @@ def get_recent_branches_with_stats(
             "date": date,
             "sha": sha,
             "source": "remote" if ref.startswith("refs/remotes/") else "local",
-            "commits": get_branch_commit_count(name),
+            "commits": unique_commits,
             "files_changed": 0,
             "insertions": 0,
             "deletions": 0,
         }
-        if default != "(unknown)":
-            stats = get_branch_diff_stats(name, default)
+        if base != "(unknown)":
+            stats = get_branch_diff_stats(name, base)
             entry.update(stats)
         branches.append(entry)
         if len(branches) >= count:
@@ -525,16 +614,39 @@ def get_stale_branches(days: int = 30) -> list[dict[str, str]]:
 
 
 def get_git_config_summary() -> dict[str, str]:
-    """Return key git configuration values."""
+    """Return key git configuration values.
+
+    Shows both set and unset keys so users can see what's configured
+    and what's using git defaults.  Keys are grouped by category.
+    """
+    # TODO (template users): Add or remove config keys to match your
+    #   team's workflow.  For example, add "gpg.format" if you use SSH
+    #   signing, or "url.<base>.insteadOf" for custom remote URLs.
     keys = [
+        # Core
         "core.autocrlf",
-        "pull.rebase",
-        "push.default",
-        "init.defaultBranch",
-        "merge.ff",
+        "core.editor",
+        # Fetch / Pull / Push
         "fetch.prune",
+        "pull.rebase",
+        "pull.ff",
+        "push.default",
+        "push.autoSetupRemote",
+        # Merge / Rebase
+        "merge.ff",
+        "merge.conflictstyle",
+        "rebase.autostash",
+        "rebase.autoSquash",
         "rerere.enabled",
+        # Branch
+        "branch.autosetuprebase",
+        "init.defaultBranch",
+        # Identity / Signing
         "commit.gpgsign",
+        "tag.gpgsign",
+        "commit.template",
+        # Diff
+        "diff.algorithm",
     ]
     return {k: v for k in keys if (v := get_git_config_value(k))}
 
@@ -547,10 +659,19 @@ def get_unmerged_branches() -> list[dict[str, str]]:
     correctly excluded — even if the local ``<default>`` hasn't been
     pulled recently.
 
-    Returns a list of dicts with ``name`` and ``note`` keys.  Branches
-    whose upstream tracking reference is ``[gone]`` (remote deleted) are
-    annotated — they were almost certainly merged via squash/PR.
+    Branches whose upstream tracking reference is ``[gone]`` (remote
+    deleted) are **excluded** by default — they were almost certainly
+    merged via PR (rebase-merge or squash-merge) and deleting the
+    remote branch is the normal post-merge workflow.  These are not
+    "unmerged" in the meaningful sense; ``git branch --no-merged``
+    reports them because rebase-merge and squash-merge create new
+    commits rather than fast-forwarding.
     """
+    # TODO (template users): If your team uses regular merges (not
+    #   rebase-merge or squash-merge), you may want to re-include [gone]
+    #   branches since they could genuinely be unmerged.  Change
+    #   ``if "gone" in track: continue`` to the annotation approach
+    #   from the previous version.
     default = get_default_branch()
     if default == "(unknown)":
         return []
@@ -583,11 +704,14 @@ def get_unmerged_branches() -> list[dict[str, str]]:
         b = b.strip()
         if not b:
             continue
-        note = ""
         track = tracking_info.get(b, "")
+        # Skip branches whose remote has been deleted — these are almost
+        # certainly merged via squash/PR.  Listing them as "unmerged" is
+        # misleading because the remote deletion is the normal post-merge
+        # cleanup step.
         if "gone" in track:
-            note = "remote deleted (likely merged via PR)"
-        branches.append({"name": b, "note": note})
+            continue
+        branches.append({"name": b, "note": ""})
     return branches
 
 
@@ -1110,6 +1234,16 @@ def run(
     """
     elapsed_start = time.monotonic()
 
+    # Fetch and prune stale remote-tracking refs before collecting data.
+    # This ensures branch activity stats are accurate and deleted remote
+    # branches don't pollute the output.
+    with Spinner("Fetching remotes", log_interval=5):
+        fetch_ok, fetch_msg = _fetch_and_prune()
+        if not fetch_ok:
+            logger.warning(
+                "git fetch failed: %s (continuing with stale data)", fetch_msg
+            )
+
     # Collect info once and reuse for both display and JSON
     info = _collect_info()
     current_branch: str = info["current_branch"]  # type: ignore[assignment]
@@ -1262,7 +1396,15 @@ def run(
     print()
     print(c.bold(f"Current Working Branch: {c.green(current_branch)}"))
     print(c.dim("-" * 60))
-    print(f"  Total commits:  {commit_count}")
+    # Show branch-specific commit count when on a feature branch
+    if current_branch != default_branch and default_branch != "(unknown)":
+        branch_commits = get_branch_unique_commit_count(current_branch, default_branch)
+        print(
+            f"  Branch commits: {branch_commits}"
+            f"  {c.dim(f'(repo total: {commit_count})')}"
+        )
+    else:
+        print(f"  Total commits:  {commit_count}")
     vd = wb_stats.get("vs_default", {})
     st = wb_stats.get("staged", {})
     us = wb_stats.get("unstaged", {})
