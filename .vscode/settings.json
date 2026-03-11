@@ -142,8 +142,14 @@
 
     // ── Git ─────────────────────────────────────────────────
     // Auto-fetch and prune stale remote-tracking branches.
+    // NOTE: "git.pruneOnFetch" only applies to VS Code's auto-fetch.
+    // For terminal `git fetch` to also prune, set the git config:
+    //   git config --global fetch.prune true
+    // The git_doctor.py script runs `git fetch --all --prune`
+    // explicitly on each run regardless of this setting.
     "git.pruneOnFetch": true,
     "git.autofetch": true,
+    "git.fetchOnPull": true,
 
     // ── Task Runner ─────────────────────────────────────────
     // Auto-detect Taskfile.yml tasks in the task runner panel.

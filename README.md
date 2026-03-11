@@ -133,6 +133,7 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 | `scripts/customize.py`                  | Interactive project customization (placeholders, license, optional dirs) |
 | `scripts/repo_doctor.py`                | Health checker with `--fix` support                                      |
 | `scripts/env_doctor.py`                 | Quick environment health check                                           |
+| `scripts/git_doctor.py`                | Git health check and branch activity dashboard                           |
 | `scripts/doctor.py`                     | Diagnostics bundle for bug reports                                       |
 | `scripts/dep_versions.py`               | Show/update dependency versions                                          |
 | `scripts/workflow_versions.py`          | Show/update SHA-pinned action versions                                   |
