@@ -39,6 +39,7 @@ then delete them after a release cycle.
 
 | Area | Issue | Resolution | Date |
 | :--- | :---- | :--------- | :--- |
+| **Pre-commit** | `check-json` fails on `.vscode/settings.json` | `.vscode/settings.json` uses JSONC (comments). Added to the `check-json` exclude pattern in `.pre-commit-config.yaml`. | 2026-03 |
 | **Security** | PGP key fingerprint is a TODO | Fingerprint and keyserver URL added to SECURITY.md | 2026-03 |
 | **VS Code** | `python` interpreter path not found | Removed `python.defaultInterpreterPath` from `.code-workspace` settings entirely. Neither `"python"`, `${workspaceFolder}/...`, nor relative paths resolve reliably in `.code-workspace` files. The Python extension's auto-discovery finds `.venv` and the picker (Ctrl+Shift+P → Select Interpreter) stores the choice per-workspace. | 2026-03 |
 

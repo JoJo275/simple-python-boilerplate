@@ -847,59 +847,51 @@ different scopes and purposes:
 
 | File | Committed? | Who it's for | What it controls |
 | :--- | :--------: | :----------- | :--------------- |
-| `.code-workspace` | Yes (shared) | All contributors | Extension recommendations, cosmetic preferences, project-level defaults |
-| `.vscode/settings.json` | No (git-ignored) | Individual developer | Personal overrides that take priority over the workspace file |
+| `.vscode/settings.json` | Yes (shared) | All contributors | Project-functional settings: formatters, linters, test config, file exclusions |
+| `.code-workspace` | Yes (shared) | All contributors | Extension recommendations, cosmetic preferences (indentRainbow) |
 
 ### How They Work Together
 
-The **`.code-workspace` file** is the shared team baseline. It's committed
-to git and defines which extensions to recommend, formatter defaults, and
-other project-agreed settings. Everyone who opens the workspace file gets
-the same configuration.
+The **`.vscode/settings.json` file** is the shared project baseline. It's
+committed to git and contains the functional toolchain settings (Ruff as
+formatter, Pylance type-checking mode, pytest config, file exclusions, etc.)
+that ensure every contributor gets the same development experience — regardless
+of whether they open the project as a folder or as a workspace.
 
-The **`.vscode/settings.json` file** is git-ignored and exists for personal
-overrides. Because VS Code's "Folder Settings" layer (`.vscode/`) takes
-priority over the "Workspace Settings" layer (`.code-workspace`), anything
-you put here wins. Use it for personal preferences that shouldn't affect
+The **`.code-workspace` file** supplements `.vscode/settings.json` with
+extension recommendations and cosmetic preferences. It only loads when a
+contributor explicitly opens the `.code-workspace` file (File → Open Workspace
+from File).
+
+Because VS Code's "Folder Settings" layer (`.vscode/`) takes priority over the
+"Workspace Settings" layer (`.code-workspace`), anything in
+`.vscode/settings.json` wins when both are active. This is intentional —
+functional settings should be authoritative.
+
+<!-- TODO (template users): If you prefer .vscode/settings.json to be
+     personal / git-ignored (so each contributor brings their own editor
+     settings), add `.vscode/settings.json` back to .gitignore and move
+     shared functional settings into the .code-workspace file instead.
+     See .gitignore for the corresponding TODO. -->
+
+**Personal overrides:** If you need to override a shared setting for your
+local environment only, use VS Code's *User Settings* (`Ctrl+,` → User tab)
+or a profile. User Settings take lowest priority so they won't affect
 other contributors.
-
-**Common `.vscode/settings.json` overrides:**
-
-```jsonc
-{
-    // Personal theme/font choices
-    "workbench.colorTheme": "Monokai Dimmed",
-    "editor.fontSize": 15,
-
-    // Disable an extension's behaviour for this project
-    "cSpell.enabled": false,
-
-    // Override a workspace-level formatter choice
-    "[markdown]": {
-        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
-    }
-}
-```
-
-> **Tip:** If `.vscode/settings.json` doesn't exist yet, just create it —
-> VS Code will pick it up automatically. The `.vscode/` directory already
-> contains `extensions.json` (committed) for "Open Folder" users; only
-> `settings.json` is git-ignored.
 
 ### When Does Each File Load?
 
 | Open method                       | `.vscode/settings.json` | `.code-workspace` |
 | :-------------------------------- | :---------------------: | :----------------: |
 | **File → Open Folder**            | Yes                     | Ignored            |
-| **File → Open Workspace from File** | Yes (folder-level)   | Yes (overrides)    |
+| **File → Open Workspace from File** | Yes (folder-level)   | Yes (supplements)  |
 | **Codespaces / Dev Containers**   | Yes                     | Ignored            |
 
 This means `.vscode/settings.json` works regardless of how the project is
-opened. The `.code-workspace` file only applies when explicitly opened as a
-workspace. For this reason, shared functional settings (formatters, linting)
-should go in `.vscode/settings.json` if you want them universally — but since
-that file is git-ignored in this template, functional defaults live in the
-`.code-workspace` file as the shared baseline.
+opened, making it the right place for functional settings (formatters,
+linters, test runners). The `.code-workspace` file only applies when
+explicitly opened as a workspace; it provides extension recommendations and
+cosmetic preferences on top.
 
 ---
 
