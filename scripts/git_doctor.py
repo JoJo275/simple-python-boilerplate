@@ -17,6 +17,18 @@ Usage::
     python scripts/git_doctor.py
     python scripts/git_doctor.py --json
     python scripts/git_doctor.py --no-color
+
+Customisation notes:
+
+- **Merge-base freshness threshold**: ``check_merge_base_freshness()``
+  warns when the default branch is >10 commits ahead of the merge-base.
+  Adjust the threshold (``default_ahead <= 10``) if your workflow merges
+  main less frequently.
+- **Branch divergence on large repos**: ``get_first_commit_on_branch()``
+  uses ``git log --reverse`` on the commit range between the merge-base
+  and HEAD, limited to ``-1``.  This is fast for typical feature branches
+  but could be slow on mono-repos with extremely large diverged histories.
+  If performance is a concern, remove or guard the call in ``_collect_info``.
 """
 
 from __future__ import annotations
@@ -42,7 +54,7 @@ from _imports import find_repo_root
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.5.0"
 
 logger = logging.getLogger(__name__)
 
@@ -236,28 +248,29 @@ def get_commit_frequency() -> dict[str, int]:
     return freq
 
 
+def _parse_shortstat(text: str) -> dict[str, int]:
+    """Parse git ``--shortstat`` output into file/insertion/deletion counts."""
+    counts: dict[str, int] = {"files_changed": 0, "insertions": 0, "deletions": 0}
+    for line in text.splitlines():
+        if "changed" not in line:
+            continue
+        for part in line.strip().split(","):
+            part = part.strip()
+            if "file" in part:
+                counts["files_changed"] = int(re.sub(r"\D", "", part) or 0)
+            elif "insertion" in part:
+                counts["insertions"] = int(re.sub(r"\D", "", part) or 0)
+            elif "deletion" in part:
+                counts["deletions"] = int(re.sub(r"\D", "", part) or 0)
+    return counts
+
+
 def get_file_change_summary() -> dict[str, int]:
     """Return file change counts from recent commits."""
     code, out, _ = _run_git(["diff", "--stat", "--shortstat", "HEAD~5..HEAD"])
     if code != 0 or not out:
         return {}
-    counts: dict[str, int] = {
-        "files_changed": 0,
-        "insertions": 0,
-        "deletions": 0,
-    }
-    for line in out.splitlines():
-        if "changed" in line:
-            parts = line.strip().split(",")
-            for part in parts:
-                part = part.strip()
-                if "file" in part:
-                    counts["files_changed"] = int(re.sub(r"\D", "", part) or 0)
-                elif "insertion" in part:
-                    counts["insertions"] = int(re.sub(r"\D", "", part) or 0)
-                elif "deletion" in part:
-                    counts["deletions"] = int(re.sub(r"\D", "", part) or 0)
-    return counts
+    return _parse_shortstat(out)
 
 
 def get_working_tree_status() -> dict[str, int]:
@@ -338,6 +351,255 @@ def get_git_config_value(key: str) -> str:
     """Get a git config value."""
     code, out, _ = _run_git(["config", "--get", key])
     return out if code == 0 else ""
+
+
+def get_branch_diff_stats(branch: str, base: str) -> dict[str, int]:
+    """Get insertions/deletions/files changed for *branch* vs *base*."""
+    code, out, _ = _run_git(["diff", "--shortstat", f"{base}...{branch}"])
+    if code != 0 or not out:
+        return {"files_changed": 0, "insertions": 0, "deletions": 0}
+    return _parse_shortstat(out)
+
+
+def get_recent_branches_with_stats(
+    count: int = 5,
+) -> list[dict[str, object]]:
+    """Return most recent branches (local + remote) with diff stats vs default."""
+    default = get_default_branch()
+    code, out, _ = _run_git(
+        [
+            "for-each-ref",
+            "--sort=-committerdate",
+            "--format=%(refname:short)\t%(committerdate:relative)\t%(objectname:short)\t%(refname)",
+            "refs/heads/",
+            "refs/remotes/",
+        ]
+    )
+    if code != 0 or not out:
+        return []
+
+    seen: set[str] = set()
+    branches: list[dict[str, object]] = []
+
+    for line in out.splitlines():
+        parts = line.split("\t", 3)
+        if len(parts) < 4:
+            continue
+        name, date, sha, ref = parts[0], parts[1], parts[2], parts[3]
+        if "HEAD" in name:
+            continue
+        # Deduplicate local/remote pairs
+        base_name = name.split("/", 1)[-1] if name.startswith("origin/") else name
+        if base_name in seen:
+            continue
+        seen.add(base_name)
+
+        entry: dict[str, object] = {
+            "name": name,
+            "base_name": base_name,
+            "date": date,
+            "sha": sha,
+            "source": "remote" if ref.startswith("refs/remotes/") else "local",
+            "files_changed": 0,
+            "insertions": 0,
+            "deletions": 0,
+        }
+        if default != "(unknown)":
+            stats = get_branch_diff_stats(name, default)
+            entry.update(stats)
+        branches.append(entry)
+        if len(branches) >= count:
+            break
+
+    return branches
+
+
+def get_working_branch_stats() -> dict[str, dict[str, int]]:
+    """Get current branch stats: staged, unstaged, and total diff vs default."""
+    empty: dict[str, int] = {"files_changed": 0, "insertions": 0, "deletions": 0}
+    result: dict[str, dict[str, int]] = {}
+
+    # Unstaged changes
+    code, out, _ = _run_git(["diff", "--shortstat"])
+    result["unstaged"] = _parse_shortstat(out) if code == 0 and out else dict(empty)
+
+    # Staged changes
+    code, out, _ = _run_git(["diff", "--cached", "--shortstat"])
+    result["staged"] = _parse_shortstat(out) if code == 0 and out else dict(empty)
+
+    # Total branch diff vs default
+    default = get_default_branch()
+    if default != "(unknown)":
+        current = get_current_branch()
+        result["vs_default"] = get_branch_diff_stats(current, default)
+    else:
+        result["vs_default"] = dict(empty)
+
+    return result
+
+
+def get_modified_files(limit: int = 15) -> list[dict[str, str]]:
+    """Return modified/untracked files in the working directory."""
+    code, out, _ = _run_git(["status", "--porcelain"])
+    if code != 0 or not out:
+        return []
+    _status_map = {
+        "M": "modified",
+        "A": "added",
+        "D": "deleted",
+        "R": "renamed",
+        "C": "copied",
+        "?": "untracked",
+        "U": "conflicted",
+    }
+    files: list[dict[str, str]] = []
+    for line in out.splitlines():
+        if len(line) < 3:
+            continue
+        idx, wt = line[0], line[1]
+        fname = line[3:]
+        if idx == "?" or wt == "?":
+            label = "untracked"
+        elif idx == "U" or wt == "U":
+            label = "conflicted"
+        elif wt in ("M", "D"):
+            label = _status_map.get(wt, wt)
+        else:
+            label = _status_map.get(idx, idx) + " (staged)"
+        files.append({"file": fname, "status": label})
+        if len(files) >= limit:
+            break
+    return files
+
+
+def get_stale_branches(days: int = 30) -> list[dict[str, str]]:
+    """Return local branches with no commits in the last *days* days."""
+    code, out, _ = _run_git(
+        [
+            "for-each-ref",
+            "--sort=committerdate",
+            "--format=%(refname:short)\t%(committerdate:relative)\t%(committerdate:unix)",
+            "refs/heads/",
+        ]
+    )
+    if code != 0 or not out:
+        return []
+    cutoff = time.time() - (days * 86400)
+    stale: list[dict[str, str]] = []
+    for line in out.splitlines():
+        parts = line.split("\t", 2)
+        if len(parts) < 3:
+            continue
+        try:
+            ts = float(parts[2])
+        except ValueError:
+            continue
+        if ts < cutoff:
+            stale.append({"name": parts[0], "last_commit": parts[1]})
+    return stale
+
+
+def get_git_config_summary() -> dict[str, str]:
+    """Return key git configuration values."""
+    keys = [
+        "core.autocrlf",
+        "pull.rebase",
+        "push.default",
+        "init.defaultBranch",
+        "merge.ff",
+        "fetch.prune",
+        "rerere.enabled",
+        "commit.gpgsign",
+    ]
+    return {k: v for k in keys if (v := get_git_config_value(k))}
+
+
+def get_unmerged_branches() -> list[str]:
+    """Return local branches not yet merged into the default branch."""
+    default = get_default_branch()
+    if default == "(unknown)":
+        return []
+    code, out, _ = _run_git(
+        ["branch", "--no-merged", default, "--format=%(refname:short)"]
+    )
+    if code != 0 or not out:
+        return []
+    return [b for b in out.splitlines() if b.strip()]
+
+
+def get_last_merge_from_default() -> dict[str, str]:
+    """Return info about the last merge from the default branch into current.
+
+    Finds the most recent merge commit where the default branch (e.g. main)
+    was merged into the current branch. Useful for knowing how fresh your
+    branch is relative to the mainline.
+    """
+    default = get_default_branch()
+    current = get_current_branch()
+    if default == "(unknown)" or current == default:
+        return {}
+
+    # Find the merge-base (common ancestor)
+    code, merge_base, _ = _run_git(["merge-base", current, default])
+    if code != 0 or not merge_base:
+        return {}
+
+    # Get the date and message of the merge-base commit
+    code, out, _ = _run_git(
+        ["log", "-1", "--format=%H\t%h\t%s\t%an\t%ar\t%ai", merge_base]
+    )
+    if code != 0 or not out:
+        return {}
+
+    parts = out.split("\t", 5)
+    result: dict[str, str] = {"merge_base_sha": parts[0], "sha_short": parts[1]}
+    if len(parts) >= 3:
+        result["message"] = parts[2]
+    if len(parts) >= 4:
+        result["author"] = parts[3]
+    if len(parts) >= 5:
+        result["relative_date"] = parts[4]
+    if len(parts) >= 6:
+        result["date"] = parts[5]
+
+    # Count how many commits default branch is ahead of the merge-base
+    code, out, _ = _run_git(["rev-list", "--count", f"{merge_base}..{default}"])
+    if code == 0 and out:
+        result["default_ahead"] = out
+
+    # Count how many commits current branch is ahead of the merge-base
+    code, out, _ = _run_git(["rev-list", "--count", f"{merge_base}..{current}"])
+    if code == 0 and out:
+        result["current_ahead"] = out
+
+    return result
+
+
+def get_first_commit_on_branch() -> dict[str, str]:
+    """Return info about when the current branch diverged from default."""
+    default = get_default_branch()
+    current = get_current_branch()
+    if default == "(unknown)" or current == default:
+        return {}
+
+    # Find the first commit after diverging from default
+    code, merge_base, _ = _run_git(["merge-base", current, default])
+    if code != 0 or not merge_base:
+        return {}
+
+    code, out, _ = _run_git(
+        ["log", "--format=%h\t%s\t%ar", "--reverse", f"{merge_base}..HEAD", "-1"]
+    )
+    if code != 0 or not out:
+        return {}
+
+    parts = out.split("\t", 2)
+    result: dict[str, str] = {"sha": parts[0]}
+    if len(parts) >= 2:
+        result["message"] = parts[1]
+    if len(parts) >= 3:
+        result["date"] = parts[2]
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -614,6 +876,39 @@ def check_user_identity() -> tuple[bool, str]:
     return False, f"Missing git config: {', '.join(missing)}"
 
 
+def check_merge_base_freshness() -> tuple[bool, str]:
+    """Warn if the current branch hasn't been rebased/merged from default recently.
+
+    Checks how many commits the default branch is ahead of the merge-base.
+    A high divergence means the branch may have merge conflicts waiting.
+    """
+    current = get_current_branch()
+    default = get_default_branch()
+    if default == "(unknown)" or current == default:
+        return True, "On default branch (no merge-base to check)"
+
+    merge_info = get_last_merge_from_default()
+    if not merge_info:
+        return False, f"Cannot determine merge-base with {default}"
+
+    default_ahead = int(merge_info.get("default_ahead", "0"))
+    rel_date = merge_info.get("relative_date", "unknown")
+
+    if default_ahead == 0:
+        return True, f"Branch is up to date with {default}"
+    if default_ahead <= 10:
+        return (
+            True,
+            f"{default} is {default_ahead} commits ahead (merge-base: {rel_date})",
+        )
+    return (
+        False,
+        f"{default} is {default_ahead} commits ahead "
+        f"(merge-base: {rel_date}) "
+        f"- consider: git merge {default}",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Helpful commands reference
 # ---------------------------------------------------------------------------
@@ -662,6 +957,7 @@ HEALTH_CHECKS: list[tuple[str, CheckFn]] = [
     ("Conventional commits", check_conventional_commits),
     ("Commit template", check_gitmessage_template),
     ("User identity", check_user_identity),
+    ("Merge-base freshness", check_merge_base_freshness),
 ]
 
 
@@ -688,6 +984,14 @@ def _collect_info() -> dict[
         "release_please_branches": find_release_please_branches(),
         "user_name": get_git_config_value("user.name"),
         "user_email": get_git_config_value("user.email"),
+        "branch_activity": get_recent_branches_with_stats(5),
+        "working_branch_stats": get_working_branch_stats(),
+        "modified_files": get_modified_files(),
+        "stale_branches": get_stale_branches(),
+        "git_config": get_git_config_summary(),
+        "unmerged_branches": get_unmerged_branches(),
+        "last_merge_from_default": get_last_merge_from_default(),
+        "branch_divergence": get_first_commit_on_branch(),
     }
 
 
@@ -737,6 +1041,14 @@ def run(
     rp_branches: list[str] = info["release_please_branches"]  # type: ignore[assignment]
     user_name: str = info["user_name"]  # type: ignore[assignment]
     user_email: str = info["user_email"]  # type: ignore[assignment]
+    branch_activity: list[dict[str, object]] = info["branch_activity"]  # type: ignore[assignment]
+    wb_stats: dict[str, dict[str, int]] = info["working_branch_stats"]  # type: ignore[assignment]
+    modified_files: list[dict[str, str]] = info["modified_files"]  # type: ignore[assignment]
+    stale_branches: list[dict[str, str]] = info["stale_branches"]  # type: ignore[assignment]
+    git_config: dict[str, str] = info["git_config"]  # type: ignore[assignment]
+    unmerged_branches: list[str] = info["unmerged_branches"]  # type: ignore[assignment]
+    last_merge: dict[str, str] = info["last_merge_from_default"]  # type: ignore[assignment]
+    branch_divergence: dict[str, str] = info["branch_divergence"]  # type: ignore[assignment]
     commit_freq = get_commit_frequency()
     file_changes = get_file_change_summary()
 
@@ -776,6 +1088,14 @@ def run(
     print(f"  Contributors:   {contributors}")
     print(f"  Repo age:       {repo_age}")
 
+    # ── Git Configuration ──
+    if git_config:
+        print()
+        print(c.bold("Git Configuration"))
+        print(c.dim("-" * 60))
+        for key, val in git_config.items():
+            print(f"  {key:24s} {c.cyan(val)}")
+
     # ── Commit Activity (last 14 days) ──
     if commit_freq:
         print()
@@ -804,6 +1124,108 @@ def run(
         print(f"  Insertions:     {c.green(f'+{ins}')}")
         print(f"  Deletions:      {c.red(f'-{dels}')}")
 
+    # ── Branch Activity (top 5 most recent) ──
+    if branch_activity:
+        print()
+        print(c.bold("Branch Activity (top 5 most recent)"))
+        print(c.dim("-" * 60))
+        # Header
+        hdr_b = c.dim("Branch".ljust(30))
+        hdr_s = c.dim("Source".ljust(8))
+        hdr_d = c.dim("Last Commit".ljust(16))
+        hdr_f = c.dim("Files".rjust(6))
+        hdr_i = c.dim("+Ins".rjust(7))
+        hdr_dl = c.dim("-Del".rjust(7))
+        print(f"  {hdr_b} {hdr_s} {hdr_d} {hdr_f} {hdr_i} {hdr_dl}")
+        for entry in branch_activity:
+            bname = str(entry["base_name"])
+            src = str(entry["source"])
+            bdate = str(entry["date"])
+            bf = int(entry.get("files_changed", 0))  # type: ignore[arg-type]
+            bi = int(entry.get("insertions", 0))  # type: ignore[arg-type]
+            bd = int(entry.get("deletions", 0))  # type: ignore[arg-type]
+            name_padded = bname.ljust(30)
+            name_display = (
+                c.green(name_padded) if bname == current_branch else name_padded
+            )
+            ins_s = c.green(f"+{bi}".rjust(7)) if bi else str(bi).rjust(7)
+            del_s = c.red(f"-{bd}".rjust(7)) if bd else str(bd).rjust(7)
+            print(f"  {name_display} {src:8s} {bdate:16s} {bf:>6d} {ins_s} {del_s}")
+
+    # ── Current Working Branch ──
+    print()
+    print(c.bold(f"Current Working Branch: {c.green(current_branch)}"))
+    print(c.dim("-" * 60))
+    vd = wb_stats.get("vs_default", {})
+    st = wb_stats.get("staged", {})
+    us = wb_stats.get("unstaged", {})
+    vd_f, vd_i, vd_d = (
+        vd.get("files_changed", 0),
+        vd.get("insertions", 0),
+        vd.get("deletions", 0),
+    )
+    st_f, st_i, st_d = (
+        st.get("files_changed", 0),
+        st.get("insertions", 0),
+        st.get("deletions", 0),
+    )
+    us_f, us_i, us_d = (
+        us.get("files_changed", 0),
+        us.get("insertions", 0),
+        us.get("deletions", 0),
+    )
+    if vd_f or vd_i or vd_d:
+        print(
+            f"  vs {default_branch:12s} {vd_f} files changed, "
+            f"{c.green(f'+{vd_i}')} insertions, {c.red(f'-{vd_d}')} deletions"
+        )
+    else:
+        print(f"  vs {default_branch:12s} {c.dim('no divergence')}")
+    if st_f or st_i or st_d:
+        print(
+            f"  {'Staged':15s} {st_f} files changed, "
+            f"{c.green(f'+{st_i}')} insertions, {c.red(f'-{st_d}')} deletions"
+        )
+    else:
+        print(f"  {'Staged':15s} {c.dim('nothing staged')}")
+    if us_f or us_i or us_d:
+        print(
+            f"  {'Unstaged':15s} {us_f} files changed, "
+            f"{c.green(f'+{us_i}')} insertions, {c.red(f'-{us_d}')} deletions"
+        )
+    else:
+        print(f"  {'Unstaged':15s} {c.dim('clean')}")
+
+    # ── Last Merge from Default Branch ──
+    if last_merge and current_branch != default_branch:
+        print()
+        print(c.bold(f"Last Merge from {default_branch}"))
+        print(c.dim("-" * 60))
+        sha = c.yellow(last_merge.get("sha_short", "?"))
+        msg = last_merge.get("message", "")
+        rel_date = last_merge.get("relative_date", "")
+        author = last_merge.get("author", "")
+        default_ahead = last_merge.get("default_ahead", "0")
+        current_ahead = last_merge.get("current_ahead", "0")
+        print(f"  Merge base:     {sha} {msg}  {c.dim(rel_date)}")
+        if author:
+            print(f"  Author:         {author}")
+        if default_ahead != "0":
+            print(
+                f"  {default_branch} is {c.yellow(default_ahead)} commit(s) "
+                f"ahead of merge base"
+            )
+        if current_ahead != "0":
+            print(
+                f"  {current_branch} is {c.cyan(current_ahead)} commit(s) "
+                f"ahead of merge base"
+            )
+        if branch_divergence:
+            div_sha = c.yellow(branch_divergence.get("sha", ""))
+            div_msg = branch_divergence.get("message", "")
+            div_date = branch_divergence.get("date", "")
+            print(f"  Branch started: {div_sha} {div_msg}  {c.dim(div_date)}")
+
     # ── Working Tree ──
     if any(working_tree.values()):
         print()
@@ -815,6 +1237,32 @@ def run(
                 print(f"  {key.capitalize():12s} {color_fn(str(count))}")
     else:
         print(f"\n  {c.green('Working directory is clean')}")
+
+    # ── Modified Files ──
+    if modified_files:
+        print()
+        print(c.bold("Modified Files"))
+        print(c.dim("-" * 60))
+        status_colors = {
+            "modified": c.yellow,
+            "added": c.green,
+            "added (staged)": c.green,
+            "modified (staged)": c.green,
+            "deleted": c.red,
+            "deleted (staged)": c.red,
+            "untracked": c.dim,
+            "conflicted": c.red,
+            "renamed": c.cyan,
+            "renamed (staged)": c.cyan,
+        }
+        for mf in modified_files:
+            color_fn = status_colors.get(mf["status"], c.dim)
+            print(f"  {color_fn(mf['status'].ljust(18))} {mf['file']}")
+        total_mf = len(modified_files)
+        code_mf, out_mf, _ = _run_git(["status", "--porcelain"])
+        real_total = len(out_mf.splitlines()) if code_mf == 0 and out_mf else total_mf
+        if real_total > total_mf:
+            print(f"  {c.dim(f'... and {real_total - total_mf} more')}")
 
     # ── Local Branches ──
     if local_branches:
@@ -836,6 +1284,22 @@ def run(
             if last:
                 extra += f"  ({last})"
             print(f"  {marker}{name_str}{c.dim(extra)}")
+
+    # ── Stale Branches ──
+    if stale_branches:
+        print()
+        print(c.bold("Stale Branches (no activity > 30 days)"))
+        print(c.dim("-" * 60))
+        for sb in stale_branches:
+            print(f"  {c.yellow(sb['name']):30s} {c.dim(sb['last_commit'])}")
+
+    # ── Unmerged Branches ──
+    if unmerged_branches:
+        print()
+        print(c.bold(f"Unmerged Branches (not in {default_branch})"))
+        print(c.dim("-" * 60))
+        for ub in unmerged_branches:
+            print(f"  {ub}")
 
     # ── Recent Tags ──
     if tags:
