@@ -54,6 +54,9 @@ except ModuleNotFoundError:  # pragma: no cover
 
 from _colors import colorize as _colorize
 from _colors import supports_color as _supports_color
+from _imports import import_sibling
+
+Spinner = import_sibling("_progress").Spinner
 
 # ---------------------------------------------------------------------------
 # Models
@@ -632,9 +635,11 @@ def main() -> int:
 
     deleted = set(_list_deleted_paths(root, staged=args.staged, diff_range=args.diff))
 
-    warnings, passed = _evaluate_rules(
-        root, rules, check_missing=args.missing, deleted=deleted
-    )
+    with Spinner("Evaluating rules", log_interval=10) as spin:
+        spin.update(f"{len(rules)} rules")
+        warnings, passed = _evaluate_rules(
+            root, rules, check_missing=args.missing, deleted=deleted
+        )
 
     if args.show_passed and passed:
         print(

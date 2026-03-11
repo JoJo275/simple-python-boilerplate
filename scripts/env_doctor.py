@@ -58,8 +58,9 @@ from _doctor_common import (
     parse_version_specifier,
     read_pyproject,
 )
-from _imports import find_repo_root
-from _progress import ProgressBar
+from _imports import find_repo_root, import_sibling
+
+ProgressBar = import_sibling("_progress").ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants

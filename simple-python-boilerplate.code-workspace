@@ -37,25 +37,10 @@
 	],
 	"settings": {
 		// ── Cosmetic / Personal Preferences Only ────────────────
-		// Functional settings (including indentRainbow) live in
-		// .vscode/settings.json. Put only cosmetic overrides here.
-
-		// ── Personal Preferences (examples — uncomment to taste) ──
-		// These are subjective. Uncomment what you like, delete the rest,
-		// or set them in your User Settings so they apply everywhere.
-		//
-		// Theme
-		// "workbench.colorTheme": "Monokai Dimmed",
-		//
-		// Font
-		// "editor.fontFamily": "'Fira Code', Consolas, monospace",
-		// "editor.fontLigatures": true,
-		// "editor.fontSize": 14,
-		//
-		// Cursor & minimap
-		// "editor.cursorBlinking": "smooth",
-		// "editor.cursorSmoothCaretAnimation": "on",
-		// "editor.minimap.enabled": false
+		// Functional settings live in .vscode/settings.json — the single
+		// source of truth that loads regardless of how the project is opened.
+		// Put only cosmetic overrides here, or better yet, set personal
+		// preferences in your VS Code User Settings so they apply everywhere.
 	},
 	"extensions": {
 		"recommendations": [
@@ -103,7 +88,7 @@
 
 			// ── CI / GitHub Actions ─────────────────────────────
 			// GitHub Actions — syntax validation, auto-complete for action
-			// inputs, and workflow run status. This project has 34 workflow
+			// inputs, and workflow run status. This project has 35 workflow
 			// files in .github/workflows/.
 			"GitHub.vscode-github-actions",
 

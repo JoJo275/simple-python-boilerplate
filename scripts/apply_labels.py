@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import subprocess  # nosec B404
 import sys
 import urllib.parse
@@ -34,6 +35,8 @@ from _imports import find_repo_root, import_sibling
 ProgressBar = import_sibling("_progress").ProgressBar
 
 SCRIPT_VERSION = "1.3.0"
+
+logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 
@@ -134,16 +137,16 @@ def main() -> int:
         return 2
 
     if args.dry_run:
-        print(f"[DRY RUN] Would process {len(labels)} labels for {repo}")
+        logger.info("[DRY RUN] Would process %d labels for %s", len(labels), repo)
         for lab in labels:
             name = lab["name"]
             color = lab["color"].lstrip("#")
             desc = lab.get("description", "")
-            print(f"  upsert: {name} (#{color}) - {desc}")
+            logger.info("  upsert: %s (#%s) - %s", name, color, desc)
         return 0
 
     total = len(labels)
-    print(f"Processing {total} labels for {repo}…")
+    logger.info("Processing %d labels for %s\u2026", total, repo)
 
     created = updated = up_to_date = 0
     failures: list[str] = []
@@ -205,16 +208,20 @@ def main() -> int:
     if up_to_date:
         parts.append(f"{up_to_date} already up to date")
     summary = ", ".join(parts) if parts else "no changes"
-    print(f"Done: {summary}. Repo: {repo}")
+    logger.info("Done: %s. Repo: %s", summary, repo)
 
     if failures:
-        print(f"\n{len(failures)} label(s) failed:", file=sys.stderr)
+        logger.error("%d label(s) failed:", len(failures))
         for msg in failures:
-            print(msg, file=sys.stderr)
+            logger.error("%s", msg)
         return 1
 
     return 0
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
     raise SystemExit(main())

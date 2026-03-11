@@ -90,6 +90,14 @@ jobs:
           persist-credentials: false
 
       - name: Check links with lychee
+        # NOTE: Link checks on release-please branches will likely report
+        # false positives. Release-please updates CHANGELOG.md with compare
+        # URLs (e.g. v0.4.0...v0.5.0) before the tag exists, so those URLs
+        # 404 until the release PR is merged. The .lycheeignore file
+        # excludes the compare URL pattern, but other release-related links
+        # (like a release page URL) may also fail transiently.
+        # This is expected — review failures on release-please branches
+        # carefully before treating them as real issues.
         uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
         with:
           # Check all markdown and HTML files
@@ -104,4 +112,10 @@ jobs:
             '**/*.html'
           # Fail on PRs (catch regressions) but not on schedule
           # (external link rot is advisory, not a blocker).
-          fail: ${{ github.event_name != 'schedule' }}
+          # Also don't fail on release-please branches — they contain
+          # CHANGELOG links to tags that don't exist yet.
+          fail: >-
+            ${{
+              github.event_name != 'schedule'
+              && !startsWith(github.head_ref || '', 'release-please')
+            }}

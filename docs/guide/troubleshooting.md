@@ -396,6 +396,29 @@ Or install stubs: `pip install types-requests` (for requests, etc.).
 
 ---
 
+### "The legacy server (ruff-lsp) has been deprecated"
+
+**Cause:** Your VS Code **User Settings** contain `ruff.lint.run` (or other
+settings from the old `ruff-lsp` language server). The Ruff extension now uses
+a native server and those settings are no longer recognized.
+
+**Fix:**
+
+1. Open VS Code User Settings: `Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
+2. Search for `ruff.lint.run` and remove it
+3. Also remove any other `ruff.lint.*` VS Code settings (not to be confused with
+   `[tool.ruff.lint]` in `pyproject.toml` — those are fine)
+4. Reload VS Code
+
+The Ruff extension reads linting/formatting config from `pyproject.toml`
+automatically. VS Code-side `ruff.lint.*` settings are legacy and should
+be removed.
+
+See the [Ruff extension migration guide](https://github.com/astral-sh/ruff-vscode/blob/main/README.md#migrating-from-ruff-lsp)
+for full details.
+
+---
+
 ## Documentation
 
 ### `mkdocs build` fails with link warnings
