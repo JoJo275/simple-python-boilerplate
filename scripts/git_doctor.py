@@ -31,6 +31,19 @@ Customisation notes:
   (deleted on the remote) are excluded by default — they were almost
   certainly merged via PR (rebase-merge or squash-merge).  See the TODO
   in ``get_unmerged_branches()`` if your team's workflow differs.
+  The three merge strategies GitHub supports are:
+
+  1. **Rebase-merge** — replays branch commits on top of the target;
+     produces a linear history with the original commits preserved.
+  2. **Squash-merge** — condenses all branch commits into a single
+     commit on the target; original commit SHAs are lost.
+  3. **Merge commit** — creates a merge commit; original commits are
+     reachable via the merge parent and ``--no-merged`` works correctly.
+
+  Because rebase-merge and squash-merge both create new commit objects,
+  ``git branch --no-merged`` can't detect that the branch's *content*
+  was already integrated.  Filtering out ``[gone]`` branches handles
+  this correctly for normal post-PR-merge cleanup workflows.
 - **Branch activity accuracy**: ``get_recent_branches_with_stats()`` uses
   ``origin/<default>`` (not the local ref) as the comparison base so
   that stats remain accurate even when the local default branch is stale.
@@ -64,7 +77,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.9.0"
+SCRIPT_VERSION = "1.10.0"
 
 logger = logging.getLogger(__name__)
 
@@ -616,8 +629,9 @@ def get_stale_branches(days: int = 30) -> list[dict[str, str]]:
 def get_git_config_summary() -> dict[str, str]:
     """Return key git configuration values.
 
-    Shows both set and unset keys so users can see what's configured
-    and what's using git defaults.  Keys are grouped by category.
+    Returns **all** tracked keys with their values.  Keys that are not
+    set in any git config scope get the value ``"(unset)"`` so users can
+    see at a glance which knobs they might want to configure.
     """
     # TODO (template users): Add or remove config keys to match your
     #   team's workflow.  For example, add "gpg.format" if you use SSH
@@ -648,7 +662,7 @@ def get_git_config_summary() -> dict[str, str]:
         # Diff
         "diff.algorithm",
     ]
-    return {k: v for k in keys if (v := get_git_config_value(k))}
+    return {k: get_git_config_value(k) or "(unset)" for k in keys}
 
 
 def get_unmerged_branches() -> list[dict[str, str]]:
@@ -1129,6 +1143,22 @@ HELPFUL_COMMANDS: list[dict[str, str]] = [
     {"cmd": "git log --all --graph --oneline -20", "desc": "Visual branch graph"},
     {"cmd": "git reflog -10", "desc": "Recent HEAD movements (undo helper)"},
     {"cmd": "git clean -fdn", "desc": "Preview untracked files that would be removed"},
+    {
+        "cmd": "git config --global --list",
+        "desc": "View all global git configuration settings",
+    },
+    {
+        "cmd": "git config --list --show-origin",
+        "desc": "View all git config values with their source file",
+    },
+    {
+        "cmd": "git pull --rebase",
+        "desc": "Pull and rebase local commits on top of upstream (linear history)",
+    },
+    {
+        "cmd": "git push --force-with-lease",
+        "desc": "Force push safely (fails if remote has unexpected new commits)",
+    },
 ]
 
 
@@ -1316,7 +1346,10 @@ def run(
         print(c.bold("Git Configuration"))
         print(c.dim("-" * 60))
         for key, val in git_config.items():
-            print(f"  {key:24s} {c.cyan(val)}")
+            if val == "(unset)":
+                print(f"  {key:24s} {c.dim(val)}")
+            else:
+                print(f"  {key:24s} {c.cyan(val)}")
 
     # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
