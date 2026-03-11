@@ -111,10 +111,14 @@ dmypy.json
 .ruff_cache/
 
 # =========================================
-# VS Code (user-specific only)
+# VS Code
 # =========================================
-# Personal editor preferences and logs
-.vscode/settings.json
+# .vscode/settings.json is tracked (not git-ignored) because it
+# contains project-functional settings (formatters, linters, test
+# config) that ensure a consistent experience for all contributors.
+# TODO (template users): If you prefer personal .vscode/settings.json
+#   overrides to stay private, add this line back:
+#   .vscode/settings.json
 .vscode/*.log
 .vscode/.ropeproject
 

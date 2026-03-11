@@ -47,6 +47,7 @@ from _colors import Colors
 from _colors import status_icon as _icon
 from _colors import supports_color as _supports_color
 from _colors import supports_unicode as _supports_unicode
+from _colors import unicode_symbols as _unicode_symbols
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
 from _progress import Spinner
@@ -55,7 +56,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.7.0"
 
 logger = logging.getLogger(__name__)
 
@@ -221,9 +222,20 @@ def get_commit_count() -> int:
 
 
 def get_repo_age() -> str:
-    """Return the date of the first commit (repo creation proxy)."""
-    code, out, _ = _run_git(["log", "--reverse", "--format=%ar", "-1"])
-    return out if code == 0 and out else "unknown"
+    """Return the date of the first commit (repo creation proxy).
+
+    Uses ``git rev-list --max-parents=0`` to find the root commit(s),
+    then reads the relative date of the earliest one.  The previous
+    approach (``git log --reverse -1``) was buggy because ``-1`` limits
+    *before* ``--reverse``, giving the most-recent commit instead.
+    """
+    # Find root commit(s) — commits with no parents
+    code, out, _ = _run_git(["rev-list", "--max-parents=0", "HEAD"])
+    if code != 0 or not out:
+        return "unknown"
+    root_sha = out.splitlines()[0]
+    code, date_str, _ = _run_git(["log", "-1", "--format=%ar", root_sha])
+    return date_str if code == 0 and date_str else "unknown"
 
 
 def get_contributors_count() -> int:
@@ -362,6 +374,17 @@ def get_branch_diff_stats(branch: str, base: str) -> dict[str, int]:
     return _parse_shortstat(out)
 
 
+def get_branch_commit_count(ref: str) -> int:
+    """Return total commit count reachable from *ref*."""
+    code, out, _ = _run_git(["rev-list", "--count", ref])
+    if code != 0 or not out:
+        return 0
+    try:
+        return int(out)
+    except ValueError:
+        return 0
+
+
 def get_recent_branches_with_stats(
     count: int = 5,
 ) -> list[dict[str, object]]:
@@ -401,6 +424,7 @@ def get_recent_branches_with_stats(
             "date": date,
             "sha": sha,
             "source": "remote" if ref.startswith("refs/remotes/") else "local",
+            "commits": get_branch_commit_count(name),
             "files_changed": 0,
             "insertions": 0,
             "deletions": 0,
@@ -515,17 +539,56 @@ def get_git_config_summary() -> dict[str, str]:
     return {k: v for k in keys if (v := get_git_config_value(k))}
 
 
-def get_unmerged_branches() -> list[str]:
-    """Return local branches not yet merged into the default branch."""
+def get_unmerged_branches() -> list[dict[str, str]]:
+    """Return local branches not yet merged into the default branch.
+
+    Compares against ``origin/<default>`` (not the local ref) so
+    branches that were merged via PR and deleted on the remote are
+    correctly excluded — even if the local ``<default>`` hasn't been
+    pulled recently.
+
+    Returns a list of dicts with ``name`` and ``note`` keys.  Branches
+    whose upstream tracking reference is ``[gone]`` (remote deleted) are
+    annotated — they were almost certainly merged via squash/PR.
+    """
     default = get_default_branch()
     if default == "(unknown)":
         return []
+    # Prefer origin/<default> for accuracy; fall back to local ref
+    target = f"origin/{default}"
     code, out, _ = _run_git(
-        ["branch", "--no-merged", default, "--format=%(refname:short)"]
+        ["branch", "--no-merged", target, "--format=%(refname:short)"]
     )
+    if code != 0:
+        # Fallback: local default branch ref
+        code, out, _ = _run_git(
+            ["branch", "--no-merged", default, "--format=%(refname:short)"]
+        )
     if code != 0 or not out:
         return []
-    return [b for b in out.splitlines() if b.strip()]
+
+    # Cross-reference with tracking status to detect squash-merged branches
+    tracking_info: dict[str, str] = {}
+    tc, tout, _ = _run_git(
+        ["branch", "-vv", "--format=%(refname:short)\t%(upstream:track)"]
+    )
+    if tc == 0 and tout:
+        for line in tout.splitlines():
+            parts = line.split("\t", 1)
+            if len(parts) == 2:
+                tracking_info[parts[0]] = parts[1]
+
+    branches: list[dict[str, str]] = []
+    for b in out.splitlines():
+        b = b.strip()
+        if not b:
+            continue
+        note = ""
+        track = tracking_info.get(b, "")
+        if "gone" in track:
+            note = "remote deleted (likely merged via PR)"
+        branches.append({"name": b, "note": note})
+    return branches
 
 
 def get_last_merge_from_default() -> dict[str, str]:
@@ -705,7 +768,16 @@ def check_no_large_files_staged() -> tuple[bool, str]:
 
 
 def check_branch_protection_alignment() -> tuple[bool, str]:
-    """Check if default branch in git matches workflow expectations."""
+    """Check if default branch in git matches workflow expectations.
+
+    .. note:: This check uses a simple regex to find ``branches:`` keys in
+       workflow YAML.  It can false-positive on workflows that intentionally
+       omit the default branch (e.g. release-only or tag-triggered workflows)
+       or match commented-out lines.
+    """
+    # TODO (template users): If your workflows intentionally target branches
+    #   other than the default, exclude those workflow files here or adjust
+    #   the regex to skip commented-out lines.
     code, out, _ = _run_git(["symbolic-ref", "refs/remotes/origin/HEAD"])
     if code != 0:
         return (
@@ -883,6 +955,9 @@ def check_merge_base_freshness() -> tuple[bool, str]:
     Checks how many commits the default branch is ahead of the merge-base.
     A high divergence means the branch may have merge conflicts waiting.
     """
+    # TODO (template users): Adjust the threshold (default_ahead <= 10)
+    #   to match your team's merge cadence.  Larger repos that merge main
+    #   less frequently may want a higher value (e.g. 25 or 50).
     current = get_current_branch()
     default = get_default_branch()
     if default == "(unknown)" or current == default:
@@ -993,6 +1068,8 @@ def _collect_info() -> dict[
         ("unmerged_branches", get_unmerged_branches),
         ("last_merge_from_default", get_last_merge_from_default),
         ("branch_divergence", get_first_commit_on_branch),
+        ("commit_frequency", get_commit_frequency),
+        ("file_change_summary", get_file_change_summary),
     ]
     info: dict[str, object] = {}
     with Spinner("Collecting git info", log_interval=5) as spin:
@@ -1055,11 +1132,11 @@ def run(
     modified_files: list[dict[str, str]] = info["modified_files"]  # type: ignore[assignment]
     stale_branches: list[dict[str, str]] = info["stale_branches"]  # type: ignore[assignment]
     git_config: dict[str, str] = info["git_config"]  # type: ignore[assignment]
-    unmerged_branches: list[str] = info["unmerged_branches"]  # type: ignore[assignment]
+    unmerged_branches: list[dict[str, str]] = info["unmerged_branches"]  # type: ignore[assignment]
     last_merge: dict[str, str] = info["last_merge_from_default"]  # type: ignore[assignment]
     branch_divergence: dict[str, str] = info["branch_divergence"]  # type: ignore[assignment]
-    commit_freq = get_commit_frequency()
-    file_changes = get_file_change_summary()
+    commit_freq: dict[str, int] = info["commit_frequency"]  # type: ignore[assignment]
+    file_changes: dict[str, int] = info["file_change_summary"]  # type: ignore[assignment]
 
     health_results, failures = _collect_health()
 
@@ -1076,7 +1153,9 @@ def run(
 
     use_color = color if color is not None else _supports_color(sys.stdout)
     use_unicode = _supports_unicode(sys.stdout)
+    sym = _unicode_symbols(sys.stdout)
     bar_char = "\u2588" if use_unicode else "#"
+    dash = sym["dash"]
     c = Colors(enabled=use_color)
 
     # ── Header ──
@@ -1105,10 +1184,12 @@ def run(
         for key, val in git_config.items():
             print(f"  {key:24s} {c.cyan(val)}")
 
-    # ── Commit Activity (last 14 days) ──
+    # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
         print()
-        print(c.bold("Commit Activity (last 14 days)"))
+        print(
+            c.bold(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
+        )
         print(c.dim("-" * 60))
         max_count = max(commit_freq.values()) if commit_freq else 1
         for date in sorted(commit_freq):
@@ -1120,10 +1201,14 @@ def run(
         avg = total_recent / len(commit_freq) if commit_freq else 0
         print(f"  {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
 
-    # ── File Change Summary (last 5 commits) ──
+    # ── File Change Summary — current branch (last 5 commits) ──
     if file_changes and any(file_changes.values()):
         print()
-        print(c.bold("Recent File Changes (last 5 commits)"))
+        print(
+            c.bold(
+                f"Recent File Changes {dash} {c.green(current_branch)} (last 5 commits)"
+            )
+        )
         print(c.dim("-" * 60))
         fc = file_changes
         ins = fc.get("insertions", 0)
@@ -1133,38 +1218,51 @@ def run(
         print(f"  Insertions:     {c.green(f'+{ins}')}")
         print(f"  Deletions:      {c.red(f'-{dels}')}")
 
-    # ── Branch Activity (top 5 most recent) ──
+    # ── Repo Branch Activity (top 5 most recent) ──
     if branch_activity:
         print()
-        print(c.bold("Branch Activity (top 5 most recent)"))
+        print(c.bold("Repo Branch Activity (top 5 most recent)"))
         print(c.dim("-" * 60))
+        # Dynamic column width based on longest branch name (cap at 50)
+        max_name = max((len(str(e["base_name"])) for e in branch_activity), default=20)
+        name_w = min(max(max_name, 10), 50)
         # Header
-        hdr_b = c.dim("Branch".ljust(30))
+        hdr_b = c.dim("Branch".ljust(name_w))
         hdr_s = c.dim("Source".ljust(8))
         hdr_d = c.dim("Last Commit".ljust(16))
+        hdr_c = c.dim("Commits".rjust(8))
         hdr_f = c.dim("Files".rjust(6))
         hdr_i = c.dim("+Ins".rjust(7))
         hdr_dl = c.dim("-Del".rjust(7))
-        print(f"  {hdr_b} {hdr_s} {hdr_d} {hdr_f} {hdr_i} {hdr_dl}")
+        print(f"  {hdr_b} {hdr_s} {hdr_d} {hdr_c} {hdr_f} {hdr_i} {hdr_dl}")
         for entry in branch_activity:
             bname = str(entry["base_name"])
             src = str(entry["source"])
             bdate = str(entry["date"])
+            bcommits = int(entry.get("commits", 0))  # type: ignore[arg-type]
             bf = int(entry.get("files_changed", 0))  # type: ignore[arg-type]
             bi = int(entry.get("insertions", 0))  # type: ignore[arg-type]
             bd = int(entry.get("deletions", 0))  # type: ignore[arg-type]
-            name_padded = bname.ljust(30)
+            # Truncate long names with ellipsis
+            display_name = (
+                bname[: name_w - 1] + sym["ellip"] if len(bname) > name_w else bname
+            )
+            name_padded = display_name.ljust(name_w)
             name_display = (
                 c.green(name_padded) if bname == current_branch else name_padded
             )
             ins_s = c.green(f"+{bi}".rjust(7)) if bi else str(bi).rjust(7)
             del_s = c.red(f"-{bd}".rjust(7)) if bd else str(bd).rjust(7)
-            print(f"  {name_display} {src:8s} {bdate:16s} {bf:>6d} {ins_s} {del_s}")
+            print(
+                f"  {name_display} {src:8s} {bdate:16s}"
+                f" {bcommits:>8d} {bf:>6d} {ins_s} {del_s}"
+            )
 
     # ── Current Working Branch ──
     print()
     print(c.bold(f"Current Working Branch: {c.green(current_branch)}"))
     print(c.dim("-" * 60))
+    print(f"  Total commits:  {commit_count}")
     vd = wb_stats.get("vs_default", {})
     st = wb_stats.get("staged", {})
     us = wb_stats.get("unstaged", {})
@@ -1308,7 +1406,12 @@ def run(
         print(c.bold(f"Unmerged Branches (not in {default_branch})"))
         print(c.dim("-" * 60))
         for ub in unmerged_branches:
-            print(f"  {ub}")
+            name = ub["name"]
+            note = ub.get("note", "")
+            if note:
+                print(f"  {name}  {c.dim(note)}")
+            else:
+                print(f"  {name}")
 
     # ── Recent Tags ──
     if tags:
@@ -1321,7 +1424,7 @@ def run(
     # ── Recent Commits ──
     if recent_commits:
         print()
-        print(c.bold("Recent Commits"))
+        print(c.bold(f"Recent Commits {dash} {c.green(current_branch)}"))
         print(c.dim("-" * 60))
         for commit in recent_commits:
             sha = c.yellow(commit["sha"])
