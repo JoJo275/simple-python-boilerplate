@@ -239,7 +239,7 @@ check items off as you go.
 
 ## CI/CD Workflows Included
 
-This template ships with **34 GitHub Actions workflows** in
+This template ships with **35 GitHub Actions workflows** in
 [.github/workflows/](../.github/workflows/) covering quality, security, PR
 hygiene, releases, docs, containers, and maintenance.
 
@@ -283,7 +283,7 @@ skip on forks and clones.
 
 ### Disabling Workflows You Don't Need
 
-Not every project needs all 34 workflows:
+Not every project needs all 35 workflows:
 
 | If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
 | :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |
@@ -316,7 +316,7 @@ Not every project needs all 34 workflows:
 | **Release**       | release-please, release, sbom                                                                                             | Push to main / tags only                     |
 | **Documentation** | docs-build, docs-deploy                                                                                                   | docs-build in gate; deploy is path-filtered  |
 | **Container**     | container-build, container-scan                                                                                           | container-build in gate                      |
-| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor | Scheduled / event-triggered             |
+| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor, doctor-all | Scheduled / event-triggered             |
 | **Gate**          | ci-gate                                                                                                                   | Yes — the single required check              |
 
 ---
@@ -839,6 +839,70 @@ and the docs you don't need.
 | ADR index                          | [docs/adr/](adr/README.md)                                        |
 
 ---
+
+## VS Code Configuration
+
+This template uses **two complementary VS Code configuration files** with
+different scopes and purposes:
+
+| File | Committed? | Who it's for | What it controls |
+| :--- | :--------: | :----------- | :--------------- |
+| `.code-workspace` | Yes (shared) | All contributors | Extension recommendations, cosmetic preferences, project-level defaults |
+| `.vscode/settings.json` | No (git-ignored) | Individual developer | Personal overrides that take priority over the workspace file |
+
+### How They Work Together
+
+The **`.code-workspace` file** is the shared team baseline. It's committed
+to git and defines which extensions to recommend, formatter defaults, and
+other project-agreed settings. Everyone who opens the workspace file gets
+the same configuration.
+
+The **`.vscode/settings.json` file** is git-ignored and exists for personal
+overrides. Because VS Code's "Folder Settings" layer (`.vscode/`) takes
+priority over the "Workspace Settings" layer (`.code-workspace`), anything
+you put here wins. Use it for personal preferences that shouldn't affect
+other contributors.
+
+**Common `.vscode/settings.json` overrides:**
+
+```jsonc
+{
+    // Personal theme/font choices
+    "workbench.colorTheme": "Monokai Dimmed",
+    "editor.fontSize": 15,
+
+    // Disable an extension's behaviour for this project
+    "cSpell.enabled": false,
+
+    // Override a workspace-level formatter choice
+    "[markdown]": {
+        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    }
+}
+```
+
+> **Tip:** If `.vscode/settings.json` doesn't exist yet, just create it —
+> VS Code will pick it up automatically. The `.vscode/` directory already
+> contains `extensions.json` (committed) for "Open Folder" users; only
+> `settings.json` is git-ignored.
+
+### When Does Each File Load?
+
+| Open method                       | `.vscode/settings.json` | `.code-workspace` |
+| :-------------------------------- | :---------------------: | :----------------: |
+| **File → Open Folder**            | Yes                     | Ignored            |
+| **File → Open Workspace from File** | Yes (folder-level)   | Yes (overrides)    |
+| **Codespaces / Dev Containers**   | Yes                     | Ignored            |
+
+This means `.vscode/settings.json` works regardless of how the project is
+opened. The `.code-workspace` file only applies when explicitly opened as a
+workspace. For this reason, shared functional settings (formatters, linting)
+should go in `.vscode/settings.json` if you want them universally — but since
+that file is git-ignored in this template, functional defaults live in the
+`.code-workspace` file as the shared baseline.
+
+---
+
 ## VS Code Workspace File
 
 The [`.code-workspace`](../simple-python-boilerplate.code-workspace) file
@@ -882,7 +946,7 @@ should review both and remove or comment out anything that doesn't apply.
 | `tamasfe.even-better-toml` | TOML syntax for `pyproject.toml` |
 | `redhat.vscode-yaml` | YAML validation for workflows and configs |
 | `eamodio.gitlens` | Git blame, history, and annotations |
-| `GitHub.vscode-github-actions` | Workflow syntax validation and auto-complete (34 workflows in this project) |
+| `GitHub.vscode-github-actions` | Workflow syntax validation and auto-complete (35 workflows in this project) |
 | `task.vscode-task` | Task runner integration for `Taskfile.yml` |
 | `EditorConfig.EditorConfig` | Consistent editor settings across editors |
 | `streetsidesoftware.code-spell-checker` | Spell checking in code and docs |

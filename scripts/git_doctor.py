@@ -49,6 +49,7 @@ from _colors import supports_color as _supports_color
 from _colors import supports_unicode as _supports_unicode
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
+from _progress import Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -966,45 +967,53 @@ def _collect_info() -> dict[
     str | int | list[str] | list[dict[str, str]] | dict[str, int],
 ]:
     """Collect all git information into a dict."""
-    return {
-        "current_branch": get_current_branch(),
-        "default_branch": get_default_branch(),
-        "remote_url": get_remote_url(),
-        "remotes": get_all_remotes(),
-        "upstream_status": get_upstream_status(),
-        "local_branches": get_local_branches(),
-        "remote_branches": get_remote_branches(),
-        "recent_commits": get_recent_commits(5),
-        "tags": get_tags(5),
-        "stash_count": get_stash_count(),
-        "commit_count": get_commit_count(),
-        "repo_age": get_repo_age(),
-        "contributors": get_contributors_count(),
-        "working_tree": get_working_tree_status(),
-        "release_please_branches": find_release_please_branches(),
-        "user_name": get_git_config_value("user.name"),
-        "user_email": get_git_config_value("user.email"),
-        "branch_activity": get_recent_branches_with_stats(5),
-        "working_branch_stats": get_working_branch_stats(),
-        "modified_files": get_modified_files(),
-        "stale_branches": get_stale_branches(),
-        "git_config": get_git_config_summary(),
-        "unmerged_branches": get_unmerged_branches(),
-        "last_merge_from_default": get_last_merge_from_default(),
-        "branch_divergence": get_first_commit_on_branch(),
-    }
+    collectors: list[tuple[str, Callable[[], object]]] = [
+        ("current_branch", get_current_branch),
+        ("default_branch", get_default_branch),
+        ("remote_url", get_remote_url),
+        ("remotes", get_all_remotes),
+        ("upstream_status", get_upstream_status),
+        ("local_branches", get_local_branches),
+        ("remote_branches", get_remote_branches),
+        ("recent_commits", lambda: get_recent_commits(5)),
+        ("tags", lambda: get_tags(5)),
+        ("stash_count", get_stash_count),
+        ("commit_count", get_commit_count),
+        ("repo_age", get_repo_age),
+        ("contributors", get_contributors_count),
+        ("working_tree", get_working_tree_status),
+        ("release_please_branches", find_release_please_branches),
+        ("user_name", lambda: get_git_config_value("user.name")),
+        ("user_email", lambda: get_git_config_value("user.email")),
+        ("branch_activity", lambda: get_recent_branches_with_stats(5)),
+        ("working_branch_stats", get_working_branch_stats),
+        ("modified_files", get_modified_files),
+        ("stale_branches", get_stale_branches),
+        ("git_config", get_git_config_summary),
+        ("unmerged_branches", get_unmerged_branches),
+        ("last_merge_from_default", get_last_merge_from_default),
+        ("branch_divergence", get_first_commit_on_branch),
+    ]
+    info: dict[str, object] = {}
+    with Spinner("Collecting git info", log_interval=5) as spin:
+        for key, fn in collectors:
+            spin.update(key)
+            info[key] = fn()
+    return info  # type: ignore[return-value]
 
 
 def _collect_health() -> tuple[list[dict[str, str]], int]:
     """Run all health checks and return (results, failure_count)."""
     results: list[dict[str, str]] = []
     failures = 0
-    for name, check_fn in HEALTH_CHECKS:
-        passed, msg = check_fn()
-        status = "PASS" if passed else "FAIL"
-        if not passed:
-            failures += 1
-        results.append({"name": name, "status": status, "message": msg})
+    with Spinner("Running health checks", log_interval=5) as spin:
+        for name, check_fn in HEALTH_CHECKS:
+            spin.update(name)
+            passed, msg = check_fn()
+            status = "PASS" if passed else "FAIL"
+            if not passed:
+                failures += 1
+            results.append({"name": name, "status": status, "message": msg})
     return results, failures
 
 

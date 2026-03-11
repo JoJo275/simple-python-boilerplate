@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **34 workflow files** in `.github/workflows/`. All workflows
+This project has **35 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -77,6 +77,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files`     | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
 | **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v*), manual                            | `Check stale resolved issues`  | Flags stale entries in docs/known-issues.md Resolved table                                    |
 | **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`            | Warn-only repo structure checks (missing files, broken conventions)                           |
+| **Doctor All**            | [doctor-all.yml](../.github/workflows/doctor-all.yml)                       | push, PR, weekly, manual                                 | `Full health check`            | Runs all doctor scripts (env, repo, git, TODOs, known issues, diagnostics) — warn-only        |
 
 ### Community
 
@@ -133,6 +134,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 - `known-issues-check.yml` — schedule + tag-push only (no PR trigger)
 - `todo-check.yml` — non-blocking (continue-on-error); informational only
 - `repo-doctor.yml` — warn-only (always exits 0); informational only
+- `doctor-all.yml` — warn-only (all steps continue-on-error); informational only
 - `welcome.yml` — community engagement; no quality gate relevance
 
 These still report status when they run and also run on push to main + schedules.

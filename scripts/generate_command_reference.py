@@ -58,6 +58,9 @@ from pathlib import Path
 
 from _imports import find_repo_root
 
+# TODO (template users): Consider adding a Spinner from _progress.py for
+#   the generation phase when running --help on each script. See
+#   git_doctor.py for an example of spinner integration.
 SCRIPT_VERSION = "1.3.0"
 
 logger = logging.getLogger(__name__)
