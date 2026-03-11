@@ -2,37 +2,32 @@
 // VS Code Workspace Configuration
 // ─────────────────────────────────────────────────────────────────────────
 //
-// This file defines shared editor settings and recommended extensions for
-// this project. It is meant to be committed to version control so every
-// contributor gets the same baseline.
+// This file defines recommended extensions and cosmetic preferences for
+// this project. Functional settings (formatters, linting, testing, search
+// excludes) live in .vscode/settings.json — the single source of truth
+// that loads regardless of how the project is opened.
+//
+// ── When does each file load? ──────────────────────────────────────────
+//
+//   Open method                    │ .vscode/settings.json │ .code-workspace
+//   ───────────────────────────────┼───────────────────────┼────────────────
+//   File > Open Folder             │ ✓ yes                 │ ✗ ignored
+//   File > Open Workspace from File│ ✓ yes (folder-level)  │ ✓ overrides
+//   Codespaces / devcontainers     │ ✓ yes                 │ ✗ ignored
 //
 // ── Customizing ────────────────────────────────────────────────────────
 //
-//   This file is highly personalized to the boilerplate author's workflow.
-//   Treat it as a starting point, not gospel. Change anything and
-//   everything to suit your own preferences — theme, extensions,
-//   formatters, keybindings, you name it. It's YOUR editor.
-//
-//   • SETTINGS — Comment out or delete any settings block you don't need
-//     (e.g. remove the [yaml] section if you use a different YAML formatter).
-//     VS Code falls back to your User Settings for anything not set here.
-//
 //   • EXTENSIONS — Remove or comment out extensions you don't want
-//     recommended. To suppress prompts for a specific extension, move its
-//     ID into the "unwantedRecommendations" array instead of deleting it
-//     (see the note at the bottom of the extensions block).
+//     recommended. Keep .vscode/extensions.json in sync (it serves
+//     the same list for Open Folder users).
 //
-//   • This file uses JSONC (JSON with Comments). Comments and trailing
-//     commas are valid — VS Code handles them natively.
-//
-//   • PERSONAL PREFERENCES (theme, font, cursor, etc.) — These are
-//     commented out at the bottom of the settings block as examples.
-//     Uncomment and adjust to taste, or set them in your User Settings
-//     (Ctrl+, → User tab) so they apply to all projects.
+//   • SETTINGS — Only cosmetic/personal preferences belong here.
+//     Functional settings go in .vscode/settings.json so they work
+//     for all open methods.
 //
 // TODO (template users): Rename this file to match your project
-//   (e.g. your-project.code-workspace), review all sections below, and
-//   remove extensions or settings that don't apply to your stack.
+//   (e.g. your-project.code-workspace), review extensions below, and
+//   remove any that don't apply to your stack.
 // ─────────────────────────────────────────────────────────────────────────
 {
 	"folders": [
@@ -41,95 +36,13 @@
 		}
 	],
 	"settings": {
-		// ── Python ──────────────────────────────────────────────
-		// The Python extension auto-discovers .venv, Hatch envs, conda,
-		// etc. and stores your choice per-workspace. To pick an
-		// interpreter: Ctrl+Shift+P → "Python: Select Interpreter"
-		//
-		// NOTE: python.defaultInterpreterPath in .code-workspace files
-		// does NOT reliably resolve ${workspaceFolder} or relative paths.
-		// The extension will still find .venv and offer it in the picker.
-		// Once you select an interpreter, the extension remembers it.
-		//
-		// TODO (template users): If the Python extension doesn't auto-detect
-		//   your interpreter, use the Select Interpreter command above, or
-		//   set a .vscode/settings.json with the absolute path:
-		//   { "python.defaultInterpreterPath": "C:/.../your-project/.venv/Scripts/python.exe" }
-		"[python]": {
-			"editor.defaultFormatter": "charliermarsh.ruff",
-			"editor.formatOnSave": true,
-			"editor.codeActionsOnSave": {
-				"source.fixAll": "explicit",
-				"source.organizeImports": "explicit"
-			}
-		},
-
-		// ── Markdown ────────────────────────────────────────────
-		// markdownlint reads rules from .markdownlint-cli2.jsonc automatically.
-		// These settings control editor-side behavior only.
-		"[markdown]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode",
-			"editor.formatOnSave": false,
-			"editor.wordWrap": "on"
-		},
-
-		// ── Files ───────────────────────────────────────────────
-		// NOTE: If VS Code shows a schema trust warning on this file
-		//   (e.g. "Unable to load schema ... is untrusted"), open VS Code
-		//   settings and set "json.schemaDownload.enable": true, or add
-		//   the markdownlint schema URL to "http.systemCertificates". The
-		//   .vscode/settings.json in this repo already enables schema
-		//   download. The warning is cosmetic — it doesn't break anything.
-		"files.trimTrailingWhitespace": true,
-		"files.insertFinalNewline": true,
-		"files.trimFinalNewlines": true,
-		"files.exclude": {
-			"**/__pycache__": true,
-			"**/*.egg-info": true,
-			"**/.mypy_cache": true,
-			"**/.ruff_cache": true,
-			"**/site": true
-		},
-
-		// ── Editor ──────────────────────────────────────────────
-		"editor.rulers": [88, 120],
-
-		// ── YAML ────────────────────────────────────────────────
-		"[yaml]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode"
-		},
-
-		// ── Indent Rainbow ──────────────────────────────────────
-		// High-contrast colours for indentation guides. Each indent level
-		// gets a distinct background colour so Python's significant
-		// whitespace is immediately visible.
-		//
-		// rgba(R, G, B, A) format:
-		//   R = red channel   (0–255)
-		//   G = green channel (0–255)
-		//   B = blue channel  (0–255)
-		//   A = alpha/opacity (0.0 = invisible, 1.0 = fully opaque)
-		//
-		// Increase A (e.g. 0.15 → 0.25) for stronger contrast on your theme.
-		"indentRainbow.colors": [
-			"rgba(255, 99, 71, 0.15)",   // tomato red
-			"rgba(255, 165, 0, 0.15)",   // orange
-			"rgba(255, 255, 0, 0.15)",   // yellow
-			"rgba(50, 205, 50, 0.15)",   // lime green
-			"rgba(0, 191, 255, 0.15)",   // deep sky blue
-			"rgba(138, 43, 226, 0.15)",  // blue-violet
-			"rgba(255, 20, 147, 0.15)"   // deep pink
-		],
-		// "classic" = coloured tab-stop backgrounds (default behaviour).
-		// "light"   = coloured vertical guide lines only (no backgrounds).
-		// There is no built-in mode that enables both simultaneously.
-		// We use "classic" to keep the coloured tab spacing.
-		"indentRainbow.indicatorStyle": "classic",
-		"indentRainbow.colorOnWhiteSpaceOnly": true,
+		// ── Cosmetic / Personal Preferences Only ────────────────
+		// Functional settings (including indentRainbow) live in
+		// .vscode/settings.json. Put only cosmetic overrides here.
 
 		// ── Personal Preferences (examples — uncomment to taste) ──
 		// These are subjective. Uncomment what you like, delete the rest,
-		// or move them to your User Settings so they apply everywhere.
+		// or set them in your User Settings so they apply everywhere.
 		//
 		// Theme
 		// "workbench.colorTheme": "Monokai Dimmed",
@@ -142,11 +55,7 @@
 		// Cursor & minimap
 		// "editor.cursorBlinking": "smooth",
 		// "editor.cursorSmoothCaretAnimation": "on",
-		// "editor.minimap.enabled": false,
-		//
-		// Bracket colourisation (built-in since VS Code 1.60)
-		// "editor.bracketPairColorization.enabled": true,
-		// "editor.guides.bracketPairs": "active"
+		// "editor.minimap.enabled": false
 	},
 	"extensions": {
 		"recommendations": [
