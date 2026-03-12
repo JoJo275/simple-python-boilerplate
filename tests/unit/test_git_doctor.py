@@ -496,15 +496,32 @@ class TestGetUpstreamStatus:
     """Tests for get_upstream_status()."""
 
     def test_up_to_date(self):
-        with _mock_run_git(0, "0\t0"):
-            assert get_upstream_status() == "up to date"
+        def fake_run_git(args, *, timeout=15):
+            if "--abbrev-ref" in args and "--symbolic-full-name" in args:
+                return (0, "origin/main", "")
+            return (0, "0\t0", "")
+
+        with patch("git_doctor._run_git", side_effect=fake_run_git):
+            result = get_upstream_status()
+            assert "up to date" in result
+            assert "origin/main" in result
 
     def test_ahead(self):
-        with _mock_run_git(0, "0\t5"):
+        def fake_run_git(args, *, timeout=15):
+            if "--abbrev-ref" in args and "--symbolic-full-name" in args:
+                return (0, "origin/main", "")
+            return (0, "0\t5", "")
+
+        with patch("git_doctor._run_git", side_effect=fake_run_git):
             assert "5 ahead" in get_upstream_status()
 
     def test_behind(self):
-        with _mock_run_git(0, "3\t0"):
+        def fake_run_git(args, *, timeout=15):
+            if "--abbrev-ref" in args and "--symbolic-full-name" in args:
+                return (0, "origin/main", "")
+            return (0, "3\t0", "")
+
+        with patch("git_doctor._run_git", side_effect=fake_run_git):
             assert "3 behind" in get_upstream_status()
 
     def test_no_upstream(self):
@@ -592,11 +609,10 @@ class TestGetUnmergedBranches:
 
         with patch("git_doctor._run_git", side_effect=fake_run_git):
             result = get_unmerged_branches()
-            assert len(result) == 2
-            # feature-a has [gone] tracking → annotated
-            assert "merged via PR" in result[0]["note"]
-            # feature-b has no [gone] → no annotation
-            assert result[1]["note"] == ""
+            # feature-a has [gone] tracking → skipped (assumed merged via PR)
+            # feature-b has no [gone] → included
+            assert len(result) == 1
+            assert result[0]["name"] == "feature-b"
 
     def test_empty_when_unknown_default(self):
         with _mock_run_git(1, ""):
@@ -926,6 +942,8 @@ class TestRun:
                     "current_branch": "main",
                     "default_branch": "main",
                     "remote_url": "https://github.com/user/repo",
+                    "remotes": [],
+                    "remote_branches": [],
                     "upstream_status": "up to date",
                     "local_branches": [],
                     "recent_commits": [],
@@ -960,14 +978,16 @@ class TestRun:
                     "modified_files": [],
                     "stale_branches": [],
                     "git_config": {},
+                    "git_config_scopes": {},
                     "unmerged_branches": [],
                     "last_merge_from_default": {},
                     "branch_divergence": {},
+                    "commit_frequency": {},
+                    "file_change_summary": {},
+                    "branch_characteristics": {},
                 },
             ),
             patch("git_doctor._collect_health", return_value=([], 0)),
-            patch("git_doctor.get_commit_frequency", return_value={}),
-            patch("git_doctor.get_file_change_summary", return_value={}),
         ):
             run(output_json=True)
             captured = capsys.readouterr()
@@ -984,6 +1004,8 @@ class TestRun:
                     "current_branch": "main",
                     "default_branch": "main",
                     "remote_url": "https://github.com/user/repo",
+                    "remotes": [],
+                    "remote_branches": [],
                     "upstream_status": "up to date",
                     "local_branches": [],
                     "recent_commits": [],
@@ -1018,14 +1040,16 @@ class TestRun:
                     "modified_files": [],
                     "stale_branches": [],
                     "git_config": {},
+                    "git_config_scopes": {},
                     "unmerged_branches": [],
                     "last_merge_from_default": {},
                     "branch_divergence": {},
+                    "commit_frequency": {},
+                    "file_change_summary": {},
+                    "branch_characteristics": {},
                 },
             ),
             patch("git_doctor._collect_health", return_value=([], 0)),
-            patch("git_doctor.get_commit_frequency", return_value={}),
-            patch("git_doctor.get_file_change_summary", return_value={}),
         ):
             run(color=False)
             captured = capsys.readouterr()

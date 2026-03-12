@@ -87,7 +87,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.12.0"
+SCRIPT_VERSION = "1.13.0"
 
 logger = logging.getLogger(__name__)
 
@@ -1890,12 +1890,16 @@ def run(
 
     # ── Git Configuration (top 18 — use --export-config for full reference) ──
     if git_config:
-        _section("Git Configuration")
+        set_count = sum(1 for v in git_config.values() if v != "(unset)")
+        unset_count = len(git_config) - set_count
+        _section(
+            f"Git Configuration  {c.dim(f'({set_count} set, {unset_count} unset)')}"
+        )
         for key, val in git_config.items():
             scope = git_config_scopes.get(key, "unset")
             scope_str = f"[{scope}]".ljust(10)
             if val == "(unset)":
-                print(f"    {key:24s} {c.dim(scope_str)} {c.dim(val)}")
+                print(f"    {c.dim(key):24s} {c.dim(scope_str)} {c.dim(val)}")
             else:
                 print(f"    {key:24s} {c.dim(scope_str)} {c.cyan(val)}")
         print(
@@ -2085,7 +2089,7 @@ def run(
             )
         if current_ahead != "0":
             _kv(
-                f"{current_branch[:15]} ahead",
+                "Branch ahead",
                 f"{c.cyan(current_ahead)} commit(s) ahead of merge base",
             )
         if branch_divergence:
@@ -2095,38 +2099,38 @@ def run(
             _kv("Branch started", f"{div_sha} {div_msg}  {c.dim(div_date)}")
 
     # ── Working Tree ──
-    if any(working_tree.values()):
+    if any(working_tree.values()) or modified_files:
         _section("Working Tree")
         for key, count in working_tree.items():
             if count > 0:
                 color_fn = c.yellow if key != "conflicted" else c.red
                 _kv(key.capitalize(), color_fn(str(count)), width=14)
+        if modified_files:
+            print()
+            status_colors = {
+                "modified": c.yellow,
+                "added": c.green,
+                "added (staged)": c.green,
+                "modified (staged)": c.green,
+                "deleted": c.red,
+                "deleted (staged)": c.red,
+                "untracked": c.dim,
+                "conflicted": c.red,
+                "renamed": c.cyan,
+                "renamed (staged)": c.cyan,
+            }
+            for mf in modified_files:
+                color_fn = status_colors.get(mf["status"], c.dim)
+                print(f"    {color_fn(mf['status'].ljust(18))} {mf['file']}")
+            total_mf = len(modified_files)
+            code_mf, out_mf, _ = _run_git(["status", "--porcelain"])
+            real_total = (
+                len(out_mf.splitlines()) if code_mf == 0 and out_mf else total_mf
+            )
+            if real_total > total_mf:
+                print(f"    {c.dim(f'... and {real_total - total_mf} more')}")
     else:
         print(f"\n    {c.green('Working directory is clean')}")
-
-    # ── Modified Files ──
-    if modified_files:
-        _section("Modified Files")
-        status_colors = {
-            "modified": c.yellow,
-            "added": c.green,
-            "added (staged)": c.green,
-            "modified (staged)": c.green,
-            "deleted": c.red,
-            "deleted (staged)": c.red,
-            "untracked": c.dim,
-            "conflicted": c.red,
-            "renamed": c.cyan,
-            "renamed (staged)": c.cyan,
-        }
-        for mf in modified_files:
-            color_fn = status_colors.get(mf["status"], c.dim)
-            print(f"    {color_fn(mf['status'].ljust(18))} {mf['file']}")
-        total_mf = len(modified_files)
-        code_mf, out_mf, _ = _run_git(["status", "--porcelain"])
-        real_total = len(out_mf.splitlines()) if code_mf == 0 and out_mf else total_mf
-        if real_total > total_mf:
-            print(f"    {c.dim(f'... and {real_total - total_mf} more')}")
 
     # ── Local Branches ──
     if local_branches:
@@ -2181,8 +2185,8 @@ def run(
 
     # ── Stashes ──
     if stash_count > 0:
-        print()
-        print(f"    Stashes: {c.yellow(str(stash_count))}")
+        _section("Stashes")
+        print(f"    {c.yellow(str(stash_count))} stash(es) saved")
 
     # ── Release Please ──
     _section("Release Please")
@@ -2194,11 +2198,22 @@ def run(
 
     # ── Health Checks ──
     _section("Health Checks")
+    check_sym = sym.get("check", "")
+    cross_sym = sym.get("cross", "")
     for r in health_results:
-        print(
-            f"    [{_icon(r['status'], use_color=use_color)}]"
-            f" {c.dim(r['name'] + ':')} {r['message']}"
-        )
+        if r["status"] == "PASS":
+            icon = (
+                c.green(check_sym)
+                if use_unicode
+                else _icon(r["status"], use_color=use_color)
+            )
+        else:
+            icon = (
+                c.red(cross_sym)
+                if use_unicode
+                else _icon(r["status"], use_color=use_color)
+            )
+        print(f"    {icon} {c.dim(r['name'] + ':')} {r['message']}")
 
     # ── Helpful Commands ──
     _section("Helpful Commands")
@@ -2208,15 +2223,23 @@ def run(
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
-    print()
-    print(c.dim(f"  {h_line * 60}"))
     total = len(health_results)
     passed = total - failures
+    print()
+    print(c.dim(f"  {h_line * 60}"))
     if failures == 0:
-        print(f"  {c.green(f'All {total} health checks passed!')}")
+        sym_str = c.green(check_sym) if use_unicode else c.green("OK")
+        print(f"  {sym_str} {c.green(f'All {total} health checks passed')}")
     else:
-        print(f"  {c.red(f'{passed}/{total} checks passed, {failures} issues found')}")
-    print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
+        sym_str = c.red(cross_sym) if use_unicode else c.red("!!")
+        print(
+            f"  {sym_str} {c.red(f'{failures} issue(s) found')}  "
+            f"{c.dim(f'({passed}/{total} passed)')}"
+        )
+    print(
+        f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+    )
+    print(c.dim(f"  {h_line * 60}"))
     print()
 
     return 1 if failures else 0
