@@ -5044,6 +5044,43 @@ git config --global branch.sort -committerdate
 
 This project uses `git_doctor.py --export-config` to generate a full reference of all git configs with their current values, scopes, and recommendations. Run it to see what's configured and what's missing.
 
+### VS Code settings.json vs .gitconfig
+
+VS Code has its own git settings in `settings.json` that control **VS Code's git behavior** (autofetch interval, confirm sync, default clone directory, etc.). These are **not** the same as git config and they do **not** write to `.gitconfig`.
+
+**They are separate systems:**
+
+| Setting | Where it lives | What reads it |
+| --- | --- | --- |
+| `git.autofetch` | VS Code `settings.json` | VS Code only |
+| `fetch.prune` | `.gitconfig` (global/local) | All git clients (terminal, CI, editors) |
+| `git.pullRebase` | VS Code `settings.json` | VS Code only (overrides `pull.rebase` for VS Code pull button) |
+| `pull.rebase` | `.gitconfig` (global/local) | All git clients |
+| `git.enableSmartCommit` | VS Code `settings.json` | VS Code only (no git equivalent) |
+
+**Key facts:**
+
+- A change in `settings.json` does **NOT** reflect in `.gitconfig` or vice versa
+- Some VS Code settings overlap with git config and can **override** it for VS Code operations only
+- `terminal.integrated.env.*` in `settings.json` can affect git behavior in the integrated terminal (e.g. setting `GIT_AUTHOR_EMAIL`)
+- VS Code reads your `.gitconfig` for identity, signing, and other git-level settings
+
+**Recommendation:** Set behavior in `.gitconfig` (via `git config --global`), and use `settings.json` only for VS Code-specific UI preferences. That way your git behavior is consistent regardless of which tool you use (terminal, CI, other editors).
+
+Common VS Code git settings (these go in `settings.json`, NOT `.gitconfig`):
+
+```json
+{
+  "git.autofetch": true,
+  "git.fetchOnPull": true,
+  "git.pruneOnFetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.suggestSmartCommit": false,
+  "git.openRepositoryInParentFolders": "always"
+}
+```
+
 ---
 
 ## Git Tags
