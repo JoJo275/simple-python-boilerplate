@@ -7,9 +7,10 @@ release-please branches, and git-related health checks.
 
 Flags::
 
-    --no-color   Disable colored output
-    --json       Output results as JSON (for CI integration)
-    --version    Print version and exit
+    --no-color        Disable colored output
+    --json            Output results as JSON (for CI integration)
+    --export-config   Export full git config reference to Markdown file
+    --version         Print version and exit
 
 Usage::
 
@@ -77,13 +78,386 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.10.0"
+SCRIPT_VERSION = "1.11.0"
 
 logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 
 _GIT: str | None = shutil.which("git")
+
+# ---------------------------------------------------------------------------
+# Git configuration catalog (used by --export-config)
+# ---------------------------------------------------------------------------
+
+# Comprehensive catalog of useful git configurations.
+# Format: (key, recommended_scope, description, recommendation)
+GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
+    # ── Core ──
+    (
+        "core.autocrlf",
+        "global",
+        "Line ending conversion: 'true'=CRLF<>LF (Windows), 'input'=LF on commit only, 'false'=off",
+        "'input' on macOS/Linux, 'true' on Windows",
+    ),
+    (
+        "core.editor",
+        "global",
+        "Default text editor for commit messages, interactive rebase, and other editing",
+        "e.g. 'code --wait', 'vim', 'nano'",
+    ),
+    (
+        "core.pager",
+        "global",
+        "Pager program for git output (log, diff). 'delta' gives syntax-highlighted diffs",
+        "'delta' for better diffs, or 'less -FRX'",
+    ),
+    (
+        "core.excludesfile",
+        "global",
+        "Path to a global gitignore file applied to ALL repositories (editor/OS ignores)",
+        "'~/.gitignore_global'",
+    ),
+    (
+        "core.filemode",
+        "local",
+        "Track file permission (executable bit) changes. Windows doesn't support Unix perms",
+        "'false' on Windows if you see spurious permission diffs",
+    ),
+    (
+        "core.longpaths",
+        "global",
+        "Enable paths longer than 260 chars on Windows. Required for deep node_modules",
+        "'true' on Windows",
+    ),
+    (
+        "core.quotepath",
+        "global",
+        "Quote non-ASCII characters in pathnames. Disable to see UTF-8 filenames correctly",
+        "'false' to display non-ASCII filenames correctly",
+    ),
+    (
+        "core.hooksPath",
+        "local",
+        "Custom directory for git hooks. Usually managed by pre-commit",
+        "Leave unset when using pre-commit",
+    ),
+    (
+        "core.eol",
+        "local",
+        "Line ending style in working directory: 'lf', 'crlf', or 'native'",
+        "'lf' for cross-platform projects, or use .gitattributes",
+    ),
+    (
+        "core.safecrlf",
+        "global",
+        "Abort/warn if line ending conversion would lose data",
+        "'warn' for safety without blocking",
+    ),
+    (
+        "core.symlinks",
+        "local",
+        "Whether working tree supports symbolic links (auto-detected on clone)",
+        "Auto-detected; 'false' if symlinks cause issues on Windows",
+    ),
+    (
+        "core.whitespace",
+        "local",
+        "Which whitespace problems git notices (trailing-space, space-before-tab, etc.)",
+        "Default is fine for most projects",
+    ),
+    # ── Fetch ──
+    (
+        "fetch.prune",
+        "global",
+        "Auto-remove stale remote-tracking branches on every fetch",
+        "'true' -- avoids stale branch accumulation",
+    ),
+    ("fetch.prunetags", "global", "Auto-remove stale remote tags on fetch", "'true'"),
+    (
+        "fetch.fsckobjects",
+        "global",
+        "Verify integrity of objects received during fetch (catches corruption)",
+        "'true' for security",
+    ),
+    # ── Pull ──
+    (
+        "pull.rebase",
+        "global",
+        "Rebase local commits on top of upstream when pulling. Gives linear history",
+        "'true' for linear history",
+    ),
+    (
+        "pull.ff",
+        "global",
+        "Fast-forward behavior on pull: 'only' refuses merge commits, 'true' allows any merge",
+        "'only' to prevent accidental merge commits",
+    ),
+    # ── Push ──
+    (
+        "push.default",
+        "global",
+        "What to push when no refspec given: 'current'=same-named branch, 'simple'=default",
+        "'current' or 'simple'",
+    ),
+    (
+        "push.autoSetupRemote",
+        "global",
+        "Auto-set upstream tracking on first push (no more --set-upstream). Git 2.37+",
+        "'true'",
+    ),
+    (
+        "push.followTags",
+        "global",
+        "Push annotated tags along with commits automatically",
+        "'true' if you use annotated tags for releases",
+    ),
+    # ── Merge ──
+    (
+        "merge.ff",
+        "local",
+        "Fast-forward on merge: 'only'=refuse merge commits, 'false'=always create them",
+        "'only' for linear history, 'false' for explicit merge commits",
+    ),
+    (
+        "merge.conflictstyle",
+        "global",
+        "Conflict marker format: 'diff3'/'zdiff3' shows the common ancestor (3-way diff)",
+        "'zdiff3' (git 2.35+) or 'diff3'",
+    ),
+    (
+        "merge.tool",
+        "global",
+        "Default tool for resolving merge conflicts interactively",
+        "e.g. 'vscode', 'meld', 'vimdiff'",
+    ),
+    (
+        "merge.log",
+        "global",
+        "Include one-line descriptions of merged commits in merge commit message",
+        "'true' for informative merge commits",
+    ),
+    # ── Rebase ──
+    (
+        "rebase.autostash",
+        "global",
+        "Auto-stash uncommitted changes before rebase, unstash after",
+        "'true' -- prevents 'dirty worktree' errors",
+    ),
+    (
+        "rebase.autoSquash",
+        "global",
+        "Auto-apply fixup!/squash! prefixes in interactive rebase (with --fixup)",
+        "'true'",
+    ),
+    (
+        "rebase.updateRefs",
+        "global",
+        "Auto-update stacked branch refs during rebase. Git 2.38+",
+        "'true' for stacked branch workflows",
+    ),
+    # ── Rerere ──
+    (
+        "rerere.enabled",
+        "global",
+        "REuse REcorded Resolution -- remember and replay merge conflict fixes",
+        "'true' -- saves time on repeated rebases",
+    ),
+    # ── Branch ──
+    (
+        "branch.autosetuprebase",
+        "global",
+        "Auto-set pull.rebase for new tracking branches: 'always', 'local', 'remote', 'never'",
+        "'always' if you prefer rebasing consistently",
+    ),
+    (
+        "branch.sort",
+        "global",
+        "Default sort for 'git branch': '-committerdate' shows most recent first",
+        "'-committerdate'",
+    ),
+    ("init.defaultBranch", "global", "Default branch name for 'git init'", "'main'"),
+    # ── Identity / Signing ──
+    (
+        "user.name",
+        "global",
+        "Author name recorded in every commit. Use local scope for work-specific identity",
+        "Your full name (required)",
+    ),
+    (
+        "user.email",
+        "global",
+        "Author email recorded in every commit. Use local scope for per-project email",
+        "Your email (required; local for work repos)",
+    ),
+    (
+        "commit.gpgsign",
+        "global",
+        "Auto-sign every commit with GPG/SSH key. GitHub shows 'Verified' badge",
+        "'true' for verified commits",
+    ),
+    (
+        "tag.gpgsign",
+        "global",
+        "Auto-sign every tag with GPG/SSH key",
+        "'true' if signing commits",
+    ),
+    (
+        "gpg.format",
+        "global",
+        "Signing format: 'openpgp' (GPG) or 'ssh' (SSH keys -- simpler setup)",
+        "'ssh' for SSH-based signing",
+    ),
+    (
+        "gpg.ssh.allowedSignersFile",
+        "global",
+        "Allowed SSH public keys file for signature verification",
+        "Set if using SSH signing for local verification",
+    ),
+    (
+        "commit.template",
+        "local",
+        "Path to default commit message template shown in editor on 'git commit'",
+        "'.gitmessage.txt' for this project",
+    ),
+    (
+        "commit.verbose",
+        "global",
+        "Show diff of staged changes in commit message editor for review",
+        "'true'",
+    ),
+    # ── Diff ──
+    (
+        "diff.algorithm",
+        "global",
+        "Diff algorithm: 'histogram' gives better results than default 'myers'",
+        "'histogram'",
+    ),
+    (
+        "diff.colorMoved",
+        "global",
+        "Highlight moved lines in diffs (not just added/deleted). Makes refactoring clearer",
+        "'default' or 'zebra'",
+    ),
+    (
+        "diff.colorMovedWS",
+        "global",
+        "Whitespace handling for moved-line detection",
+        "'allow-indentation-change' with colorMoved",
+    ),
+    (
+        "diff.tool",
+        "global",
+        "Default tool for side-by-side diff comparison",
+        "e.g. 'vscode', 'meld', 'delta'",
+    ),
+    (
+        "diff.renameLimit",
+        "global",
+        "Max files for rename detection. Increase if git misses renames in large changesets",
+        "Increase (e.g. 5000) for large repos",
+    ),
+    # ── Log / Display ──
+    (
+        "log.date",
+        "global",
+        "Default date format for 'git log': 'relative', 'short', 'iso', 'local'",
+        "'relative' or 'short'",
+    ),
+    (
+        "color.ui",
+        "global",
+        "Enable colored output: 'auto' enables when stdout is a terminal",
+        "'auto' (default in modern git)",
+    ),
+    (
+        "column.ui",
+        "global",
+        "Display branch/tag listings in columns when terminal is wide enough",
+        "'auto'",
+    ),
+    # ── Credential / Transfer ──
+    (
+        "credential.helper",
+        "global",
+        "How git stores credentials (passwords/tokens). 'manager' uses OS credential store",
+        "'manager' (Windows), 'osxkeychain' (macOS), 'store' (Linux)",
+    ),
+    (
+        "http.sslVerify",
+        "global",
+        "Verify SSL certs for HTTPS. Disabling is a security risk",
+        "Keep 'true' (default); only disable for self-signed certs",
+    ),
+    (
+        "transfer.fsckobjects",
+        "global",
+        "Verify object integrity during push/pull transfers",
+        "'true' for data integrity",
+    ),
+    # ── Performance ──
+    (
+        "gc.auto",
+        "global",
+        "Threshold for auto garbage collection (loose object count)",
+        "Default (6700) is fine; increase for busy repos",
+    ),
+    (
+        "feature.manyFiles",
+        "local",
+        "Enable optimizations for repos with many files (untracked cache, fsmonitor)",
+        "'true' for large repos",
+    ),
+    (
+        "index.version",
+        "local",
+        "Index format version. V4 is more compact and faster",
+        "'4' for large repos",
+    ),
+    # ── Help / UX ──
+    (
+        "help.autocorrect",
+        "global",
+        "Auto-correct mistyped commands: 'prompt'=ask, N=wait N deciseconds, '0'=off",
+        "'prompt' or '10' (1 second delay)",
+    ),
+    (
+        "status.showUntrackedFiles",
+        "global",
+        "Untracked file display: 'all'=individual files, 'normal'=group by directory",
+        "'all' for complete visibility",
+    ),
+    # ── Protocol ──
+    (
+        "protocol.version",
+        "global",
+        "Git protocol version: v2 is faster (partial clone, faster negotiation). Git 2.26+",
+        "'2' (default in modern git)",
+    ),
+]
+
+# Keys shown in terminal output (top 18 most useful for daily workflow).
+# TODO (template users): Add or remove keys to match your team's workflow.
+TERMINAL_CONFIG_KEYS: list[str] = [
+    "core.autocrlf",
+    "core.editor",
+    "fetch.prune",
+    "pull.rebase",
+    "pull.ff",
+    "push.default",
+    "push.autoSetupRemote",
+    "merge.ff",
+    "merge.conflictstyle",
+    "rebase.autostash",
+    "rebase.autoSquash",
+    "rerere.enabled",
+    "branch.autosetuprebase",
+    "init.defaultBranch",
+    "commit.gpgsign",
+    "tag.gpgsign",
+    "commit.template",
+    "diff.algorithm",
+]
 
 # TODO (template users): Update HEALTH_CHECKS at the bottom of this file
 #   if you add/remove git-related conventions (e.g. signed commits,
@@ -377,7 +751,16 @@ def find_release_please_branches() -> list[str]:
 
 
 def get_upstream_status() -> str:
-    """Check if current branch is ahead/behind its upstream."""
+    """Check if current branch is ahead/behind its upstream tracking ref.
+
+    Returns a descriptive string including the tracking ref name.
+    """
+    # Get tracking ref name
+    code_ref, tracking_ref, _ = _run_git(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
+    )
+    tracking_name = tracking_ref if code_ref == 0 and tracking_ref else ""
+
     code, out, _ = _run_git(
         ["rev-list", "--left-right", "--count", "@{upstream}...HEAD"]
     )
@@ -386,15 +769,89 @@ def get_upstream_status() -> str:
     parts = out.split()
     if len(parts) == 2:
         behind, ahead = int(parts[0]), int(parts[1])
+        suffix = f" (tracking: {tracking_name})" if tracking_name else ""
         if ahead == 0 and behind == 0:
-            return "up to date"
+            return f"up to date{suffix}"
         msgs: list[str] = []
         if ahead > 0:
             msgs.append(f"{ahead} ahead")
         if behind > 0:
             msgs.append(f"{behind} behind")
-        return ", ".join(msgs)
+        return ", ".join(msgs) + suffix
     return "unknown"
+
+
+def get_branch_characteristics() -> dict[str, str]:
+    """Compute helpful characteristics of the current working branch.
+
+    Returns a dict with keys like 'on_default_head', 'stale',
+    'behind_default', 'fast_forwardable', 'local_only'.
+    """
+    chars: dict[str, str] = {}
+    current = get_current_branch()
+    default = get_default_branch()
+
+    if current.startswith("(") or default == "(unknown)":
+        return chars
+
+    # Check if branch is on the default branch HEAD
+    code_cur, sha_cur, _ = _run_git(["rev-parse", "HEAD"])
+    base = _resolve_comparison_base(default)
+    code_def, sha_def, _ = _run_git(["rev-parse", base])
+    if code_cur == 0 and code_def == 0:
+        if sha_cur == sha_def:
+            chars["on_default_head"] = f"at {default} HEAD"
+        else:
+            chars["on_default_head"] = f"diverged from {default}"
+
+    # Behind default branch count
+    code, out, _ = _run_git(["rev-list", "--count", f"HEAD..{base}"])
+    if code == 0 and out:
+        behind_default = int(out)
+        if behind_default > 0:
+            chars["behind_default"] = f"{behind_default} commit(s) behind {default}"
+        else:
+            chars["behind_default"] = f"up to date with {default}"
+
+    # Staleness — days since last commit on current branch
+    code, out, _ = _run_git(["log", "-1", "--format=%ct", current])
+    if code == 0 and out:
+        import time as _time
+
+        last_commit_ts = int(out)
+        days_since = (_time.time() - last_commit_ts) / 86400
+        if days_since > 30:
+            chars["stale"] = f"stale ({int(days_since)} days since last commit)"
+        elif days_since > 7:
+            chars["stale"] = f"aging ({int(days_since)} days since last commit)"
+        else:
+            chars["stale"] = "active"
+
+    # Fast-forwardable — can branch be fast-forwarded to default?
+    code, out, _ = _run_git(["merge-base", "--is-ancestor", "HEAD", base])
+    if code == 0:
+        chars["fast_forwardable"] = f"already contained in {default}"
+    else:
+        code, out, _ = _run_git(["merge-base", "--is-ancestor", base, "HEAD"])
+        if code == 0:
+            chars["fast_forwardable"] = f"fast-forwardable into {default}"
+        else:
+            chars["fast_forwardable"] = "requires merge/rebase"
+
+    # Local-only — no remote tracking branch
+    code_ref, _, _ = _run_git(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
+    )
+    if code_ref != 0:
+        chars["local_only"] = "local only (no remote tracking)"
+    else:
+        chars["local_only"] = "remote tracked"
+
+    # Has merge conflicts in progress
+    if get_merge_conflicts():
+        chars["conflicts"] = "unresolved merge conflicts"
+
+    return chars
 
 
 def get_merge_conflicts() -> bool:
@@ -407,6 +864,14 @@ def get_git_config_value(key: str) -> str:
     """Get a git config value."""
     code, out, _ = _run_git(["config", "--get", key])
     return out if code == 0 else ""
+
+
+def get_git_config_scope(key: str) -> str:
+    """Return the scope where a git config key is set (local/global/system/unset)."""
+    code, out, _ = _run_git(["config", "--show-scope", "--get", key])
+    if code != 0 or not out:
+        return "unset"
+    return out.split()[0]
 
 
 def get_branch_diff_stats(branch: str, base: str) -> dict[str, int]:
@@ -627,42 +1092,13 @@ def get_stale_branches(days: int = 30) -> list[dict[str, str]]:
 
 
 def get_git_config_summary() -> dict[str, str]:
-    """Return key git configuration values.
+    """Return key git configuration values (top 18 for terminal display).
 
-    Returns **all** tracked keys with their values.  Keys that are not
-    set in any git config scope get the value ``"(unset)"`` so users can
-    see at a glance which knobs they might want to configure.
+    Returns the terminal-display subset of config keys with their values.
+    Keys not set in any scope get ``"(unset)"``.  The full catalog is
+    available via ``--export-config``.
     """
-    # TODO (template users): Add or remove config keys to match your
-    #   team's workflow.  For example, add "gpg.format" if you use SSH
-    #   signing, or "url.<base>.insteadOf" for custom remote URLs.
-    keys = [
-        # Core
-        "core.autocrlf",
-        "core.editor",
-        # Fetch / Pull / Push
-        "fetch.prune",
-        "pull.rebase",
-        "pull.ff",
-        "push.default",
-        "push.autoSetupRemote",
-        # Merge / Rebase
-        "merge.ff",
-        "merge.conflictstyle",
-        "rebase.autostash",
-        "rebase.autoSquash",
-        "rerere.enabled",
-        # Branch
-        "branch.autosetuprebase",
-        "init.defaultBranch",
-        # Identity / Signing
-        "commit.gpgsign",
-        "tag.gpgsign",
-        "commit.template",
-        # Diff
-        "diff.algorithm",
-    ]
-    return {k: get_git_config_value(k) or "(unset)" for k in keys}
+    return {k: get_git_config_value(k) or "(unset)" for k in TERMINAL_CONFIG_KEYS}
 
 
 def get_unmerged_branches() -> list[dict[str, str]]:
@@ -1219,11 +1655,16 @@ def _collect_info() -> dict[
         ("modified_files", get_modified_files),
         ("stale_branches", get_stale_branches),
         ("git_config", get_git_config_summary),
+        (
+            "git_config_scopes",
+            lambda: {k: get_git_config_scope(k) for k in TERMINAL_CONFIG_KEYS},
+        ),
         ("unmerged_branches", get_unmerged_branches),
         ("last_merge_from_default", get_last_merge_from_default),
         ("branch_divergence", get_first_commit_on_branch),
         ("commit_frequency", get_commit_frequency),
         ("file_change_summary", get_file_change_summary),
+        ("branch_characteristics", get_branch_characteristics),
     ]
     info: dict[str, object] = {}
     with Spinner("Collecting git info", log_interval=5) as spin:
@@ -1296,11 +1737,13 @@ def run(
     modified_files: list[dict[str, str]] = info["modified_files"]  # type: ignore[assignment]
     stale_branches: list[dict[str, str]] = info["stale_branches"]  # type: ignore[assignment]
     git_config: dict[str, str] = info["git_config"]  # type: ignore[assignment]
+    git_config_scopes: dict[str, str] = info["git_config_scopes"]  # type: ignore[assignment]
     unmerged_branches: list[dict[str, str]] = info["unmerged_branches"]  # type: ignore[assignment]
     last_merge: dict[str, str] = info["last_merge_from_default"]  # type: ignore[assignment]
     branch_divergence: dict[str, str] = info["branch_divergence"]  # type: ignore[assignment]
     commit_freq: dict[str, int] = info["commit_frequency"]  # type: ignore[assignment]
     file_changes: dict[str, int] = info["file_change_summary"]  # type: ignore[assignment]
+    branch_chars: dict[str, str] = info["branch_characteristics"]  # type: ignore[assignment]
 
     health_results, failures = _collect_health()
 
@@ -1340,16 +1783,21 @@ def run(
     print(f"  Contributors:   {contributors}")
     print(f"  Repo age:       {repo_age}")
 
-    # ── Git Configuration ──
+    # ── Git Configuration (top 18 — use --export-config for full reference) ──
     if git_config:
         print()
         print(c.bold("Git Configuration"))
         print(c.dim("-" * 60))
         for key, val in git_config.items():
+            scope = git_config_scopes.get(key, "unset")
+            scope_str = scope.ljust(8)
             if val == "(unset)":
-                print(f"  {key:24s} {c.dim(val)}")
+                print(f"  {key:24s} {c.dim(scope_str)} {c.dim(val)}")
             else:
-                print(f"  {key:24s} {c.cyan(val)}")
+                print(f"  {key:24s} {scope_str} {c.cyan(val)}")
+        print(
+            f"  {c.dim('Run with --export-config for all configs with descriptions')}"
+        )
 
     # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
@@ -1477,6 +1925,30 @@ def run(
         )
     else:
         print(f"  {'Unstaged':15s} {c.dim('clean')}")
+
+    # ── Branch Characteristics ──
+    if branch_chars:
+        print()
+        print(c.bold(f"Branch Characteristics: {c.green(current_branch)}"))
+        print(c.dim("-" * 60))
+        char_display: list[tuple[str, str, Callable[[str], str]]] = [
+            ("Default branch", "behind_default", c.yellow),
+            ("Head position", "on_default_head", c.cyan),
+            ("Activity", "stale", c.yellow),
+            ("Merge status", "fast_forwardable", c.cyan),
+            ("Remote", "local_only", c.cyan),
+        ]
+        for label, key, color_fn in char_display:
+            val = branch_chars.get(key, "")
+            if val:
+                if "stale" in val or "behind" in val:
+                    print(f"  {label + ':':18s} {c.yellow(val)}")
+                elif "up to date" in val or "active" in val or "tracked" in val:
+                    print(f"  {label + ':':18s} {c.green(val)}")
+                else:
+                    print(f"  {label + ':':18s} {color_fn(val)}")
+        if "conflicts" in branch_chars:
+            print(f"  {'Conflicts:':18s} {c.red(branch_chars['conflicts'])}")
 
     # ── Last Merge from Default Branch ──
     if last_merge and current_branch != default_branch:
@@ -1656,6 +2128,70 @@ def run(
 
 
 # ---------------------------------------------------------------------------
+# Config export
+# ---------------------------------------------------------------------------
+
+
+def export_git_config_reference(filepath: str) -> str:
+    """Write a comprehensive git configuration reference to a Markdown file.
+
+    Args:
+        filepath: Output file path.
+
+    Returns:
+        The absolute path of the written file.
+    """
+    from pathlib import Path
+
+    lines: list[str] = [
+        "# Git Configuration Reference",
+        "",
+        f"Generated by `git_doctor.py` v{SCRIPT_VERSION}",
+        "",
+        "Each entry shows the config key, its current value in your",
+        "environment, which scope it's set in (local/global/system),",
+        "what it does, and a recommended value.",
+        "",
+        "## Scope Guide",
+        "",
+        "| Scope  | File Location                            | Applies To            |",
+        "|--------|-----------------------------------------|-----------------------|",
+        "| local  | `.git/config` in the repository          | This repository only  |",
+        "| global | `~/.gitconfig` or `~/.config/git/config` | All your repositories |",
+        "| system | `/etc/gitconfig`                         | All users on machine  |",
+        "",
+        "Set most configs at **global** scope so they apply everywhere,",
+        "then override at **local** scope for project-specific needs",
+        "(e.g. different email for work repos, project-specific commit template).",
+        "",
+    ]
+
+    current_section = ""
+    for key, rec_scope, description, recommendation in GIT_CONFIG_CATALOG:
+        section = key.split(".")[0]
+        if section != current_section:
+            current_section = section
+            lines.append(f"## {section.capitalize()}")
+            lines.append("")
+
+        value = get_git_config_value(key) or "(unset)"
+        scope = get_git_config_scope(key)
+
+        lines.append(f"### `{key}`")
+        lines.append("")
+        lines.append(f"- **Current value:** `{value}`")
+        lines.append(f"- **Set in:** {scope}")
+        lines.append(f"- **Recommended scope:** {rec_scope}")
+        lines.append(f"- **Description:** {description}")
+        lines.append(f"- **Recommendation:** {recommendation}")
+        lines.append("")
+
+    out_path = Path(filepath).resolve()
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    return str(out_path)
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -1684,6 +2220,15 @@ def main() -> int:
         action="store_true",
         help="Output results as JSON (for CI integration)",
     )
+    parser.add_argument(
+        "--export-config",
+        nargs="?",
+        const="git-config-reference.md",
+        default=None,
+        metavar="PATH",
+        help="Export comprehensive git config reference to a Markdown file "
+        "(default: git-config-reference.md)",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -1692,7 +2237,13 @@ def main() -> int:
     )
 
     color = False if args.no_color else None
-    return run(color=color, output_json=args.json)
+    exit_code = run(color=color, output_json=args.json)
+
+    if args.export_config:
+        out_path = export_git_config_reference(args.export_config)
+        print(f"\nGit config reference written to: {out_path}")
+
+    return exit_code
 
 
 if __name__ == "__main__":

@@ -4820,6 +4820,232 @@ git rebase --onto main <SHA-of-E> feature-b
 
 ---
 
+## Git Configuration
+
+Git configuration controls how git behaves — from your identity (name/email) to merging strategies, line endings, and diff tools. Understanding the config system is essential because many git defaults are suboptimal and can cause subtle issues (e.g., merge commits when you wanted a linear history, or CRLF corruption on cross-platform projects).
+
+### What Git Configs Are
+
+Git configs are key-value pairs stored in plain-text INI-style files. They control virtually every aspect of git's behavior. You interact with them via `git config`:
+
+```bash
+# Read a value
+git config user.name
+
+# Set a value (global scope)
+git config --global user.name "Your Name"
+
+# List all configs and their sources
+git config --list --show-origin
+```
+
+### The Three Scopes
+
+Git reads configuration from three levels, each overriding the previous:
+
+| Scope      | File Location                                                                     | Applies To            | Use For                                                          |
+| ---------- | --------------------------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------- |
+| **system** | `/etc/gitconfig` (Linux/macOS), `C:\Program Files\Git\etc\gitconfig` (Windows) | Every user on machine | Machine-wide defaults (usually set by installers, rarely by you) |
+| **global** | `~/.gitconfig` or `~/.config/git/config`                                          | All your repositories | Personal preferences: identity, editor, aliases, merge tools     |
+| **local**  | `.git/config` inside a repository                                                 | This repository only  | Project-specific overrides: email for work repos, hooks path     |
+
+**Precedence:** local > global > system. A local setting always wins.
+
+```bash
+# Set at each scope
+git config --system core.autocrlf true   # All users on this machine
+git config --global user.email "me@example.com"   # All your repos
+git config --local  commit.template .gitmessage.txt  # This repo only
+```
+
+### How to View Your Configuration
+
+```bash
+# See everything with file sources
+git config --list --show-origin
+
+# See only global settings
+git config --list --global
+
+# See only local (repo-specific) settings
+git config --list --local
+
+# Check where a specific value comes from
+git config --show-origin user.email
+```
+
+### Common Configuration Categories
+
+#### Identity (Required)
+
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Every commit records the author name and email. Without these, git will guess from your OS username and hostname — usually wrong. Use `--local` to override per-repo (e.g., work email for work projects).
+
+#### Editor and Pager
+
+```bash
+git config --global core.editor "code --wait"   # VS Code
+git config --global core.pager "delta"           # Syntax-highlighted diffs
+```
+
+`core.editor` is used for commit messages, interactive rebase, etc. `core.pager` controls how git output is displayed (diff, log). `delta` is a popular upgrade over the default `less`.
+
+#### Line Endings (Cross-Platform)
+
+```bash
+# Windows: convert CRLF to LF on commit, LF to CRLF on checkout
+git config --global core.autocrlf true
+
+# macOS/Linux: convert CRLF to LF on commit, leave LF on checkout
+git config --global core.autocrlf input
+```
+
+Line ending mismatches are a common source of phantom diffs on cross-platform teams. The `core.autocrlf` setting normalizes them. For finer control, use a `.gitattributes` file in the repo root.
+
+#### Pull Behavior
+
+```bash
+git config --global pull.rebase true    # Rebase instead of merge on pull
+git config --global pull.ff only        # Only fast-forward, refuse merge commits
+```
+
+By default, `git pull` creates merge commits when your local branch has diverged from the remote. `pull.rebase true` gives you a clean linear history by replaying your local commits on top of the upstream changes.
+
+#### Push Behavior
+
+```bash
+git config --global push.default current           # Push current branch to same-named remote
+git config --global push.autoSetupRemote true       # Auto-set upstream on first push (Git 2.37+)
+git config --global push.followTags true            # Push annotated tags automatically
+```
+
+`push.autoSetupRemote` eliminates the need for `git push --set-upstream origin <branch>` on first push.
+
+#### Fetch and Cleanup
+
+```bash
+git config --global fetch.prune true        # Remove stale remote-tracking refs on fetch
+git config --global fetch.prunetags true    # Remove stale remote tags on fetch
+```
+
+Without `fetch.prune`, deleted remote branches linger as stale tracking refs forever.
+
+#### Merge and Rebase
+
+```bash
+git config --global merge.conflictstyle zdiff3   # 3-way diff with common ancestor (Git 2.35+)
+git config --global rebase.autostash true         # Auto-stash dirty worktree before rebase
+git config --global rebase.autoSquash true        # Honor fixup!/squash! prefixes in interactive rebase
+git config --global rerere.enabled true           # Remember merge conflict resolutions
+```
+
+`zdiff3` shows the common ancestor in conflict markers, making it much easier to understand what changed where. `rerere` (REuse REcorded Resolution) replays previous conflict resolutions automatically — a huge time saver when repeatedly rebasing.
+
+#### Commit Signing
+
+```bash
+git config --global commit.gpgsign true    # Sign every commit
+git config --global tag.gpgsign true       # Sign every tag
+git config --global gpg.format ssh         # Use SSH keys instead of GPG
+git config --global user.signingkey ~/.ssh/id_ed25519.pub
+```
+
+Signed commits show a "Verified" badge on GitHub. SSH signing (Git 2.34+) is simpler than GPG — you can reuse your existing SSH key.
+
+### Why Configure Git?
+
+| Problem                                          | Config fix                    |
+| ------------------------------------------------ | ----------------------------- |
+| Accidental merge commits on pull                 | `pull.rebase true`            |
+| CRLF/LF diffs everywhere on Windows              | `core.autocrlf true`          |
+| "Please tell me who you are" error               | `user.name` + `user.email`    |
+| Stale remote branches cluttering `git branch -r` | `fetch.prune true`            |
+| `--set-upstream` on every first push             | `push.autoSetupRemote true`   |
+| Merge conflicts hard to understand               | `merge.conflictstyle zdiff3`  |
+| Dirty worktree blocks rebase                     | `rebase.autostash true`       |
+| Repeating the same conflict resolution           | `rerere.enabled true`         |
+
+### Global vs Local — When to Use Which
+
+**Use global** for personal preferences that apply everywhere:
+
+- `user.name`, `user.email` (personal identity)
+- `core.editor`, `core.pager`
+- `pull.rebase`, `push.autoSetupRemote`
+- `merge.conflictstyle`, `rebase.autostash`
+
+**Use local** for project-specific overrides:
+
+- `user.email` (different email for work repos)
+- `commit.template` (project-specific commit message template)
+- `core.hooksPath` (project-specific hooks)
+- `core.filemode false` (Windows repos with Unix permission issues)
+- `merge.ff` (project-specific merge strategy)
+
+**Use system** rarely — it's for machine-wide defaults set by admins. Most developers never touch system config.
+
+### Characteristics and Gotchas
+
+1. **Configs are hierarchical** — local overrides global overrides system. A repo can always override your global preferences.
+2. **Configs persist** — once set, they stay until you explicitly unset them (`git config --unset <key>`).
+3. **Some configs require minimum git versions** — `push.autoSetupRemote` needs Git 2.37+, `merge.conflictstyle zdiff3` needs Git 2.35+, `rebase.updateRefs` needs Git 2.38+.
+4. **Configs don't travel with repos** — global/system configs are machine-specific. Use a dotfiles repo or setup script to sync across machines.
+5. **`.gitattributes` > `core.autocrlf`** — for line endings, `.gitattributes` in the repo is more reliable than per-machine config because it travels with the repo.
+6. **Conditional includes** — Git supports `[includeIf]` to load different configs based on directory, remote URL, or branch. Useful for different identities per org:
+
+   ```ini
+   # In ~/.gitconfig
+   [includeIf "gitdir:~/work/"]
+       path = ~/.gitconfig-work
+
+   # In ~/.gitconfig-work
+   [user]
+       email = you@company.com
+   ```
+
+7. **Inspect with `--show-origin`** — when a config value is unexpected, `git config --show-origin <key>` tells you exactly which file is setting it.
+
+### Recommended Starter Configuration
+
+A solid global config for most developers:
+
+```bash
+# Identity
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+
+# Editor
+git config --global core.editor "code --wait"
+
+# Pull/push behavior
+git config --global pull.rebase true
+git config --global push.default current
+git config --global push.autoSetupRemote true
+
+# Cleanup
+git config --global fetch.prune true
+git config --global fetch.prunetags true
+
+# Merge/rebase improvements
+git config --global merge.conflictstyle zdiff3
+git config --global rebase.autostash true
+git config --global rebase.autoSquash true
+git config --global rerere.enabled true
+
+# Branch sorting
+git config --global branch.sort -committerdate
+```
+
+### This Project's Configuration
+
+This project uses `git_doctor.py --export-config` to generate a full reference of all git configs with their current values, scopes, and recommendations. Run it to see what's configured and what's missing.
+
+---
+
 ## Git Tags
 
 ### What Are Tags?
