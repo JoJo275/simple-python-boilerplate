@@ -1,12 +1,12 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Suggested branch rename: refactor/extract-doctor-common -->
+<!-- Suggested branch rename: feat/developer-tooling-overhaul -->
 <!--
   Suggested PR titles (must use conventional commit format — type: description):
 
   Full titles:
-    refactor: extract shared doctor helpers into _doctor_common.py
-    refactor(scripts): centralise doctor-family utilities in _doctor_common
+    feat: overhaul developer tooling, diagnostics, and documentation
+    feat: enhance git_doctor, env_doctor, documentation, and VS Code config
 
   Available prefixes:
     feat:     — new feature or capability
@@ -21,7 +21,8 @@
     build:    — build system or dependency changes
     revert:   — reverts a previous commit
 -->
-<!-- Suggested labels: refactor, scripts, testing -->
+
+<!-- Suggested labels: enhancement, documentation, developer-experience, scripts -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -39,136 +40,144 @@
 
 ## Description
 
-Extract shared helpers from `doctor.py` and `env_doctor.py` into a new
-`_doctor_common.py` module. Improve doctor script output with Windows ANSI
-fallback, progress spinner, clearer labelling, and explicit hatch environment
-categorisation.
+Major overhaul of developer tooling, diagnostics scripts, documentation, and
+VS Code configuration. This PR touches 66 files across scripts, docs, tests,
+and editor config — primarily improving the developer experience for both
+template authors and template users.
 
 **What changes you made:**
 
-- Created `scripts/_doctor_common.py` (v1.0.0) — shared utilities:
-  `get_version()`, `get_package_version()`, `check_path_exists()`,
-  `check_hook_installed()`, and `HOOK_STAGES` constant.
-- Updated `scripts/doctor.py` (v2.3.0 → v2.4.0) — imports shared helpers
-  from `_doctor_common`; hatch envs now explicitly labelled as
-  *user-defined* vs *internal*; added Spinner progress indicator;
-  `pip_install` section label clarification; descriptive git dirty values;
-  optional `actionlint` handling.
-- Updated `scripts/env_doctor.py` (v1.1.0 → v1.2.0) — uses
-  `get_version`, `get_package_version`, `check_hook_installed` from
-  `_doctor_common`; fixed "Hatch Hatch" version duplication; added
-  Colors and timing to output.
-- Updated `scripts/_colors.py` (v1.0.0 → v1.1.0) — Windows VT processing
-  via `SetConsoleMode` with graceful fallback; fixed bandit B105 false
-  positive on `status_icon()`.
-- Added `tests/unit/test_doctor_common.py` — 22 tests covering all
-  extracted helpers.
-- Fixed `tests/unit/test_env_doctor.py` — broken `_colorize` import;
-  updated mock targets after refactoring.
-- Fixed TTY color tests across `test_doctor.py`, `test_env_doctor.py`,
-  `test_repo_doctor.py`, `test_colors.py` — mock `_enable_windows_ansi`
-  for Windows VT processing in pytest capture context.
-- Updated `scripts/README.md` — listed `_doctor_common.py` as shared
-  internal module.
+- **`git_doctor.py`** — rewrote from scratch (v2.0.0): added git config
+  reference export (`--export-config`), auto-fix (`--fix`), branch
+  characteristics, commit activity charts, file change summaries, fetch/prune
+  at startup, column-header config display, improved status overview
+- **`env_doctor.py`** — expanded with OS/platform checks, Node.js/container
+  runtime detection, git remote health, disk space, progress bars
+- **VS Code configuration** — added `.vscode/settings.json` (shared project
+  settings) and `.vscode/extensions.json`; expanded `.code-workspace` with
+  detailed extension recommendations and customization guide
+- **Documentation** — major expansion of `USING_THIS_TEMPLATE.md` (containers,
+  VS Code config, editor/git file handling, git configuration, copilot
+  customization, optional tools); enhanced `repo-layout.md`, learning notes,
+  troubleshooting guide
+- **Tests** — added unit tests for git_doctor, bootstrap, customize,
+  apply_labels, changelog_check, check_todos, check_nul_bytes, imports
+- **Scripts** — Unicode symbol support, progress spinners, color improvements,
+  version bumps across all scripts
+- **Security** — enhanced SECURITY.md with PGP setup instructions, added
+  `pgp-key.asc`
+- **CI** — added `doctor-all.yml` workflow, updated link-checker config
 
 **Why you made them:**
 
-`doctor.py` and `env_doctor.py` duplicated command execution, package
-lookup, path checking, and hook detection logic.  Centralising into
-`_doctor_common.py` removes ~80 lines of duplication and ensures
-bug fixes apply to both scripts simultaneously.  The output improvements
-(spinner, labelled hatch envs, clearer dirty/install labels) came from
-real-world usage feedback.
+The template's developer experience had gaps: no shared VS Code settings,
+limited diagnostics, sparse documentation for template users on containers
+and editor config, and no test coverage for most scripts. This PR fills
+those gaps so template users get a more complete, well-documented starting
+point.
 
 ## Related Issue
 
-<!-- Use one of: Fixes #123, Closes #123, Resolves #123, Related to #123 -->
-<!-- If no issue exists, write "N/A" and briefly explain (e.g., maintenance, small refactor) -->
-
-N/A — maintenance refactor to reduce duplication across doctor-family scripts.
+N/A — exploratory development and documentation improvements accumulated on
+a scratch branch over the course of iterative template development.
 
 ## Type of Change
 
 - [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)
+- [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] 📚 Documentation update
+- [x] 📚 Documentation update
 - [x] 🔧 Refactor (no functional changes)
 - [x] 🧪 Test update
 
 ## How to Test
 
-<!-- Help reviewers verify your changes. Don't make them guess! -->
-
 **Steps:**
 
-1. Run `python scripts/doctor.py` — verify spinner, hatch envs show "user_defined" and "internal" labels, `pip_install` label, descriptive `dirty` value
-2. Run `python scripts/env_doctor.py` — verify colored output, timing line, no "Hatch Hatch" duplication
-3. Run `python scripts/doctor.py --json | python -c "import sys,json; d=json.load(sys.stdin); print(d['hatch_envs'])"` — verify `user_defined` and `internal` keys
-4. Run full test suite
+1. Run `python scripts/git_doctor.py` — verify the status overview shows
+   three labeled lines (Working tree, Remote sync, Health) and the Git
+   Configuration section has column headers (Key, Scope, Value)
+2. Run `python scripts/git_doctor.py --export-config` — verify
+   `git-config-reference.md` is generated with the Scope Guide including
+   command examples
+3. Run `python scripts/git_doctor.py --fix --dry-run` — verify it lists
+   recommended settings without applying them
+4. Run `python scripts/env_doctor.py` — verify expanded checks run
+5. Open the project in VS Code as a workspace — verify settings and
+   extension recommendations load
 
 **Test command(s):**
 
 ```bash
-python -m pytest tests/unit/test_doctor_common.py tests/unit/test_doctor.py tests/unit/test_env_doctor.py tests/unit/test_colors.py tests/unit/test_repo_doctor.py tests/unit/test_workflow_versions.py -v
+# Run full test suite
+task test
+
+# Run just the new/modified test files
+pytest tests/unit/test_git_doctor.py tests/unit/test_env_doctor.py -v
+pytest tests/unit/test_bootstrap.py tests/unit/test_customize.py -v
+pytest tests/unit/test_apply_labels.py tests/unit/test_check_todos.py -v
+
+# Verify scripts have no syntax errors
+python -c "import ast, pathlib; [ast.parse(f.read_text('utf-8')) for f in pathlib.Path('scripts').glob('*.py')]"
+
+# Run diagnostics
+python scripts/git_doctor.py
+python scripts/env_doctor.py
 ```
 
 **Screenshots / Demo (if applicable):**
 
-<!-- Add screenshots, GIFs, or video links to help explain your changes -->
+<!-- Add screenshots of git_doctor output showing new formatting -->
 
 ## Risk / Impact
 
-<!-- What's the blast radius? What could go wrong? -->
-
 **Risk level:** Low
 
-**What could break:** Test mock targets changed from `env_doctor.importlib.metadata.version` to `env_doctor.get_package_version` — any downstream tests that mock the old path will fail.
+**What could break:** The git_doctor.py rewrite is the biggest change —
+if the output formatting regresses, it affects the developer experience
+but not any production code or CI gates. VS Code settings are additive
+and won't affect users who don't open the workspace file.
 
 **Rollback plan:** Revert this PR
 
-<!-- Or: "Toggle feature flag X" / "Run migration Y" / etc. -->
-
 ## Dependencies (if applicable)
 
-<!-- Delete this section if not applicable -->
-<!-- List any PRs that must be merged before/after this one -->
-
-**Depends on:** <!-- e.g., #456, or org/other-repo#123 -->
-
-**Blocked by:** <!-- e.g., waiting for deployment of #456 -->
+None — all changes are self-contained within this repository.
 
 ## Breaking Changes / Migrations (if applicable)
 
-<!-- Delete this section if not applicable -->
-
-- [ ] Config changes required
-- [ ] Data migration needed
-- [ ] API changes (document below)
-- [ ] Dependency changes
-
-**Details:**
+None. All changes are additive. Existing scripts retain their CLI
+interfaces. No config migrations needed.
 
 ## Checklist
 
 - [x] My code follows the project's style guidelines
 - [x] I have performed a self-review of my code
-- [x] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
-- [x] No new warnings (or explained in Additional Notes)
+- [ ] No new warnings (or explained in Additional Notes)
 - [x] I have added tests that prove my fix is effective or that my feature works
-- [x] Relevant tests pass locally (or explained in Additional Notes)
-- [x] No security concerns introduced (or flagged for review)
+- [ ] Relevant tests pass locally (or explained in Additional Notes)
+- [ ] No security concerns introduced (or flagged for review)
 - [x] No performance regressions expected (or flagged for review)
 
 ## Reviewer Focus (Optional)
 
-- Verify `_doctor_common.py` API surface is appropriate — should anything else be shared?
-- Check that mock targets in test_env_doctor.py are correct after the refactor.
-- Confirm the `# nosec B105` on `_colors.py:159` is a genuine false positive (dict maps status labels to ANSI codes, not passwords).
+- **`scripts/git_doctor.py`** — this is the largest change (~2600 lines).
+  Focus on the display logic in `run()` and the `export_git_config_reference()`
+  function. The health checks and data collection functions are lower risk.
+- **`docs/USING_THIS_TEMPLATE.md`** — review the new "Editor & Git File
+  Handling" and "Git Configuration" sections for accuracy.
+- **VS Code config** — verify `.vscode/settings.json` defaults are sensible
+  and don't override user preferences inappropriately.
 
 ## Additional Notes
 
-- `test_env_doctor.py` had a pre-existing broken import (`_colorize` from `env_doctor`) that caused collection-time ImportError. It was masked by `__pycache__`. Fixed in this PR.
-- All 321 tests pass across 6 test files.
-- Bandit reports zero issues after the `# nosec B105` annotation.
+- This branch has 42 commits across 66 files (+9924 / -511 lines). Consider
+  squash-merging to keep main's history clean.
+- The `git-config-reference.md` file is auto-generated — it will be
+  regenerated on each `--export-config` run, so don't review its content
+  line-by-line.
+- Several commits on this branch have overly broad messages (e.g., "enhance
+  git_doctor with new features and improvements"). The PR title and this
+  description provide the accurate summary for the squash-merge commit.
