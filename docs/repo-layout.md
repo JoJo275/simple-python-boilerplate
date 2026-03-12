@@ -96,10 +96,10 @@ simple-python-boilerplate/
 ├── var/                        # Runtime/generated files
 │   └── app.example.sqlite3     # Example database file
 │
-├── .editorconfig               # Cross-editor formatting rules
-├── .gitattributes              # Git file handling rules
+├── .editorconfig               # Cross-editor formatting rules (indent, EOL, whitespace)
+├── .gitattributes              # Git file handling (line endings, diff drivers, binary detection)
 ├── .gitignore                  # Files excluded from git
-├── .gitmessage.txt             # Commit message template
+├── .gitmessage.txt             # Commit message template (Conventional Commits)
 ├── .markdownlint-cli2.jsonc    # markdownlint rule overrides
 ├── .pre-commit-config.yaml     # Pre-commit hook configuration
 ├── .release-please-manifest.json # Version tracker for release-please
@@ -110,6 +110,7 @@ simple-python-boilerplate/
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── codecov.yml                 # Code coverage config
 ├── docker-compose.yml          # Container orchestration
+├── git-config-reference.md     # Generated git config reference (git_doctor.py --export-config)
 ├── LICENSE                     # Project license (Apache-2.0)
 ├── mkdocs.yml                  # Documentation site config
 ├── pyproject.toml              # Project metadata and tool config
@@ -169,12 +170,15 @@ See [workflows.md](workflows.md) for full workflow documentation.
 
 ### Development Experience
 
-| Path                      | Purpose                   | What Breaks If Removed  |
-| ------------------------- | ------------------------- | ----------------------- |
-| `.pre-commit-config.yaml` | Pre-commit hooks          | Local checks disabled   |
-| `requirements-dev.txt`    | Dev dependencies list     | Unclear what to install |
-| `.gitignore`              | Exclude generated files   | Caches committed to git |
-| `.gitattributes`          | Line ending normalization | Cross-platform issues   |
+| Path                      | Purpose                                          | What Breaks If Removed                |
+| ------------------------- | ------------------------------------------------ | ------------------------------------- |
+| `.pre-commit-config.yaml` | Pre-commit hooks                                 | Local checks disabled                 |
+| `requirements-dev.txt`    | Dev dependencies list                            | Unclear what to install               |
+| `.gitignore`              | Exclude generated files                          | Caches committed to git               |
+| `.gitattributes`          | Line ending normalization, diff drivers, binary file detection, linguist stats | Cross-platform line ending mismatches |
+| `.editorconfig`           | Cross-editor indent, charset, EOL, trailing whitespace rules | Inconsistent formatting across editors |
+| `.gitmessage.txt`         | Commit message template (Conventional Commits)   | No guided commit format               |
+| `git-config-reference.md` | Generated git config reference (via `git_doctor.py --export-config`) | Regenerated on demand; informational only |
 
 ### Optional Components
 
