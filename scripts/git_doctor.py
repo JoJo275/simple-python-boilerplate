@@ -64,6 +64,7 @@ import subprocess  # nosec B404
 import sys
 import time
 from collections.abc import Callable
+from datetime import UTC
 
 from _colors import Colors
 from _colors import status_icon as _icon
@@ -816,10 +817,8 @@ def get_branch_characteristics() -> dict[str, str]:
     # Staleness — days since last commit on current branch
     code, out, _ = _run_git(["log", "-1", "--format=%ct", current])
     if code == 0 and out:
-        import time as _time
-
         last_commit_ts = int(out)
-        days_since = (_time.time() - last_commit_ts) / 86400
+        days_since = (time.time() - last_commit_ts) / 86400
         if days_since > 30:
             chars["stale"] = f"stale ({int(days_since)} days since last commit)"
         elif days_since > 7:
@@ -839,13 +838,52 @@ def get_branch_characteristics() -> dict[str, str]:
             chars["fast_forwardable"] = "requires merge/rebase"
 
     # Local-only — no remote tracking branch
-    code_ref, _, _ = _run_git(
+    code_ref, tracking_ref, _ = _run_git(
         ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"]
     )
     if code_ref != 0:
         chars["local_only"] = "local only (no remote tracking)"
     else:
         chars["local_only"] = "remote tracked"
+
+    # Unpushed commits — ahead of tracking branch
+    if code_ref == 0 and tracking_ref:
+        code, out, _ = _run_git(["rev-list", "--count", f"{tracking_ref}..HEAD"])
+        if code == 0 and out:
+            unpushed = int(out)
+            if unpushed > 0:
+                chars["unpushed"] = f"{unpushed} unpushed commit(s)"
+            else:
+                chars["unpushed"] = "all commits pushed"
+
+    # Branch age — time since first commit unique to this branch
+    if base != "(unknown)":
+        code, out, _ = _run_git(
+            ["log", "--reverse", "--format=%cr", f"{base}..{current}", "--"]
+        )
+        if code == 0 and out:
+            first_line = out.splitlines()[0]
+            chars["branch_age"] = f"created {first_line}"
+
+    # Ahead of default — commits unique to this branch
+    if base != "(unknown)":
+        code, out, _ = _run_git(["rev-list", "--count", f"{base}..{current}"])
+        if code == 0 and out:
+            ahead_count = int(out)
+            chars["ahead_default"] = f"{ahead_count} commit(s) ahead of {default}"
+
+    # Commit density — commits in last 7 days on this branch
+    code, out, _ = _run_git(["rev-list", "--count", "--since=7.days", current])
+    if code == 0 and out:
+        recent = int(out)
+        if recent == 0:
+            chars["commit_density"] = "no commits in last 7 days"
+        elif recent <= 3:
+            chars["commit_density"] = f"{recent} commit(s) in last 7 days (light)"
+        elif recent <= 10:
+            chars["commit_density"] = f"{recent} commit(s) in last 7 days (moderate)"
+        else:
+            chars["commit_density"] = f"{recent} commit(s) in last 7 days (heavy)"
 
     # Has merge conflicts in progress
     if get_merge_conflicts():
@@ -1765,15 +1803,19 @@ def run(
     dash = sym["dash"]
     c = Colors(enabled=use_color)
 
+    def _section(title: str, sep: str = "-") -> None:
+        """Print a section header."""
+        print()
+        print(c.bold(title))
+        print(c.dim(sep * 60))
+
     # ── Header ──
     print()
     print(c.bold("Git Doctor"))
     print(c.dim("=" * 60))
 
     # ── Repository Info ──
-    print()
-    print(c.bold("Repository"))
-    print(c.dim("-" * 60))
+    _section("Repository")
     print(f"  Remote URL:     {remote_url}")
     print(f"  Current branch: {c.green(current_branch)}")
     print(f"  Default branch: {default_branch}")
@@ -1785,9 +1827,7 @@ def run(
 
     # ── Git Configuration (top 18 — use --export-config for full reference) ──
     if git_config:
-        print()
-        print(c.bold("Git Configuration"))
-        print(c.dim("-" * 60))
+        _section("Git Configuration")
         for key, val in git_config.items():
             scope = git_config_scopes.get(key, "unset")
             scope_str = scope.ljust(8)
@@ -1801,11 +1841,7 @@ def run(
 
     # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
-        print()
-        print(
-            c.bold(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
-        )
-        print(c.dim("-" * 60))
+        _section(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
         max_count = max(commit_freq.values()) if commit_freq else 1
         for date in sorted(commit_freq):
             count = commit_freq[date]
@@ -1818,13 +1854,9 @@ def run(
 
     # ── File Change Summary — current branch (last 5 commits) ──
     if file_changes and any(file_changes.values()):
-        print()
-        print(
-            c.bold(
-                f"Recent File Changes {dash} {c.green(current_branch)} (last 5 commits)"
-            )
+        _section(
+            f"Recent File Changes {dash} {c.green(current_branch)} (last 5 commits)"
         )
-        print(c.dim("-" * 60))
         fc = file_changes
         ins = fc.get("insertions", 0)
         dels = fc.get("deletions", 0)
@@ -1835,9 +1867,7 @@ def run(
 
     # ── Repo Branch Activity (top 5 most recent) ──
     if branch_activity:
-        print()
-        print(c.bold("Repo Branch Activity (top 5 most recent)"))
-        print(c.dim("-" * 60))
+        _section("Repo Branch Activity (top 5 most recent)")
         # Dynamic column width based on longest branch name (cap at 50)
         max_name = max((len(str(e["base_name"])) for e in branch_activity), default=20)
         name_w = min(max(max_name, 10), 50)
@@ -1874,9 +1904,7 @@ def run(
             )
 
     # ── Current Working Branch ──
-    print()
-    print(c.bold(f"Current Working Branch: {c.green(current_branch)}"))
-    print(c.dim("-" * 60))
+    _section(f"Current Working Branch: {c.green(current_branch)}")
     # Show branch-specific commit count when on a feature branch
     if current_branch != default_branch and default_branch != "(unknown)":
         branch_commits = get_branch_unique_commit_count(current_branch, default_branch)
@@ -1928,33 +1956,53 @@ def run(
 
     # ── Branch Characteristics ──
     if branch_chars:
-        print()
-        print(c.bold(f"Branch Characteristics: {c.green(current_branch)}"))
-        print(c.dim("-" * 60))
-        char_display: list[tuple[str, str, Callable[[str], str]]] = [
-            ("Default branch", "behind_default", c.yellow),
-            ("Head position", "on_default_head", c.cyan),
-            ("Activity", "stale", c.yellow),
-            ("Merge status", "fast_forwardable", c.cyan),
-            ("Remote", "local_only", c.cyan),
+        _section(f"Branch Characteristics: {c.green(current_branch)}")
+        # Ordered characteristics with semantic coloring
+        char_keys: list[tuple[str, str]] = [
+            ("Default branch", "behind_default"),
+            ("Ahead of default", "ahead_default"),
+            ("Head position", "on_default_head"),
+            ("Activity", "stale"),
+            ("Commit density", "commit_density"),
+            ("Branch age", "branch_age"),
+            ("Merge status", "fast_forwardable"),
+            ("Remote", "local_only"),
+            ("Unpushed", "unpushed"),
         ]
-        for label, key, color_fn in char_display:
+        # Keywords that indicate good/warning/info states
+        _good = (
+            "up to date",
+            "active",
+            "tracked",
+            "fast-forwardable",
+            "all commits pushed",
+            "contained",
+        )
+        _warn = (
+            "stale",
+            "behind",
+            "requires",
+            "aging",
+            "unpushed",
+            "no commits",
+            "local only",
+        )
+        for label, key in char_keys:
             val = branch_chars.get(key, "")
-            if val:
-                if "stale" in val or "behind" in val:
-                    print(f"  {label + ':':18s} {c.yellow(val)}")
-                elif "up to date" in val or "active" in val or "tracked" in val:
-                    print(f"  {label + ':':18s} {c.green(val)}")
-                else:
-                    print(f"  {label + ':':18s} {color_fn(val)}")
+            if not val:
+                continue
+            if any(w in val for w in _warn):
+                print(f"  {label + ':':18s} {c.yellow(val)}")
+            elif any(w in val for w in _good):
+                print(f"  {label + ':':18s} {c.green(val)}")
+            else:
+                print(f"  {label + ':':18s} {c.cyan(val)}")
         if "conflicts" in branch_chars:
             print(f"  {'Conflicts:':18s} {c.red(branch_chars['conflicts'])}")
 
     # ── Last Merge from Default Branch ──
     if last_merge and current_branch != default_branch:
-        print()
-        print(c.bold(f"Last Merge from {default_branch}"))
-        print(c.dim("-" * 60))
+        _section(f"Last Merge from {default_branch}")
         sha = c.yellow(last_merge.get("sha_short", "?"))
         msg = last_merge.get("message", "")
         rel_date = last_merge.get("relative_date", "")
@@ -1982,9 +2030,7 @@ def run(
 
     # ── Working Tree ──
     if any(working_tree.values()):
-        print()
-        print(c.bold("Working Tree"))
-        print(c.dim("-" * 60))
+        _section("Working Tree")
         for key, count in working_tree.items():
             if count > 0:
                 color_fn = c.yellow if key != "conflicted" else c.red
@@ -1994,9 +2040,7 @@ def run(
 
     # ── Modified Files ──
     if modified_files:
-        print()
-        print(c.bold("Modified Files"))
-        print(c.dim("-" * 60))
+        _section("Modified Files")
         status_colors = {
             "modified": c.yellow,
             "added": c.green,
@@ -2020,9 +2064,7 @@ def run(
 
     # ── Local Branches ──
     if local_branches:
-        print()
-        print(c.bold("Local Branches"))
-        print(c.dim("-" * 60))
+        _section("Local Branches")
         for b in local_branches:
             marker = "* " if b["name"] == current_branch else "  "
             bname = b["name"]
@@ -2041,17 +2083,13 @@ def run(
 
     # ── Stale Branches ──
     if stale_branches:
-        print()
-        print(c.bold("Stale Branches (no activity > 30 days)"))
-        print(c.dim("-" * 60))
+        _section("Stale Branches (no activity > 30 days)")
         for sb in stale_branches:
             print(f"  {c.yellow(sb['name']):30s} {c.dim(sb['last_commit'])}")
 
     # ── Unmerged Branches ──
     if unmerged_branches:
-        print()
-        print(c.bold(f"Unmerged Branches (not in {default_branch})"))
-        print(c.dim("-" * 60))
+        _section(f"Unmerged Branches (not in {default_branch})")
         for ub in unmerged_branches:
             name = ub["name"]
             note = ub.get("note", "")
@@ -2062,17 +2100,13 @@ def run(
 
     # ── Recent Tags ──
     if tags:
-        print()
-        print(c.bold("Recent Tags"))
-        print(c.dim("-" * 60))
+        _section("Recent Tags")
         for tag in tags:
             print(f"  {tag}")
 
     # ── Recent Commits ──
     if recent_commits:
-        print()
-        print(c.bold(f"Recent Commits {dash} {c.green(current_branch)}"))
-        print(c.dim("-" * 60))
+        _section(f"Recent Commits {dash} {c.green(current_branch)}")
         for commit in recent_commits:
             sha = c.yellow(commit["sha"])
             msg = commit["message"]
@@ -2085,9 +2119,7 @@ def run(
         print(f"  Stashes: {c.yellow(str(stash_count))}")
 
     # ── Release Please ──
-    print()
-    print(c.bold("Release Please"))
-    print(c.dim("-" * 60))
+    _section("Release Please")
     if rp_branches:
         for branch in rp_branches:
             print(f"  {c.cyan(branch)}")
@@ -2095,9 +2127,7 @@ def run(
         print(f"  {c.dim('No release-please branches found')}")
 
     # ── Health Checks ──
-    print()
-    print(c.bold("Health Checks"))
-    print(c.dim("-" * 60))
+    _section("Health Checks")
     for r in health_results:
         print(
             f"  [{_icon(r['status'], use_color=use_color)}]"
@@ -2105,9 +2135,7 @@ def run(
         )
 
     # ── Helpful Commands ──
-    print()
-    print(c.bold("Helpful Commands"))
-    print(c.dim("-" * 60))
+    _section("Helpful Commands")
     for cmd_info in HELPFUL_COMMANDS:
         print(f"  {c.cyan(cmd_info['cmd'])}")
         print(f"    {c.dim(cmd_info['desc'])}")
@@ -2141,12 +2169,15 @@ def export_git_config_reference(filepath: str) -> str:
     Returns:
         The absolute path of the written file.
     """
+    from datetime import datetime
     from pathlib import Path
+
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     lines: list[str] = [
         "# Git Configuration Reference",
         "",
-        f"Generated by `git_doctor.py` v{SCRIPT_VERSION}",
+        f"Generated by `git_doctor.py` v{SCRIPT_VERSION} on {timestamp}",
         "",
         "Each entry shows the config key, its current value in your",
         "environment, which scope it's set in (local/global/system),",
