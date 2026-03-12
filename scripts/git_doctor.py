@@ -87,7 +87,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.13.0"
+SCRIPT_VERSION = "2.0.0"
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "REuse REcorded Resolution -- remember and replay merge conflict fixes",
         "'true' -- saves time on repeated rebases",
     ),
-    # ── Branch ──
+    # ── Branch & Init ──
     (
         "branch.autosetuprebase",
         "global",
@@ -309,7 +309,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "'-committerdate'",
     ),
     ("init.defaultBranch", "global", "Default branch name for 'git init'", "'main'"),
-    # ── Identity / Signing ──
+    # ── Identity & Signing ──
     (
         "user.name",
         "global",
@@ -346,6 +346,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Allowed SSH public keys file for signature verification",
         "Set if using SSH signing for local verification",
     ),
+    # ── Commit ──
     (
         "commit.template",
         "local",
@@ -389,7 +390,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Max files for rename detection. Increase if git misses renames in large changesets",
         "Increase (e.g. 5000) for large repos",
     ),
-    # ── Log / Display ──
+    # ── Log & Display ──
     (
         "log.date",
         "global",
@@ -408,7 +409,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Display branch/tag listings in columns when terminal is wide enough",
         "'auto'",
     ),
-    # ── Credential / Transfer ──
+    # ── Credential & Transfer ──
     (
         "credential.helper",
         "global",
@@ -446,7 +447,7 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Index format version. V4 is more compact and faster",
         "'4' for large repos",
     ),
-    # ── Help / UX ──
+    # ── Help & UX ──
     (
         "help.autocorrect",
         "global",
@@ -468,26 +469,70 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
     ),
 ]
 
+# ---------------------------------------------------------------------------
+# Config section mapping (used by --export-config)
+# ---------------------------------------------------------------------------
+
+# Section display names for the exported config reference.  Key-specific
+# overrides take priority, then prefix-based defaults.  Keys not listed
+# here use the capitalised key prefix (e.g. "core.editor" -> "Core").
+CONFIG_SECTION_MAP: dict[str, str] = {
+    # Prefix-based
+    "branch": "Branch & Init",
+    "init": "Branch & Init",
+    "user": "Identity & Signing",
+    "gpg": "Identity & Signing",
+    "log": "Log & Display",
+    "color": "Log & Display",
+    "column": "Log & Display",
+    "credential": "Credential & Transfer",
+    "http": "Credential & Transfer",
+    "transfer": "Credential & Transfer",
+    "gc": "Performance",
+    "feature": "Performance",
+    "index": "Performance",
+    "help": "Help & UX",
+    "status": "Help & UX",
+    # Key-specific (when prefix alone is ambiguous)
+    "commit.gpgsign": "Identity & Signing",
+    "tag.gpgsign": "Identity & Signing",
+}
+
+
+def _config_section(key: str) -> str:
+    """Return the display section name for a git config key."""
+    if key in CONFIG_SECTION_MAP:
+        return CONFIG_SECTION_MAP[key]
+    prefix = key.split(".")[0]
+    return CONFIG_SECTION_MAP.get(prefix, prefix.capitalize())
+
+
 # Keys shown in terminal output (top 18 most useful for daily workflow).
 # TODO (template users): Add or remove keys to match your team's workflow.
 TERMINAL_CONFIG_KEYS: list[str] = [
+    # Core
     "core.autocrlf",
     "core.editor",
+    # Fetch / Pull / Push
     "fetch.prune",
     "pull.rebase",
     "pull.ff",
     "push.default",
     "push.autoSetupRemote",
+    # Merge / Rebase
     "merge.ff",
     "merge.conflictstyle",
     "rebase.autostash",
     "rebase.autoSquash",
     "rerere.enabled",
+    # Branch & Init
     "branch.autosetuprebase",
     "init.defaultBranch",
+    # Commit & Signing
+    "commit.template",
     "commit.gpgsign",
     "tag.gpgsign",
-    "commit.template",
+    # Diff
     "diff.algorithm",
 ]
 
@@ -2325,14 +2370,35 @@ def export_git_config_reference(filepath: str) -> str:
 
     timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
+    # Build table of contents from catalog sections
+    seen_sections: list[str] = []
+    for key, _, _, _ in GIT_CONFIG_CATALOG:
+        section = _config_section(key)
+        if section not in seen_sections:
+            seen_sections.append(section)
+
+    toc_lines: list[str] = []
+    for s in seen_sections:
+        anchor = s.lower().replace(" & ", "--").replace(" ", "-")
+        toc_lines.append(f"- [{s}](#{anchor})")
+
     lines: list[str] = [
         "# Git Configuration Reference",
         "",
-        f"Generated by `git_doctor.py` v{SCRIPT_VERSION} on {timestamp}",
+        "<!-- Auto-generated by git_doctor.py — do not edit by hand. -->",
         "",
+        f"> **Generated:** `git_doctor.py` v{SCRIPT_VERSION} — {timestamp}  ",
+        "> **Command:** `python scripts/git_doctor.py --export-config`  ",
+        "> **Regenerate:** Run the command above to refresh with your current settings.",
+        "",
+        "A comprehensive reference of useful git configuration options.",
         "Each entry shows the config key, its current value in your",
         "environment, which scope it's set in (local/global/system),",
         "what it does, and a recommended value.",
+        "",
+        "## Contents",
+        "",
+        *toc_lines,
         "",
         "## Scope Guide",
         "",
@@ -2350,10 +2416,10 @@ def export_git_config_reference(filepath: str) -> str:
 
     current_section = ""
     for key, rec_scope, description, recommendation in GIT_CONFIG_CATALOG:
-        section = key.split(".")[0]
+        section = _config_section(key)
         if section != current_section:
             current_section = section
-            lines.append(f"## {section.capitalize()}")
+            lines.append(f"## {section}")
             lines.append("")
 
         value = get_git_config_value(key) or "(unset)"
