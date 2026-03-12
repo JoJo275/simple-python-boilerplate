@@ -470,8 +470,30 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Config section mapping (used by --export-config)
+# Config section descriptions (used by terminal display and --export-config)
 # ---------------------------------------------------------------------------
+
+# One-line description of each logical config section.
+# TODO (template users): Add descriptions for any custom sections you define
+#   in CONFIG_SECTION_MAP.
+SECTION_DESCRIPTIONS: dict[str, str] = {
+    "Core": "Fundamental git behavior: line endings, editor, pager, file handling.",
+    "Fetch": "How git retrieves objects and refs from remotes.",
+    "Pull": "Behavior when pulling changes from a remote branch.",
+    "Push": "Defaults for pushing commits to remotes.",
+    "Merge": "How git handles merges and conflict markers.",
+    "Rebase": "Rebase workflow helpers: auto-stash, fixup squashing, stacked refs.",
+    "Rerere": "Reuse recorded resolutions for recurring merge conflicts.",
+    "Branch & Init": "Branch display, sorting, and defaults for new repositories.",
+    "Identity & Signing": "Author identity and GPG/SSH commit/tag signing.",
+    "Commit": "Commit message templates and editor behavior.",
+    "Diff": "Diff algorithm, moved-line detection, and rename handling.",
+    "Log & Display": "Date format, color output, and column display for listings.",
+    "Credential & Transfer": "Credential storage, SSL, and object integrity verification.",
+    "Performance": "Garbage collection, index format, and large-repo optimizations.",
+    "Help & UX": "Autocorrect, untracked file display, and other UX settings.",
+    "Protocol": "Git wire protocol version for network communication.",
+}
 
 # Section display names for the exported config reference.  Key-specific
 # overrides take priority, then prefix-based defaults.  Keys not listed
@@ -1907,20 +1929,29 @@ def run(
     print(f"  {c.bold('Git Doctor')}  {c.dim(f'v{SCRIPT_VERSION}')}")
     print(c.dim(f"  {header_border}"))
 
-    # Quick status bar
+    # Quick status bar — three indicators with explicit labels
+    check = sym.get("check", "+")
+    cross = sym.get("cross", "x")
+    warn_sym = sym.get("warn", "!")
     clean = not any(working_tree.values())
     sync_ok = "behind" not in upstream_status.lower()
-    status_parts = []
-    status_parts.append(c.green(f"{dot} clean") if clean else c.yellow(f"{dot} dirty"))
-    status_parts.append(
-        c.green(f"{dot} synced") if sync_ok else c.yellow(f"{dot} behind")
-    )
-    status_parts.append(
-        c.green(f"{dot} {len(health_results) - failures} passed")
+    passed_count = len(health_results) - failures
+
+    wt_icon = c.green(check) if clean else c.yellow(warn_sym)
+    wt_label = c.green("clean") if clean else c.yellow("dirty")
+    sync_icon = c.green(check) if sync_ok else c.yellow(warn_sym)
+    sync_label = c.green("synced") if sync_ok else c.yellow("behind")
+    hc_icon = c.green(check) if not failures else c.red(cross)
+    hc_label = (
+        c.green(f"{passed_count}/{len(health_results)} passed")
         if not failures
-        else c.red(f"{dot} {failures} failed")
+        else c.red(f"{failures} failed, {passed_count} passed")
     )
-    print(f"  {c.dim('Status:')} {'  '.join(status_parts)}")
+
+    print()
+    print(f"  {wt_icon} {c.dim('Working tree:')} {wt_label}")
+    print(f"  {sync_icon} {c.dim('Remote sync:')}  {sync_label}")
+    print(f"  {hc_icon} {c.dim('Health:')}       {hc_label}")
 
     # ── Repository Info ──
     _section("Repository")
@@ -1940,13 +1971,28 @@ def run(
         _section(
             f"Git Configuration  {c.dim(f'({set_count} set, {unset_count} unset)')}"
         )
+        # Column headers
+        hdr_key = c.dim("Key".ljust(24))
+        hdr_scope = c.dim("Scope".ljust(10))
+        hdr_val = c.dim("Value")
+        print(f"    {hdr_key} {hdr_scope} {hdr_val}")
+        print(f"    {c.dim(h_line * 24)} {c.dim(h_line * 10)} {c.dim(h_line * 20)}")
+        # Group keys by their logical section for visual separation
+        current_group = ""
         for key, val in git_config.items():
+            group = _config_section(key)
+            if group != current_group:
+                if current_group:
+                    print()  # blank line between groups
+                current_group = group
+                print(f"    {c.cyan(group)}")
             scope = git_config_scopes.get(key, "unset")
             scope_str = f"[{scope}]".ljust(10)
             if val == "(unset)":
                 print(f"    {c.dim(key):24s} {c.dim(scope_str)} {c.dim(val)}")
             else:
                 print(f"    {key:24s} {c.dim(scope_str)} {c.cyan(val)}")
+        print()
         print(
             f"    {c.dim('Run with --export-config for full reference, --fix to apply recommended')}"
         )
@@ -2377,40 +2423,82 @@ def export_git_config_reference(filepath: str) -> str:
         if section not in seen_sections:
             seen_sections.append(section)
 
+    # Count config keys per section for the summary table
+    section_counts: dict[str, int] = {}
+    for key, _, _, _ in GIT_CONFIG_CATALOG:
+        section = _config_section(key)
+        section_counts[section] = section_counts.get(section, 0) + 1
+
     toc_lines: list[str] = []
     for s in seen_sections:
         anchor = s.lower().replace(" & ", "--").replace(" ", "-")
-        toc_lines.append(f"- [{s}](#{anchor})")
+        count = section_counts.get(s, 0)
+        desc = SECTION_DESCRIPTIONS.get(s, "")
+        toc_lines.append(f"| [{s}](#{anchor}) | {count} | {desc} |")
+
+    total_keys = len(GIT_CONFIG_CATALOG)
 
     lines: list[str] = [
         "# Git Configuration Reference",
         "",
         "<!-- Auto-generated by git_doctor.py — do not edit by hand. -->",
         "",
-        f"> **Generated:** `git_doctor.py` v{SCRIPT_VERSION} — {timestamp}  ",
-        "> **Command:** `python scripts/git_doctor.py --export-config`  ",
-        "> **Regenerate:** Run the command above to refresh with your current settings.",
+        f"| **Generated by** | `git_doctor.py` v{SCRIPT_VERSION} |",
+        "|:-----------------|:-----------------------|",
+        f"| **Timestamp**     | {timestamp} |",
+        "| **Command**       | `python scripts/git_doctor.py --export-config` |",
+        "| **Regenerate**    | Run the command above to refresh with current settings |",
+        f"| **Total keys**    | {total_keys} across {len(seen_sections)} sections |",
         "",
         "A comprehensive reference of useful git configuration options.",
         "Each entry shows the config key, its current value in your",
         "environment, which scope it's set in (local/global/system),",
         "what it does, and a recommended value.",
         "",
+        "---",
+        "",
         "## Contents",
         "",
+        "| Section | Keys | Description |",
+        "|---------|-----:|-------------|",
         *toc_lines,
+        "",
+        "---",
         "",
         "## Scope Guide",
         "",
-        "| Scope  | File Location                            | Applies To            |",
-        "|--------|-----------------------------------------|-----------------------|",
-        "| local  | `.git/config` in the repository          | This repository only  |",
-        "| global | `~/.gitconfig` or `~/.config/git/config` | All your repositories |",
-        "| system | `/etc/gitconfig`                         | All users on machine  |",
+        "| Scope | File Location | Applies To |",
+        "|-------|---------------|------------|",
+        "| **local** | `.git/config` in the repository | This repository only |",
+        "| **global** | `~/.gitconfig` or `~/.config/git/config` | All your repositories |",
+        "| **system** | `/etc/gitconfig` (Linux/macOS) or `C:\\Program Files\\Git\\etc\\gitconfig` (Windows) | All users on machine |",
+        "",
+        "**Precedence:** local > global > system.",
         "",
         "Set most configs at **global** scope so they apply everywhere,",
         "then override at **local** scope for project-specific needs",
         "(e.g. different email for work repos, project-specific commit template).",
+        "",
+        "### Updating Config Values",
+        "",
+        "```bash",
+        "# Read a value (shows effective value from highest-priority scope)",
+        "git config <key>",
+        "",
+        "# Read with origin (shows which file defines the value)",
+        "git config --show-origin <key>",
+        "",
+        "# Set at different scopes",
+        "git config --global <key> <value>    # ~/.gitconfig",
+        "git config --local <key> <value>     # .git/config (this repo only)",
+        "git config --system <key> <value>    # system-wide (requires admin)",
+        "",
+        "# Remove a value",
+        "git config --global --unset <key>",
+        "",
+        "# List all settings with their scopes",
+        "git config --list --show-origin",
+        "```",
         "",
     ]
 
@@ -2418,9 +2506,16 @@ def export_git_config_reference(filepath: str) -> str:
     for key, rec_scope, description, recommendation in GIT_CONFIG_CATALOG:
         section = _config_section(key)
         if section != current_section:
+            if current_section:
+                lines.append("---")
+                lines.append("")
             current_section = section
             lines.append(f"## {section}")
             lines.append("")
+            sect_desc = SECTION_DESCRIPTIONS.get(section, "")
+            if sect_desc:
+                lines.append(f"*{sect_desc}*")
+                lines.append("")
 
         value = get_git_config_value(key) or "(unset)"
         scope = get_git_config_scope(key)

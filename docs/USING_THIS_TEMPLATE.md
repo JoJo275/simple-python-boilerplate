@@ -823,6 +823,116 @@ and the docs you don't need.
 
 ---
 
+## Editor & Git File Handling
+
+Three files work together to ensure consistent formatting and line endings
+across editors, operating systems, and git operations:
+
+| File | Controls | Applies where |
+| :--- | :------- | :------------ |
+| `.editorconfig` | Indentation, charset, trailing whitespace, final newline | Any editor that supports EditorConfig (VS Code via extension, JetBrains natively, etc.) |
+| `.gitattributes` | Line ending normalization in git, diff drivers, binary file detection, linguist stats | Git operations (commit, checkout, diff, archive) |
+| `.vscode/settings.json` | Formatter choice, format-on-save, rulers, test runner, file exclusions | VS Code only |
+
+### How They Relate
+
+These files target **different layers** of the editing and version control
+pipeline:
+
+1. **`.editorconfig`** sets editor behavior *as you type* — indent size,
+   tab vs. spaces, line endings in the editor buffer, trailing whitespace
+   trimming. It's editor-agnostic: any IDE that supports the standard reads
+   it. In VS Code, the [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
+   applies these rules automatically.
+
+2. **`.gitattributes`** controls what happens when files pass *through git* —
+   normalizing line endings on commit (`* text=auto eol=lf`), forcing LF for
+   shell scripts even on Windows, marking binary files so git doesn't try to
+   diff them, and setting diff drivers (`*.py diff=python`) for better hunk
+   headers. This operates independently of your editor.
+
+3. **`.vscode/settings.json`** configures VS Code-specific tooling — which
+   formatter runs on save (Ruff for Python, Prettier for Markdown), test
+   discovery settings, file explorer exclusions. These settings only apply
+   in VS Code.
+
+**Overlap:** `.editorconfig` and `.vscode/settings.json` both affect
+indentation and line endings in VS Code. When the EditorConfig extension is
+installed, `.editorconfig` wins for the settings it defines (indent size, EOL
+style, trim whitespace). VS Code settings fill in everything else (formatters,
+rulers, language-specific overrides). They complement rather than conflict.
+
+**Overlap with `.gitattributes`:** `.editorconfig` sets `end_of_line = lf`
+so your editor writes LF. `.gitattributes` sets `* text=auto eol=lf` so git
+normalizes to LF on commit regardless. They reinforce each other — if your
+editor misses a CRLF, git catches it.
+
+### What to Customize
+
+- **`.editorconfig`** — adjust indent sizes per file type if your team
+  prefers different conventions. The defaults match Ruff's formatting.
+- **`.gitattributes`** — add entries for file types your project uses
+  (e.g., `.proto`, `.parquet`, vendor assets). Mark generated files with
+  `linguist-generated=true` to exclude them from GitHub language stats.
+- **`.vscode/settings.json`** — add formatters or settings for your stack
+  (Django, FastAPI, etc.).
+
+---
+
+## Git Configuration
+
+Unlike VS Code settings (which live in JSON files you edit directly), git
+configuration is managed through the **`git config`** command. There are no
+config files you edit in the same way as `settings.json` — instead, you
+read and write individual settings via the terminal.
+
+### Scopes
+
+Git config has three scopes, each stored in a different file:
+
+| Scope | File location | Applies to | Set with |
+| :---- | :------------ | :--------- | :------- |
+| **system** | `/etc/gitconfig` (Linux/macOS) or `C:\Program Files\Git\etc\gitconfig` (Windows) | All users on the machine | `git config --system <key> <value>` |
+| **global** | `~/.gitconfig` or `~/.config/git/config` | All your repositories | `git config --global <key> <value>` |
+| **local** | `.git/config` in the repository | This repository only | `git config --local <key> <value>` (or just `git config <key> <value>`) |
+
+**Precedence:** local > global > system. A local setting overrides global,
+which overrides system.
+
+### Common Operations
+
+```bash
+# View a setting (shows effective value across all scopes)
+git config <key>                     # e.g. git config user.email
+
+# View where a setting is defined
+git config --show-origin <key>       # shows file path and value
+
+# Set at global scope (most common)
+git config --global <key> <value>    # e.g. git config --global pull.rebase true
+
+# Set at local scope (project-specific overrides)
+git config --local <key> <value>     # e.g. git config --local user.email work@example.com
+
+# Unset a value
+git config --global --unset <key>
+
+# List all settings with their scopes
+git config --list --show-origin
+```
+
+### This Project's Defaults
+
+This template includes a `--fix` flag on the git doctor script that applies
+recommended settings. Run `python scripts/git_doctor.py --fix --dry-run` to
+preview what would change, or `python scripts/git_doctor.py --fix` to apply.
+
+For the full reference of all git config options and their recommended values,
+run `python scripts/git_doctor.py --export-config` to generate
+[git-config-reference.md](../git-config-reference.md).
+
+---
+
 ## Further Reading
 
 | Topic                              | Document                                                           |
