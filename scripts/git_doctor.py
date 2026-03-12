@@ -10,6 +10,7 @@ Flags::
     --no-color        Disable colored output
     --json            Output results as JSON (for CI integration)
     --export-config   Export full git config reference to Markdown file
+    --fix             Auto-apply recommended git config settings
     --version         Print version and exit
 
 Usage::
@@ -17,6 +18,13 @@ Usage::
     python scripts/git_doctor.py
     python scripts/git_doctor.py --json
     python scripts/git_doctor.py --no-color
+    python scripts/git_doctor.py --fix
+    python scripts/git_doctor.py --fix --dry-run
+
+.. note::
+   ``--export-config`` writes to ``git-config-reference.md`` by default
+   (or a custom path if provided). The file is **replaced entirely** on
+   each run — it is a generated artifact, not a hand-edited document.
 
 Customisation notes:
 
@@ -79,13 +87,36 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.11.0"
+SCRIPT_VERSION = "1.12.0"
 
 logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 
 _GIT: str | None = shutil.which("git")
+
+# ---------------------------------------------------------------------------
+# Recommended config values for --fix
+# ---------------------------------------------------------------------------
+
+# Safe, opinionated defaults that benefit most development workflows.
+# Only keys with clear, non-destructive recommended values are included.
+# Keys that depend on personal preference (e.g. core.editor) are omitted.
+RECOMMENDED_CONFIGS: list[tuple[str, str, str]] = [
+    # (key, value, scope)
+    ("pull.rebase", "true", "global"),
+    ("push.default", "current", "global"),
+    ("push.autoSetupRemote", "true", "global"),
+    ("fetch.prune", "true", "global"),
+    ("fetch.prunetags", "true", "global"),
+    ("merge.conflictstyle", "zdiff3", "global"),
+    ("rebase.autostash", "true", "global"),
+    ("rebase.autoSquash", "true", "global"),
+    ("rerere.enabled", "true", "global"),
+    ("branch.sort", "-committerdate", "global"),
+    ("diff.algorithm", "histogram", "global"),
+    ("init.defaultBranch", "main", "global"),
+]
 
 # ---------------------------------------------------------------------------
 # Git configuration catalog (used by --export-config)
@@ -1803,40 +1834,72 @@ def run(
     dash = sym["dash"]
     c = Colors(enabled=use_color)
 
-    def _section(title: str, sep: str = "-") -> None:
-        """Print a section header."""
+    # Box-drawing characters for section headers
+    h_line = "\u2500" if use_unicode else "-"  # ─
+    tl = "\u250c" if use_unicode else "+"  # ┌
+    tr = "\u2510" if use_unicode else "+"  # ┐
+    bl = "\u2514" if use_unicode else "+"  # └
+    br = "\u2518" if use_unicode else "+"  # ┘
+    vl = "\u2502" if use_unicode else "|"  # │
+    dot = "\u2022" if use_unicode else "*"  # •
+
+    def _section(title: str) -> None:
+        """Print a section header with box-drawing top border."""
+        border = h_line * 60
         print()
-        print(c.bold(title))
-        print(c.dim(sep * 60))
+        print(c.dim(f"  {tl}{border}{tr}"))
+        print(f"  {c.dim(vl)} {c.bold(title)}")
+        print(c.dim(f"  {bl}{border}{br}"))
+
+    def _kv(label: str, value: str, width: int = 18) -> None:
+        """Print a key-value pair with consistent alignment."""
+        print(f"    {label + ':':{width}s} {value}")
 
     # ── Header ──
+    header_border = h_line * 60
     print()
-    print(c.bold("Git Doctor"))
-    print(c.dim("=" * 60))
+    print(c.dim(f"  {header_border}"))
+    print(f"  {c.bold('Git Doctor')}  {c.dim(f'v{SCRIPT_VERSION}')}")
+    print(c.dim(f"  {header_border}"))
+
+    # Quick status bar
+    clean = not any(working_tree.values())
+    sync_ok = "behind" not in upstream_status.lower()
+    status_parts = []
+    status_parts.append(c.green(f"{dot} clean") if clean else c.yellow(f"{dot} dirty"))
+    status_parts.append(
+        c.green(f"{dot} synced") if sync_ok else c.yellow(f"{dot} behind")
+    )
+    status_parts.append(
+        c.green(f"{dot} {len(health_results) - failures} passed")
+        if not failures
+        else c.red(f"{dot} {failures} failed")
+    )
+    print(f"  {c.dim('Status:')} {'  '.join(status_parts)}")
 
     # ── Repository Info ──
     _section("Repository")
-    print(f"  Remote URL:     {remote_url}")
-    print(f"  Current branch: {c.green(current_branch)}")
-    print(f"  Default branch: {default_branch}")
-    print(f"  Upstream:       {upstream_status}")
-    print(f"  User:           {user_name} <{user_email}>")
-    print(f"  Commits:        {commit_count}")
-    print(f"  Contributors:   {contributors}")
-    print(f"  Repo age:       {repo_age}")
+    _kv("Remote URL", remote_url)
+    _kv("Current branch", c.green(current_branch))
+    _kv("Default branch", default_branch)
+    _kv("Upstream", upstream_status)
+    _kv("User", f"{user_name} <{user_email}>")
+    _kv("Commits", str(commit_count))
+    _kv("Contributors", str(contributors))
+    _kv("Repo age", repo_age)
 
     # ── Git Configuration (top 18 — use --export-config for full reference) ──
     if git_config:
         _section("Git Configuration")
         for key, val in git_config.items():
             scope = git_config_scopes.get(key, "unset")
-            scope_str = scope.ljust(8)
+            scope_str = f"[{scope}]".ljust(10)
             if val == "(unset)":
-                print(f"  {key:24s} {c.dim(scope_str)} {c.dim(val)}")
+                print(f"    {key:24s} {c.dim(scope_str)} {c.dim(val)}")
             else:
-                print(f"  {key:24s} {scope_str} {c.cyan(val)}")
+                print(f"    {key:24s} {c.dim(scope_str)} {c.cyan(val)}")
         print(
-            f"  {c.dim('Run with --export-config for all configs with descriptions')}"
+            f"    {c.dim('Run with --export-config for full reference, --fix to apply recommended')}"
         )
 
     # ── Commit Activity — current branch (last 14 days) ──
@@ -1847,10 +1910,10 @@ def run(
             count = commit_freq[date]
             bar_len = int((count / max_count) * 30) if max_count > 0 else 0
             bar = c.green(bar_char * bar_len)
-            print(f"  {date}  {bar} {count}")
+            print(f"    {date}  {bar} {count}")
         total_recent = sum(commit_freq.values())
         avg = total_recent / len(commit_freq) if commit_freq else 0
-        print(f"  {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
+        print(f"    {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
 
     # ── File Change Summary — current branch (last 5 commits) ──
     if file_changes and any(file_changes.values()):
@@ -1861,9 +1924,9 @@ def run(
         ins = fc.get("insertions", 0)
         dels = fc.get("deletions", 0)
         files = fc.get("files_changed", 0)
-        print(f"  Files changed:  {files}")
-        print(f"  Insertions:     {c.green(f'+{ins}')}")
-        print(f"  Deletions:      {c.red(f'-{dels}')}")
+        _kv("Files changed", str(files))
+        _kv("Insertions", c.green(f"+{ins}"))
+        _kv("Deletions", c.red(f"-{dels}"))
 
     # ── Repo Branch Activity (top 5 most recent) ──
     if branch_activity:
@@ -1879,7 +1942,7 @@ def run(
         hdr_f = c.dim("Files".rjust(6))
         hdr_i = c.dim("+Ins".rjust(7))
         hdr_dl = c.dim("-Del".rjust(7))
-        print(f"  {hdr_b} {hdr_s} {hdr_d} {hdr_c} {hdr_f} {hdr_i} {hdr_dl}")
+        print(f"    {hdr_b} {hdr_s} {hdr_d} {hdr_c} {hdr_f} {hdr_i} {hdr_dl}")
         for entry in branch_activity:
             bname = str(entry["base_name"])
             src = str(entry["source"])
@@ -1899,7 +1962,7 @@ def run(
             ins_s = c.green(f"+{bi}".rjust(7)) if bi else str(bi).rjust(7)
             del_s = c.red(f"-{bd}".rjust(7)) if bd else str(bd).rjust(7)
             print(
-                f"  {name_display} {src:8s} {bdate:16s}"
+                f"    {name_display} {src:8s} {bdate:16s}"
                 f" {bcommits:>8d} {bf:>6d} {ins_s} {del_s}"
             )
 
@@ -1908,12 +1971,12 @@ def run(
     # Show branch-specific commit count when on a feature branch
     if current_branch != default_branch and default_branch != "(unknown)":
         branch_commits = get_branch_unique_commit_count(current_branch, default_branch)
-        print(
-            f"  Branch commits: {branch_commits}"
-            f"  {c.dim(f'(repo total: {commit_count})')}"
+        _kv(
+            "Branch commits",
+            f"{branch_commits}  {c.dim(f'(repo total: {commit_count})')}",
         )
     else:
-        print(f"  Total commits:  {commit_count}")
+        _kv("Total commits", str(commit_count))
     vd = wb_stats.get("vs_default", {})
     st = wb_stats.get("staged", {})
     us = wb_stats.get("unstaged", {})
@@ -1933,26 +1996,29 @@ def run(
         us.get("deletions", 0),
     )
     if vd_f or vd_i or vd_d:
-        print(
-            f"  vs {default_branch:12s} {vd_f} files changed, "
-            f"{c.green(f'+{vd_i}')} insertions, {c.red(f'-{vd_d}')} deletions"
+        _kv(
+            f"vs {default_branch}",
+            f"{vd_f} files changed, "
+            f"{c.green(f'+{vd_i}')} insertions, {c.red(f'-{vd_d}')} deletions",
         )
     else:
-        print(f"  vs {default_branch:12s} {c.dim('no divergence')}")
+        _kv(f"vs {default_branch}", c.dim("no divergence"))
     if st_f or st_i or st_d:
-        print(
-            f"  {'Staged':15s} {st_f} files changed, "
-            f"{c.green(f'+{st_i}')} insertions, {c.red(f'-{st_d}')} deletions"
+        _kv(
+            "Staged",
+            f"{st_f} files changed, "
+            f"{c.green(f'+{st_i}')} insertions, {c.red(f'-{st_d}')} deletions",
         )
     else:
-        print(f"  {'Staged':15s} {c.dim('nothing staged')}")
+        _kv("Staged", c.dim("nothing staged"))
     if us_f or us_i or us_d:
-        print(
-            f"  {'Unstaged':15s} {us_f} files changed, "
-            f"{c.green(f'+{us_i}')} insertions, {c.red(f'-{us_d}')} deletions"
+        _kv(
+            "Unstaged",
+            f"{us_f} files changed, "
+            f"{c.green(f'+{us_i}')} insertions, {c.red(f'-{us_d}')} deletions",
         )
     else:
-        print(f"  {'Unstaged':15s} {c.dim('clean')}")
+        _kv("Unstaged", c.dim("clean"))
 
     # ── Branch Characteristics ──
     if branch_chars:
@@ -1992,13 +2058,13 @@ def run(
             if not val:
                 continue
             if any(w in val for w in _warn):
-                print(f"  {label + ':':18s} {c.yellow(val)}")
+                _kv(label, c.yellow(val))
             elif any(w in val for w in _good):
-                print(f"  {label + ':':18s} {c.green(val)}")
+                _kv(label, c.green(val))
             else:
-                print(f"  {label + ':':18s} {c.cyan(val)}")
+                _kv(label, c.cyan(val))
         if "conflicts" in branch_chars:
-            print(f"  {'Conflicts:':18s} {c.red(branch_chars['conflicts'])}")
+            _kv("Conflicts", c.red(branch_chars["conflicts"]))
 
     # ── Last Merge from Default Branch ──
     if last_merge and current_branch != default_branch:
@@ -2009,24 +2075,24 @@ def run(
         author = last_merge.get("author", "")
         default_ahead = last_merge.get("default_ahead", "0")
         current_ahead = last_merge.get("current_ahead", "0")
-        print(f"  Merge base:     {sha} {msg}  {c.dim(rel_date)}")
+        _kv("Merge base", f"{sha} {msg}  {c.dim(rel_date)}")
         if author:
-            print(f"  Author:         {author}")
+            _kv("Author", author)
         if default_ahead != "0":
-            print(
-                f"  {default_branch} is {c.yellow(default_ahead)} commit(s) "
-                f"ahead of merge base"
+            _kv(
+                f"{default_branch} ahead",
+                f"{c.yellow(default_ahead)} commit(s) ahead of merge base",
             )
         if current_ahead != "0":
-            print(
-                f"  {current_branch} is {c.cyan(current_ahead)} commit(s) "
-                f"ahead of merge base"
+            _kv(
+                f"{current_branch[:15]} ahead",
+                f"{c.cyan(current_ahead)} commit(s) ahead of merge base",
             )
         if branch_divergence:
             div_sha = c.yellow(branch_divergence.get("sha", ""))
             div_msg = branch_divergence.get("message", "")
             div_date = branch_divergence.get("date", "")
-            print(f"  Branch started: {div_sha} {div_msg}  {c.dim(div_date)}")
+            _kv("Branch started", f"{div_sha} {div_msg}  {c.dim(div_date)}")
 
     # ── Working Tree ──
     if any(working_tree.values()):
@@ -2034,9 +2100,9 @@ def run(
         for key, count in working_tree.items():
             if count > 0:
                 color_fn = c.yellow if key != "conflicted" else c.red
-                print(f"  {key.capitalize():12s} {color_fn(str(count))}")
+                _kv(key.capitalize(), color_fn(str(count)), width=14)
     else:
-        print(f"\n  {c.green('Working directory is clean')}")
+        print(f"\n    {c.green('Working directory is clean')}")
 
     # ── Modified Files ──
     if modified_files:
@@ -2055,18 +2121,18 @@ def run(
         }
         for mf in modified_files:
             color_fn = status_colors.get(mf["status"], c.dim)
-            print(f"  {color_fn(mf['status'].ljust(18))} {mf['file']}")
+            print(f"    {color_fn(mf['status'].ljust(18))} {mf['file']}")
         total_mf = len(modified_files)
         code_mf, out_mf, _ = _run_git(["status", "--porcelain"])
         real_total = len(out_mf.splitlines()) if code_mf == 0 and out_mf else total_mf
         if real_total > total_mf:
-            print(f"  {c.dim(f'... and {real_total - total_mf} more')}")
+            print(f"    {c.dim(f'... and {real_total - total_mf} more')}")
 
     # ── Local Branches ──
     if local_branches:
         _section("Local Branches")
         for b in local_branches:
-            marker = "* " if b["name"] == current_branch else "  "
+            marker = "  * " if b["name"] == current_branch else "    "
             bname = b["name"]
             name_str = c.green(bname) if bname == current_branch else bname
             tracking = b.get("tracking", "")
@@ -2079,13 +2145,13 @@ def run(
                 extra += f" {bstatus}"
             if last:
                 extra += f"  ({last})"
-            print(f"  {marker}{name_str}{c.dim(extra)}")
+            print(f"{marker}{name_str}{c.dim(extra)}")
 
     # ── Stale Branches ──
     if stale_branches:
         _section("Stale Branches (no activity > 30 days)")
         for sb in stale_branches:
-            print(f"  {c.yellow(sb['name']):30s} {c.dim(sb['last_commit'])}")
+            print(f"    {c.yellow(sb['name']):30s} {c.dim(sb['last_commit'])}")
 
     # ── Unmerged Branches ──
     if unmerged_branches:
@@ -2094,15 +2160,15 @@ def run(
             name = ub["name"]
             note = ub.get("note", "")
             if note:
-                print(f"  {name}  {c.dim(note)}")
+                print(f"    {name}  {c.dim(note)}")
             else:
-                print(f"  {name}")
+                print(f"    {name}")
 
     # ── Recent Tags ──
     if tags:
         _section("Recent Tags")
         for tag in tags:
-            print(f"  {tag}")
+            print(f"    {tag}")
 
     # ── Recent Commits ──
     if recent_commits:
@@ -2111,48 +2177,110 @@ def run(
             sha = c.yellow(commit["sha"])
             msg = commit["message"]
             cdate = commit.get("date", "")
-            print(f"  {sha} {msg}  {c.dim(cdate)}")
+            print(f"    {sha} {msg}  {c.dim(cdate)}")
 
     # ── Stashes ──
     if stash_count > 0:
         print()
-        print(f"  Stashes: {c.yellow(str(stash_count))}")
+        print(f"    Stashes: {c.yellow(str(stash_count))}")
 
     # ── Release Please ──
     _section("Release Please")
     if rp_branches:
         for branch in rp_branches:
-            print(f"  {c.cyan(branch)}")
+            print(f"    {c.cyan(branch)}")
     else:
-        print(f"  {c.dim('No release-please branches found')}")
+        print(f"    {c.dim('No release-please branches found')}")
 
     # ── Health Checks ──
     _section("Health Checks")
     for r in health_results:
         print(
-            f"  [{_icon(r['status'], use_color=use_color)}]"
+            f"    [{_icon(r['status'], use_color=use_color)}]"
             f" {c.dim(r['name'] + ':')} {r['message']}"
         )
 
     # ── Helpful Commands ──
     _section("Helpful Commands")
     for cmd_info in HELPFUL_COMMANDS:
-        print(f"  {c.cyan(cmd_info['cmd'])}")
-        print(f"    {c.dim(cmd_info['desc'])}")
+        print(f"    {c.cyan(cmd_info['cmd'])}")
+        print(f"      {c.dim(cmd_info['desc'])}")
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
     print()
+    print(c.dim(f"  {h_line * 60}"))
     total = len(health_results)
     passed = total - failures
     if failures == 0:
-        print(c.green(f"All {total} health checks passed!"))
+        print(f"  {c.green(f'All {total} health checks passed!')}")
     else:
-        print(c.red(f"{passed}/{total} checks passed, {failures} issues found"))
-    print(c.dim(f"Completed in {elapsed:.1f}s"))
+        print(f"  {c.red(f'{passed}/{total} checks passed, {failures} issues found')}")
+    print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
     print()
 
     return 1 if failures else 0
+
+
+# ---------------------------------------------------------------------------
+# Config fix
+# ---------------------------------------------------------------------------
+
+
+def fix_git_config(*, dry_run: bool = False) -> int:
+    """Apply recommended git config settings that are currently unset.
+
+    Only sets values at global scope. Skips any key that already has a
+    value at any scope (local/global/system) to avoid overwriting
+    intentional per-project overrides.
+
+    Args:
+        dry_run: If True, print what would be changed without applying.
+
+    Returns:
+        Number of settings applied (or that would be applied in dry-run).
+    """
+    use_color = _supports_color(sys.stdout)
+    c = Colors(enabled=use_color)
+    applied = 0
+    skipped = 0
+
+    print()
+    print(c.bold("Git Config Fix" + (" (dry run)" if dry_run else "")))
+    print(c.dim("=" * 60))
+    print()
+
+    for key, value, scope in RECOMMENDED_CONFIGS:
+        current = get_git_config_value(key)
+        if current:
+            if current == value:
+                print(f"  {c.dim(key):40s} {c.green('already set')}  {c.dim(current)}")
+            else:
+                print(
+                    f"  {c.dim(key):40s} {c.yellow('different')}    "
+                    f"{c.dim(current)} (keeping)"
+                )
+            skipped += 1
+            continue
+
+        if dry_run:
+            print(f"  {key:40s} {c.cyan('would set')}   --{scope} {value}")
+        else:
+            code, _, err = _run_git(["config", f"--{scope}", key, value])
+            if code == 0:
+                print(f"  {key:40s} {c.green('applied')}     --{scope} {value}")
+            else:
+                print(f"  {key:40s} {c.red('failed')}      {err}")
+            applied += 1
+
+    print()
+    if dry_run:
+        pending = len(RECOMMENDED_CONFIGS) - skipped
+        print(c.cyan(f"{pending} setting(s) would be applied, {skipped} already set"))
+    else:
+        print(c.green(f"{applied} setting(s) applied, {skipped} already set"))
+    print()
+    return applied
 
 
 # ---------------------------------------------------------------------------
@@ -2258,7 +2386,17 @@ def main() -> int:
         default=None,
         metavar="PATH",
         help="Export comprehensive git config reference to a Markdown file "
-        "(default: git-config-reference.md)",
+        "(default: git-config-reference.md). NOTE: overwrites the file on each run.",
+    )
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Apply recommended git config settings (only sets unset values)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="With --fix, show what would be changed without applying",
     )
     args = parser.parse_args()
 
@@ -2266,6 +2404,11 @@ def main() -> int:
         level=logging.INFO,
         format="%(levelname)s: %(message)s",
     )
+
+    # --fix mode: apply recommended configs and exit
+    if args.fix:
+        fix_git_config(dry_run=args.dry_run)
+        return 0
 
     color = False if args.no_color else None
     exit_code = run(color=color, output_json=args.json)

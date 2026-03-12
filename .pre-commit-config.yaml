@@ -280,6 +280,10 @@ repos:
 
   # Runs the full test suite before pushing. Catches test failures
   # before opening a PR, since CI only runs on PRs targeting main.
+  # NOTE: On large pushes (many commits / big diffs), pytest may time out
+  #       or be interrupted. If this happens, push with --no-verify:
+  #         git push --no-verify origin <branch>
+  #       Then run tests manually: hatch run test
   - repo: local
     hooks:
       - id: tests
