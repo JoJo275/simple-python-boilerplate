@@ -1964,17 +1964,43 @@ def run(
     vl = "\u2502" if use_unicode else "|"  # │
     dot = "\u2022" if use_unicode else "*"  # •
 
+    # Section title color rotation — each major section gets a distinct color
+    _section_colors = [
+        c.cyan,
+        c.green,
+        c.yellow,
+        c.magenta,
+        c.blue,
+        c.cyan,
+        c.green,
+        c.yellow,
+        c.magenta,
+        c.blue,
+        c.cyan,
+        c.green,
+        c.yellow,
+        c.magenta,
+        c.blue,
+        c.cyan,
+        c.green,
+    ]
+    _section_idx = 0
+
     def _section(title: str) -> None:
-        """Print a section header with box-drawing top border."""
+        """Print a section header with colored box-drawing border."""
+        nonlocal _section_idx
+        color_fn = _section_colors[_section_idx % len(_section_colors)]
+        _section_idx += 1
         border = h_line * 60
         print()
-        print(c.dim(f"  {tl}{border}{tr}"))
-        print(f"  {c.dim(vl)} {c.bold(title)}")
-        print(c.dim(f"  {bl}{border}{br}"))
+        print(color_fn(f"  {tl}{border}{tr}"))
+        print(f"  {color_fn(vl)} {c.bold(color_fn(title))}")
+        print(color_fn(f"  {bl}{border}{br}"))
 
-    def _kv(label: str, value: str, width: int = 18) -> None:
-        """Print a key-value pair with consistent alignment."""
-        print(f"    {label + ':':{width}s} {value}")
+    def _kv(label: str, value: str, width: int = 18, hint: str = "") -> None:
+        """Print a key-value pair with consistent alignment and optional hint."""
+        suffix = f"  {c.dim(hint)}" if hint else ""
+        print(f"    {label + ':':{width}s} {value}{suffix}")
 
     # ── Header ──
     header_border = h_line * 60
@@ -2009,14 +2035,14 @@ def run(
 
     # ── Repository Info ──
     _section("Repository")
-    _kv("Remote URL", remote_url)
-    _kv("Current branch", c.green(current_branch))
-    _kv("Default branch", default_branch)
-    _kv("Upstream", upstream_status)
-    _kv("User", f"{user_name} <{user_email}>")
-    _kv("Commits", str(commit_count))
-    _kv("Contributors", str(contributors))
-    _kv("Repo age", repo_age)
+    _kv("Remote URL", remote_url, hint="origin fetch/push URL")
+    _kv("Current branch", c.green(current_branch), hint="your active branch (HEAD)")
+    _kv("Default branch", default_branch, hint="base branch for PRs")
+    _kv("Upstream", upstream_status, hint="remote tracking status")
+    _kv("User", f"{user_name} <{user_email}>", hint="from git config")
+    _kv("Commits", str(commit_count), hint="total repo history")
+    _kv("Contributors", str(contributors), hint="unique commit authors")
+    _kv("Repo age", repo_age, hint="first commit to now")
 
     # ── Git Configuration (top 18 — use --export-config for full reference) ──
     if git_config:
@@ -2065,6 +2091,7 @@ def run(
     # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
         _section(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
+        print(f"    {c.dim('Daily commit frequency on this branch')}")
         max_count = max(commit_freq.values()) if commit_freq else 1
         for date in sorted(commit_freq):
             count = commit_freq[date]
@@ -2080,17 +2107,23 @@ def run(
         _section(
             f"Recent File Changes {dash} {c.green(current_branch)} (last 5 commits)"
         )
+        print(
+            f"    {c.dim('Diff of HEAD~5..HEAD — only the last 5 commits on this branch')}"
+        )
         fc = file_changes
         ins = fc.get("insertions", 0)
         dels = fc.get("deletions", 0)
         files = fc.get("files_changed", 0)
-        _kv("Files changed", str(files))
-        _kv("Insertions", c.green(f"+{ins}"))
-        _kv("Deletions", c.red(f"-{dels}"))
+        _kv("Files changed", str(files), hint="unique files touched")
+        _kv("Insertions", c.green(f"+{ins}"), hint="lines added")
+        _kv("Deletions", c.red(f"-{dels}"), hint="lines removed")
 
     # ── Repo Branch Activity (top 5 most recent) ──
     if branch_activity:
         _section("Repo Branch Activity (top 5 most recent)")
+        print(
+            f"    {c.dim('Total diff of each branch vs merge-base with default branch')}"
+        )
         # Dynamic column width based on longest branch name (cap at 50)
         max_name = max((len(str(e["base_name"])) for e in branch_activity), default=20)
         name_w = min(max(max_name, 10), 50)
@@ -2134,6 +2167,7 @@ def run(
         _kv(
             "Branch commits",
             f"{branch_commits}  {c.dim(f'(repo total: {commit_count})')}",
+            hint="commits unique to this branch",
         )
     else:
         _kv("Total commits", str(commit_count))
@@ -2160,40 +2194,55 @@ def run(
             f"vs {default_branch}",
             f"{vd_f} files changed, "
             f"{c.green(f'+{vd_i}')} insertions, {c.red(f'-{vd_d}')} deletions",
+            hint="total diff from default branch",
         )
     else:
-        _kv(f"vs {default_branch}", c.dim("no divergence"))
+        _kv(
+            f"vs {default_branch}",
+            c.dim("no divergence"),
+            hint="total diff from default branch",
+        )
     if st_f or st_i or st_d:
         _kv(
             "Staged",
             f"{st_f} files changed, "
             f"{c.green(f'+{st_i}')} insertions, {c.red(f'-{st_d}')} deletions",
+            hint="changes in index (git add)",
         )
     else:
-        _kv("Staged", c.dim("nothing staged"))
+        _kv("Staged", c.dim("nothing staged"), hint="changes in index (git add)")
     if us_f or us_i or us_d:
         _kv(
             "Unstaged",
             f"{us_f} files changed, "
             f"{c.green(f'+{us_i}')} insertions, {c.red(f'-{us_d}')} deletions",
+            hint="modified but not yet staged",
         )
     else:
-        _kv("Unstaged", c.dim("clean"))
+        _kv("Unstaged", c.dim("clean"), hint="modified but not yet staged")
 
     # ── Branch Characteristics ──
     if branch_chars:
         _section(f"Branch Characteristics: {c.green(current_branch)}")
-        # Ordered characteristics with semantic coloring
-        char_keys: list[tuple[str, str]] = [
-            ("Default branch", "behind_default"),
-            ("Ahead of default", "ahead_default"),
-            ("Head position", "on_default_head"),
-            ("Activity", "stale"),
-            ("Commit density", "commit_density"),
-            ("Branch age", "branch_age"),
-            ("Merge status", "fast_forwardable"),
-            ("Remote", "local_only"),
-            ("Unpushed", "unpushed"),
+        # Ordered characteristics with semantic coloring and descriptor hints
+        char_keys: list[tuple[str, str, str]] = [
+            (
+                "Default branch",
+                "behind_default",
+                "commits on default not on this branch",
+            ),
+            ("Ahead of default", "ahead_default", "commits unique to this branch"),
+            (
+                "Head position",
+                "on_default_head",
+                "whether branch tip matches default tip",
+            ),
+            ("Activity", "stale", "time since last commit on this branch"),
+            ("Commit density", "commit_density", "recent commit frequency"),
+            ("Branch age", "branch_age", "when branch first diverged from default"),
+            ("Merge status", "fast_forwardable", "can branch merge without conflicts"),
+            ("Remote", "local_only", "whether branch is pushed to remote"),
+            ("Unpushed", "unpushed", "local commits not yet on remote"),
         ]
         # Keywords that indicate good/warning/info states
         _good = (
@@ -2213,18 +2262,22 @@ def run(
             "no commits",
             "local only",
         )
-        for label, key in char_keys:
+        for label, key, hint_text in char_keys:
             val = branch_chars.get(key, "")
             if not val:
                 continue
             if any(w in val for w in _warn):
-                _kv(label, c.yellow(val))
+                _kv(label, c.yellow(val), hint=hint_text)
             elif any(w in val for w in _good):
-                _kv(label, c.green(val))
+                _kv(label, c.green(val), hint=hint_text)
             else:
-                _kv(label, c.cyan(val))
+                _kv(label, c.cyan(val), hint=hint_text)
         if "conflicts" in branch_chars:
-            _kv("Conflicts", c.red(branch_chars["conflicts"]))
+            _kv(
+                "Conflicts",
+                c.red(branch_chars["conflicts"]),
+                hint="unresolved merge conflicts",
+            )
 
     # ── Last Merge from Default Branch ──
     if last_merge and current_branch != default_branch:
@@ -2235,24 +2288,34 @@ def run(
         author = last_merge.get("author", "")
         default_ahead = last_merge.get("default_ahead", "0")
         current_ahead = last_merge.get("current_ahead", "0")
-        _kv("Merge base", f"{sha} {msg}  {c.dim(rel_date)}")
+        _kv(
+            "Merge base",
+            f"{sha} {msg}  {c.dim(rel_date)}",
+            hint="last common ancestor with default",
+        )
         if author:
             _kv("Author", author)
         if default_ahead != "0":
             _kv(
                 f"{default_branch} ahead",
                 f"{c.yellow(default_ahead)} commit(s) ahead of merge base",
+                hint="new work on default since you branched",
             )
         if current_ahead != "0":
             _kv(
                 "Branch ahead",
                 f"{c.cyan(current_ahead)} commit(s) ahead of merge base",
+                hint="your unique work since branching",
             )
         if branch_divergence:
             div_sha = c.yellow(branch_divergence.get("sha", ""))
             div_msg = branch_divergence.get("message", "")
             div_date = branch_divergence.get("date", "")
-            _kv("Branch started", f"{div_sha} {div_msg}  {c.dim(div_date)}")
+            _kv(
+                "Branch started",
+                f"{div_sha} {div_msg}  {c.dim(div_date)}",
+                hint="first commit on this branch",
+            )
 
     # ── Working Tree ──
     if any(working_tree.values()) or modified_files:
@@ -2342,7 +2405,9 @@ def run(
     # ── Stashes ──
     if stash_count > 0:
         _section("Stashes")
-        print(f"    {c.yellow(str(stash_count))} stash(es) saved")
+        print(
+            f"    {c.yellow(str(stash_count))} stash(es) saved  {c.dim('shelved changes via git stash')}"
+        )
 
     # ── Release Please ──
     _section("Release Please")
