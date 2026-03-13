@@ -92,6 +92,7 @@ nav:
       - Dev Setup: development/dev-setup.md
       - Developer Commands: development/developer-commands.md
       - Command Workflows: development/command-workflows.md
+      - Branch Workflows: development/branch-workflows.md
       - Pull Requests: development/pull-requests.md
   - CI/CD:
       - Workflows: workflows.md

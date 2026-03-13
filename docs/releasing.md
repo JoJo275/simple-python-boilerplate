@@ -2,6 +2,10 @@
 
 This guide covers the automated release process and how releases are created.
 
+For branch management, keeping branches up to date, team collaboration
+patterns, and understanding CI workflow triggers, see
+[Branch Workflows](development/branch-workflows.md).
+
 ---
 
 ## Overview
@@ -832,6 +836,7 @@ git push origin :refs/tags/v1.0.0
 
 ## See Also
 
+- [Branch Workflows](development/branch-workflows.md) — Branch management, rebasing, team patterns
 - [Release Policy](release-policy.md) — Versioning, deprecation, and support policy
 - [CHANGELOG.md](../CHANGELOG.md) — Version history
 - [CONTRIBUTING.md](../CONTRIBUTING.md) — Contribution guidelines

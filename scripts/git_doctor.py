@@ -955,7 +955,19 @@ def get_branch_characteristics() -> dict[str, str]:
         if sha_cur == sha_def:
             chars["on_default_head"] = f"at {default} HEAD"
         else:
-            chars["on_default_head"] = f"diverged from {default}"
+            # Determine if we're ahead (normal feature branch) or behind+ahead
+            # to give a more helpful description than just "diverged"
+            code_behind, out_behind, _ = _run_git(
+                ["rev-list", "--count", f"HEAD..{base}"]
+            )
+            behind_count = int(out_behind) if code_behind == 0 and out_behind else -1
+            if behind_count == 0:
+                # Branch has all of default's commits but also has its own
+                chars["on_default_head"] = (
+                    f"ahead of {default} (contains all {default} commits)"
+                )
+            else:
+                chars["on_default_head"] = f"diverged from {default}"
 
     # Behind default branch count
     code, out, _ = _run_git(["rev-list", "--count", f"HEAD..{base}"])
@@ -1745,7 +1757,7 @@ def check_merge_base_freshness() -> tuple[bool, str]:
         False,
         f"{default} is {default_ahead} commits ahead "
         f"(merge-base: {rel_date}) "
-        f"- consider: git merge {default}",
+        f"- consider: git fetch origin && git rebase origin/{default}",
     )
 
 
@@ -1954,6 +1966,8 @@ def run(
     bar_char = "\u2588" if use_unicode else "#"
     bar_left = "\u258c" if use_unicode else "["
     bar_right = "\u2590" if use_unicode else "]"
+    bar_top = "\u2580" if use_unicode else "-"  # ▀ upper half block
+    bar_bottom = "\u2584" if use_unicode else "-"  # ▄ lower half block
     dash = sym["dash"]
     c = Colors(enabled=use_color)
 
@@ -2085,9 +2099,20 @@ def run(
         _section(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
         print(f"    {c.dim('Daily commit frequency on this branch')}")
         max_count = max(commit_freq.values()) if commit_freq else 1
-        for date in sorted(commit_freq):
+        # Pre-compute bar lengths for top/bottom outline alignment
+        sorted_dates = sorted(commit_freq)
+        bar_data: list[tuple[str, int, int]] = []
+        for date in sorted_dates:
             count = commit_freq[date]
             bar_len = int((count / max_count) * 30) if max_count > 0 else 0
+            bar_data.append((date, count, bar_len))
+        # Date column width (YYYY-MM-DD = 10)
+        date_w = 10
+        for date, count, bar_len in bar_data:
+            # Top outline — cap above the bar
+            if bar_len > 0:
+                top_line = bar_top * (bar_len + 2)  # +2 for left/right edges
+                print(f"    {'':{date_w}s}  {c.dim(top_line)}")
             inner = bar_char * bar_len if bar_len > 0 else ""
             bar = (
                 c.green(f"{bar_left}{inner}{bar_right}")
@@ -2095,6 +2120,10 @@ def run(
                 else c.dim(bar_left + bar_right)
             )
             print(f"    {date}  {bar} {count}")
+            # Bottom outline — cap below the bar
+            if bar_len > 0:
+                bottom_line = bar_bottom * (bar_len + 2)  # +2 for left/right edges
+                print(f"    {'':{date_w}s}  {c.dim(bottom_line)}")
         total_recent = sum(commit_freq.values())
         avg = total_recent / len(commit_freq) if commit_freq else 0
         print(f"    {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
@@ -2232,7 +2261,7 @@ def run(
             (
                 "Head position",
                 "on_default_head",
-                "whether branch tip matches default tip",
+                "branch tip vs default tip (can be ahead and up-to-date)",
             ),
             ("Activity", "stale", "time since last commit on this branch"),
             ("Commit density", "commit_density", "recent commit frequency"),
@@ -2249,6 +2278,7 @@ def run(
             "fast-forwardable",
             "all commits pushed",
             "contained",
+            "ahead of",
         )
         _warn = (
             "stale",
