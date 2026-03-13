@@ -943,7 +943,8 @@ run `python scripts/git_doctor.py --export-config` to generate
 | Architecture overview              | [architecture.md](design/architecture.md)                         |
 | Templates & examples inventory     | [template-inventory.md](reference/template-inventory.md)          |
 | Known issues & tech debt           | [known-issues.md](known-issues.md)                                |
-| Learning resources                 | [resources.md](notes/resources.md)                                |
+| Learning resources (links)         | [resources_links.md](notes/resources_links.md)                    |
+| Learning resources (written)       | [resources_written.md](notes/resources_written.md)                |
 | Release policy                     | [releasing.md](releasing.md)                                      |
 | Contributing guide                 | [CONTRIBUTING.md](../CONTRIBUTING.md)                             |
 | ADR index                          | [docs/adr/](adr/README.md)                                        |
@@ -1319,5 +1320,6 @@ template but listed here so you see how they compare to alternatives.
 - **[Troubleshooting & FAQ](guide/troubleshooting.md)** — covers common errors
   for installation, pre-commit, CI/CD, testing, linting, Git, containers, and more
 - **[GitHub Discussions](https://github.com/JoJo275/simple-python-boilerplate/discussions)** — ask questions, share ideas, or get help from the community
-- **[Learning resources](notes/resources.md)** — curated links by topic
+- **[Learning resources (links)](notes/resources_links.md)** — curated external links by topic
+- **[Learning resources (written)](notes/resources_written.md)** — self-written references and cheat sheets
 - Open an issue on the [template repository](https://github.com/JoJo275/simple-python-boilerplate)

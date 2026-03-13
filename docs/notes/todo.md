@@ -198,7 +198,8 @@ Things to explore, implement, or learn more about.
 
 ### docs/notes/
 
-- [x] Final file check: docs/notes/resources.md
+- [x] Final file check: docs/notes/resources_links.md
+- [x] Final file check: docs/notes/resources_written.md
 - [x] Final file check: docs/notes/learning.md
 - [x] Final file check: docs/notes/tool-comparison.md
 - [ ] Final file check: docs/notes/README.md

@@ -160,7 +160,7 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
 5. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
 6. Install hooks: `task pre-commit:install`
 
-See [USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for the full walkthrough and [resources.md](docs/notes/resources.md) for curated learning links.
+See [USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for the full walkthrough, [resources_links.md](docs/notes/resources_links.md) for curated learning links, and [resources_written.md](docs/notes/resources_written.md) for self-written references.
 
 ## Documentation
 
