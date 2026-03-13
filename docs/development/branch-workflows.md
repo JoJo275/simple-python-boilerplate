@@ -24,7 +24,11 @@ by branch protection.
 ### Quick Reference
 
 ```bash
-# Start a new branch from latest main
+# Interactive branch creation (recommended)
+task branch:create
+# or: python scripts/git_doctor.py --new-branch
+
+# Manual: start a new branch from latest main
 git fetch origin
 git switch -c feature/my-feature origin/main
 
