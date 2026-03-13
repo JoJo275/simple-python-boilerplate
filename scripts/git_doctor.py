@@ -10,7 +10,9 @@ Flags::
     --no-color        Disable colored output
     --json            Output results as JSON (for CI integration)
     --export-config   Export full git config reference to Markdown file
+    --apply-from PATH Apply desired values from an edited reference file
     --fix             Auto-apply recommended git config settings
+    --dry-run         With --fix or --apply-from, preview without applying
     --version         Print version and exit
 
 Usage::
@@ -20,6 +22,16 @@ Usage::
     python scripts/git_doctor.py --no-color
     python scripts/git_doctor.py --fix
     python scripts/git_doctor.py --fix --dry-run
+    python scripts/git_doctor.py --export-config
+    python scripts/git_doctor.py --apply-from git-config-reference.md
+    python scripts/git_doctor.py --apply-from git-config-reference.md --dry-run
+
+Workflow for editing and applying config::
+
+    1. Export:   python scripts/git_doctor.py --export-config
+    2. Edit:     Open git-config-reference.md, change "Desired value" cells
+    3. Preview:  python scripts/git_doctor.py --apply-from git-config-reference.md --dry-run
+    4. Apply:    python scripts/git_doctor.py --apply-from git-config-reference.md
 
 .. note::
    ``--export-config`` writes to ``git-config-reference.md`` by default
@@ -87,7 +99,7 @@ from _progress import Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "2.0.0"
+SCRIPT_VERSION = "2.1.0"
 
 logger = logging.getLogger(__name__)
 
@@ -198,6 +210,12 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Which whitespace problems git notices (trailing-space, space-before-tab, etc.)",
         "Default is fine for most projects",
     ),
+    (
+        "core.ignorecase",
+        "local",
+        "Whether filenames are case-insensitive (auto-detected on clone). Affects 'git mv'",
+        "Auto-detected; usually 'true' on Windows/macOS, 'false' on Linux",
+    ),
     # ── Fetch ──
     (
         "fetch.prune",
@@ -295,6 +313,13 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "REuse REcorded Resolution -- remember and replay merge conflict fixes",
         "'true' -- saves time on repeated rebases",
     ),
+    # ── Stash ──
+    (
+        "stash.showPatch",
+        "global",
+        "Show the patch (diff) in 'git stash show' instead of just a file stat summary",
+        "'true' for detailed stash inspection",
+    ),
     # ── Branch & Init ──
     (
         "branch.autosetuprebase",
@@ -309,6 +334,12 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "'-committerdate'",
     ),
     ("init.defaultBranch", "global", "Default branch name for 'git init'", "'main'"),
+    (
+        "tag.sort",
+        "global",
+        "Sort for 'git tag': 'version:refname' gives natural version ordering (v1.9 < v1.10)",
+        "'version:refname'",
+    ),
     # ── Identity & Signing ──
     (
         "user.name",
@@ -390,6 +421,12 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Max files for rename detection. Increase if git misses renames in large changesets",
         "Increase (e.g. 5000) for large repos",
     ),
+    (
+        "diff.submodule",
+        "global",
+        "Submodule diff format: 'log' shows commit summaries, 'short' shows only SHAs",
+        "'log' if you use submodules",
+    ),
     # ── Log & Display ──
     (
         "log.date",
@@ -460,6 +497,19 @@ GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
         "Untracked file display: 'all'=individual files, 'normal'=group by directory",
         "'all' for complete visibility",
     ),
+    # ── Advice ──
+    (
+        "advice.detachedHead",
+        "global",
+        "Show the advice message when entering detached HEAD state",
+        "'false' to suppress if you frequently check out tags or SHAs",
+    ),
+    (
+        "advice.statusHints",
+        "global",
+        "Show hints in 'git status' about staging, unstaging, and conflict resolution",
+        "'true' (default) for beginners, 'false' for cleaner output",
+    ),
     # ── Protocol ──
     (
         "protocol.version",
@@ -484,14 +534,15 @@ SECTION_DESCRIPTIONS: dict[str, str] = {
     "Merge": "How git handles merges and conflict markers.",
     "Rebase": "Rebase workflow helpers: auto-stash, fixup squashing, stacked refs.",
     "Rerere": "Reuse recorded resolutions for recurring merge conflicts.",
-    "Branch & Init": "Branch display, sorting, and defaults for new repositories.",
+    "Stash": "Temporary work storage: stash display and behavior.",
+    "Branch & Init": "Branch/tag display, sorting, and defaults for new repositories.",
     "Identity & Signing": "Author identity and GPG/SSH commit/tag signing.",
     "Commit": "Commit message templates and editor behavior.",
     "Diff": "Diff algorithm, moved-line detection, and rename handling.",
     "Log & Display": "Date format, color output, and column display for listings.",
     "Credential & Transfer": "Credential storage, SSL, and object integrity verification.",
     "Performance": "Garbage collection, index format, and large-repo optimizations.",
-    "Help & UX": "Autocorrect, untracked file display, and other UX settings.",
+    "Help & UX": "Autocorrect, advice messages, and other UX settings.",
     "Protocol": "Git wire protocol version for network communication.",
 }
 
@@ -515,9 +566,12 @@ CONFIG_SECTION_MAP: dict[str, str] = {
     "index": "Performance",
     "help": "Help & UX",
     "status": "Help & UX",
+    "advice": "Help & UX",
+    "stash": "Stash",
     # Key-specific (when prefix alone is ambiguous)
     "commit.gpgsign": "Identity & Signing",
     "tag.gpgsign": "Identity & Signing",
+    "tag.sort": "Branch & Init",
 }
 
 
@@ -1971,12 +2025,19 @@ def run(
         _section(
             f"Git Configuration  {c.dim(f'({set_count} set, {unset_count} unset)')}"
         )
+        # Column layout — widened to accommodate longer config key names
+        key_w = 30
+        scope_w = 12
+        val_w = 20
+        total_w = key_w + scope_w + val_w + 2  # +2 for spaces between columns
         # Column headers
-        hdr_key = c.dim("Key".ljust(24))
-        hdr_scope = c.dim("Scope".ljust(10))
+        hdr_key = c.dim("Key".ljust(key_w))
+        hdr_scope = c.dim("Scope".ljust(scope_w))
         hdr_val = c.dim("Value")
         print(f"    {hdr_key} {hdr_scope} {hdr_val}")
-        print(f"    {c.dim(h_line * 24)} {c.dim(h_line * 10)} {c.dim(h_line * 20)}")
+        print(
+            f"    {c.dim(h_line * key_w)} {c.dim(h_line * scope_w)} {c.dim(h_line * val_w)}"
+        )
         # Group keys by their logical section for visual separation
         current_group = ""
         for key, val in git_config.items():
@@ -1985,13 +2046,17 @@ def run(
                 if current_group:
                     print()  # blank line between groups
                 current_group = group
-                print(f"    {c.cyan(group)}")
+                # Prominent section header with colored borders
+                pad_len = max(total_w - len(group) - 3, 4)
+                group_line = f"{h_line * 2} {group} {h_line * pad_len}"
+                print(f"    {c.bold(c.cyan(group_line))}")
             scope = git_config_scopes.get(key, "unset")
-            scope_str = f"[{scope}]".ljust(10)
+            scope_str = f"[{scope}]".ljust(scope_w)
+            key_padded = key.ljust(key_w)
             if val == "(unset)":
-                print(f"    {c.dim(key):24s} {c.dim(scope_str)} {c.dim(val)}")
+                print(f"    {c.dim(key_padded)} {c.dim(scope_str)} {c.dim(val)}")
             else:
-                print(f"    {key:24s} {c.dim(scope_str)} {c.cyan(val)}")
+                print(f"    {key_padded} {c.dim(scope_str)} {c.cyan(val)}")
         print()
         print(
             f"    {c.dim('Run with --export-config for full reference, --fix to apply recommended')}"
@@ -2522,16 +2587,244 @@ def export_git_config_reference(filepath: str) -> str:
 
         lines.append(f"### `{key}`")
         lines.append("")
-        lines.append(f"- **Current value:** `{value}`")
-        lines.append(f"- **Set in:** {scope}")
-        lines.append(f"- **Recommended scope:** {rec_scope}")
-        lines.append(f"- **Description:** {description}")
-        lines.append(f"- **Recommendation:** {recommendation}")
+        lines.append(
+            "| Property | Value |",
+        )
+        lines.append("|:---------|:------|")
+        lines.append(f"| **Current value** | `{value}` |")
+        lines.append(f"| **Set in** | {scope} |")
+        lines.append(f"| **Recommended scope** | {rec_scope} |")
+        lines.append("| **Desired value** | _(no change)_ |")
         lines.append("")
+        lines.append(f"**Description:** {description}")
+        lines.append("")
+        lines.append(f"**Recommendation:** {recommendation}")
+        lines.append("")
+
+    # ── .gitattributes Reference ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## .gitattributes Reference",
+            "",
+            "`.gitattributes` controls per-path settings in your repository.",
+            "Unlike `.gitconfig`, these settings are **committed and shared**",
+            "with all collaborators. Place this file in the repository root.",
+            "",
+            "### Sample .gitattributes",
+            "",
+            "```text",
+            "# ── Line Endings ─────────────────────────────────────────",
+            "# Force LF in the repo, let git handle working-tree conversion",
+            "* text=auto eol=lf",
+            "",
+            "# Explicitly mark text files (override auto-detection)",
+            "*.py    text eol=lf",
+            "*.md    text eol=lf",
+            "*.yml   text eol=lf",
+            "*.yaml  text eol=lf",
+            "*.toml  text eol=lf",
+            "*.json  text eol=lf",
+            "*.html  text eol=lf",
+            "*.css   text eol=lf",
+            "*.js    text eol=lf",
+            "*.sh    text eol=lf",
+            "",
+            "# Windows-specific files that need CRLF",
+            "*.bat   text eol=crlf",
+            "*.cmd   text eol=crlf",
+            "*.ps1   text eol=crlf",
+            "",
+            "# ── Binary Files ─────────────────────────────────────────",
+            "# Mark binary files so git doesn't try to diff/merge them",
+            "*.png    binary",
+            "*.jpg    binary",
+            "*.jpeg   binary",
+            "*.gif    binary",
+            "*.ico    binary",
+            "*.woff   binary",
+            "*.woff2  binary",
+            "*.ttf    binary",
+            "*.zip    binary",
+            "*.tar.gz binary",
+            "*.sqlite3 binary",
+            "*.db     binary",
+            "*.pdf    binary",
+            "",
+            "# ── Diff Drivers ─────────────────────────────────────────",
+            "# Better diffs for specific file types",
+            "*.md diff=markdown",
+            "*.py diff=python",
+            "",
+            "# ── Export Ignore ────────────────────────────────────────",
+            "# Files excluded from 'git archive' exports",
+            ".gitattributes   export-ignore",
+            ".gitignore       export-ignore",
+            ".github/         export-ignore",
+            "tests/           export-ignore",
+            "docs/            export-ignore",
+            "Taskfile.yml     export-ignore",
+            "*.code-workspace export-ignore",
+            "",
+            "# ── Linguist (GitHub) ────────────────────────────────────",
+            "# Override GitHub's language statistics",
+            "docs/*    linguist-documentation",
+            "scripts/* linguist-vendored=false",
+            "```",
+            "",
+            "### Pattern Syntax",
+            "",
+            "| Pattern | Meaning |",
+            "|:--------|:--------|",
+            "| `*` | Match all files |",
+            "| `*.py` | Match files ending in .py |",
+            "| `text` | Treat as text (enable line-ending conversion) |",
+            "| `text=auto` | Let git detect text vs binary |",
+            "| `binary` | Treat as binary (no newline conversion, no diff) |",
+            "| `eol=lf` | Force LF line endings in the repository |",
+            "| `eol=crlf` | Force CRLF in the working tree |",
+            "| `diff=python` | Use Python-aware diff heuristics |",
+            "| `export-ignore` | Exclude from `git archive` exports |",
+            "| `linguist-documentation` | Mark as documentation for GitHub stats |",
+            "",
+            "---",
+            "",
+            "## Applying Changes from This File",
+            "",
+            "You can edit the **Desired value** column in any config entry above,",
+            "then apply all changes at once:",
+            "",
+            "```bash",
+            "python scripts/git_doctor.py --apply-from git-config-reference.md",
+            "```",
+            "",
+            "This reads each entry's **Desired value** and applies it via",
+            "`git config`. Only entries where you changed `_(no change)_` to",
+            "an actual value are applied. The **Recommended scope** determines",
+            "whether it's set at `--local` or `--global` scope.",
+            "",
+            "To preview what would change without applying:",
+            "",
+            "```bash",
+            "python scripts/git_doctor.py --apply-from git-config-reference.md --dry-run",
+            "```",
+            "",
+        ]
+    )
 
     out_path = Path(filepath).resolve()
     out_path.write_text("\n".join(lines), encoding="utf-8")
     return str(out_path)
+
+
+# ---------------------------------------------------------------------------
+# Apply config from reference file
+# ---------------------------------------------------------------------------
+
+
+def apply_from_reference(filepath: str, *, dry_run: bool = False) -> int:
+    """Apply git config changes from an edited git-config-reference.md file.
+
+    Parses the Markdown file for entries where the **Desired value** column
+    has been changed from ``_(no change)_`` to an actual value.  Applies
+    each change via ``git config`` at the scope specified in the
+    **Recommended scope** column.
+
+    Args:
+        filepath: Path to the edited reference Markdown file.
+        dry_run: If True, print what would be changed without applying.
+
+    Returns:
+        Number of settings applied (or that would be applied in dry-run).
+    """
+    from pathlib import Path
+
+    use_color = _supports_color(sys.stdout)
+    c = Colors(enabled=use_color)
+
+    ref_path = Path(filepath)
+    if not ref_path.is_file():
+        print(c.red(f"File not found: {filepath}"))
+        return 0
+
+    content = ref_path.read_text(encoding="utf-8")
+
+    # Parse each config key block:
+    #   ### `key.name`
+    #   | Property | Value |
+    #   |:---------|:------|
+    #   | **Current value** | `...` |
+    #   | **Set in** | ... |
+    #   | **Recommended scope** | ... |
+    #   | **Desired value** | ... |
+    key_pattern = re.compile(r"^### `(.+?)`$", re.MULTILINE)
+
+    applied = 0
+    skipped = 0
+
+    print()
+    print(c.bold("Apply Config from Reference" + (" (dry run)" if dry_run else "")))
+    print(c.dim("=" * 60))
+    print()
+
+    matches = list(key_pattern.finditer(content))
+    for i, match in enumerate(matches):
+        key = match.group(1)
+        # Extract the block between this key and the next (or end of file)
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(content)
+        block = content[start:end]
+
+        # Find Desired value in table row
+        desired_match = re.search(
+            r"\|\s*\*\*Desired value\*\*\s*\|\s*(.+?)\s*\|", block
+        )
+        if not desired_match:
+            continue
+        desired_raw = desired_match.group(1).strip()
+
+        # Skip entries where user didn't change the value
+        if desired_raw in ("_(no change)_", "", "-"):
+            continue
+
+        # Strip backticks and quotes if user wrapped the value
+        desired = desired_raw.strip("`'\"")
+        if not desired:
+            continue
+
+        # Find recommended scope from table
+        scope_match = re.search(
+            r"\|\s*\*\*Recommended scope\*\*\s*\|\s*(.+?)\s*\|", block
+        )
+        scope = scope_match.group(1).strip() if scope_match else "global"
+
+        if dry_run:
+            print(f"  {key:40s} {c.cyan('would set')}   --{scope} {desired}")
+        else:
+            code, _, err = _run_git(["config", f"--{scope}", key, desired])
+            if code == 0:
+                print(f"  {key:40s} {c.green('applied')}     --{scope} {desired}")
+            else:
+                print(f"  {key:40s} {c.red('failed')}      {err}")
+        applied += 1
+
+    if applied == 0:
+        skipped = len(matches)
+        print(
+            c.dim(
+                "  No changes found. Edit the 'Desired value' column in the\n"
+                "  reference file, then re-run this command."
+            )
+        )
+
+    print()
+    if dry_run:
+        print(c.cyan(f"{applied} setting(s) would be applied, {skipped} unchanged"))
+    else:
+        print(c.green(f"{applied} setting(s) applied, {skipped} unchanged"))
+    print()
+    return applied
 
 
 # ---------------------------------------------------------------------------
@@ -2578,9 +2871,17 @@ def main() -> int:
         help="Apply recommended git config settings (only sets unset values)",
     )
     parser.add_argument(
+        "--apply-from",
+        default=None,
+        metavar="PATH",
+        help="Apply desired values from an edited config reference file "
+        "(exported with --export-config). Edit the 'Desired value' column, "
+        "then run this to apply changes.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="With --fix, show what would be changed without applying",
+        help="With --fix or --apply-from, show what would be changed without applying",
     )
     args = parser.parse_args()
 
@@ -2588,6 +2889,11 @@ def main() -> int:
         level=logging.INFO,
         format="%(levelname)s: %(message)s",
     )
+
+    # --apply-from mode: apply desired values from edited reference file
+    if args.apply_from:
+        apply_from_reference(args.apply_from, dry_run=args.dry_run)
+        return 0
 
     # --fix mode: apply recommended configs and exit
     if args.fix:
