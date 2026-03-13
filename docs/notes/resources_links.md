@@ -220,3 +220,6 @@ Every tool declared in `pyproject.toml` `[project.optional-dependencies]`:
 
 This is a living document — add links as you discover useful resources and
 remove ones that go stale.
+
+For self-written references and cheat sheets (e.g., Git commands), see
+[resources_written.md](resources_written.md).

@@ -46,7 +46,8 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 | [Troubleshooting](guide/troubleshooting.md)            | Common issues and fixes                      |
 | [Security Policy](../SECURITY.md)                      | Vulnerability reporting and tooling          |
 | [Learning Notes](notes/learning.md)                    | Concepts and tool comparisons from building  |
-| [Resources](notes/resources.md)                        | Curated links and further reading            |
+| [Resources (Links)](notes/resources_links.md)          | Curated external links and further reading   |
+| [Resources (Written)](notes/resources_written.md)      | Self-written references and cheat sheets     |
 
 ## Project layout
 

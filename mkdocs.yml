@@ -149,7 +149,8 @@ nav:
       - Issue Templates: templates/issue_templates/README.md
   - Notes:
       - Learning: notes/learning.md
-      - Resources: notes/resources.md
+      - Resources (Links): notes/resources_links.md
+      - Resources (Written): notes/resources_written.md
       - Tool Comparison: notes/tool-comparison.md
       - Archive: notes/archive.md
       - TODO: notes/todo.md

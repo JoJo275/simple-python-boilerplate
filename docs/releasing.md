@@ -721,6 +721,54 @@ scoped only to the permissions you grant — no broader access than needed.
      (it only contains CHANGELOG + version bump). The next Release PR will
      use the App token correctly.
 
+### Merge Conflicts on a Feature Branch
+
+If your PR shows merge conflicts on GitHub, **CI workflows will not run**.
+GitHub cannot create the temporary merge commit (`refs/pull/<n>/merge`) when
+conflicts exist, so `pull_request`-triggered workflows never fire. The `gate`
+check stays stuck at "Waiting for status to be reported" indefinitely.
+
+**Why this happens:** Someone pushed changes to `main` that touch the same
+files your branch modifies. This is common after merging another PR or a
+release-please PR that updates `CHANGELOG.md` or workflow files.
+
+**Recommended fix — rebase locally:**
+
+Resolving conflicts in GitHub's web editor is possible but has a downside:
+GitHub creates a merge commit, which disables the **Rebase and merge** button
+(the merge strategy this project uses). Always rebase locally instead:
+
+```bash
+git checkout your-branch          # switch to your feature branch
+git fetch origin                  # download latest main
+git rebase origin/main            # replay your commits on top of updated main
+# resolve any conflicts file-by-file:
+#   1. edit the conflicted files
+#   2. git add <file>
+#   3. git rebase --continue
+git push --force-with-lease       # update the remote branch (rebase rewrites history)
+```
+
+After the force-push, the PR becomes conflict-free and CI workflows trigger
+automatically.
+
+**Key points:**
+
+- **Use `--force-with-lease`**, not `--force`. It refuses to push if the
+  remote branch has commits you haven't seen — protecting against overwriting
+  a collaborator's work.
+- **Don't resolve conflicts on GitHub's web editor.** It creates a merge
+  commit that makes your branch non-linear, greying out Rebase and merge.
+  If you already did this, rebase locally to flatten the history.
+- **If rebase gets messy**, abort and start over:
+
+  ```bash
+  git rebase --abort               # undo the in-progress rebase
+  ```
+
+- **After rebasing, CI re-runs from scratch** — previous check results
+  are invalidated because the commit SHAs changed.
+
 ### Release PR Not Appearing
 
 - Ensure `ENABLE_RELEASE_PLEASE` variable is set to `true`
