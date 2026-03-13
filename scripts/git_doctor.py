@@ -1952,62 +1952,54 @@ def run(
     use_unicode = _supports_unicode(sys.stdout)
     sym = _unicode_symbols(sys.stdout)
     bar_char = "\u2588" if use_unicode else "#"
+    bar_left = "\u258c" if use_unicode else "["
+    bar_right = "\u2590" if use_unicode else "]"
     dash = sym["dash"]
     c = Colors(enabled=use_color)
 
     # Box-drawing characters for section headers
     h_line = "\u2500" if use_unicode else "-"  # ─
+    h_double = "\u2550" if use_unicode else "="  # ═
     tl = "\u250c" if use_unicode else "+"  # ┌
     tr = "\u2510" if use_unicode else "+"  # ┐
     bl = "\u2514" if use_unicode else "+"  # └
     br = "\u2518" if use_unicode else "+"  # ┘
+    tl_d = "\u2554" if use_unicode else "+"  # ╔
+    tr_d = "\u2557" if use_unicode else "+"  # ╗
+    bl_d = "\u255a" if use_unicode else "+"  # ╚
+    br_d = "\u255d" if use_unicode else "+"  # ╝
     vl = "\u2502" if use_unicode else "|"  # │
+    vl_d = "\u2551" if use_unicode else "|"  # ║
     dot = "\u2022" if use_unicode else "*"  # •
-
-    # Section title color rotation — each major section gets a distinct color
-    _section_colors = [
-        c.cyan,
-        c.green,
-        c.yellow,
-        c.magenta,
-        c.blue,
-        c.cyan,
-        c.green,
-        c.yellow,
-        c.magenta,
-        c.blue,
-        c.cyan,
-        c.green,
-        c.yellow,
-        c.magenta,
-        c.blue,
-        c.cyan,
-        c.green,
-    ]
-    _section_idx = 0
 
     def _section(title: str) -> None:
         """Print a section header with colored box-drawing border."""
-        nonlocal _section_idx
-        color_fn = _section_colors[_section_idx % len(_section_colors)]
-        _section_idx += 1
         border = h_line * 60
         print()
-        print(color_fn(f"  {tl}{border}{tr}"))
-        print(f"  {color_fn(vl)} {c.bold(color_fn(title))}")
-        print(color_fn(f"  {bl}{border}{br}"))
+        print(c.cyan(f"  {tl}{border}{tr}"))
+        print(f"  {c.cyan(vl)} {c.bold(title)}")
+        print(c.cyan(f"  {bl}{border}{br}"))
 
     def _kv(label: str, value: str, width: int = 18, hint: str = "") -> None:
-        """Print a key-value pair with consistent alignment and optional hint."""
-        suffix = f"  {c.dim(hint)}" if hint else ""
-        print(f"    {label + ':':{width}s} {value}{suffix}")
+        """Print a key-value pair with consistent alignment.
+
+        When *hint* is provided it is rendered on a separate indented
+        line below the value in dim text, keeping the main line clean.
+        """
+        print(f"    {label + ':':{width}s} {value}")
+        if hint:
+            # Indent hint below, aligned past the label column
+            print(f"    {'':{width}s} {c.dim(hint)}")
 
     # ── Header ──
-    header_border = h_line * 60
+    header_border = h_double * 60
     print()
-    print(c.dim(f"  {header_border}"))
-    print(f"  {c.bold('Git Doctor')}  {c.dim(f'v{SCRIPT_VERSION}')}")
-    print(c.dim(f"  {header_border}"))
+    print(c.bold(c.cyan(f"  {tl_d}{header_border}{tr_d}")))
+    print(
+        f"  {c.bold(c.cyan(vl_d))} "
+        f"{c.bold(c.cyan('Git Doctor'))}  {c.dim(f'v{SCRIPT_VERSION}')}"
+    )
+    print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
 
     # Quick status bar — three indicators with explicit labels
     check = sym.get("check", "+")
@@ -2096,7 +2088,12 @@ def run(
         for date in sorted(commit_freq):
             count = commit_freq[date]
             bar_len = int((count / max_count) * 30) if max_count > 0 else 0
-            bar = c.green(bar_char * bar_len)
+            inner = bar_char * bar_len if bar_len > 0 else ""
+            bar = (
+                c.green(f"{bar_left}{inner}{bar_right}")
+                if bar_len > 0
+                else c.dim(bar_left + bar_right)
+            )
             print(f"    {date}  {bar} {count}")
         total_recent = sum(commit_freq.values())
         avg = total_recent / len(commit_freq) if commit_freq else 0
@@ -2447,7 +2444,7 @@ def run(
     total = len(health_results)
     passed = total - failures
     print()
-    print(c.dim(f"  {h_line * 60}"))
+    print(c.cyan(f"  {h_double * 60}"))
     if failures == 0:
         sym_str = c.green(check_sym) if use_unicode else c.green("OK")
         print(f"  {sym_str} {c.green(f'All {total} health checks passed')}")
@@ -2460,7 +2457,7 @@ def run(
     print(
         f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
     )
-    print(c.dim(f"  {h_line * 60}"))
+    print(c.cyan(f"  {h_double * 60}"))
     print()
 
     return 1 if failures else 0
