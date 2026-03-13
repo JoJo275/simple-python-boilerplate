@@ -272,6 +272,11 @@ tasks:
       - hatch run spb {{.CLI_ARGS}}
 
   # ── Commit & Release ───────────────────────────────────────
+  branch:create:
+    desc: Interactive branch creation off origin/main
+    cmds:
+      - python scripts/git_doctor.py --new-branch {{.CLI_ARGS}}
+
   commit:
     desc: Interactive conventional commit (commitizen)
     cmds:

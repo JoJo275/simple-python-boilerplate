@@ -118,6 +118,11 @@ This is the PR you create for your code changes.
 
 **1. Create a feature branch:**
 
+> **Quick way:** Run `task branch:create` (or `python scripts/git_doctor.py --new-branch`)
+> for an interactive workflow that handles all the steps below automatically —
+> switches to main, fetches, creates the branch off `origin/main`, pushes
+> with upstream tracking, and prints a summary of every command it ran.
+
 First, make sure your local `main` matches the remote (fast-forward only prevents accidental merge commits):
 
 ```bash

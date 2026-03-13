@@ -13,6 +13,7 @@ Flags::
     --apply-from PATH Apply desired values from an edited reference file
     --fix             Auto-apply recommended git config settings
     --dry-run         With --fix or --apply-from, preview without applying
+    --new-branch      Interactive branch creation off origin/main
     --version         Print version and exit
 
 Usage::
@@ -22,6 +23,7 @@ Usage::
     python scripts/git_doctor.py --no-color
     python scripts/git_doctor.py --fix
     python scripts/git_doctor.py --fix --dry-run
+    python scripts/git_doctor.py --new-branch
     python scripts/git_doctor.py --export-config
     python scripts/git_doctor.py --apply-from git-config-reference.md
     python scripts/git_doctor.py --apply-from git-config-reference.md --dry-run
@@ -1966,8 +1968,6 @@ def run(
     bar_char = "\u2588" if use_unicode else "#"
     bar_left = "\u258c" if use_unicode else "["
     bar_right = "\u2590" if use_unicode else "]"
-    bar_top = "\u2580" if use_unicode else "-"  # ▀ upper half block
-    bar_bottom = "\u2584" if use_unicode else "-"  # ▄ lower half block
     dash = sym["dash"]
     c = Colors(enabled=use_color)
 
@@ -2099,20 +2099,13 @@ def run(
         _section(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
         print(f"    {c.dim('Daily commit frequency on this branch')}")
         max_count = max(commit_freq.values()) if commit_freq else 1
-        # Pre-compute bar lengths for top/bottom outline alignment
         sorted_dates = sorted(commit_freq)
         bar_data: list[tuple[str, int, int]] = []
         for date in sorted_dates:
             count = commit_freq[date]
             bar_len = int((count / max_count) * 30) if max_count > 0 else 0
             bar_data.append((date, count, bar_len))
-        # Date column width (YYYY-MM-DD = 10)
-        date_w = 10
-        for date, count, bar_len in bar_data:
-            # Top outline — cap above the bar
-            if bar_len > 0:
-                top_line = bar_top * (bar_len + 2)  # +2 for left/right edges
-                print(f"    {'':{date_w}s}  {c.dim(top_line)}")
+        for idx, (date, count, bar_len) in enumerate(bar_data):
             inner = bar_char * bar_len if bar_len > 0 else ""
             bar = (
                 c.green(f"{bar_left}{inner}{bar_right}")
@@ -2120,10 +2113,9 @@ def run(
                 else c.dim(bar_left + bar_right)
             )
             print(f"    {date}  {bar} {count}")
-            # Bottom outline — cap below the bar
-            if bar_len > 0:
-                bottom_line = bar_bottom * (bar_len + 2)  # +2 for left/right edges
-                print(f"    {'':{date_w}s}  {c.dim(bottom_line)}")
+            # Blank line between bars for visual separation (skip after last)
+            if idx < len(bar_data) - 1:
+                print()
         total_recent = sum(commit_freq.values())
         avg = total_recent / len(commit_freq) if commit_freq else 0
         print(f"    {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
@@ -2225,7 +2217,7 @@ def run(
     else:
         _kv(
             f"vs {default_branch}",
-            c.dim("no divergence"),
+            c.yellow("no divergence"),
             hint="total diff from default branch",
         )
     if st_f or st_i or st_d:
@@ -2236,7 +2228,7 @@ def run(
             hint="changes in index (git add)",
         )
     else:
-        _kv("Staged", c.dim("nothing staged"), hint="changes in index (git add)")
+        _kv("Staged", c.yellow("nothing staged"), hint="changes in index (git add)")
     if us_f or us_i or us_d:
         _kv(
             "Unstaged",
@@ -2245,7 +2237,7 @@ def run(
             hint="modified but not yet staged",
         )
     else:
-        _kv("Unstaged", c.dim("clean"), hint="modified but not yet staged")
+        _kv("Unstaged", c.yellow("clean"), hint="modified but not yet staged")
 
     # ── Branch Characteristics ──
     if branch_chars:
@@ -2360,13 +2352,13 @@ def run(
                 "modified (staged)": c.green,
                 "deleted": c.red,
                 "deleted (staged)": c.red,
-                "untracked": c.dim,
+                "untracked": c.cyan,
                 "conflicted": c.red,
                 "renamed": c.cyan,
                 "renamed (staged)": c.cyan,
             }
             for mf in modified_files:
-                color_fn = status_colors.get(mf["status"], c.dim)
+                color_fn = status_colors.get(mf["status"], c.cyan)
                 print(f"    {color_fn(mf['status'].ljust(18))} {mf['file']}")
             total_mf = len(modified_files)
             code_mf, out_mf, _ = _run_git(["status", "--porcelain"])
@@ -2442,7 +2434,7 @@ def run(
         for branch in rp_branches:
             print(f"    {c.cyan(branch)}")
     else:
-        print(f"    {c.dim('No release-please branches found')}")
+        print(f"    {c.yellow('No release-please branches found')}")
 
     # ── Health Checks ──
     _section("Health Checks")
@@ -2920,6 +2912,223 @@ def apply_from_reference(filepath: str, *, dry_run: bool = False) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Branch creation workflow (--new-branch)
+# ---------------------------------------------------------------------------
+
+# Well-known branch prefixes for the interactive picker.
+# TODO (template users): Add, remove, or reorder prefixes to match your
+#   team's branch naming conventions. The first entry is the default when
+#   the user presses Enter without choosing.
+_BRANCH_PREFIXES: list[tuple[str, str]] = [
+    ("feature/", "New functionality"),
+    ("fix/", "Bug fixes"),
+    ("chore/", "Maintenance, deps"),
+    ("docs/", "Documentation"),
+    ("spike/", "Experimental / exploratory"),
+    ("wip/", "Work in progress / scratch"),
+    ("hotfix/", "Urgent production fix"),
+    ("refactor/", "Code refactor"),
+    ("test/", "Test additions / changes"),
+    ("ci/", "CI/CD changes"),
+]
+
+
+def _prompt(prompt_text: str, *, default: str = "") -> str:
+    """Read a line from stdin with an optional default value."""
+    suffix = f" [{default}]" if default else ""
+    try:
+        value = input(f"  {prompt_text}{suffix}: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        sys.exit(130)
+    return value or default
+
+
+def create_new_branch(*, color: bool | None = None) -> int:
+    """Interactive branch creation workflow.
+
+    Walks the user through creating a branch off ``origin/main``,
+    pushing it with upstream tracking, and printing a summary of
+    every command that ran.
+
+    Returns:
+        Exit code: 0 on success, 1 on failure.
+    """
+    use_color = color if color is not None else _supports_color(sys.stdout)
+    use_unicode = _supports_unicode(sys.stdout)
+    sym = _unicode_symbols(sys.stdout)
+    c = Colors(enabled=use_color)
+    check = sym.get("check", "+")
+    cross = sym.get("cross", "x")
+    h_line = "\u2500" if use_unicode else "-"
+    h_double = "\u2550" if use_unicode else "="
+    tl_d = "\u2554" if use_unicode else "+"
+    tr_d = "\u2557" if use_unicode else "+"
+    bl_d = "\u255a" if use_unicode else "+"
+    br_d = "\u255d" if use_unicode else "+"
+    vl_d = "\u2551" if use_unicode else "|"
+    tl = "\u250c" if use_unicode else "+"
+    tr = "\u2510" if use_unicode else "+"
+    bl = "\u2514" if use_unicode else "+"
+    br = "\u2518" if use_unicode else "+"
+    vl = "\u2502" if use_unicode else "|"
+    dot = "\u2022" if use_unicode else "*"
+
+    # ── Title ──
+    border = h_double * 60
+    print()
+    print(c.bold(c.cyan(f"  {tl_d}{border}{tr_d}")))
+    print(f"  {c.bold(c.cyan(vl_d))} {c.bold(c.cyan('New Branch Creation'))}")
+    print(c.bold(c.cyan(f"  {bl_d}{border}{br_d}")))
+    print()
+
+    # ── Prefix selection ──
+    print(f"  {c.bold('Select a branch prefix:')}")
+    print()
+    for i, (prefix, desc) in enumerate(_BRANCH_PREFIXES, 1):
+        print(f"    {c.cyan(str(i).rjust(2))}. {prefix:{14}s} {c.dim(desc)}")
+    print()
+    choice = _prompt("Choose a prefix (number or type your own)", default="1")
+
+    # Resolve prefix
+    if choice.isdigit() and 1 <= int(choice) <= len(_BRANCH_PREFIXES):
+        prefix = _BRANCH_PREFIXES[int(choice) - 1][0]
+    else:
+        # User typed a custom prefix — ensure it ends with /
+        prefix = choice if choice.endswith("/") else f"{choice}/"
+
+    # ── Branch name ──
+    print()
+    slug = _prompt(f"Branch name (after {c.cyan(prefix)})")
+    if not slug:
+        print(f"\n  {c.red(cross)} Branch name cannot be empty.")
+        return 1
+
+    # Sanitise: lowercase, replace spaces/underscores with hyphens
+    # TODO (template users): Adjust sanitisation rules if your team uses
+    #   uppercase, underscores, or other characters in branch names.
+    slug = re.sub(r"[\s_]+", "-", slug.strip().lower())
+    slug = re.sub(r"[^a-z0-9\-/.]", "", slug)
+    branch_name = f"{prefix}{slug}"
+
+    # Confirm
+    print()
+    print(f"  Branch to create: {c.bold(c.green(branch_name))}")
+    confirm = _prompt("Proceed? (Y/n)", default="Y")
+    if confirm.lower() not in ("y", "yes", ""):
+        print(f"\n  {c.dim('Cancelled.')}")
+        return 0
+
+    # ── Execute commands ──
+    steps: list[tuple[str, list[str], str]] = [
+        (
+            "Switch to main branch",
+            ["switch", "main"],
+            "git switch main",
+        ),
+        (
+            "Update main (fast-forward only)",
+            ["pull", "--ff-only"],
+            "git pull --ff-only",
+        ),
+        (
+            "Fetch latest commits from remote",
+            ["fetch", "origin"],
+            "git fetch origin",
+        ),
+        (
+            f"Create and switch to {branch_name}",
+            ["switch", "-c", branch_name, "origin/main"],
+            f"git switch -c {branch_name} origin/main",
+        ),
+        (
+            "Push branch and set upstream tracking",
+            ["push", "-u", "origin", "HEAD"],
+            "git push -u origin HEAD",
+        ),
+    ]
+
+    results: list[tuple[str, str, bool, str, str]] = []
+    print()
+    section_border = h_line * 60
+    print(c.cyan(f"  {tl}{section_border}{tr}"))
+    print(f"  {c.cyan(vl)} {c.bold('Running commands')}")
+    print(c.cyan(f"  {bl}{section_border}{br}"))
+    print()
+
+    failed = False
+    for description, git_args, display_cmd in steps:
+        if failed:
+            results.append((description, display_cmd, False, "", "skipped"))
+            print(f"    {c.dim('--')} {c.dim(display_cmd):40s} {c.dim('skipped')}")
+            continue
+
+        code, out, err = _run_git(git_args)
+        ok = code == 0
+        if not ok:
+            failed = True
+        icon = c.green(check) if ok else c.red(cross)
+        status_text = c.green("ok") if ok else c.red("failed")
+        results.append((description, display_cmd, ok, out, err))
+        print(f"    {icon} {display_cmd:40s} {status_text}")
+        if not ok and err:
+            print(f"      {c.red(err)}")
+
+    # ── Verify final branch ──
+    print()
+    code, final_branch, _ = _run_git(["branch", "--show-current"])
+    _code2, status_out, _ = _run_git(["status", "-sb"])
+
+    # ── Summary ──
+    print(c.cyan(f"  {tl}{section_border}{tr}"))
+    print(f"  {c.cyan(vl)} {c.bold('Summary')}")
+    print(c.cyan(f"  {bl}{section_border}{br}"))
+    print()
+
+    if not failed:
+        print(f"    {c.green(check)} {c.bold('New branch created successfully')}")
+    else:
+        print(f"    {c.red(cross)} {c.bold('Branch creation failed')}")
+
+    print(f"    {dot} Branch:  {c.bold(c.green(final_branch or branch_name))}")
+    if status_out:
+        print(f"    {dot} Status:  {c.dim(status_out.splitlines()[0])}")
+    print()
+
+    # Command log with descriptions
+    print(f"    {c.bold('Commands executed:')}")
+    for desc, cmd, ok, _out, err_msg in results:
+        icon = (
+            c.green(check)
+            if ok
+            else (c.red(cross) if err_msg != "skipped" else c.dim("-"))
+        )
+        print(f"      {icon} {c.cyan(cmd)}")
+        print(f"        {c.dim(desc)}")
+        if not ok and err_msg and err_msg != "skipped":
+            print(f"        {c.red(err_msg)}")
+
+    # ── Recommendations ──
+    print()
+    print(f"    {c.bold('Next steps:')}")
+    print(
+        f"      {dot} Run {c.cyan('python scripts/git_doctor.py')} or "
+        f"{c.cyan('task doctor:git')} to see full branch diagnostics"
+    )
+    print(
+        f"      {dot} Start making {c.cyan('conventional commits')} "
+        f"(e.g. feat:, fix:, docs:)"
+    )
+    print(
+        f"      {dot} When ready, open a {c.cyan('Pull Request')} "
+        f"targeting {c.cyan('main')}"
+    )
+    print()
+
+    return 1 if failed else 0
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -2975,12 +3184,24 @@ def main() -> int:
         action="store_true",
         help="With --fix or --apply-from, show what would be changed without applying",
     )
+    parser.add_argument(
+        "--new-branch",
+        action="store_true",
+        help="Interactive branch creation: prompts for a name, creates the "
+        "branch off origin/main, pushes with upstream tracking, and "
+        "prints a summary of all commands executed",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)s: %(message)s",
     )
+
+    # --new-branch mode: interactive branch creation and exit
+    if args.new_branch:
+        nb_color = False if args.no_color else None
+        return create_new_branch(color=nb_color)
 
     # --apply-from mode: apply desired values from edited reference file
     if args.apply_from:
