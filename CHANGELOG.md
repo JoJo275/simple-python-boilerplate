@@ -9,6 +9,45 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.5.0...v0.6.0) (2026-03-13)
+
+
+### Features
+
+* Add --fix option to git_doctor for auto-applying recommended git config settings ([41cde93](https://github.com/JoJo275/simple-python-boilerplate/commit/41cde93ae84055f1db726d2b8c33da38abe90ba8))
+* Add comprehensive Git configuration reference and export feature ([3e4f0b4](https://github.com/JoJo275/simple-python-boilerplate/commit/3e4f0b43fe8d3e0dcfc249adf7f7b28f8f0abd73))
+* add OS/platform and pip version checks to env doctor; improve logging across scripts ([12fbecc](https://github.com/JoJo275/simple-python-boilerplate/commit/12fbecc0c70af221bf7a65685b1183e848baeabf))
+* add progress bar to env doctor checks and update version in command reference script ([f463e89](https://github.com/JoJo275/simple-python-boilerplate/commit/f463e8951e676831724c3db120c6cd6619d08d10))
+* add recommended extensions for Python development and improve workspace configuration ([4ae9ba4](https://github.com/JoJo275/simple-python-boilerplate/commit/4ae9ba405f4adbd16bb04ffbf4ef133296fb8bcf))
+* Add recommended Git configuration and enhance git_doctor with new branch characteristics ([3a7bf3d](https://github.com/JoJo275/simple-python-boilerplate/commit/3a7bf3d69ad430a33e6c153511fc4963a3a1afff))
+* add unicode symbol support across scripts and enhance VS Code workspace configuration ([171b2b5](https://github.com/JoJo275/simple-python-boilerplate/commit/171b2b5e78ac518e477ee6442a1e596736a7a4e6))
+* add VS Code workspace configuration details and recommended extensions for improved development experience ([efe05df](https://github.com/JoJo275/simple-python-boilerplate/commit/efe05dfff8af2a8cf3afee65ee94255f41f17653))
+* enhance documentation on standard streams and Unicode support; refactor code to utilize supports_unicode function for consistent output ([fe62ea2](https://github.com/JoJo275/simple-python-boilerplate/commit/fe62ea2836d51fca0c41cda8f77eba5a314a2631))
+* enhance editable install check with PEP 610 support and improve unit tests ([cba0f90](https://github.com/JoJo275/simple-python-boilerplate/commit/cba0f90e829e39ef79bc3ad79a5908a16a38cf5b))
+* Enhance git configuration reference with section descriptions and summary table ([0a19c5a](https://github.com/JoJo275/simple-python-boilerplate/commit/0a19c5ad3bd2ea8b3f14eb1b718f8ac833ee90dd))
+* enhance git_doctor with fetch and prune functionality for accurate branch activity ([a4dc141](https://github.com/JoJo275/simple-python-boilerplate/commit/a4dc1413967553452384b18c939eaa26cee4977f))
+* enhance git_doctor with new features and improvements ([176cc2e](https://github.com/JoJo275/simple-python-boilerplate/commit/176cc2eca84f12977dcc71e4f60ee16cacbfc356))
+* enhance indentRainbow configuration with detailed color descriptions and style options ([20625b3](https://github.com/JoJo275/simple-python-boilerplate/commit/20625b3a47c79324816299419a5d57c45ca9607a))
+* enhance scripts with additional functionality and improve VS Code workspace configuration ([c1262fa](https://github.com/JoJo275/simple-python-boilerplate/commit/c1262fa5866adb25bf548c7e477e3197ef3714b2))
+* enhance security policy with PGP setup instructions; update troubleshooting guide and improve type hints in scripts ([1596092](https://github.com/JoJo275/simple-python-boilerplate/commit/159609272f9207ef1ebe5e1deeee8965c4c0c775))
+* Update documentation with new resources and references ([dadaf21](https://github.com/JoJo275/simple-python-boilerplate/commit/dadaf21c9119b26051df0b1476e5248e0758df97))
+* update env doctor with additional checks for Node.js, container runtime, and git remote; improve disk space check ([4624ba7](https://github.com/JoJo275/simple-python-boilerplate/commit/4624ba73106be527dae91381c2bd317983bb5c98))
+* Update git_doctor to version 2.0.0 with enhanced configuration reference and section mappings ([4088ef6](https://github.com/JoJo275/simple-python-boilerplate/commit/4088ef625bcfff12ff6aa0651be82e8cd8aa0c21))
+* Update git_doctor version to 1.13.0 and enhance output with modified files and health check results ([aab5d0a](https://github.com/JoJo275/simple-python-boilerplate/commit/aab5d0ac3acb85089714f89b74523bab545805d5))
+* update git_doctor with enhanced branch statistics and file change summaries ([82934ec](https://github.com/JoJo275/simple-python-boilerplate/commit/82934ec45756f3d3c164ff1a97a2bebd6900396f))
+* update git_doctor with enhanced documentation and new git commands for better usability ([655823e](https://github.com/JoJo275/simple-python-boilerplate/commit/655823e5a8bd4f26fa5439a9d2352affb8b0f3b0))
+* update progress bar and spinner color options; increment script versions ([2478ee2](https://github.com/JoJo275/simple-python-boilerplate/commit/2478ee2d80312e45034044fe87c1a276671e14dc))
+* update script versions and enhance git_doctor with commit count, repo age, and contributors checks ([93a0fd4](https://github.com/JoJo275/simple-python-boilerplate/commit/93a0fd41587dba7a4e13e402361d82154c561be3))
+* update scripts with new functionality and improvements; add ANSI stripping, enhance color options, and refine project templates ([d81cb58](https://github.com/JoJo275/simple-python-boilerplate/commit/d81cb58061b0daa77af3cbcc7c840f00f2e33e83))
+* update VS Code workspace configuration with detailed extension recommendations and customization instructions ([1723974](https://github.com/JoJo275/simple-python-boilerplate/commit/1723974f7960e7f9718539b549ec5d52064f5b34))
+* update workflow files count to 35 and enhance documentation for CI/CD processes ([b29c4b7](https://github.com/JoJo275/simple-python-boilerplate/commit/b29c4b7bb26d58aae7c42028a60e8dbbdcb25868))
+
+
+### Bug Fixes
+
+* Update README contents to correct resource links and descriptions ([ab1194e](https://github.com/JoJo275/simple-python-boilerplate/commit/ab1194ef1acfb6fecda1983cd50603090633de44))
+* Update timestamp in git configuration reference ([e68f648](https://github.com/JoJo275/simple-python-boilerplate/commit/e68f648139e8a15bd6f43f565291b7c2c5cbbee6))
+
 ## [0.5.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.4.0...v0.5.0) (2026-03-06)
 
 
