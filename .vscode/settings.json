@@ -26,6 +26,15 @@
     // If using Hatch as environment manager, change envManager to
     //   "ms-python.python:hatch" (requires Python Environments extension
     //   with Hatch support).
+    //
+    // NOTE: If VS Code shows "Python interpreter not found" or picks the
+    // wrong interpreter, select it manually:
+    //   1. Ctrl+Shift+P → "Python: Select Interpreter"
+    //   2. Choose "Enter interpreter path..." and paste the Hatch env path
+    //      from `hatch env find` (e.g. on Windows:
+    //      C:\Users\<you>\AppData\Local\hatch\env\virtual\...\Scripts\python.exe)
+    //   VS Code remembers the selection per-workspace — you only need to
+    //   do this once.
     // "python.defaultInterpreterPath": ".venv/Scripts/python",
     "python-envs.pythonProjects": [
         {
