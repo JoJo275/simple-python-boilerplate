@@ -14,6 +14,7 @@ Flags::
     --fix             Auto-apply recommended git config settings
     --dry-run         With --fix or --apply-from, preview without applying
     --new-branch      Interactive branch creation off origin/main
+    --watch [N]       Re-run dashboard every N seconds (default: 10)
     --version         Print version and exit
 
 Usage::
@@ -24,6 +25,8 @@ Usage::
     python scripts/git_doctor.py --fix
     python scripts/git_doctor.py --fix --dry-run
     python scripts/git_doctor.py --new-branch
+    python scripts/git_doctor.py --watch
+    python scripts/git_doctor.py --watch 30
     python scripts/git_doctor.py --export-config
     python scripts/git_doctor.py --apply-from git-config-reference.md
     python scripts/git_doctor.py --apply-from git-config-reference.md --dry-run
@@ -39,6 +42,8 @@ Workflow for editing and applying config::
    ``--export-config`` writes to ``git-config-reference.md`` by default
    (or a custom path if provided). The file is **replaced entirely** on
    each run — it is a generated artifact, not a hand-edited document.
+   The exported reference covers commonly used git configurations (62 keys
+   across 17 sections) — not every possible git config key.
 
 Customisation notes:
 
@@ -80,6 +85,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess  # nosec B404
@@ -132,11 +138,16 @@ RECOMMENDED_CONFIGS: list[tuple[str, str, str]] = [
     ("init.defaultBranch", "main", "global"),
 ]
 
+# Quick lookup: key -> recommended value (for terminal display hints)
+_RECOMMENDED_LOOKUP: dict[str, str] = {k: v for k, v, _ in RECOMMENDED_CONFIGS}
+
 # ---------------------------------------------------------------------------
 # Git configuration catalog (used by --export-config)
 # ---------------------------------------------------------------------------
 
-# Comprehensive catalog of useful git configurations.
+# Curated catalog of commonly used git configurations.
+# This is NOT exhaustive — git has 500+ keys; this covers the ones
+# most relevant to day-to-day development workflows.
 # Format: (key, recommended_scope, description, recommendation)
 GIT_CONFIG_CATALOG: list[tuple[str, str, str, str]] = [
     # ── Core ──
@@ -2034,6 +2045,13 @@ def run(
         else c.red(f"{failures} failed, {passed_count} passed")
     )
 
+    # Extract branch age and unpushed count for the status bar
+    _age_str = branch_chars.get("branch_age", "")
+    _unpushed_str = branch_chars.get("unpushed", "")
+    _unpushed_count = ""
+    if _unpushed_str and "unpushed" in _unpushed_str:
+        _unpushed_count = _unpushed_str.split()[0]  # e.g. "4"
+
     print()
     _status_w = 22  # pad labels to align values vertically
     print(f"  {wt_icon} {c.dim('Working tree:'.ljust(_status_w))} {wt_label}")
@@ -2041,6 +2059,15 @@ def run(
         f"  {sync_icon} {c.dim('Remote sync (origin):'.ljust(_status_w))} {sync_label}"
     )
     print(f"  {hc_icon} {c.dim('Health:'.ljust(_status_w))} {hc_label}")
+    if _age_str:
+        print(
+            f"  {c.dim(dot)} {c.dim('Branch age:'.ljust(_status_w))} {c.dim(_age_str)}"
+        )
+    if _unpushed_count:
+        print(
+            f"  {c.yellow(warn_sym)} {c.dim('Unpushed commits:'.ljust(_status_w))} "
+            f"{c.yellow(_unpushed_count)}"
+        )
 
     # ── Repository Info ──
     _section("Repository")
@@ -2063,6 +2090,10 @@ def run(
         unset_count = len(git_config) - set_count
         _section(
             f"Git Configuration  {c.dim(f'({set_count} set, {unset_count} unset)')}"
+        )
+        print(
+            f"    {c.dim('Showing commonly used keys — not every git config.')}"
+            f"  {c.dim('Run --export-config for full reference.')}"
         )
         # Column layout — widened to accommodate longer config key names
         key_w = 30
@@ -2092,8 +2123,20 @@ def run(
             scope = git_config_scopes.get(key, "unset")
             scope_str = f"[{scope}]".ljust(scope_w)
             key_padded = key.ljust(key_w)
+            # Check if this key has a recommended value and it differs
+            rec_value = _RECOMMENDED_LOOKUP.get(key)
             if val == "(unset)":
-                print(f"    {c.dim(key_padded)} {c.dim(scope_str)} {c.dim(val)}")
+                hint_str = ""
+                if rec_value:
+                    hint_str = f"  {c.dim(f'(recommended: {rec_value})')}"
+                print(
+                    f"    {c.dim(key_padded)} {c.dim(scope_str)} {c.dim(val)}{hint_str}"
+                )
+            elif rec_value and val != rec_value:
+                print(
+                    f"    {key_padded} {c.dim(scope_str)} {c.yellow(val)}"
+                    f"  {c.dim(f'(recommended: {rec_value})')}"
+                )
             else:
                 print(f"    {key_padded} {c.dim(scope_str)} {c.cyan(val)}")
         print()
@@ -2305,43 +2348,53 @@ def run(
                 hint="unresolved merge conflicts",
             )
 
-    # ── Last Merge from Default Branch ──
+    # ── Last Merge from Default Branch (table format) ──
     if last_merge and current_branch != default_branch:
         _section(f"Last Merge from {default_branch}")
-        sha = c.yellow(last_merge.get("sha_short", "?"))
+        sha_short = last_merge.get("sha_short", "?")
         msg = last_merge.get("message", "")
         rel_date = last_merge.get("relative_date", "")
         author = last_merge.get("author", "")
         default_ahead = last_merge.get("default_ahead", "0")
         current_ahead = last_merge.get("current_ahead", "0")
-        _kv(
-            "Merge base",
-            f"{sha} {msg}  {c.dim(rel_date)}",
-            hint="last common ancestor with default",
+
+        # Build table rows: (Label, Value, Time/Detail)
+        lbl_w = 18
+        val_w = 52
+        time_w = 18
+        hdr_lbl = c.dim("Property".ljust(lbl_w))
+        hdr_val = c.dim("Value".ljust(val_w))
+        hdr_time = c.dim("When")
+        print(f"    {hdr_lbl} {hdr_val} {hdr_time}")
+        print(
+            f"    {c.dim(h_line * lbl_w)} {c.dim(h_line * val_w)}"
+            f" {c.dim(h_line * time_w)}"
         )
+        # Merge base row — wrap long commit messages
+        merge_val = f"{c.yellow(sha_short)} {msg}"
+        print(f"    {'Merge base'.ljust(lbl_w)} {merge_val:{val_w}s} {c.dim(rel_date)}")
+        print(f"    {'':{lbl_w}s} {c.dim('last common ancestor with default')}")
         if author:
-            _kv("Author", author)
+            print(f"    {'Author'.ljust(lbl_w)} {author}")
         if default_ahead != "0":
-            _kv(
-                f"{default_branch} ahead",
-                f"{c.yellow(default_ahead)} commit(s) ahead of merge base",
-                hint="new work on default since you branched",
+            ahead_val = f"{c.yellow(default_ahead)} commit(s) ahead of merge base"
+            print(f"    {(default_branch + ' ahead').ljust(lbl_w)} {ahead_val}")
+            print(
+                f"    {'':{lbl_w}s} {c.dim('new work on default since you branched')}"
             )
         if current_ahead != "0":
-            _kv(
-                "Branch ahead",
-                f"{c.cyan(current_ahead)} commit(s) ahead of merge base",
-                hint="your unique work since branching",
-            )
+            br_val = f"{c.cyan(current_ahead)} commit(s) ahead of merge base"
+            print(f"    {'Branch ahead'.ljust(lbl_w)} {br_val}")
+            print(f"    {'':{lbl_w}s} {c.dim('your unique work since branching')}")
         if branch_divergence:
-            div_sha = c.yellow(branch_divergence.get("sha", ""))
+            div_sha = branch_divergence.get("sha", "")
             div_msg = branch_divergence.get("message", "")
             div_date = branch_divergence.get("date", "")
-            _kv(
-                "Branch started",
-                f"{div_sha} {div_msg}  {c.dim(div_date)}",
-                hint="first commit on this branch",
+            div_val = f"{c.yellow(div_sha)} {div_msg}"
+            print(
+                f"    {'Branch started'.ljust(lbl_w)} {div_val:{val_w}s} {c.dim(div_date)}"
             )
+            print(f"    {'':{lbl_w}s} {c.dim('first commit on this branch')}")
 
     # ── Working Tree ──
     if any(working_tree.values()) or modified_files:
@@ -2417,26 +2470,48 @@ def run(
             status_str = (
                 bstatus.ljust(status_w) if bstatus else c.dim(dash.ljust(status_w))
             )
-            last_str = c.dim(last) if last else ""
+            # Color-code age: green (<7d), yellow (7-30d), red (>30d)
+            if last:
+                last_lower = last.lower()
+                if any(x in last_lower for x in ("month", "year", "weeks")):
+                    last_str = c.red(last)
+                elif "week" in last_lower or (
+                    "day" in last_lower
+                    and not any(last_lower.startswith(f"{n} day") for n in range(1, 8))
+                ):
+                    last_str = c.yellow(last)
+                else:
+                    last_str = c.green(last)
+            else:
+                last_str = ""
 
             print(f"  {marker}{name_str}{name_pad} {track_str} {status_str} {last_str}")
 
     # ── Stale Branches ──
     if stale_branches:
         _section("Stale Branches (no activity > 30 days)")
+        sb_name_w = max(len(sb["name"]) for sb in stale_branches)
+        sb_name_w = max(sb_name_w, 6) + 2
+        print(f"    {c.dim('Branch'.ljust(sb_name_w))} {c.dim('Last Activity')}")
+        print(f"    {c.dim(h_line * sb_name_w)} {c.dim(h_line * 20)}")
         for sb in stale_branches:
-            print(f"    {c.yellow(sb['name']):30s} {c.dim(sb['last_commit'])}")
+            print(
+                f"    {c.yellow(sb['name'].ljust(sb_name_w))} "
+                f"{c.red(sb['last_commit'])}"
+            )
 
     # ── Unmerged Branches ──
     if unmerged_branches:
         _section(f"Unmerged Branches (not in {default_branch})")
+        ub_name_w = max(len(ub["name"]) for ub in unmerged_branches)
+        ub_name_w = max(ub_name_w, 6) + 2
+        print(f"    {c.dim('Branch'.ljust(ub_name_w))} {c.dim('Note')}")
+        print(f"    {c.dim(h_line * ub_name_w)} {c.dim(h_line * 20)}")
         for ub in unmerged_branches:
             name = ub["name"]
             note = ub.get("note", "")
-            if note:
-                print(f"    {name}  {c.dim(note)}")
-            else:
-                print(f"    {name}")
+            note_str = c.dim(note) if note else c.dim(dash)
+            print(f"    {name.ljust(ub_name_w)} {note_str}")
 
     # ── Recent Tags ──
     if tags:
@@ -2447,11 +2522,42 @@ def run(
     # ── Recent Commits ──
     if recent_commits:
         _section(f"Recent Commits {dash} {c.green(current_branch)}")
+        sha_w = 8
+        msg_w = max(
+            (len(cm["message"]) for cm in recent_commits),
+            default=40,
+        )
+        msg_w = min(msg_w, 50) + 2  # cap at 50 chars
+        author_w = max(
+            (len(cm.get("author", "")) for cm in recent_commits),
+            default=10,
+        )
+        author_w = min(author_w, 20) + 2
+        print(
+            f"    {c.dim('SHA'.ljust(sha_w))} "
+            f"{c.dim('Message'.ljust(msg_w))} "
+            f"{c.dim('Author'.ljust(author_w))} "
+            f"{c.dim('When')}"
+        )
+        print(
+            f"    {c.dim(h_line * sha_w)} "
+            f"{c.dim(h_line * msg_w)} "
+            f"{c.dim(h_line * author_w)} "
+            f"{c.dim(h_line * 16)}"
+        )
         for commit in recent_commits:
             sha = c.yellow(commit["sha"])
             msg = commit["message"]
+            if len(msg) > 50:
+                msg = msg[:47] + "..."
+            author = commit.get("author", "")
+            if len(author) > 20:
+                author = author[:17] + "..."
             cdate = commit.get("date", "")
-            print(f"    {sha} {msg}  {c.dim(cdate)}")
+            # Pad raw text before color codes
+            msg_pad = msg.ljust(msg_w)
+            author_pad = author.ljust(author_w)
+            print(f"    {sha} {msg_pad} {c.dim(author_pad)} {c.dim(cdate)}")
 
     # ── Stashes ──
     if stash_count > 0:
@@ -2631,9 +2737,13 @@ def export_git_config_reference(filepath: str) -> str:
         f"| **Timestamp**     | {timestamp} |",
         "| **Command**       | `python scripts/git_doctor.py --export-config` |",
         "| **Regenerate**    | Run the command above to refresh with current settings |",
-        f"| **Total keys**    | {total_keys} across {len(seen_sections)} sections |",
+        f"| **Total keys**    | {total_keys} commonly used keys across {len(seen_sections)} sections |",
         "",
-        "A comprehensive reference of useful git configuration options.",
+        "> **Note:** This reference covers commonly used git configuration",
+        "> options — it is not an exhaustive list. Git has 500+ configuration",
+        "> keys; this file curates the ones most relevant to day-to-day",
+        "> development workflows.",
+        "",
         "Each entry shows the config key, its current value in your",
         "environment, which scope it's set in (local/global/system),",
         "what it does, and a recommended value.",
@@ -2662,6 +2772,15 @@ def export_git_config_reference(filepath: str) -> str:
         "then override at **local** scope for project-specific needs",
         "(e.g. different email for work repos, project-specific commit template).",
         "",
+        '> **Scope caveat for `--apply-from`:** The "Recommended scope" column',
+        "> below reflects the *catalog default*, not necessarily the scope where",
+        "> you currently have the key set. If you already have a key set at",
+        "> **local** scope but the reference says **global**, running",
+        "> `--apply-from` will create a *separate* global entry — both values",
+        "> will exist, with the local value winning due to git's precedence",
+        '> rules (`local > global > system`). Edit the "Recommended scope"',
+        "> column to match your desired target scope before applying.",
+        "",
         "### Updating Config Values",
         "",
         "```bash",
@@ -2682,6 +2801,16 @@ def export_git_config_reference(filepath: str) -> str:
         "# List all settings with their scopes",
         "git config --list --show-origin",
         "```",
+        "",
+        "### Further Reading",
+        "",
+        "| Resource | Link |",
+        "|:---------|:-----|",
+        "| **Official git-config docs** | <https://git-scm.com/docs/git-config> |",
+        "| **All git config variables** | <https://git-scm.com/docs/git-config#_variables> |",
+        "| **Pro Git book (customization)** | <https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration> |",
+        "| **Git attributes** | <https://git-scm.com/docs/gitattributes> |",
+        "| **Conditional includes** | <https://git-scm.com/docs/git-config#_conditional_includes> |",
         "",
     ]
 
@@ -2821,6 +2950,14 @@ def export_git_config_reference(filepath: str) -> str:
             "`git config`. Only entries where you changed `_(no change)_` to",
             "an actual value are applied. The **Recommended scope** determines",
             "whether it's set at `--local` or `--global` scope.",
+            "",
+            "> **Important:** The **Recommended scope** column defaults to the",
+            "> catalog's suggested scope, not the scope where you currently have",
+            "> the key set. If you have `push.default` at **local** scope but the",
+            "> reference says **global**, applying will create a separate global",
+            "> entry — both will exist, with the local value winning",
+            "> (`local > global > system`). Check and update the scope column to",
+            "> match your intent before applying.",
             "",
             "To preview what would change without applying:",
             "",
@@ -3225,6 +3362,16 @@ def main() -> int:
         "branch off origin/main, pushes with upstream tracking, and "
         "prints a summary of all commands executed",
     )
+    parser.add_argument(
+        "--watch",
+        nargs="?",
+        const=10,
+        default=None,
+        type=int,
+        metavar="SECONDS",
+        help="Re-run the dashboard every N seconds (default: 10). "
+        "Press Ctrl+C to stop.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -3248,6 +3395,24 @@ def main() -> int:
         return 0
 
     color = False if args.no_color else None
+
+    # --watch mode: re-run dashboard on an interval until Ctrl+C
+    if args.watch is not None:
+        interval = max(args.watch, 2)  # minimum 2 seconds
+        try:
+            while True:
+                # Clear terminal (cross-platform)
+                subprocess.run(  # nosec B603
+                    ["cmd", "/c", "cls"] if os.name == "nt" else ["clear"],
+                    check=False,
+                )
+                run(color=color, output_json=args.json)
+                print(f"\n  Watching every {interval}s — press Ctrl+C to stop")
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            print("\n  Watch stopped.")
+        return 0
+
     exit_code = run(color=color, output_json=args.json)
 
     if args.export_config:
