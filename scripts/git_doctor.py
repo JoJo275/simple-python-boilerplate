@@ -2380,21 +2380,46 @@ def run(
     # ── Local Branches ──
     if local_branches:
         _section("Local Branches")
+        # Compute column widths from data
+        name_w = max(len(b["name"]) for b in local_branches)
+        name_w = max(name_w, 6) + 2  # min "Branch" + padding
+        track_w = max((len(b.get("tracking", "")) for b in local_branches), default=8)
+        track_w = max(track_w, 8) + 2  # min "Tracking" + padding
+        status_w = max((len(b.get("status", "")) for b in local_branches), default=6)
+        status_w = max(status_w, 6) + 2  # min "Status" + padding
+        last_w = 16  # "Last Commit" column
+
+        # Column headers
+        hdr_branch = c.dim("Branch".ljust(name_w))
+        hdr_track = c.dim("Tracking".ljust(track_w))
+        hdr_status = c.dim("Status".ljust(status_w))
+        hdr_last = c.dim("Last Commit")
+        print(f"    {hdr_branch} {hdr_track} {hdr_status} {hdr_last}")
+        print(
+            f"    {c.dim(h_line * name_w)} {c.dim(h_line * track_w)} "
+            f"{c.dim(h_line * status_w)} {c.dim(h_line * last_w)}"
+        )
+
         for b in local_branches:
-            marker = "  * " if b["name"] == current_branch else "    "
+            is_current = b["name"] == current_branch
+            marker = "* " if is_current else "  "
             bname = b["name"]
-            name_str = c.green(bname) if bname == current_branch else bname
+            name_str = c.green(bname) if is_current else bname
             tracking = b.get("tracking", "")
             bstatus = b.get("status", "")
             last = b.get("last_commit", "")
-            extra = ""
-            if tracking:
-                extra += f" -> {tracking}"
-            if bstatus:
-                extra += f" {bstatus}"
-            if last:
-                extra += f"  ({last})"
-            print(f"{marker}{name_str}{c.dim(extra)}")
+
+            # Pad name with raw text width (before color codes)
+            name_pad = " " * max(0, name_w - len(bname))
+            track_str = (
+                tracking.ljust(track_w) if tracking else c.dim("(none)".ljust(track_w))
+            )
+            status_str = (
+                bstatus.ljust(status_w) if bstatus else c.dim(dash.ljust(status_w))
+            )
+            last_str = c.dim(last) if last else ""
+
+            print(f"  {marker}{name_str}{name_pad} {track_str} {status_str} {last_str}")
 
     # ── Stale Branches ──
     if stale_branches:
