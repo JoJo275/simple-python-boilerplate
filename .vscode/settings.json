@@ -21,11 +21,12 @@
     // TODO (template users): Update the interpreter path for your platform:
     //   Windows: .venv/Scripts/python
     //   macOS/Linux: .venv/bin/python
-    //   Hatch: run `hatch env find` to get the path
+    //   Hatch: run `hatch env find` to get the path, then append
+    //          /Scripts/python (Windows) or /bin/python (macOS/Linux)
     // If using Hatch as environment manager, change envManager to
     //   "ms-python.python:hatch" (requires Python Environments extension
     //   with Hatch support).
-    "python.defaultInterpreterPath": ".venv/Scripts/python",
+    // "python.defaultInterpreterPath": ".venv/Scripts/python",
     "python-envs.pythonProjects": [
         {
             "path": ".",

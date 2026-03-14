@@ -1047,6 +1047,156 @@ Common commands used throughout this guide, with brief descriptions:
 
 ---
 
+## Daily Workflow Cheatsheet
+
+A condensed reference for the most common daily tasks:
+
+### Starting Your Day
+
+```bash
+git fetch origin                  # sync remote state
+git switch my-branch              # switch to your working branch
+git rebase origin/main            # get any overnight changes from main
+git push --force-with-lease       # update remote if rebase applied
+```
+
+### During Development
+
+```bash
+git add -p                        # interactively stage hunks (review each change)
+git commit -m "feat: add widget"  # commit with conventional message
+git push                          # push to remote (upstream already set)
+```
+
+### Before Opening a PR
+
+```bash
+git fetch origin                  # ensure main is current
+git rebase origin/main            # make sure you're on latest main
+git rebase -i origin/main         # clean up commit history (squash fixups)
+git push --force-with-lease       # update remote branch
+# Open PR on GitHub
+```
+
+### After PR is Merged
+
+```bash
+git switch main                   # go back to main
+git pull --ff-only                # fast-forward to latest
+git branch -d my-branch           # delete the merged branch locally
+git fetch --prune                 # clean up stale remote refs
+```
+
+---
+
+## Debugging Branch Issues
+
+### "My branch has extra commits I didn't make"
+
+This usually happens when you accidentally merged `main` instead of
+rebasing, or you pulled without `--rebase`. Check your history:
+
+```bash
+git log --oneline --graph -20     # visualize recent history
+```
+
+If you see merge commits that shouldn't be there:
+
+```bash
+git rebase origin/main            # rebase should clean it up
+# If that gets messy:
+git reflog                        # find the commit before the problem
+git reset --hard HEAD@{n}         # go back to known-good state
+git rebase origin/main            # try again cleanly
+```
+
+### "My PR shows way more changes than I expected"
+
+Your branch may have diverged from `main`. Check how many commits behind
+you are:
+
+```bash
+git rev-list --count HEAD..origin/main
+                                  # commits on main that you don't have
+```
+
+If the count is high, rebase:
+
+```bash
+git fetch origin
+git rebase origin/main
+git push --force-with-lease
+```
+
+### "CI passes locally but fails on the PR"
+
+Your local `main` may be stale. Always compare against `origin/main`,
+not your local `main`:
+
+```bash
+git fetch origin                  # update remote refs
+git rebase origin/main            # use origin, not local main
+# Re-run tests locally to verify
+```
+
+### "I'm on the wrong branch"
+
+```bash
+# If you haven't committed yet:
+git stash                         # save work
+git switch correct-branch         # switch to the right branch
+git stash pop                     # restore work there
+
+# If you already committed to the wrong branch:
+git log --oneline -3              # note the commit hash(es)
+git switch correct-branch         # switch to where it should go
+git cherry-pick <hash>            # bring the commit over
+git switch wrong-branch           # go back
+git reset --hard HEAD~1           # remove the commit from wrong branch
+```
+
+### "I need to see what changed between two branches"
+
+```bash
+git diff main..my-branch          # full diff
+git diff --stat main..my-branch   # file-level summary
+git diff --name-only main..my-branch
+                                  # just file names
+git log --oneline main..my-branch # commits on my-branch not on main
+```
+
+---
+
+## Glossary
+
+Quick definitions of Git terms used throughout this guide:
+
+| Term | Definition |
+| ---- | ---------- |
+| **HEAD** | A pointer to the current commit your working directory is based on. Usually points to a branch name. |
+| **origin** | The default name for the remote repository (on GitHub). Your local repo fetches from and pushes to `origin`. |
+| **upstream** | The remote branch your local branch tracks. Set with `git push -u` or `push.autoSetupRemote`. |
+| **tracking branch** | A local branch configured to follow a remote branch (e.g., `main` tracks `origin/main`). |
+| **remote-tracking ref** | A read-only local reference to a remote branch (e.g., `origin/main`). Updated by `git fetch`. |
+| **fast-forward** | A merge where the target branch pointer simply moves forward — no merge commit needed. Happens when there's no divergence. |
+| **rebase** | Replaying your commits on top of another branch. Rewrites commit SHAs but produces a clean linear history. |
+| **merge commit** | A commit with two parents that joins two branches. This project avoids them (uses rebase+merge). |
+| **force-push** | Overwriting the remote branch with your local version. Use `--force-with-lease` for safety. |
+| **detached HEAD** | When HEAD points to a commit directly (not a branch). Usually unintentional — create a branch to save work. |
+| **merge-base** | The most recent common ancestor commit between two branches. Where your branch diverged from `main`. |
+| **reflog** | A local log of every position HEAD has pointed to. Your safety net for recovering from mistakes. |
+| **stash** | A temporary storage area for uncommitted changes. Like a clipboard for your working directory. |
+| **cherry-pick** | Applying a specific commit from one branch onto another. Creates a new commit with a new SHA. |
+| **interactive rebase** | A rebase where you choose what to do with each commit (keep, squash, reword, drop, reorder). |
+| **feature flag** | A conditional check that enables/disables a feature at runtime, allowing incomplete code to merge to `main` safely. |
+| **diverged** | When two branches have commits the other doesn't. Normal for feature branches vs `main`. |
+| **[gone]** | Git's label for a tracking branch whose remote counterpart has been deleted (usually after PR merge). |
+| **SHA / hash** | The 40-character (or abbreviated 7-char) identifier for a commit. Globally unique. |
+| **working tree** | The actual files on disk in your repo. Distinct from the index (staging area) and committed history. |
+| **index / staging area** | The "prep area" between your working tree and the next commit. Files go here via `git add`. |
+
+---
+
 ## Post-Merge Cleanup
 
 After a PR is merged, clean up stale local branches:
