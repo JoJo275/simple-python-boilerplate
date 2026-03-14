@@ -25,7 +25,7 @@
     // If using Hatch as environment manager, change envManager to
     //   "ms-python.python:hatch" (requires Python Environments extension
     //   with Hatch support).
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python",
+    "python.defaultInterpreterPath": ".venv/Scripts/python",
     "python-envs.pythonProjects": [
         {
             "path": ".",
