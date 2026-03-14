@@ -2578,7 +2578,9 @@ def run(
     _section("Health Checks")
     check_sym = sym.get("check", "")
     cross_sym = sym.get("cross", "")
-    hc_name_w = max(len(r["name"]) for r in health_results) + 1  # +1 for colon
+    hc_name_w = (
+        max((len(r["name"]) for r in health_results), default=0) + 1
+    )  # +1 for colon
     for r in health_results:
         if r["status"] == "PASS":
             icon = (
