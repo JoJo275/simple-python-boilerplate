@@ -2035,16 +2035,23 @@ def run(
     )
 
     print()
-    print(f"  {wt_icon} {c.dim('Working tree:')} {wt_label}")
-    print(f"  {sync_icon} {c.dim('Remote sync:')}  {sync_label}")
-    print(f"  {hc_icon} {c.dim('Health:')}       {hc_label}")
+    _status_w = 22  # pad labels to align values vertically
+    print(f"  {wt_icon} {c.dim('Working tree:'.ljust(_status_w))} {wt_label}")
+    print(
+        f"  {sync_icon} {c.dim('Remote sync (origin):'.ljust(_status_w))} {sync_label}"
+    )
+    print(f"  {hc_icon} {c.dim('Health:'.ljust(_status_w))} {hc_label}")
 
     # ── Repository Info ──
     _section("Repository")
-    _kv("Remote URL", remote_url, hint="origin fetch/push URL")
+    _kv("Remote URL", remote_url, hint="origin remote (fetch/push URL)")
     _kv("Current branch", c.green(current_branch), hint="your active branch (HEAD)")
-    _kv("Default branch", default_branch, hint="base branch for PRs")
-    _kv("Upstream", upstream_status, hint="remote tracking status")
+    _kv(
+        "Default branch",
+        default_branch,
+        hint=f"base branch for PRs (origin/{default_branch})",
+    )
+    _kv("Upstream", upstream_status, hint="remote tracking status (origin)")
     _kv("User", f"{user_name} <{user_email}>", hint="from git config")
     _kv("Commits", str(commit_count), hint="total repo history")
     _kv("Contributors", str(contributors), hint="unique commit authors")
@@ -2259,8 +2266,8 @@ def run(
             ("Commit density", "commit_density", "recent commit frequency"),
             ("Branch age", "branch_age", "when branch first diverged from default"),
             ("Merge status", "fast_forwardable", "can branch merge without conflicts"),
-            ("Remote", "local_only", "whether branch is pushed to remote"),
-            ("Unpushed", "unpushed", "local commits not yet on remote"),
+            ("Remote", "local_only", "whether branch is pushed to remote (origin)"),
+            ("Unpushed", "unpushed", "local commits not yet on remote (origin)"),
         ]
         # Keywords that indicate good/warning/info states
         _good = (
@@ -2440,6 +2447,7 @@ def run(
     _section("Health Checks")
     check_sym = sym.get("check", "")
     cross_sym = sym.get("cross", "")
+    hc_name_w = max(len(r["name"]) for r in health_results) + 1  # +1 for colon
     for r in health_results:
         if r["status"] == "PASS":
             icon = (
@@ -2453,7 +2461,8 @@ def run(
                 if use_unicode
                 else _icon(r["status"], use_color=use_color)
             )
-        print(f"    {icon} {c.dim(r['name'] + ':')} {r['message']}")
+        label = (r["name"] + ":").ljust(hc_name_w)
+        print(f"    {icon} {c.dim(label)} {r['message']}")
 
     # ── Helpful Commands ──
     _section("Helpful Commands")
