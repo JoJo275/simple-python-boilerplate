@@ -163,6 +163,23 @@
     "git.pruneOnFetch": true,
     "git.autofetch": true,
     "git.fetchOnPull": true,
+    // Confirm before force-pushing to prevent accidental history rewrites.
+    "git.confirmForcePush": true,
+    // Confirm before syncing (push + pull) to avoid surprises.
+    "git.confirmSync": true,
+    // Show inline blame annotations (who last changed each line).
+    "git.blame.editorDecoration.enabled": true,
+    // Auto-stash before pull-rebase so dirty worktrees don't block pulls.
+    // Mirrors the git config: rebase.autostash = true
+    "git.autoStash": true,
+    // Use rebase instead of merge when pulling (linear history).
+    // Mirrors the git config: pull.rebase = true
+    "git.rebaseWhenSync": true,
+    // Follow tags when pushing (matches push.followTags git config).
+    "git.followTagsWhenSync": true,
+    // Show the full commit message in the source control input on amend.
+    "git.inputValidationSubjectLength": 50,
+    "git.inputValidationLength": 72,
 
     // ── Task Runner ─────────────────────────────────────────
     // Auto-detect Taskfile.yml tasks in the task runner panel.
