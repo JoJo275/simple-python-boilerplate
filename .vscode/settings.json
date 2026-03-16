@@ -56,6 +56,7 @@
     //   for your codebase, or "strict" to match mypy exactly.
     "python.analysis.typeCheckingMode": "standard",
     "python.analysis.autoImportCompletions": true,
+    "python.analysis.completeFunctionParens": true,
     "python.analysis.inlayHints.functionReturnTypes": true,
     "python.analysis.inlayHints.variableTypes": true,
     "python.analysis.inlayHints.pytestParameters": true,
@@ -152,6 +153,14 @@
         "**/site": true,
         "**/.venv": true
     },
+    // Case-sensitive only when the search term contains uppercase.
+    "search.smartCase": true,
+
+    // ── Diff Editor ─────────────────────────────────────────
+    // Show whitespace changes in diffs — important for Python
+    // where indentation is significant.
+    "diffEditor.ignoreTrimWhitespace": false,
+    "diffEditor.renderSideBySide": true,
 
     // ── Git ─────────────────────────────────────────────────
     // Auto-fetch and prune stale remote-tracking branches.
@@ -177,7 +186,18 @@
     "git.rebaseWhenSync": true,
     // Follow tags when pushing (matches push.followTags git config).
     "git.followTagsWhenSync": true,
-    // Show the full commit message in the source control input on amend.
+    // Committing without staged changes auto-stages all modified tracked
+    // files. Convenient for quick commits.
+    "git.enableSmartCommit": true,
+    // Sort branches by most recent commit date in the branch picker.
+    // Matches git config: branch.sort = -committerdate
+    "git.branchSortOrder": "date",
+    // Use VS Code's 3-way merge editor for conflict resolution.
+    "git.mergeEditor": true,
+    // Open diff view when clicking a file in Source Control Changes.
+    "git.openDiffOnClick": true,
+    // Validate commit message length in the Source Control input box.
+    "git.inputValidation": true,
     "git.inputValidationSubjectLength": 50,
     "git.inputValidationLength": 72,
 
