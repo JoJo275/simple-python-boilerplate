@@ -72,7 +72,7 @@ jobs:
       # A GitHub App installation token bypasses this limitation.
       - name: Generate GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # GitHub Action for creating a GitHub App Installation Access Token (v2.2.1)
+        uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859 # GitHub Action for creating a GitHub App Installation Access Token (v2.2.1)
         with:
           app-id: ${{ secrets.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
