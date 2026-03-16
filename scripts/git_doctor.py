@@ -664,6 +664,344 @@ CONFIG_VALID_VALUES: dict[str, str] = {
 }
 
 # ---------------------------------------------------------------------------
+# Beginner-friendly notes (used by --export-config)
+# ---------------------------------------------------------------------------
+
+# Plain-English explanations aimed at newcomers to git. Rendered as an
+# italicised paragraph below the succinct technical description in the
+# exported Markdown reference. Keys absent from this dict get no extra note.
+CONFIG_BEGINNER_NOTES: dict[str, str] = {
+    # ── Core ──
+    "core.autocrlf": (
+        "Windows and macOS/Linux use different invisible characters at the end "
+        "of each line. This setting tells git how to convert between them so "
+        "files look correct on every operating system."
+    ),
+    "core.editor": (
+        "When you run `git commit` without the `-m` flag, git opens a text "
+        "editor so you can write your commit message. This setting picks which "
+        "editor opens. `code --wait` means VS Code."
+    ),
+    "core.pager": (
+        "When git output is longer than your terminal, it scrolls through a "
+        '"pager" program (like `less`). `delta` is a popular pager that adds '
+        "syntax highlighting and side-by-side diffs."
+    ),
+    "core.excludesfile": (
+        "A personal `.gitignore` that applies to every repo on your machine. "
+        "Put OS junk (`.DS_Store`, `Thumbs.db`) and editor files (`.idea/`, "
+        "`.vscode/`) here so they never get committed anywhere."
+    ),
+    "core.filemode": (
+        'On Linux/macOS, files can be marked as "executable." Windows doesn\'t '
+        "have this concept, so git may think every file's permissions changed. "
+        "Setting this to `false` on Windows silences those false diffs."
+    ),
+    "core.longpaths": (
+        "Windows traditionally limits file paths to 260 characters. Some "
+        "projects (especially with `node_modules/`) exceed this. Setting this "
+        "to `true` removes the limit."
+    ),
+    "core.quotepath": (
+        "By default, git escapes non-English characters in file names, showing "
+        "them as `\\nnn` sequences. Set to `false` to see the actual characters."
+    ),
+    "core.hooksPath": (
+        "Git hooks are scripts that run automatically at certain points (e.g. "
+        "before a commit). This setting points git to a custom hooks folder. "
+        "If you use pre-commit, it manages hooks for you — leave this unset."
+    ),
+    "core.eol": (
+        "Controls which line-ending style git uses in your working files. "
+        "`lf` is standard for cross-platform projects. For per-file control, "
+        "use a `.gitattributes` file instead."
+    ),
+    "core.safecrlf": (
+        "A safety net: if converting line endings would change a file in a way "
+        "that can't be reversed, git warns or blocks the operation."
+    ),
+    "core.symlinks": (
+        "Symbolic links are shortcuts that point to another file. Some "
+        "operating systems (especially older Windows) don't support them. "
+        "Git auto-detects this on clone."
+    ),
+    "core.whitespace": (
+        "Tells git which whitespace issues to flag — like trailing spaces at "
+        "the end of a line, or spaces before tabs. Helpful for keeping code clean."
+    ),
+    "core.ignorecase": (
+        "On Windows and macOS, `File.txt` and `file.txt` are the same file. "
+        "On Linux, they're different. Git auto-detects this, but it affects "
+        "whether `git mv` can rename a file by just changing its case."
+    ),
+    # ── Fetch ──
+    "fetch.prune": (
+        "When a teammate deletes a branch on GitHub, your local git still "
+        "remembers it. With `fetch.prune = true`, those stale references are "
+        "automatically cleaned up every time you fetch."
+    ),
+    "fetch.prunetags": (
+        "Same idea as `fetch.prune`, but for tags. Removes references to "
+        "remote tags that no longer exist."
+    ),
+    "fetch.fsckobjects": (
+        "Runs an integrity check on every object received from a remote. "
+        "Catches corrupted data before it enters your repo. Slightly slower "
+        "but much safer."
+    ),
+    # ── Pull ──
+    "pull.rebase": (
+        'When you `git pull`, your local commits can either be "merged" on '
+        'top (creating a merge commit) or "rebased" (replayed one by one on '
+        "top of the remote changes). Rebase keeps the history cleaner and "
+        "linear — no unnecessary merge commits cluttering your log."
+    ),
+    "pull.ff": (
+        'A "fast-forward" is when git can just move the branch pointer forward '
+        "without creating a merge commit. Setting this to `only` means git "
+        "refuses to pull if a fast-forward isn't possible, so you never get "
+        "surprise merge commits."
+    ),
+    # ── Push ──
+    "push.default": (
+        "When you type `git push` without specifying a branch, git needs to "
+        "decide what to push. `current` pushes your current branch to a "
+        "remote branch with the same name. `simple` does the same but only "
+        "if the upstream branch also has the same name."
+    ),
+    "push.autoSetupRemote": (
+        "Normally, the first time you push a new branch, git makes you type "
+        "`git push --set-upstream origin my-branch`. With this set to `true`, "
+        "a simple `git push` just works — git creates the remote branch and "
+        "sets up tracking automatically."
+    ),
+    "push.followTags": (
+        "Tags are named markers on specific commits (like `v1.0.0`). With "
+        "this on, `git push` automatically sends any new annotated tags along "
+        "with your commits, so you don't have to push tags separately."
+    ),
+    # ── Merge ──
+    "merge.ff": (
+        "Controls whether `git merge` creates a merge commit or just moves "
+        "the branch pointer forward. `only` means: if the merge can't be a "
+        "simple fast-forward, refuse to merge (keeping history linear). "
+        "`false` means: always create a merge commit, even when fast-forward "
+        "is possible."
+    ),
+    "merge.conflictstyle": (
+        "When two people edit the same lines, git inserts conflict markers in "
+        'the file. The default (`merge`) shows only "their version" vs '
+        '"your version." With `diff3`/`zdiff3`, you also see the original '
+        "code before either person changed it, making it much easier to "
+        "understand what each side intended."
+    ),
+    "merge.tool": (
+        "Instead of manually editing conflict markers in a text file, you "
+        "can use a visual tool that shows both versions side by side. This "
+        "setting picks which tool opens when you run `git mergetool`."
+    ),
+    "merge.log": (
+        "When git creates a merge commit, this setting adds a summary of "
+        "all the commits being merged into the merge message — helpful for "
+        "understanding what a merge brought in."
+    ),
+    # ── Rebase ──
+    "rebase.autostash": (
+        "If you have uncommitted changes and try to rebase, git normally "
+        "refuses. With this on, git automatically stashes your changes, "
+        "does the rebase, then restores them — no manual stash/unstash needed."
+    ),
+    "rebase.autoSquash": (
+        "When you make a fixup commit (`git commit --fixup <sha>`), this "
+        "setting automatically moves and squashes it into the right place "
+        "during interactive rebase. Great for polishing a branch before merging."
+    ),
+    "rebase.updateRefs": (
+        "If you have multiple branches stacked on top of each other, rebasing "
+        "the base branch normally leaves the others pointing at the old "
+        "commits. This setting automatically updates all the stacked branch "
+        "pointers."
+    ),
+    # ── Rerere ──
+    "rerere.enabled": (
+        '"Rerere" stands for "reuse recorded resolution." If you resolve '
+        "a merge conflict, git remembers how you resolved it. The next time "
+        "the same conflict appears (e.g. during repeated rebases), git applies "
+        "your previous resolution automatically."
+    ),
+    # ── Stash ──
+    "stash.showPatch": (
+        "By default, `git stash show` only lists which files changed. With "
+        "this on, it shows the actual diff — the line-by-line changes — so "
+        "you can see exactly what's in each stash without applying it."
+    ),
+    # ── Branch & Init ──
+    "branch.autosetuprebase": (
+        "When you create a new branch that tracks a remote branch, this "
+        "setting automatically configures it to rebase on pull instead of "
+        "merge. Saves you from setting `pull.rebase` for each branch individually."
+    ),
+    "branch.sort": (
+        "By default, `git branch` lists branches alphabetically. With "
+        "`-committerdate`, the most recently worked-on branches appear first "
+        "— much more useful when you have many branches."
+    ),
+    "init.defaultBranch": (
+        "When you create a brand-new repo with `git init`, this is the name "
+        "of the first branch. Most projects now use `main` instead of the "
+        "older default `master`."
+    ),
+    "tag.sort": (
+        "By default, `git tag` sorts alphabetically, which puts `v1.10` "
+        "before `v1.9`. Setting this to `version:refname` sorts by version "
+        "number correctly."
+    ),
+    # ── Identity & Signing ──
+    "user.name": (
+        "Your name appears in every commit you make. Set this once globally "
+        "and override locally if you need a different name for work repos."
+    ),
+    "user.email": (
+        "Your email appears in every commit. GitHub uses this to link commits "
+        "to your account. Use a `local` override if your work email differs "
+        "from your personal one."
+    ),
+    "commit.gpgsign": (
+        "Signing commits proves they really came from you. GitHub shows a "
+        '"Verified" badge next to signed commits. Requires a GPG or SSH '
+        "key to be set up first."
+    ),
+    "tag.gpgsign": (
+        "Like commit signing, but for tags. Proves a release tag was created "
+        "by an authorized person."
+    ),
+    "gpg.format": (
+        "Choose between GPG (traditional, more complex setup) or SSH keys "
+        "(simpler — you may already have one for GitHub authentication). "
+        'Both produce "Verified" badges on GitHub.'
+    ),
+    "gpg.ssh.allowedSignersFile": (
+        "A file listing trusted SSH public keys. Git checks this file to "
+        "verify signatures locally. Without it, `git log --show-signature` "
+        "can't confirm who signed a commit."
+    ),
+    # ── Commit ──
+    "commit.template": (
+        "A template file whose contents pre-fill the commit message editor "
+        "every time you commit. Useful for enforcing a team format (e.g. "
+        "type, scope, description)."
+    ),
+    "commit.verbose": (
+        "When writing a commit message, this shows the full diff of your "
+        "staged changes right in the editor. Helpful for reviewing exactly "
+        "what you're about to commit."
+    ),
+    # ── Diff ──
+    "diff.algorithm": (
+        "Git uses an algorithm to figure out what changed between two "
+        "versions of a file. `histogram` generally produces more readable "
+        "diffs than the default `myers`, especially for moved code blocks."
+    ),
+    "diff.colorMoved": (
+        "When you move code from one place to another, normal diffs show it "
+        "as deleted + added. This setting highlights moved lines in a "
+        "different color so you can tell they were moved, not rewritten."
+    ),
+    "diff.colorMovedWS": (
+        "Controls whether whitespace changes (like re-indenting) prevent "
+        "moved-line detection. `allow-indentation-change` means moving code "
+        'into a nested block still counts as "moved."'
+    ),
+    "diff.tool": (
+        "When you run `git difftool`, this picks which visual diff program "
+        "opens. VS Code, Meld, and delta are popular choices."
+    ),
+    "diff.renameLimit": (
+        "Git tries to detect when a file was renamed rather than deleted and "
+        "re-created. In large changesets, rename detection can be slow or "
+        "miss renames. Increasing this limit makes it try harder."
+    ),
+    "diff.submodule": (
+        "Submodules are repos inside repos. This controls how their changes "
+        "show in diffs — `log` shows the commit messages, which is more "
+        "informative than just SHAs."
+    ),
+    # ── Log & Display ──
+    "log.date": (
+        'Controls how dates appear in `git log`. `relative` shows "3 days '
+        'ago", `short` shows "2026-03-16", `iso` shows full timestamps.'
+    ),
+    "color.ui": (
+        "Enables colored output in the terminal (green for added lines, red "
+        "for removed, etc.). `auto` turns color on when outputting to a "
+        "terminal but off when piping to a file."
+    ),
+    "column.ui": (
+        "When listing branches or tags, `auto` arranges them in columns "
+        "(like `ls` does for files) to fit more on screen."
+    ),
+    # ── Credential & Transfer ──
+    "credential.helper": (
+        "Instead of typing your password or token every time you push/pull, "
+        "a credential helper stores it securely. `manager` uses your OS "
+        "keychain (Windows Credential Manager or macOS Keychain)."
+    ),
+    "http.sslVerify": (
+        "Git verifies HTTPS certificates to prevent man-in-the-middle "
+        "attacks. Disabling this is a security risk — only do it for "
+        "self-signed certificates in trusted environments."
+    ),
+    "transfer.fsckobjects": (
+        "Runs integrity checks on data during push and pull. Catches "
+        "corruption that could silently break your repository. Worth "
+        "enabling for important projects."
+    ),
+    # ── Performance ──
+    "gc.auto": (
+        "Git stores objects as loose files. Over time, these accumulate and "
+        "slow things down. `gc.auto` triggers automatic cleanup when the "
+        "count exceeds the threshold."
+    ),
+    "feature.manyFiles": (
+        "Enables performance optimizations for repos with thousands of files "
+        "— things like the untracked file cache and filesystem monitor. "
+        "Not needed for small-to-medium repos."
+    ),
+    "index.version": (
+        "The index (staging area) file format. Version 4 is more compact and "
+        "faster, especially in repos with many files."
+    ),
+    # ── Help & UX ──
+    "help.autocorrect": (
+        "If you mistype a command (e.g. `git statuus` instead of `git status`), "
+        "git can auto-correct it. `prompt` asks first; a number auto-runs "
+        "after that many tenths of a second."
+    ),
+    "status.showUntrackedFiles": (
+        "`all` shows every untracked file individually. `normal` groups them "
+        "by directory. `all` is more verbose but ensures you never miss a "
+        "file that should be committed or gitignored."
+    ),
+    # ── Advice ──
+    "advice.detachedHead": (
+        '"Detached HEAD" means you\'re not on a branch — you checked out a '
+        "specific commit or tag. Git shows a long warning about this. If you "
+        "do it often (e.g. reviewing old releases), set to `false` to silence it."
+    ),
+    "advice.statusHints": (
+        '`git status` normally includes hints like "use git add to stage" or '
+        '"use git restore to discard changes." Helpful when learning git; '
+        "set to `false` once you know the commands."
+    ),
+    # ── Protocol ──
+    "protocol.version": (
+        "Git protocol v2 is more efficient — faster clones, smarter "
+        "negotiation of what data to transfer. It's the default in modern "
+        "git versions."
+    ),
+}
+
+# ---------------------------------------------------------------------------
 # Config section descriptions (used by terminal display and --export-config)
 # ---------------------------------------------------------------------------
 
@@ -3071,6 +3409,10 @@ def export_git_config_reference(filepath: str) -> str:
         lines.append("")
         lines.append(f"{description}")
         lines.append("")
+        beginner_note = CONFIG_BEGINNER_NOTES.get(key)
+        if beginner_note:
+            lines.append(f"> **In plain English:** {beginner_note}")
+            lines.append("")
         valid_vals = CONFIG_VALID_VALUES.get(key, "_(freeform)_")
 
         lines.extend(
