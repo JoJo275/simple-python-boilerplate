@@ -4544,6 +4544,186 @@ See [ADR 021](../adr/021-automated-release-pipeline.md) and [releasing.md](../re
 
 ---
 
+## Breaking Changes & Version Bumping
+
+### What Is a Breaking Change?
+
+A **breaking change** is any modification that forces existing users to
+change their code, configuration, commands, or workflows to keep things
+working. If someone was relying on old behaviour and the update makes
+that behaviour stop working, it's a breaking change.
+
+#### Examples of Breaking Changes
+
+| Domain              | Breaking change example                                                       | Why it breaks                                          |
+| ------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------ |
+| **Python library**  | Renaming a public function from `get_users()` to `fetch_users()`              | All callers must update their import / call site        |
+| **REST API**        | Removing the `/api/v1/users` endpoint                                         | Clients sending requests to that URL get 404            |
+| **CLI tool/script** | Removing `--fix` flag from `git_doctor.py`                                    | Scripts or aliases using `--fix` fail with "unknown arg" |
+| **Config format**   | Changing YAML key from `database_url` to `db.url`                             | Existing config files are silently ignored              |
+| **Database**        | Dropping a column that other code reads                                       | Queries crash with "column not found"                   |
+| **File format**     | Changing a CSV export from comma-separated to tab-separated                   | Downstream parsers split on the wrong character         |
+| **Game**            | Removing a character ability after players invested in it                     | Players' builds/strategies break                        |
+| **OS**              | Dropping support for a system call (Linux kernel) or API (Win32)              | Programs compiled against the old API crash or fail     |
+| **Browser**         | Removing `document.all` or changing CSS default behaviour                     | Old websites visually break or lose functionality       |
+
+#### What Is NOT a Breaking Change
+
+- Adding a new function, endpoint, or config key (existing code ignores it)
+- Adding a new optional flag to a CLI tool
+- Fixing a bug (unless people depended on the buggy behaviour)
+- Internal refactors that don't change public interfaces
+- Performance improvements with no API change
+- Adding new default values for previously-unset fields
+
+#### The Grey Area
+
+Some changes are debatable:
+
+- **Fixing a security bug** that changes behaviour — technically breaking,
+  usually accepted as necessary.
+- **Widening return types** (e.g. function returns `int | None` instead of
+  `int`) — not a breaking change in dynamic languages, breaking in statically
+  typed ones.
+- **Tightening validation** (rejecting inputs that were previously accepted) —
+  breaking for anyone sending those inputs, even if the old acceptance was a bug.
+
+### What Is Version Bumping?
+
+**Version bumping** is incrementing a project's version number to indicate
+that something changed. It tells users (humans, package managers, CI
+systems) "this release is different from the last one."
+
+A version number is not just a label — it carries information about what
+the update contains, how risky it is to upgrade, and whether old code
+will keep working.
+
+### How Version Bumping Works (SemVer)
+
+The most widely used scheme is **Semantic Versioning** (SemVer): `MAJOR.MINOR.PATCH`.
+
+| Component   | When to bump                    | What it signals to users                          | Example               |
+| ----------- | ------------------------------- | ------------------------------------------------- | --------------------- |
+| **PATCH**   | Bug fix, docs, internal cleanup | "Safe to upgrade — nothing new, just fixes."       | `1.2.3` → `1.2.4`    |
+| **MINOR**   | New feature, non-breaking       | "New stuff available, old stuff still works."       | `1.2.4` → `1.3.0`    |
+| **MAJOR**   | Breaking change                 | "Read the changelog — something you use may break." | `1.3.0` → `2.0.0`    |
+
+When you bump a higher component, lower ones reset to zero:
+
+- `1.2.4` → minor bump → `1.3.0` (patch resets)
+- `1.3.0` → major bump → `2.0.0` (minor and patch reset)
+
+### When to Bump Major (and When Not To)
+
+Strictly by SemVer, a major bump signals a breaking change. In practice,
+projects interpret this differently:
+
+| Approach                    | Who does it                        | Philosophy                                                  |
+| --------------------------- | ---------------------------------- | ----------------------------------------------------------- |
+| **Strict SemVer**           | Libraries with public API contracts | Major = breaking. Period. Even if the change is small.       |
+| **Marketing / milestone**   | Games, apps, commercial software   | Major bump for big feature milestones, even if nothing breaks |
+| **Time-based**              | Ubuntu, some enterprise software   | Major bump on a schedule (Ubuntu 22.04 → 24.04)              |
+| **Internal scripts/tools**  | Teams, personal projects           | Major bump when it "feels like a new version" — less rigorous |
+| **ZeroVer (0.x.y)**         | Pre-1.0 projects                   | Everything is unstable, bump minor freely, never commit       |
+
+**Bottom line:** For libraries consumed by others, follow SemVer strictly.
+For internal tools, scripts, and apps, a major bump for a significant
+overhaul (even without a breaking change) is common and accepted.
+
+### How Version Numbers Work Across Domains
+
+Not everything follows SemVer. Different categories of software have
+different versioning traditions:
+
+#### Libraries & Packages (SemVer)
+
+Format: `MAJOR.MINOR.PATCH` (e.g. `requests 2.31.0`, `numpy 1.26.4`)
+
+- Consumed by other code, so compatibility matters.
+- Package managers (pip, npm) use version ranges (`>=1.2,<2` means
+  "any minor/patch in 1.x").
+- Breaking change = major bump. This is a contract, not a suggestion.
+
+#### Applications & Desktop Software
+
+Format: Varies. `MAJOR.MINOR` (Chrome 122), `MAJOR.MINOR.PATCH`
+(VS Code 1.87.2), or marketing names (Windows 11).
+
+- Users don't pin to version ranges — they just "update to latest."
+- Major bumps often mark feature milestones or UI overhauls, not
+  necessarily API breaks.
+- Some apps use CalVer: `JetBrains 2024.1`, `Ubuntu 24.04`.
+
+#### Games
+
+Format: Varies widely.
+
+| Pattern                     | Example                         | Notes                                                    |
+| --------------------------- | ------------------------------- | -------------------------------------------------------- |
+| **Major.Minor**             | Minecraft 1.21                  | Minor = content updates. Major rarely changes.            |
+| **Sequential**              | Final Fantasy XVI                | Each game is a new product, not a version bump.           |
+| **Season / patch**          | Fortnite Chapter 5 Season 2     | Marketing-driven; "patch 29.10" for internal builds.      |
+| **Year**                    | FIFA 24, F1 2024                | Annual franchise, version = year.                         |
+| **Build number**            | Dwarf Fortress 50.12            | Incrementing build; major changes are just bigger numbers. |
+| **Early access / alpha**    | Valheim 0.217.46                | Pre-1.0, ZeroVer, rapid iteration.                        |
+
+Games care about player perception and marketing more than API
+compatibility, so version numbers serve branding purposes.
+
+#### Scripts & Internal Tools
+
+Format: Whatever the maintainer wants. Often `MAJOR.MINOR.PATCH` by
+convention, but rules are looser.
+
+- No external consumers to break, so the version is informational.
+- Common to bump major for significant rewrites or feature overhauls.
+- Example: `git_doctor.py` went from 2.1.0 → 3.0.0 when the `--fix`
+  flag was removed (breaking change for anyone scripting against it)
+  and the output display was completely redesigned.
+
+#### Operating Systems
+
+| OS          | Scheme                          | Example                     | Notes                                               |
+| ----------- | ------------------------------- | --------------------------- | --------------------------------------------------- |
+| **Linux**   | `MAJOR.MINOR` (kernel)          | 6.8                         | Even/odd minor was once stable/dev. Now just linear. |
+| **Ubuntu**  | CalVer `YY.MM`                  | 24.04 (April 2024)          | LTS every 2 years. Version = release date.           |
+| **macOS**   | Marketing + `MAJOR.MINOR.PATCH` | Sonoma 14.4                 | Marketing name changes yearly, version increments.   |
+| **Windows** | Marketing number                | Windows 11 (build 22621)    | Version number is mostly marketing. Build number is internal. |
+| **Android** | API level + marketing           | Android 14 (API 34)         | API level is the real version for developers.        |
+| **iOS**     | `MAJOR.MINOR.PATCH`             | 17.4.1                      | Major = yearly, minor = features, patch = fixes.     |
+
+Operating systems face the hardest compatibility challenge: they must
+support millions of programs built over decades. Breaking changes in OS
+APIs are extremely rare and flagged years in advance (deprecation warnings,
+compatibility shims, migration guides).
+
+### How Version Bumps Are Triggered
+
+| Method                 | How it works                                                  | Best for                        |
+| ---------------------- | ------------------------------------------------------------- | ------------------------------- |
+| **Manual edit**        | Change the version string in a file and commit                | Solo projects, learning          |
+| **Bump tool**          | `hatch version minor` / `bump-my-version bump patch`          | Semi-automated workflows         |
+| **Conventional commits** | `feat:` = minor, `fix:` = patch, `feat!:` / `BREAKING CHANGE:` = major | Fully automated CI pipelines |
+| **Git tag**            | `git tag v1.2.3` — version derived from tag at build time     | Tag-driven releases              |
+| **Release PR**         | Bot (release-please) opens a PR with the version bump         | Team projects, code review       |
+
+### Pre-release & Build Metadata
+
+SemVer also defines pre-release and build metadata suffixes:
+
+| Suffix                   | Meaning                      | Example          | Use case                            |
+| ------------------------ | ---------------------------- | ---------------- | ----------------------------------- |
+| `-alpha.1`               | Early unstable release        | `2.0.0-alpha.1`  | Internal testing, incomplete API     |
+| `-beta.2`                | Feature-complete but untested | `2.0.0-beta.2`   | External beta testers                |
+| `-rc.1`                  | Release candidate             | `2.0.0-rc.1`     | Final validation before release      |
+| `+build.123`             | Build metadata (ignored in precedence) | `2.0.0+build.123` | CI tracking, debug info       |
+| `.dev4` (Python/PEP 440) | Development pre-release       | `2.0.0.dev4`     | Nightly builds, dev installs         |
+
+Pre-release versions have **lower** precedence than the release:
+`1.0.0-alpha.1 < 1.0.0-beta.1 < 1.0.0-rc.1 < 1.0.0`.
+
+---
+
 ## Merge Strategies for Integrating into Main
 
 When changes from a feature branch need to get into `main`, there are several strategies. Each produces a different commit history shape, affects traceability, and has implications for tools like `git bisect`, changelog generation, and `git log` readability.
