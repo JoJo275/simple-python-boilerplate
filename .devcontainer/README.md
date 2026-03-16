@@ -16,6 +16,16 @@ for consistent development environments.
 
 VS Code will build the container and set up your environment automatically.
 
+### Exiting the Container
+
+To return to local (non-container) development:
+
+- **Command palette** (`Ctrl+Shift+P`) → **Dev Containers: Reopen Folder Locally**
+- Or simply **close the VS Code window** — the container stops automatically
+
+Your files are not affected. The container shares your project files via a
+volume mount, so everything you edited is still on your local disk.
+
 ## What's Included
 
 - Python 3.12 with pip and Hatch (environment management)
