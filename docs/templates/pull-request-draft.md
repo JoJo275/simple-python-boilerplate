@@ -48,7 +48,7 @@ template authors and template users.
 **What changes you made:**
 
 - **`git_doctor.py`** — rewrote from scratch (v2.0.0): added git config
-  reference export (`--export-config`), auto-fix (`--fix`), branch
+  reference export (`--export-config`), auto-apply (`--apply-recommended`), branch
   characteristics, commit activity charts, file change summaries, fetch/prune
   at startup, column-header config display, improved status overview
 - **`env_doctor.py`** — expanded with OS/platform checks, Node.js/container
@@ -100,7 +100,7 @@ a scratch branch over the course of iterative template development.
 2. Run `python scripts/git_doctor.py --export-config` — verify
    `git-config-reference.md` is generated with the Scope Guide including
    command examples
-3. Run `python scripts/git_doctor.py --fix --dry-run` — verify it lists
+3. Run `python scripts/git_doctor.py --apply-recommended --dry-run` — verify it lists
    recommended settings without applying them
 4. Run `python scripts/env_doctor.py` — verify expanded checks run
 5. Open the project in VS Code as a workspace — verify settings and
