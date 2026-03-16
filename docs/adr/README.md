@@ -73,6 +73,10 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [033](033-prettier-for-markdown-formatting.md)    | Prettier for Markdown formatting                                   | Accepted |
 | [034](034-documentation-organization-strategy.md) | Documentation organization strategy                                | Accepted |
 | [035](035-copilot-instructions-as-context.md)     | Copilot instructions as developer context                          | Accepted |
+| [036](036-diagnostic-tooling-strategy.md)         | Diagnostic tooling strategy (doctor scripts and profiles)          | Accepted |
+| [037](037-git-configuration-as-code.md)           | Git configuration as code                                          | Accepted |
+| [038](038-vscode-workspace-configuration-strategy.md) | VS Code workspace configuration strategy                      | Accepted |
+| [039](039-developer-onboarding-automation.md)     | Developer onboarding automation (bootstrap and customize)          | Accepted |
 
 ## Archive
 
