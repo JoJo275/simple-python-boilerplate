@@ -103,7 +103,7 @@ jobs:
 
       # Generate SPDX SBOM for downstream scanning jobs
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
+        uses: anchore/sbom-action@57aae528053a48a3f6235f2d9461b05fbcb7366d # v0.23.1
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -111,7 +111,7 @@ jobs:
 
       # Generate CycloneDX SBOM (Grype works well with both formats)
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # v0.23.0
+        uses: anchore/sbom-action@57aae528053a48a3f6235f2d9461b05fbcb7366d # v0.23.1
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
@@ -135,7 +135,7 @@ jobs:
 
     steps:
       - name: Download SBOMs
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: nightly-sbom
 
@@ -153,7 +153,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SBOM SARIF
-        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
+        uses: github/codeql-action/upload-sarif@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0
         if: always()
         with:
           sarif_file: trivy-sbom-results.sarif
@@ -168,7 +168,7 @@ jobs:
 
     steps:
       - name: Download SBOMs
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: nightly-sbom
 
@@ -185,7 +185,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SBOM SARIF
-        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
+        uses: github/codeql-action/upload-sarif@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
@@ -274,7 +274,7 @@ jobs:
 
     steps:
       - name: Download image tarball
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: nightly-container-image
 
@@ -291,7 +291,7 @@ jobs:
           exit-code: 0
 
       - name: Upload Trivy SARIF
-        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
+        uses: github/codeql-action/upload-sarif@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0
         if: always()
         with:
           sarif_file: trivy-results.sarif
@@ -305,7 +305,7 @@ jobs:
 
     steps:
       - name: Download image tarball
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: nightly-container-image
 
@@ -322,7 +322,7 @@ jobs:
           fail-build: "false"
 
       - name: Upload Grype SARIF
-        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
+        uses: github/codeql-action/upload-sarif@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0
         if: always()
         with:
           sarif_file: ${{ steps.grype.outputs.sarif }}
