@@ -98,7 +98,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.6
     hooks:
       # Linter
       - id: ruff
@@ -161,7 +161,7 @@ repos:
   # each catches things the other misses.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/crate-ci/typos
-    rev: v1.44.0
+    rev: v1
     hooks:
       - id: typos
         args: [--config, _typos.toml]
@@ -315,7 +315,7 @@ repos:
   # thorough scan before code leaves your machine.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.0
+    rev: v8.30.1
     hooks:
       - id: gitleaks
         stages: [pre-push]
