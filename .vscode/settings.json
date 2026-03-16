@@ -8,9 +8,10 @@
     //   • File > Open Folder  (most common, Codespaces, devcontainers)
     //   • File > Open Workspace from File  (.code-workspace)
     //
-    // The .code-workspace file contains ONLY extension recommendations
-    // and cosmetic preferences (indentRainbow). It deliberately avoids
-    // duplicating settings here — this file is the single source of truth.
+    // The .code-workspace file contains ONLY extension recommendations.
+    // It has no settings — cosmetic preferences like indentRainbow colours
+    // live here alongside functional settings so everything is in one place.
+    // This file is the single source of truth.
     //
     // TODO (template users): Review all sections below and adjust to
     //   match your project's tooling (formatter, linter, test runner).

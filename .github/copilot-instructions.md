@@ -409,7 +409,7 @@ Key ADRs that most affect day-to-day work:
 | 024 | CI gate pattern (single required check)              |
 | 031 | Script conventions (argparse, logging, shebang, etc) |
 
-Full index (35 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
+Full index (39 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
 
 ## Common Issues to Catch
 

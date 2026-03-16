@@ -3411,7 +3411,7 @@ def export_git_config_reference(filepath: str) -> str:
         lines.append("")
         beginner_note = CONFIG_BEGINNER_NOTES.get(key)
         if beginner_note:
-            lines.append(f"> **In plain English:** {beginner_note}")
+            lines.append(f"> **What this does:** {beginner_note}")
             lines.append("")
         valid_vals = CONFIG_VALID_VALUES.get(key, "_(freeform)_")
 
