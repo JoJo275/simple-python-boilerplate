@@ -30,8 +30,11 @@ services:
     container_name: simple-python-boilerplate
     # Security: drop all capabilities and run read-only where possible
     read_only: true
+    cap_drop:
+      - ALL
     security_opt:
       - no-new-privileges:true
+    pids_limit: 100
 
     # tmpfs mounts — required because read_only: true makes the root filesystem
     # immutable. Python and many libraries need /tmp for temporary files at runtime.

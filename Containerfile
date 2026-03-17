@@ -79,7 +79,7 @@ RUN python -m pip install --no-cache-dir /tmp/*.whl \
 USER app
 
 # Healthcheck — uncomment if this becomes an HTTP service:
-# HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+# HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 #   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
 
 # Default command — runs the CLI entry point

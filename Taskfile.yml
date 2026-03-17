@@ -308,6 +308,30 @@ tasks:
     cmds:
       - hatch run test -x {{.CLI_ARGS}}
 
+  # ── Container Testing ──────────────────────────────────────
+  # Requires Docker (or Podman) to be installed and running.
+  container:test:
+    desc: Run all container tests (Containerfile + docker compose)
+    cmds:
+      - task: container:test:containerfile
+      - task: container:test:compose
+
+  container:test:containerfile:
+    desc: Test the Containerfile (build, validate, clean up)
+    cmds:
+      - python scripts/test_containerfile.py {{.CLI_ARGS}}
+
+  container:test:compose:
+    desc: Test the docker compose stack (build, validate, clean up)
+    cmds:
+      - python scripts/test_docker_compose.py {{.CLI_ARGS}}
+
+  container:test:dry-run:
+    desc: Preview all container tests without running
+    cmds:
+      - python scripts/test_containerfile.py --dry-run
+      - python scripts/test_docker_compose.py --dry-run
+
   test:k:
     desc: "Run tests matching keyword (usage: task test:k -- my_test)"
     cmds:
