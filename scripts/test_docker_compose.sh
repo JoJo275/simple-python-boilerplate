@@ -3,31 +3,39 @@
 #
 # Usage:
 #   bash scripts/test_docker_compose.sh
+#   KEEP=1 bash scripts/test_docker_compose.sh    # skip cleanup
+#   VERBOSE=1 bash scripts/test_docker_compose.sh # show build output
 set -euo pipefail
 
-IMAGE="simple-python-boilerplate:local"
-
 cleanup() {
-    echo "--- Cleaning up ---"
-    docker compose down 2>/dev/null || true
+    if [ "${KEEP:-0}" != "1" ]; then
+        echo "--- Cleaning up containers and images ---"
+        docker compose down --rmi local --volumes 2>/dev/null || true
+    fi
 }
 trap cleanup EXIT
 
 echo "=== Docker Compose Test ==="
 
-echo "--- Building and starting containers ---"
-docker compose up -d --build
+echo "--- Validating compose config ---"
+docker compose config --quiet
 
-echo "--- Showing running containers ---"
-docker compose ps
+echo "--- Building image via docker compose ---"
+if [ "${VERBOSE:-0}" = "1" ]; then
+    docker compose build
+else
+    docker compose build --quiet
+fi
 
-echo "--- Showing container logs ---"
-docker compose logs
-
-echo "--- Verifying container runs correctly ---"
+echo "--- Verifying entrypoint (--help) ---"
 docker compose run --rm app --help
 
-echo "--- Stopping containers ---"
-docker compose down
+echo "--- Checking non-root user ---"
+ID_OUTPUT=$(docker compose run --rm --entrypoint id app)
+echo "  $ID_OUTPUT"
+if echo "$ID_OUTPUT" | grep -q "uid=0"; then
+    echo "ERROR: Container is running as root (uid=0)"
+    exit 1
+fi
 
 echo "=== Docker Compose Test PASSED ==="
