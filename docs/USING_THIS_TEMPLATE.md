@@ -239,7 +239,7 @@ check items off as you go.
 
 ## CI/CD Workflows Included
 
-This template ships with **35 GitHub Actions workflows** in
+This template ships with **36 GitHub Actions workflows** in
 [.github/workflows/](../.github/workflows/) covering quality, security, PR
 hygiene, releases, docs, containers, and maintenance.
 
@@ -283,7 +283,7 @@ skip on forks and clones.
 
 ### Disabling Workflows You Don't Need
 
-Not every project needs all 35 workflows:
+Not every project needs all 36 workflows:
 
 | If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
 | :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |
@@ -315,7 +315,7 @@ Not every project needs all 35 workflows:
 | **PR Hygiene**    | pr-title, commit-lint, labeler                                                                                            | Yes — in CI gate                             |
 | **Release**       | release-please, release, sbom                                                                                             | Push to main / tags only                     |
 | **Documentation** | docs-build, docs-deploy                                                                                                   | docs-build in gate; deploy is path-filtered  |
-| **Container**     | container-build, container-scan                                                                                           | container-build in gate                      |
+| **Container**     | container-build, container-scan, devcontainer-build                                                                       | container-build in gate; devcontainer path-filtered |
 | **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor, doctor-all | Scheduled / event-triggered             |
 | **Gate**          | ci-gate                                                                                                                   | Yes — the single required check              |
 
@@ -403,6 +403,11 @@ the top of each file).
 | [`changelog_check.py`](../scripts/changelog_check.py)     | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                      |
 | [`check_known_issues.py`](../scripts/check_known_issues.py) | Flag stale Resolved entries in known-issues.md               | `--days N`, `--json`, `--quiet`                             |
 | [`apply_labels.py`](../scripts/apply_labels.py)           | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                    |
+| [`test_containerfile.py`](../scripts/test_containerfile.py) | Test the Containerfile image: build, validate, clean up      | `--dry-run`, `--keep`                                       |
+| [`test_docker_compose.py`](../scripts/test_docker_compose.py) | Test docker compose stack: build, run, validate, clean up  | `--dry-run`                                                 |
+
+Bash equivalents (`test_containerfile.sh`, `test_docker_compose.sh`) are also
+available for shell-based CI pipelines.
 
 Full inventory with additional details: [`scripts/README.md`](../scripts/README.md)
 
@@ -532,9 +537,36 @@ without polluting your host machine.
 container. VS Code connects to it seamlessly — your terminal, editor, debugger,
 and extensions all run inside the container. Also works with GitHub Codespaces.
 
+**Configuration file:** [`.devcontainer/devcontainer.json`](../.devcontainer/devcontainer.json)
+— controls the base image, installed features, extensions, environment
+variables, and post-create setup commands. See the
+[`.devcontainer/README.md`](../.devcontainer/README.md) for full details.
+
 **This is NOT the same as the Containerfile.** The Containerfile builds a
 minimal production image. The Dev Container sets up a rich development
-environment with all your tools pre-installed.
+environment with all your tools pre-installed. Docker Compose also builds
+from the Containerfile — so Compose and the Dev Container use **completely
+separate images**. The Dev Container pulls the
+`mcr.microsoft.com/devcontainers/python` base image; Compose builds from
+`python:3.12-slim` via the Containerfile.
+
+**What carries over into the container:**
+
+- **All project files** — the entire workspace is mounted into the container
+  via a volume bind, so every file you see locally (source, tests, configs,
+  docs, scripts) is available inside the container.
+- **VS Code extensions** — extensions listed in the `customizations.vscode.extensions`
+  array in `devcontainer.json` are installed automatically inside the container.
+  This is separate from `.vscode/extensions.json` — Dev Containers only read
+  the `devcontainer.json` list, so extensions must be listed there explicitly.
+  Your locally installed extensions do **not** automatically carry over unless
+  they appear in that list.
+- **VS Code settings** — `.vscode/settings.json` loads automatically inside the
+  container (it's part of the mounted workspace). Container-specific overrides
+  (like the Linux terminal profile) go in the `customizations.vscode.settings`
+  block in `devcontainer.json`.
+- **Git configuration** — your global git config (user.name, user.email, etc.)
+  is shared into the container automatically by VS Code.
 
 **What it looks like:**
 
@@ -562,6 +594,13 @@ environment with all your tools pre-installed.
 3. **Start working:** Everything is ready — Hatch env, pre-commit hooks,
    extensions, and settings are all configured.
 
+**Exiting the Dev Container:**
+
+- **Command palette** (`Ctrl+Shift+P`) → **Dev Containers: Reopen Folder Locally**
+- Or simply **close the VS Code window** — the container stops automatically
+- Your files are safe — the container mounts your local project directory, so
+  everything you edited persists on your local disk
+
 **For GitHub Codespaces:** No local setup needed. Click "Code → Codespaces →
 Create codespace on main" on GitHub. The same `devcontainer.json` configures
 the Codespace automatically.
@@ -570,6 +609,17 @@ the Codespace automatically.
 fully configured environment in minutes without installing Python, Node, Hatch,
 or any tools on their host. Especially useful for teams, onboarding, and when
 working across multiple projects with different tool versions.
+
+**Testing the Dev Container:** The
+[`devcontainer-build.yml`](../.github/workflows/devcontainer-build.yml)
+workflow automatically validates the dev container on PRs that change
+`.devcontainer/` files, `pyproject.toml`, or `.pre-commit-config.yaml`. It
+uses the [`devcontainers/ci`](https://github.com/devcontainers/ci) GitHub
+Action to build the container and run smoke tests (Python, Hatch,
+pre-commit, and package import). This catches broken `postCreateCommand`
+scripts, missing features, or image pull failures before they affect
+contributors. Enable it via the repository guard (same pattern as other
+workflows — see [Enabling Workflows](#enabling-workflows)).
 
 **After customizing:** Update `name`, Python version, extensions list, and
 `postCreateCommand` in `.devcontainer/devcontainer.json`. Uncomment
@@ -727,6 +777,37 @@ container-structure-test test \
 # Cleanup
 docker compose down
 echo "All container tests passed."
+```
+
+**Automated test scripts:** Two scripts are provided for running docker compose
+tests non-interactively (useful in CI or local verification):
+
+- [`scripts/test_docker_compose.py`](../scripts/test_docker_compose.py) — Python
+  script that builds, runs, and validates the docker compose stack
+- [`scripts/test_docker_compose.sh`](../scripts/test_docker_compose.sh) — Bash
+  equivalent for shell-based CI pipelines
+
+Both scripts build the image, start the container, verify it runs correctly,
+and clean up. Run either one:
+
+```bash
+python scripts/test_docker_compose.py          # Python version
+bash scripts/test_docker_compose.sh            # Bash version
+python scripts/test_docker_compose.py --dry-run # Preview without executing
+```
+
+**Containerfile-only test scripts** (no docker compose, tests the image
+directly):
+
+- [`scripts/test_containerfile.py`](../scripts/test_containerfile.py) — Python
+  script that builds and validates the Containerfile image
+- [`scripts/test_containerfile.sh`](../scripts/test_containerfile.sh) — Bash
+  equivalent
+
+```bash
+python scripts/test_containerfile.py          # Python version
+bash scripts/test_containerfile.sh            # Bash version
+python scripts/test_containerfile.py --dry-run # Preview without executing
 ```
 
 **Troubleshooting:**

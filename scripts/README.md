@@ -29,6 +29,10 @@ Utility scripts for development and maintenance.
 | [env_doctor.py](env_doctor.py)                     | Environment health check + extended project consistency checks            |
 | [git_doctor.py](git_doctor.py)                     | Git-focused health check and information dashboard                       |
 | [repo_doctor.py](repo_doctor.py)                   | Warn-only repo health checker driven by `.repo-doctor.toml` rules        |
+| [test_containerfile.py](test_containerfile.py)     | Test the Containerfile: build image, validate, clean up                  |
+| [test_containerfile.sh](test_containerfile.sh)     | Bash equivalent of test_containerfile.py                                 |
+| [test_docker_compose.py](test_docker_compose.py)   | Test docker compose stack: build, run, validate, clean up                |
+| [test_docker_compose.sh](test_docker_compose.sh)   | Bash equivalent of test_docker_compose.py                                |
 | [workflow_versions.py](workflow_versions.py)       | Show/update version comments on SHA-pinned GitHub Actions                |
 | [precommit/](precommit/)                           | Custom pre-commit hook scripts                                           |
 | [sql/](sql/)                                       | SQL scripts for database operations                                      |
@@ -85,6 +89,15 @@ python scripts/workflow_versions.py update-comments    # Sync comments + add des
 python scripts/workflow_versions.py upgrade            # Upgrade all to latest
 python scripts/workflow_versions.py upgrade --dry-run  # Preview upgrades
 python scripts/workflow_versions.py upgrade actions/checkout v6.1.0  # Specific version
+
+# Test containers
+python scripts/test_containerfile.py           # Build + validate Containerfile image
+python scripts/test_containerfile.py --dry-run  # Preview steps
+python scripts/test_containerfile.py --keep     # Keep image after test
+python scripts/test_docker_compose.py           # Build + validate compose stack
+python scripts/test_docker_compose.py --dry-run # Preview steps
+bash scripts/test_containerfile.sh              # Bash equivalent
+bash scripts/test_docker_compose.sh             # Bash equivalent
 
 # Run SQL against database
 sqlite3 var/app.sqlite3 < scripts/sql/reset.sql

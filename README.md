@@ -143,6 +143,8 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 | `scripts/archive_todos.py`             | Archive resolved TODOs                                                   |
 | `scripts/changelog_check.py`           | Verify CHANGELOG.md matches git tags                                     |
 | `scripts/clean.py`                     | Remove build artifacts and caches                                        |
+| `scripts/test_containerfile.py`        | Test the Containerfile image: build, validate, clean up                  |
+| `scripts/test_docker_compose.py`       | Test docker compose stack: build, run, validate, clean up                |
 
 ## Using This Template
 
