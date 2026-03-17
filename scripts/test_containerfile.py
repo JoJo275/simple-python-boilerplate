@@ -11,6 +11,7 @@ Flags::
     --dry-run    Show what would be executed without running
     --keep       Keep the test image after running (skip cleanup)
     --verbose    Show full command output including stderr
+    --timeout N  Per-step timeout in seconds (default: 300)
     --version    Print version and exit
 
 Usage::
@@ -18,12 +19,14 @@ Usage::
     python scripts/test_containerfile.py
     python scripts/test_containerfile.py --dry-run
     python scripts/test_containerfile.py --keep --verbose
+    python scripts/test_containerfile.py --timeout 600
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
+import re
 import subprocess  # nosec B404
 import sys
 
@@ -31,9 +34,13 @@ import sys
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
+# TODO (template users): Update IMAGE_NAME to match your project.
 IMAGE_NAME = "simple-python-boilerplate:test"
 # Maximum expected image size in MB (flag a warning if exceeded)
+# TODO (template users): Adjust MAX_IMAGE_SIZE_MB for your application's
+#   expected image size.  200 MB is generous for a Python CLI; a web app
+#   with ML dependencies may need 500+ MB.
 MAX_IMAGE_SIZE_MB = 200
 
 logger = logging.getLogger(__name__)
@@ -72,10 +79,39 @@ def _run(
     return result
 
 
+def _check_docker_available() -> bool:
+    """Verify docker CLI is available and the daemon is running."""
+    try:
+        result = subprocess.run(  # nosec B603 B607
+            ["docker", "info"],
+            check=False,
+            timeout=15,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            logger.error(
+                "Docker daemon not running or not accessible. "
+                "Start Docker Desktop or the docker service first."
+            )
+            return False
+        return True
+    except FileNotFoundError:
+        logger.error("docker CLI not found on PATH")
+        return False
+    except subprocess.TimeoutExpired:
+        logger.error("docker info timed out — daemon may be unresponsive")
+        return False
+
+
 def _check_non_root(output: str) -> bool:
     """Verify the container is not running as root (uid=0)."""
     # `id` output looks like: uid=1000(app) gid=1000(app) groups=1000(app)
-    if "uid=0" in output:
+    uid_match = re.search(r"uid=(\d+)", output)
+    if not uid_match:
+        logger.error("Could not parse uid from `id` output: %s", output.strip())
+        return False
+    if uid_match.group(1) == "0":
         logger.error("Container is running as root (uid=0)")
         return False
     logger.info("  Non-root verified: %s", output.strip().split()[0])
@@ -134,6 +170,13 @@ def main() -> int:
         action="store_true",
         help="Show full command output including stderr",
     )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        metavar="N",
+        help="Per-step timeout in seconds (default: 300)",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -141,6 +184,12 @@ def main() -> int:
         format="%(levelname)s: %(message)s",
     )
 
+    if not args.dry_run and not _check_docker_available():
+        return 1
+
+    # TODO (template users): Add or remove build steps to match your
+    #   Containerfile (e.g. HEALTHCHECK validation, extra entrypoints,
+    #   environment variable checks).
     steps: list[tuple[str, list[str]]] = [
         (
             "Build image from Containerfile",
@@ -177,11 +226,12 @@ def main() -> int:
             print(f"  [Remove test image] docker rmi {IMAGE_NAME}")
         return 0
 
+    step_timeout = args.timeout
     failed = False
     for desc, cmd in steps:
         logger.info("Step: %s", desc)
         try:
-            result = _run(cmd, verbose=args.verbose)
+            result = _run(cmd, verbose=args.verbose, timeout=step_timeout)
             if result.returncode != 0:
                 logger.error("Step failed: %s (exit %d)", desc, result.returncode)
                 failed = True
@@ -191,7 +241,11 @@ def main() -> int:
                 failed = True
                 break
         except subprocess.TimeoutExpired:
-            logger.error("Step timed out: %s", desc)
+            logger.error(
+                "Step timed out after %ds: %s (increase with --timeout)",
+                step_timeout,
+                desc,
+            )
             failed = True
             break
         except subprocess.CalledProcessError as exc:

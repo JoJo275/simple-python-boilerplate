@@ -5,10 +5,23 @@
 #   bash scripts/test_containerfile.sh
 #   KEEP_IMAGE=1 bash scripts/test_containerfile.sh   # skip image removal
 #   VERBOSE=1 bash scripts/test_containerfile.sh      # show build output
+#
+# TODO (template users): Update IMAGE and MAX_SIZE_MB to match your project.
 set -euo pipefail
 
 IMAGE="simple-python-boilerplate:test"
 MAX_SIZE_MB=200
+
+# Check docker is available before doing anything
+if ! command -v docker &>/dev/null; then
+    echo "ERROR: docker CLI not found on PATH"
+    exit 1
+fi
+if ! docker info &>/dev/null; then
+    echo "ERROR: Docker daemon not running or not accessible"
+    echo "  Start Docker Desktop or the docker service first."
+    exit 1
+fi
 
 cleanup() {
     if [ "${KEEP_IMAGE:-0}" != "1" ]; then
@@ -33,8 +46,12 @@ docker run --rm "$IMAGE" --help
 echo "--- Checking non-root user ---"
 ID_OUTPUT=$(docker run --rm --entrypoint id "$IMAGE")
 echo "  $ID_OUTPUT"
-if echo "$ID_OUTPUT" | grep -q "uid=0"; then
+if echo "$ID_OUTPUT" | grep -qP 'uid=0\b'; then
     echo "ERROR: Container is running as root (uid=0)"
+    exit 1
+fi
+if ! echo "$ID_OUTPUT" | grep -qP 'uid=\d+'; then
+    echo "ERROR: Could not parse uid from id output"
     exit 1
 fi
 

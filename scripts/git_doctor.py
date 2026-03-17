@@ -19,6 +19,7 @@ Flags::
     --watch [N]       Re-run dashboard every N seconds (default: 10, minimum: 2 to prevent slamming git)
     --refresh         Interactive refresh: fetch remotes, prune stale refs, sync tags, update remote HEAD
     --cleanup         Interactive cleanup: delete stale local branches (90+ days), gone upstream branches, run git gc
+    --view-commits    Detailed commit report: SHAs, messages, authors, dates, per-file stats, conflicts
     --version         Print version and exit
 
 Usage::
@@ -40,6 +41,8 @@ Usage::
     python scripts/git_doctor.py --refresh --dry-run
     python scripts/git_doctor.py --cleanup
     python scripts/git_doctor.py --cleanup --dry-run
+    python scripts/git_doctor.py --view-commits
+    python scripts/git_doctor.py --view-commits --markdown
     python scripts/git_doctor.py --help
 
 Workflow for editing and applying config::
@@ -1721,6 +1724,134 @@ def get_working_branch_stats() -> dict[str, dict[str, int]]:
         result["vs_default"] = dict(empty)
 
     return result
+
+
+# ---------------------------------------------------------------------------
+# --view-commits: detailed commit info for current branch
+# ---------------------------------------------------------------------------
+
+
+def get_branch_origin_point() -> dict[str, str]:
+    """Return info about where the current branch diverges from default."""
+    default = get_default_branch()
+    current = get_current_branch()
+    if default == "(unknown)" or current.startswith("("):
+        return {"origin_branch": "(unknown)"}
+    base = _resolve_comparison_base(default)
+    code, merge_base, _ = _run_git(["merge-base", current, base])
+    if code != 0 or not merge_base:
+        return {"origin_branch": default}
+    code, out, _ = _run_git(["log", "-1", "--format=%h\t%ar", merge_base])
+    result: dict[str, str] = {"origin_branch": default, "merge_base": merge_base[:10]}
+    if code == 0 and out:
+        parts = out.split("\t", 1)
+        result["merge_base_short"] = parts[0]
+        if len(parts) >= 2:
+            result["merge_base_date"] = parts[1]
+    return result
+
+
+def get_detailed_branch_commits() -> list[dict[str, object]]:
+    """Return every commit on the current branch (unique vs default).
+
+    Each entry contains: sha, message, author, date, datetime, and a
+    list of files with per-file insertions/deletions.
+    """
+    default = get_default_branch()
+    current = get_current_branch()
+    if default == "(unknown)" or current.startswith("("):
+        # Fallback: last 50 commits on HEAD
+        range_spec = "-50"
+    else:
+        base = _resolve_comparison_base(default)
+        range_spec = f"{base}..HEAD"
+
+    # Get commit SHAs first
+    code, out, _ = _run_git(["log", range_spec, "--format=%H\t%h\t%s\t%an\t%aI\t%ar"])
+    if code != 0 or not out:
+        return []
+
+    commits: list[dict[str, object]] = []
+    for line in out.splitlines():
+        parts = line.split("\t", 5)
+        if len(parts) < 2:
+            continue
+        entry: dict[str, object] = {
+            "sha": parts[0],
+            "sha_short": parts[1],
+            "message": parts[2] if len(parts) >= 3 else "",
+            "author": parts[3] if len(parts) >= 4 else "",
+            "datetime": parts[4] if len(parts) >= 5 else "",
+            "date_relative": parts[5] if len(parts) >= 6 else "",
+        }
+
+        # Per-commit file stats
+        stat_code, stat_out, _ = _run_git(
+            ["diff-tree", "--no-commit-id", "-r", "--numstat", parts[0]]
+        )
+        files: list[dict[str, str | int]] = []
+        commit_ins = 0
+        commit_del = 0
+        if stat_code == 0 and stat_out:
+            for stat_line in stat_out.splitlines():
+                stat_parts = stat_line.split("\t", 2)
+                if len(stat_parts) >= 3:
+                    ins = int(stat_parts[0]) if stat_parts[0] != "-" else 0
+                    dels = int(stat_parts[1]) if stat_parts[1] != "-" else 0
+                    files.append(
+                        {
+                            "file": stat_parts[2],
+                            "insertions": ins,
+                            "deletions": dels,
+                        }
+                    )
+                    commit_ins += ins
+                    commit_del += dels
+
+        entry["files"] = files
+        entry["total_insertions"] = commit_ins
+        entry["total_deletions"] = commit_del
+        commits.append(entry)
+
+    return commits
+
+
+def get_branch_conflict_files() -> list[str]:
+    """Check if the current branch has conflicts with the default branch.
+
+    Does a trial merge (without committing) to detect files that would
+    conflict. Returns a list of conflicting file paths.
+    """
+    default = get_default_branch()
+    if default == "(unknown)":
+        return []
+    base = _resolve_comparison_base(default)
+
+    # Check working tree is clean enough for a trial merge
+    status = get_working_tree_status()
+    if status.get("conflicted", 0) > 0:
+        # Already in a conflict state
+        code, out, _ = _run_git(["diff", "--name-only", "--diff-filter=U"])
+        if code == 0 and out:
+            return out.splitlines()
+        return []
+
+    # Use merge-tree (git 2.38+) for a safe conflict check without touching worktree
+    code, out, _ = _run_git(["merge-tree", "--write-tree", "HEAD", base])
+    if code == 0:
+        # No conflicts
+        return []
+    # merge-tree exits non-zero if conflicts; parse the output
+    conflicts: list[str] = []
+    if out:
+        for line in out.splitlines():
+            # Lines starting with "CONFLICT" indicate conflict files
+            if line.startswith("CONFLICT"):
+                # Extract filename from "CONFLICT (content): Merge conflict in <file>"
+                match = re.search(r"Merge conflict in (.+)$", line)
+                if match:
+                    conflicts.append(match.group(1).strip())
+    return conflicts
 
 
 def get_modified_files(limit: int = 15) -> list[dict[str, str]]:
@@ -4612,6 +4743,7 @@ def refresh_repo(
     tr = "\u2510" if use_unicode else "+"
     bl = "\u2514" if use_unicode else "+"
     br = "\u2518" if use_unicode else "+"
+    vl = "\u2502" if use_unicode else "|"
     dot = "\u2022" if use_unicode else "*"
     sym = _unicode_symbols(sys.stdout)
     check_sym = sym.get("check", "+")
@@ -4675,7 +4807,7 @@ def refresh_repo(
     sec_border = h_line * 60
     print()
     print(c.cyan(f"  {tl}{sec_border}{tr}"))
-    print(f"  {c.cyan('│')} {c.bold('Operations')}")
+    print(f"  {c.cyan(vl)} {c.bold('Operations')}")
     print(c.cyan(f"  {bl}{sec_border}{br}"))
     print()
     for desc, cmd_str, _args in operations:
@@ -4709,7 +4841,7 @@ def refresh_repo(
     # ── Execute ──
     print()
     print(c.cyan(f"  {tl}{sec_border}{tr}"))
-    print(f"  {c.cyan('│')} {c.bold('Results')}")
+    print(f"  {c.cyan(vl)} {c.bold('Results')}")
     print(c.cyan(f"  {bl}{sec_border}{br}"))
     print()
 
@@ -4761,6 +4893,23 @@ def refresh_repo(
         f"{c.dim('to apply core recommended configs')}"
     )
     print()
+    print(
+        f"  {c.dim(dot)} {c.dim('To automate what --refresh does, set these git configs:')}"
+    )
+    print(
+        f"    {c.dim('git config --global fetch.prune true')}"
+        f"       {c.dim('# auto-prune stale refs on every fetch')}"
+    )
+    print(
+        f"    {c.dim('git config --global fetch.prunetags true')}"
+        f"   {c.dim('# auto-prune stale tags on every fetch')}"
+    )
+    print(
+        f"  {c.dim(dot)} {c.dim('Run')} {c.cyan('--export-config')} "
+        f"{c.dim('to see all configs, or')} {c.cyan('--apply-recommended-minimal')} "
+        f"{c.dim('to apply them')}"
+    )
+    print()
 
     return 1 if failed > 0 else 0
 
@@ -4809,6 +4958,7 @@ def cleanup_repo(
     tr = "\u2510" if use_unicode else "+"
     bl = "\u2514" if use_unicode else "+"
     br = "\u2518" if use_unicode else "+"
+    vl = "\u2502" if use_unicode else "|"
     dot = "\u2022" if use_unicode else "*"
     sym = _unicode_symbols(sys.stdout)
     check_sym = sym.get("check", "+")
@@ -4887,7 +5037,7 @@ def cleanup_repo(
         print()
         print(c.cyan(f"  {tl}{sec_border}{tr}"))
         print(
-            f"  {c.cyan('│')} {c.bold(f'Stale Branches ({len(stale_branches)})')}"
+            f"  {c.cyan(vl)} {c.bold(f'Stale Branches ({len(stale_branches)})')}"
             f"  {c.dim(f'no commits in {stale_days}+ days')}"
         )
         print(c.cyan(f"  {bl}{sec_border}{br}"))
@@ -4904,7 +5054,7 @@ def cleanup_repo(
         print()
         print(c.cyan(f"  {tl}{sec_border}{tr}"))
         print(
-            f"  {c.cyan('│')} {c.bold(f'Gone Branches ({len(gone_branches)})')}"
+            f"  {c.cyan(vl)} {c.bold(f'Gone Branches ({len(gone_branches)})')}"
             f"  {c.dim('remote tracking ref deleted')}"
         )
         print(c.cyan(f"  {bl}{sec_border}{br}"))
@@ -4920,7 +5070,7 @@ def cleanup_repo(
         sec_border = h_line * 60
         print()
         print(c.cyan(f"  {tl}{sec_border}{tr}"))
-        print(f"  {c.cyan('│')} {c.bold('Housekeeping')}")
+        print(f"  {c.cyan(vl)} {c.bold('Housekeeping')}")
         print(c.cyan(f"  {bl}{sec_border}{br}"))
         print()
         print(f"    {c.cyan(dot)} Run git gc (expire reflogs, pack loose objects)")
@@ -4967,7 +5117,7 @@ def cleanup_repo(
     sec_border = h_line * 60
     print()
     print(c.cyan(f"  {tl}{sec_border}{tr}"))
-    print(f"  {c.cyan('│')} {c.bold('Results')}")
+    print(f"  {c.cyan(vl)} {c.bold('Results')}")
     print(c.cyan(f"  {bl}{sec_border}{br}"))
     print()
 
@@ -5054,6 +5204,27 @@ def cleanup_repo(
     print(
         f"  {c.dim('  ')} {c.cyan('--apply-recommended-minimal')} "
         f"{c.dim('to apply core recommended git configs')}"
+    )
+    print()
+    print(
+        f"  {c.dim(dot)} {c.dim('To automate what --cleanup reduces, set these git configs:')}"
+    )
+    print(
+        f"    {c.dim('git config --global fetch.prune true')}"
+        f"       {c.dim('# auto-prune stale remote refs')}"
+    )
+    print(
+        f"    {c.dim('git config --global fetch.prunetags true')}"
+        f"   {c.dim('# auto-prune stale remote tags')}"
+    )
+    print(
+        f"    {c.dim('git config --global gc.auto 6700')}"
+        f"        {c.dim('# auto garbage-collect (default threshold)')}"
+    )
+    print(
+        f"  {c.dim(dot)} {c.dim('Run')} {c.cyan('--export-config')} "
+        f"{c.dim('to see all configs, or')} {c.cyan('--apply-recommended-minimal')} "
+        f"{c.dim('to apply them')}"
     )
     print()
 
@@ -5245,6 +5416,420 @@ def create_new_branch(*, color: bool | None = None) -> int:
 
 
 # ---------------------------------------------------------------------------
+# --view-commits: detailed commit report for current working branch
+# ---------------------------------------------------------------------------
+
+
+def show_commits(
+    *,
+    color: bool | None = None,
+    markdown: bool = False,
+) -> int:
+    """Display detailed commit information for the current working branch.
+
+    Shows branch origin, all commits with SHAs, messages, authors, dates,
+    per-file stats, total insertions/deletions, and potential conflicts
+    with the default branch.  Output follows the same dashboard style as
+    the default ``git_doctor`` output.
+
+    When *markdown* is True, outputs a Markdown document with a table of
+    contents linking to each commit section via anchor links.
+
+    Args:
+        color: Force color on/off, or None for auto-detect.
+        markdown: If True, emit Markdown instead of terminal formatting.
+
+    Returns:
+        Exit code: 0 always (informational output).
+    """
+    if markdown:
+        return _show_commits_markdown()
+    return _show_commits_terminal(color=color)
+
+
+def _show_commits_markdown() -> int:
+    """Emit a Markdown commit report with a clickable table of contents."""
+    current_branch = get_current_branch()
+    default_branch = get_default_branch()
+    origin_info = get_branch_origin_point()
+    commits = get_detailed_branch_commits()
+    conflict_files = get_branch_conflict_files()
+
+    total_ins = sum(int(cm.get("total_insertions", 0)) for cm in commits)
+    total_del = sum(int(cm.get("total_deletions", 0)) for cm in commits)
+
+    lines: list[str] = []
+    a = lines.append
+
+    a(f"# Commit Report -- {current_branch}")
+    a("")
+    a(f"> Generated by `git_doctor.py --view-commits --markdown` v{SCRIPT_VERSION}")
+    a("")
+
+    # ── Branch Overview ──
+    a("## Branch Overview")
+    a("")
+    a("| Field | Value |")
+    a("| :---- | :---- |")
+    a(f"| **Current working branch** | `{current_branch}` |")
+    a(f"| **Origin branch** | `{origin_info.get('origin_branch', '(unknown)')}` |")
+    merge_base_short = origin_info.get("merge_base_short", "")
+    merge_base_date = origin_info.get("merge_base_date", "")
+    if merge_base_short:
+        a(
+            f"| **Merge base** | `{merge_base_short}` ({merge_base_date}) -- "
+            f"last common ancestor with `{default_branch}` |"
+        )
+    a(f"| **Total commits** | {len(commits)} |")
+    a(f"| **Total insertions** | +{total_ins} |")
+    a(f"| **Total deletions** | -{total_del} |")
+    a("")
+
+    # ── Table of Contents ──
+    if commits:
+        a("## Table of Contents")
+        a("")
+        for i, cm in enumerate(commits, 1):
+            sha_short = str(cm["sha_short"])
+            msg = str(cm["message"])
+            # Build anchor: lowercase, replace non-alphanum with hyphens
+            anchor_text = f"{i}-{sha_short}-{msg}"
+            anchor = re.sub(r"[^a-z0-9\s-]", "", anchor_text.lower())
+            anchor = re.sub(r"[\s]+", "-", anchor).strip("-")
+            a(f"{i}. [`{sha_short}`](#{anchor}) -- {msg}")
+        a("")
+
+    # ── Detailed Commits ──
+    if commits:
+        a("## Commits")
+        a("")
+        for i, cm in enumerate(commits, 1):
+            sha_short = str(cm["sha_short"])
+            sha_full = str(cm["sha"])
+            msg = str(cm["message"])
+            author = str(cm.get("author", ""))
+            dt = str(cm.get("datetime", ""))
+            date_rel = str(cm.get("date_relative", ""))
+            cm_ins = int(cm.get("total_insertions", 0))
+            cm_del = int(cm.get("total_deletions", 0))
+            files = cm.get("files", [])
+            if not isinstance(files, list):
+                files = []
+
+            a(f"### {i}. `{sha_short}` -- {msg}")
+            a("")
+            a("| Field | Value |")
+            a("| :---- | :---- |")
+            a(f"| **SHA** | `{sha_full}` |")
+            a(f"| **Author** | {author} |")
+            a(f"| **Date** | {dt} ({date_rel}) |")
+            a(f"| **Stats** | +{cm_ins} / -{cm_del} in {len(files)} file(s) |")
+            a("")
+
+            if files:
+                a("| File | Insertions | Deletions |")
+                a("| :--- | ---------: | --------: |")
+                for f in files:
+                    fname = str(f.get("file", ""))
+                    fins = int(f.get("insertions", 0))
+                    fdel = int(f.get("deletions", 0))
+                    a(f"| `{fname}` | +{fins} | -{fdel} |")
+                a("")
+
+    # ── Conflicts ──
+    a(f"## Conflicts with `{default_branch}`")
+    a("")
+    if conflict_files:
+        a(
+            f"**{len(conflict_files)} file(s)** would conflict when merging `{default_branch}`:"
+        )
+        a("")
+        for cf in conflict_files:
+            a(f"- `{cf}`")
+        a("")
+        _append_conflict_guidance(lines, default_branch, conflict_files)
+    else:
+        a(f"No conflicts detected with `{default_branch}`.")
+    a("")
+
+    # ── Summary ──
+    a("---")
+    a("")
+    a(
+        f"*{len(commits)} commit(s) — "
+        f"+{total_ins} / -{total_del} — "
+        f"git-doctor v{SCRIPT_VERSION}*"
+    )
+
+    print("\n".join(lines))
+    return 0
+
+
+def _append_conflict_guidance(
+    lines: list[str],
+    default_branch: str,
+    conflict_files: list[str],
+) -> None:
+    """Append conflict resolution guidance to a Markdown line list."""
+    a = lines.append
+    a("### How to Resolve")
+    a("")
+    a("**Option 1 — Rebase onto the latest default branch (preferred):**")
+    a("")
+    a("```bash")
+    a(f"git fetch origin {default_branch}")
+    a(f"git rebase origin/{default_branch}")
+    a("# Resolve conflicts in each file, then:")
+    a("git add <resolved-file>")
+    a("git rebase --continue")
+    a("```")
+    a("")
+    a("**Option 2 — Merge the default branch into your branch:**")
+    a("")
+    a("```bash")
+    a(f"git fetch origin {default_branch}")
+    a(f"git merge origin/{default_branch}")
+    a("# Resolve conflicts in each file, then:")
+    a("git add <resolved-file>")
+    a("git commit")
+    a("```")
+    a("")
+    a("**Tips:**")
+    a("")
+    a(
+        f"- Run `git diff origin/{default_branch} -- <file>` to preview what changed on `{default_branch}`"
+    )
+    a("- Use `git mergetool` to open a visual merge tool")
+    a("- If midway through a bad rebase, abort with `git rebase --abort`")
+    a(
+        f"- The {len(conflict_files)} conflicting file(s) listed above are the only ones that need manual resolution"
+    )
+    a("")
+
+
+def _show_commits_terminal(*, color: bool | None = None) -> int:
+    """Display detailed commit report with terminal formatting."""
+    elapsed_start = time.monotonic()
+    use_color = color if color is not None else _supports_color(sys.stdout)
+    use_unicode = _supports_unicode(sys.stdout)
+    sym = _unicode_symbols(sys.stdout)
+    c = Colors(enabled=use_color)
+
+    # Box-drawing characters
+    h_line = "\u2500" if use_unicode else "-"
+    h_double = "\u2550" if use_unicode else "="
+    tl = "\u250c" if use_unicode else "+"
+    tr = "\u2510" if use_unicode else "+"
+    bl = "\u2514" if use_unicode else "+"
+    br = "\u2518" if use_unicode else "+"
+    vl = "\u2502" if use_unicode else "|"
+    tl_d = "\u2554" if use_unicode else "+"
+    tr_d = "\u2557" if use_unicode else "+"
+    bl_d = "\u255a" if use_unicode else "+"
+    br_d = "\u255d" if use_unicode else "+"
+    vl_d = "\u2551" if use_unicode else "|"
+    dot = "\u2022" if use_unicode else "*"
+    dash = sym["dash"]
+    check_sym = sym.get("check", "+")
+    cross_sym = sym.get("cross", "x")
+    warn_sym = sym.get("warn", "!")
+    arrow = sym.get("arrow", "->")
+
+    def _section(title: str) -> None:
+        border = h_line * 60
+        print()
+        print(c.cyan(f"  {tl}{border}{tr}"))
+        print(f"  {c.cyan(vl)} {c.bold(title)}")
+        print(c.cyan(f"  {bl}{border}{br}"))
+        print()
+
+    def _kv(label: str, value: str, width: int = 26, indent: int = 4) -> None:
+        pad = " " * indent
+        print(f"{pad}{label + ':':{width}s} {value}")
+
+    def _kv_hint(hint: str, width: int = 26, indent: int = 4) -> None:
+        pad = " " * indent
+        print(f"{pad}{'':{width}s} {c.dim(hint)}")
+
+    # Collect data
+    current_branch = get_current_branch()
+    default_branch = get_default_branch()
+    origin_info = get_branch_origin_point()
+
+    with Spinner("Collecting commit data", log_interval=5):
+        commits = get_detailed_branch_commits()
+        conflict_files = get_branch_conflict_files()
+
+    # ── Header ──
+    header_border = h_double * 60
+    print()
+    print(c.bold(c.cyan(f"  {tl_d}{header_border}{tr_d}")))
+    print(
+        f"  {c.bold(c.cyan(vl_d))} "
+        f"{c.bold(c.cyan('Commit Report'))} {dash} "
+        f"{c.green(current_branch)}  {c.dim(f'v{SCRIPT_VERSION}')}"
+    )
+    print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
+
+    # ── Branch Overview ──
+    _section(f"Branch Overview: {c.green(current_branch)}")
+    _kv("Current working branch", c.green(current_branch))
+    _kv(
+        "Origin branch",
+        origin_info.get("origin_branch", "(unknown)"),
+    )
+    _kv_hint("the branch this was created from")
+    print()
+    merge_base_short = origin_info.get("merge_base_short", "")
+    merge_base_date = origin_info.get("merge_base_date", "")
+    if merge_base_short:
+        _kv(
+            "Merge base",
+            f"{c.yellow(merge_base_short)}  {c.dim(merge_base_date)}",
+        )
+        _kv_hint(
+            f"last common ancestor commit with {default_branch} "
+            f"{arrow} the point where this branch diverged"
+        )
+        print()
+    _kv("Total commits on branch", str(len(commits)))
+    print()
+
+    # Compute totals
+    total_ins = sum(int(cm.get("total_insertions", 0)) for cm in commits)
+    total_del = sum(int(cm.get("total_deletions", 0)) for cm in commits)
+    _kv("Total insertions", c.green(f"+{total_ins}"))
+    _kv_hint("lines added across all commits")
+    _kv("Total deletions", c.red(f"-{total_del}"))
+    _kv_hint("lines removed across all commits")
+
+    # ── All Commit SHAs ──
+    if commits:
+        _section("Commit SHAs (quick reference)")
+        for i, cm in enumerate(commits, 1):
+            sha_short = str(cm["sha_short"])
+            msg = str(cm["message"])
+            if len(msg) > 55:
+                msg = msg[:52] + "..."
+            num = c.dim(f"{i:>3}.")
+            print(f"    {num} {c.yellow(sha_short)}  {msg}")
+
+    # ── Detailed Commits ──
+    if commits:
+        _section(f"Detailed Commits ({len(commits)} total)")
+        for i, cm in enumerate(commits, 1):
+            sha_short = str(cm["sha_short"])
+            sha_full = str(cm["sha"])
+            msg = str(cm["message"])
+            author = str(cm.get("author", ""))
+            dt = str(cm.get("datetime", ""))
+            date_rel = str(cm.get("date_relative", ""))
+            cm_ins = int(cm.get("total_insertions", 0))
+            cm_del = int(cm.get("total_deletions", 0))
+            files = cm.get("files", [])
+            if not isinstance(files, list):
+                files = []
+
+            # Commit header with number
+            commit_border = h_line * 56
+            print(f"    {c.dim(f'[{i}/{len(commits)}]')}")
+            print(f"    {c.cyan(commit_border)}")
+            print(f"    {c.bold(c.yellow(sha_short))}  {c.bold(msg)}")
+            print(f"    {c.cyan(commit_border)}")
+            print()
+            print(f"      {'SHA:':<12s} {c.dim(sha_full)}")
+            print(f"      {'Author:':<12s} {author}")
+            print(f"      {'Date:':<12s} {dt}  {c.dim(f'({date_rel})')}")
+            print(
+                f"      {'Stats:':<12s} "
+                f"{c.green(f'+{cm_ins}')} / {c.red(f'-{cm_del}')} "
+                f"in {len(files)} file(s)"
+            )
+
+            # Per-file stats
+            if files:
+                print()
+                print(f"      {'Files:':<12s}")
+                file_w = max(len(str(f.get("file", ""))) for f in files)
+                file_w = min(max(file_w, 10), 50)
+                for f in files:
+                    fname = str(f.get("file", ""))
+                    fins = int(f.get("insertions", 0))
+                    fdel = int(f.get("deletions", 0))
+                    display_name = (
+                        fname[: file_w - 1] + "\u2026" if len(fname) > file_w else fname
+                    )
+                    ins_s = c.green(f"+{fins}".rjust(6)) if fins else " " * 6
+                    del_s = c.red(f"-{fdel}".rjust(6)) if fdel else " " * 6
+                    print(f"        {display_name:<{file_w}s}  {ins_s}  {del_s}")
+
+            print()
+
+    # ── Conflicts ──
+    _section(f"Conflicts with {default_branch}")
+    if conflict_files:
+        print(
+            f"    {c.red(cross_sym)} "
+            f"{c.red(f'{len(conflict_files)} file(s) would conflict when merging {default_branch}')}"
+        )
+        print()
+        for cf in conflict_files:
+            print(f"      {c.red(warn_sym)} {cf}")
+        print()
+        # Conflict resolution guidance
+        print(f"    {c.bold('How to resolve:')}")
+        print()
+        print(
+            f"    {c.cyan(f'{dot} Option 1 — Rebase (preferred for linear history):')}"
+        )
+        print(f"        git fetch origin {default_branch}")
+        print(f"        git rebase origin/{default_branch}")
+        print(
+            f"        {c.dim('# resolve conflicts, then: git add <file> && git rebase --continue')}"
+        )
+        print()
+        print(f"    {c.cyan(f'{dot} Option 2 — Merge:')}")
+        print(f"        git fetch origin {default_branch}")
+        print(f"        git merge origin/{default_branch}")
+        print(
+            f"        {c.dim('# resolve conflicts, then: git add <file> && git commit')}"
+        )
+        print()
+        print(
+            f"    {c.dim(f'{dot} Tip: use git mergetool for visual conflict resolution')}"
+        )
+        print(
+            f"    {c.dim(f'{dot} Tip: git rebase --abort to bail out of a bad rebase')}"
+        )
+        print(
+            f"    {c.dim(f'{dot} Tip: git diff origin/{default_branch} -- <file> to preview upstream changes')}"
+        )
+    else:
+        print(
+            f"    {c.green(check_sym)} "
+            f"{c.green(f'No conflicts detected with {default_branch}')}"
+        )
+
+    # ── Summary ──
+    elapsed = time.monotonic() - elapsed_start
+    print()
+    print(c.cyan(f"  {h_double * 60}"))
+    print(
+        f"  {c.dim(f'{len(commits)} commit(s)')}"
+        f"  {c.dim(dot)}"
+        f"  {c.dim(f'+{total_ins} / -{total_del}')}"
+        f"  {c.dim(dot)}"
+        f"  {c.dim(f'Completed in {elapsed:.1f}s')}"
+        f"  {c.dim(dot)}"
+        f"  {c.dim(f'git-doctor v{SCRIPT_VERSION}')}"
+    )
+    print(c.cyan(f"  {h_double * 60}"))
+    print()
+
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -5345,6 +5930,20 @@ def main() -> int:
         "Shows everything that would be deleted and asks for "
         "confirmation. Use --dry-run to preview only.",
     )
+    parser.add_argument(
+        "--view-commits",
+        action="store_true",
+        help="Show detailed commit report for the current working branch: "
+        "branch origin, all SHAs, messages, authors, dates, per-file "
+        "insertions/deletions, and conflict detection with the default branch. "
+        "Use --markdown for a Markdown version with a clickable table of contents.",
+    )
+    parser.add_argument(
+        "--markdown",
+        action="store_true",
+        help="With --view-commits, output Markdown instead of terminal formatting. "
+        "Includes a table of contents with anchor links to each commit.",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -5371,6 +5970,11 @@ def main() -> int:
     if args.apply_recommended_minimal:
         apply_recommended_minimal_config(dry_run=args.dry_run)
         return 0
+
+    # --view-commits mode: detailed commit report for current branch
+    if args.view_commits:
+        cm_color = False if args.no_color else None
+        return show_commits(color=cm_color, markdown=args.markdown)
 
     # --refresh mode: interactive update of refs, tags, remote metadata
     if args.refresh:
