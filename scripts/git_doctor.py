@@ -7,15 +7,18 @@ release-please branches, and git-related health checks.
 
 Flags::
 
+    --help            Show help message and exit
     --no-color        Disable colored output
     --json            Output results as JSON (for CI integration)
     --export-config   Export full git config reference to Markdown file
     --apply-from PATH Apply desired values from an edited reference file
     --apply-recommended          Apply ALL catalog recommended values and scopes
     --apply-recommended-minimal  Apply core subset of recommended configs (12 keys)
-    --dry-run         With --apply-from/--apply-recommended/--apply-recommended-minimal, preview without applying
+    --dry-run         With --apply-from/--apply-recommended/--apply-recommended-minimal/--refresh/--cleanup, preview without applying
     --new-branch      Interactive branch creation off origin/main
     --watch [N]       Re-run dashboard every N seconds (default: 10, minimum: 2 to prevent slamming git)
+    --refresh         Interactive refresh: fetch remotes, prune stale refs, sync tags, update remote HEAD
+    --cleanup         Interactive cleanup: delete stale local branches (90+ days), gone upstream branches, run git gc
     --version         Print version and exit
 
 Usage::
@@ -33,6 +36,11 @@ Usage::
     python scripts/git_doctor.py --apply-recommended --dry-run
     python scripts/git_doctor.py --apply-recommended-minimal
     python scripts/git_doctor.py --apply-recommended-minimal --dry-run
+    python scripts/git_doctor.py --refresh
+    python scripts/git_doctor.py --refresh --dry-run
+    python scripts/git_doctor.py --cleanup
+    python scripts/git_doctor.py --cleanup --dry-run
+    python scripts/git_doctor.py --help
 
 Workflow for editing and applying config::
 
@@ -115,6 +123,7 @@ Customisation notes:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import logging
 import os
@@ -4550,6 +4559,507 @@ def _prompt(prompt_text: str, *, default: str = "") -> str:
     return value or default
 
 
+def _confirm(prompt_text: str, *, default_yes: bool = False) -> bool:
+    """Ask a yes/no question and return True if the user confirms."""
+    hint = "Y/n" if default_yes else "y/N"
+    try:
+        answer = input(f"  {prompt_text} [{hint}]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print()
+        sys.exit(130)
+    if not answer:
+        return default_yes
+    return answer in ("y", "yes")
+
+
+# ---------------------------------------------------------------------------
+# Refresh: update refs, tags, and remote metadata
+# ---------------------------------------------------------------------------
+
+
+def refresh_repo(
+    *,
+    dry_run: bool = False,
+    color: bool | None = None,
+) -> int:
+    """Interactive refresh of remote refs, tags, and remote-tracking data.
+
+    Fetches all remotes, prunes stale remote-tracking refs, syncs tags,
+    and updates the default branch ref.  Reports what was updated in
+    dashboard style.
+
+    Args:
+        dry_run: If True, show what would be done without executing.
+        color: Force color on/off, or None for auto-detect.
+
+    Returns:
+        0 on success, 1 if any operation failed.
+    """
+    elapsed_start = time.monotonic()
+    use_color = color if color is not None else _supports_color(sys.stdout)
+    use_unicode = _supports_unicode(sys.stdout)
+    c = Colors(enabled=use_color)
+
+    # Box-drawing chars
+    h_double = "\u2550" if use_unicode else "="
+    tl_d = "\u2554" if use_unicode else "+"
+    tr_d = "\u2557" if use_unicode else "+"
+    bl_d = "\u255a" if use_unicode else "+"
+    br_d = "\u255d" if use_unicode else "+"
+    vl_d = "\u2551" if use_unicode else "|"
+    h_line = "\u2500" if use_unicode else "-"
+    tl = "\u250c" if use_unicode else "+"
+    tr = "\u2510" if use_unicode else "+"
+    bl = "\u2514" if use_unicode else "+"
+    br = "\u2518" if use_unicode else "+"
+    dot = "\u2022" if use_unicode else "*"
+    sym = _unicode_symbols(sys.stdout)
+    check_sym = sym.get("check", "+")
+    cross_sym = sym.get("cross", "x")
+    warn_sym = sym.get("warn", "!")
+
+    # ── Header ──
+    mode_label = " (dry run)" if dry_run else ""
+    header_border = h_double * 60
+    print()
+    print(c.bold(c.cyan(f"  {tl_d}{header_border}{tr_d}")))
+    print(
+        f"  {c.bold(c.cyan(vl_d))} "
+        f"{c.bold(c.cyan('Refresh'))}{c.dim(mode_label)}"
+        f"  {c.dim(f'v{SCRIPT_VERSION}')}"
+    )
+    print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
+
+    # ── Collect what will be refreshed ──
+    operations: list[tuple[str, str, list[str]]] = []
+
+    # 1. Fetch all remotes + prune stale remote-tracking refs
+    remotes_raw = get_all_remotes()
+    remote_names = sorted({r.split("\t")[0] for r in remotes_raw if "\t" in r})
+    if remote_names:
+        operations.append(
+            (
+                "Fetch all remotes & prune stale refs",
+                f"git fetch --all --prune ({', '.join(remote_names)})",
+                ["fetch", "--all", "--prune"],
+            )
+        )
+    else:
+        operations.append(
+            (
+                "Fetch all remotes & prune stale refs",
+                "git fetch --all --prune",
+                ["fetch", "--all", "--prune"],
+            )
+        )
+
+    # 2. Sync tags from remote
+    operations.append(
+        (
+            "Sync tags from remote",
+            "git fetch --tags --force",
+            ["fetch", "--tags", "--force"],
+        )
+    )
+
+    # 3. Update default branch ref (origin/HEAD)
+    operations.append(
+        (
+            "Update remote HEAD reference",
+            "git remote set-head origin --auto",
+            ["remote", "set-head", "origin", "--auto"],
+        )
+    )
+
+    # ── Preview section ──
+    sec_border = h_line * 60
+    print()
+    print(c.cyan(f"  {tl}{sec_border}{tr}"))
+    print(f"  {c.cyan('│')} {c.bold('Operations')}")
+    print(c.cyan(f"  {bl}{sec_border}{br}"))
+    print()
+    for desc, cmd_str, _args in operations:
+        print(f"    {c.cyan(dot)} {desc}")
+        print(f"      {c.dim(cmd_str)}")
+
+    if dry_run:
+        # Show what would happen and exit
+        elapsed = time.monotonic() - elapsed_start
+        print()
+        print(c.cyan(f"  {h_double * 60}"))
+        print(
+            f"  {c.cyan(check_sym)} "
+            f"{c.cyan(f'{len(operations)} operation(s) would run')}"
+        )
+        print(
+            f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+        )
+        print(c.cyan(f"  {h_double * 60}"))
+        print()
+        return 0
+
+    # ── Confirm ──
+    print()
+    if not _confirm("Proceed with refresh?", default_yes=True):
+        print()
+        print(f"  {c.yellow(warn_sym)} {c.yellow('Cancelled')}")
+        print()
+        return 0
+
+    # ── Execute ──
+    print()
+    print(c.cyan(f"  {tl}{sec_border}{tr}"))
+    print(f"  {c.cyan('│')} {c.bold('Results')}")
+    print(c.cyan(f"  {bl}{sec_border}{br}"))
+    print()
+
+    succeeded = 0
+    failed = 0
+    for desc, _cmd_str, git_args in operations:
+        code, out, err = _run_git(git_args, timeout=30)
+        if code == 0:
+            print(f"    {c.green(check_sym)} {desc}")
+            if out:
+                for line in out.splitlines()[:3]:
+                    print(f"      {c.dim(line)}")
+            succeeded += 1
+        else:
+            print(f"    {c.red(cross_sym)} {desc}")
+            if err:
+                for line in err.splitlines()[:2]:
+                    print(f"      {c.red(line)}")
+            failed += 1
+
+    # ── Summary ──
+    elapsed = time.monotonic() - elapsed_start
+    print()
+    print(c.cyan(f"  {h_double * 60}"))
+    if failed == 0:
+        print(
+            f"  {c.green(check_sym)} "
+            f"{c.green(f'{succeeded} operation(s) completed successfully')}"
+        )
+    else:
+        print(
+            f"  {c.red(cross_sym)} "
+            f"{c.red(f'{failed} failed')}"
+            f"  {c.dim(f'{succeeded} succeeded')}"
+        )
+    print(
+        f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+    )
+    print(c.cyan(f"  {h_double * 60}"))
+
+    # ── Recommendation ──
+    print()
+    print(
+        f"  {c.dim(dot)} {c.dim('Tip: Run')} {c.cyan('--export-config')} "
+        f"{c.dim('to review git settings, or')}"
+    )
+    print(
+        f"  {c.dim('  ')} {c.cyan('--apply-recommended-minimal')} "
+        f"{c.dim('to apply core recommended configs')}"
+    )
+    print()
+
+    return 1 if failed > 0 else 0
+
+
+# ---------------------------------------------------------------------------
+# Cleanup: delete stale branches, old tags, and other cruft
+# ---------------------------------------------------------------------------
+
+
+def cleanup_repo(
+    *,
+    dry_run: bool = False,
+    color: bool | None = None,
+    stale_days: int = 90,
+) -> int:
+    """Interactive cleanup of stale branches, gone tracking refs, and cruft.
+
+    Identifies local branches with no commits in *stale_days* days,
+    branches whose upstream tracking reference is ``[gone]`` (deleted
+    on the remote), and other housekeeping items.  Shows everything
+    that would be deleted and asks for confirmation.
+
+    Args:
+        dry_run: If True, show what would be deleted without executing.
+        color: Force color on/off, or None for auto-detect.
+        stale_days: Consider branches stale after this many days of
+            inactivity (default: 90).
+
+    Returns:
+        0 on success, 1 if any operation failed.
+    """
+    elapsed_start = time.monotonic()
+    use_color = color if color is not None else _supports_color(sys.stdout)
+    use_unicode = _supports_unicode(sys.stdout)
+    c = Colors(enabled=use_color)
+
+    # Box-drawing chars
+    h_double = "\u2550" if use_unicode else "="
+    tl_d = "\u2554" if use_unicode else "+"
+    tr_d = "\u2557" if use_unicode else "+"
+    bl_d = "\u255a" if use_unicode else "+"
+    br_d = "\u255d" if use_unicode else "+"
+    vl_d = "\u2551" if use_unicode else "|"
+    h_line = "\u2500" if use_unicode else "-"
+    tl = "\u250c" if use_unicode else "+"
+    tr = "\u2510" if use_unicode else "+"
+    bl = "\u2514" if use_unicode else "+"
+    br = "\u2518" if use_unicode else "+"
+    dot = "\u2022" if use_unicode else "*"
+    sym = _unicode_symbols(sys.stdout)
+    check_sym = sym.get("check", "+")
+    cross_sym = sym.get("cross", "x")
+    warn_sym = sym.get("warn", "!")
+    arrow_sym = sym.get("arrow", "->")
+
+    current_branch = get_current_branch()
+    default_branch = get_default_branch()
+
+    # ── Header ──
+    mode_label = " (dry run)" if dry_run else ""
+    header_border = h_double * 60
+    print()
+    print(c.bold(c.cyan(f"  {tl_d}{header_border}{tr_d}")))
+    print(
+        f"  {c.bold(c.cyan(vl_d))} "
+        f"{c.bold(c.cyan('Cleanup'))}{c.dim(mode_label)}"
+        f"  {c.dim(f'v{SCRIPT_VERSION}')}"
+    )
+    print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
+
+    # ── Collect candidates ──
+
+    # 1. Stale branches (no commits in stale_days days)
+    stale = get_stale_branches(days=stale_days)
+    # Never delete the current branch or the default branch
+    protected = {current_branch, default_branch, "main", "master", "develop"}
+    stale_branches = [b for b in stale if b["name"] not in protected]
+
+    # 2. Branches with [gone] upstream (remote deleted, likely merged via PR)
+    gone_branches: list[str] = []
+    code, out, _ = _run_git(
+        ["branch", "-vv", "--format=%(refname:short)\t%(upstream:track)"]
+    )
+    if code == 0 and out:
+        for line in out.splitlines():
+            parts = line.split("\t", 1)
+            if len(parts) == 2 and "[gone]" in parts[1]:
+                name = parts[0].strip()
+                if name not in protected:
+                    gone_branches.append(name)
+
+    # 3. Expired reflog entries
+    has_reflog_cruft = True  # gc always helps
+
+    # 4. Loose objects (git gc)
+    code_gc, gc_out, _ = _run_git(["count-objects", "-v"])
+    loose_count = 0
+    if code_gc == 0 and gc_out:
+        for line in gc_out.splitlines():
+            if line.startswith("count:"):
+                with contextlib.suppress(ValueError):
+                    loose_count = int(line.split(":")[1].strip())
+
+    # Determine if there's anything to do
+    total_items = len(stale_branches) + len(gone_branches)
+    has_gc_work = loose_count > 50 or has_reflog_cruft
+
+    if total_items == 0 and not has_gc_work:
+        print()
+        print(f"  {c.green(check_sym)} {c.green('Nothing to clean up — repo is tidy')}")
+        elapsed = time.monotonic() - elapsed_start
+        print()
+        print(c.cyan(f"  {h_double * 60}"))
+        print(
+            f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+        )
+        print(c.cyan(f"  {h_double * 60}"))
+        print()
+        return 0
+
+    # ── Preview: stale branches ──
+    if stale_branches:
+        sec_border = h_line * 60
+        print()
+        print(c.cyan(f"  {tl}{sec_border}{tr}"))
+        print(
+            f"  {c.cyan('│')} {c.bold(f'Stale Branches ({len(stale_branches)})')}"
+            f"  {c.dim(f'no commits in {stale_days}+ days')}"
+        )
+        print(c.cyan(f"  {bl}{sec_border}{br}"))
+        print()
+        for b in stale_branches:
+            last = b["last_commit"]
+            print(
+                f"    {c.yellow(warn_sym)} {b['name']}  {c.dim(f'last commit: {last}')}"
+            )
+
+    # ── Preview: gone branches ──
+    if gone_branches:
+        sec_border = h_line * 60
+        print()
+        print(c.cyan(f"  {tl}{sec_border}{tr}"))
+        print(
+            f"  {c.cyan('│')} {c.bold(f'Gone Branches ({len(gone_branches)})')}"
+            f"  {c.dim('remote tracking ref deleted')}"
+        )
+        print(c.cyan(f"  {bl}{sec_border}{br}"))
+        print()
+        for name in gone_branches:
+            print(
+                f"    {c.yellow(warn_sym)} {name}"
+                f"  {c.dim(f'{arrow_sym} upstream deleted (likely merged via PR)')}"
+            )
+
+    # ── Preview: git gc ──
+    if has_gc_work:
+        sec_border = h_line * 60
+        print()
+        print(c.cyan(f"  {tl}{sec_border}{tr}"))
+        print(f"  {c.cyan('│')} {c.bold('Housekeeping')}")
+        print(c.cyan(f"  {bl}{sec_border}{br}"))
+        print()
+        print(f"    {c.cyan(dot)} Run git gc (expire reflogs, pack loose objects)")
+        if loose_count > 0:
+            print(f"      {c.dim(f'{loose_count} loose objects')}")
+
+    if dry_run:
+        # Show summary and exit
+        elapsed = time.monotonic() - elapsed_start
+        print()
+        print(c.cyan(f"  {h_double * 60}"))
+        items = []
+        if stale_branches:
+            items.append(f"{len(stale_branches)} stale branch(es)")
+        if gone_branches:
+            items.append(f"{len(gone_branches)} gone branch(es)")
+        if has_gc_work:
+            items.append("git gc")
+        print(f"  {c.cyan(check_sym)} {c.cyan('Would clean: ' + ', '.join(items))}")
+        print(
+            f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+        )
+        print(c.cyan(f"  {h_double * 60}"))
+        print()
+        return 0
+
+    # ── Confirm ──
+    print()
+    branch_count = len(stale_branches) + len(gone_branches)
+    confirm_msg = f"Delete {branch_count} branch(es)" if branch_count else "Run"
+    if has_gc_work and branch_count:
+        confirm_msg += " and run git gc"
+    elif has_gc_work:
+        confirm_msg = "Run git gc"
+    confirm_msg += "?"
+
+    if not _confirm(confirm_msg):
+        print()
+        print(f"  {c.yellow(warn_sym)} {c.yellow('Cancelled')}")
+        print()
+        return 0
+
+    # ── Execute ──
+    sec_border = h_line * 60
+    print()
+    print(c.cyan(f"  {tl}{sec_border}{tr}"))
+    print(f"  {c.cyan('│')} {c.bold('Results')}")
+    print(c.cyan(f"  {bl}{sec_border}{br}"))
+    print()
+
+    deleted = 0
+    failed = 0
+
+    # Delete stale branches
+    for b in stale_branches:
+        name = b["name"]
+        code, _, err = _run_git(["branch", "-d", name])
+        if code == 0:
+            print(f"    {c.green(check_sym)} Deleted stale: {name}")
+            deleted += 1
+        else:
+            # Try force-delete if branch wasn't merged
+            code2, _, err2 = _run_git(["branch", "-D", name])
+            if code2 == 0:
+                print(
+                    f"    {c.green(check_sym)} Deleted stale (force): {name}"
+                    f"  {c.dim('(not fully merged)')}"
+                )
+                deleted += 1
+            else:
+                print(f"    {c.red(cross_sym)} Failed: {name}  {c.red(err2 or err)}")
+                failed += 1
+
+    # Delete gone branches
+    for name in gone_branches:
+        code, _, err = _run_git(["branch", "-d", name])
+        if code == 0:
+            print(f"    {c.green(check_sym)} Deleted gone: {name}")
+            deleted += 1
+        else:
+            code2, _, err2 = _run_git(["branch", "-D", name])
+            if code2 == 0:
+                print(
+                    f"    {c.green(check_sym)} Deleted gone (force): {name}"
+                    f"  {c.dim('(not fully merged)')}"
+                )
+                deleted += 1
+            else:
+                print(f"    {c.red(cross_sym)} Failed: {name}  {c.red(err2 or err)}")
+                failed += 1
+
+    # Run git gc
+    gc_success = False
+    if has_gc_work:
+        code, out, err = _run_git(["gc", "--auto", "--prune=now"], timeout=60)
+        if code == 0:
+            print(f"    {c.green(check_sym)} git gc completed")
+            gc_success = True
+        else:
+            print(f"    {c.red(cross_sym)} git gc failed: {c.red(err)}")
+            failed += 1
+
+    # ── Summary ──
+    elapsed = time.monotonic() - elapsed_start
+    print()
+    print(c.cyan(f"  {h_double * 60}"))
+
+    parts: list[str] = []
+    if deleted > 0:
+        parts.append(f"{deleted} branch(es) deleted")
+    if gc_success:
+        parts.append("gc completed")
+
+    if failed == 0:
+        summary = ", ".join(parts) if parts else "cleanup completed"
+        print(f"  {c.green(check_sym)} {c.green(summary)}")
+    else:
+        summary = ", ".join(parts) if parts else ""
+        print(f"  {c.red(cross_sym)} {c.red(f'{failed} failed')}  {c.dim(summary)}")
+    print(
+        f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
+    )
+    print(c.cyan(f"  {h_double * 60}"))
+
+    # ── Recommendations ──
+    print()
+    print(
+        f"  {c.dim(dot)} {c.dim('Tip: Run')} {c.cyan('--refresh')} "
+        f"{c.dim('to update remote refs and tags')}"
+    )
+    print(
+        f"  {c.dim('  ')} {c.cyan('--apply-recommended-minimal')} "
+        f"{c.dim('to apply core recommended git configs')}"
+    )
+    print()
+
+    return 1 if failed > 0 else 0
+
+
 def create_new_branch(*, color: bool | None = None) -> int:
     """Interactive branch creation workflow.
 
@@ -4798,9 +5308,9 @@ def main() -> int:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="With --apply-from, --apply-recommended, or "
-        "--apply-recommended-minimal, show what would be changed "
-        "without applying",
+        help="With --apply-from, --apply-recommended, "
+        "--apply-recommended-minimal, --refresh, or --cleanup: "
+        "show what would be changed without applying",
     )
     parser.add_argument(
         "--new-branch",
@@ -4818,6 +5328,22 @@ def main() -> int:
         metavar="SECONDS",
         help="Re-run the dashboard every N seconds (default: 10). "
         "Press Ctrl+C to stop.",
+    )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Interactive refresh: fetch all remotes, prune stale "
+        "remote-tracking refs, sync tags, and update remote HEAD. "
+        "Shows a preview and asks for confirmation before running. "
+        "Use --dry-run to preview without executing.",
+    )
+    parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Interactive cleanup: delete stale local branches (90+ days "
+        "inactive), branches with deleted upstreams, and run git gc. "
+        "Shows everything that would be deleted and asks for "
+        "confirmation. Use --dry-run to preview only.",
     )
     args = parser.parse_args()
 
@@ -4845,6 +5371,16 @@ def main() -> int:
     if args.apply_recommended_minimal:
         apply_recommended_minimal_config(dry_run=args.dry_run)
         return 0
+
+    # --refresh mode: interactive update of refs, tags, remote metadata
+    if args.refresh:
+        ref_color = False if args.no_color else None
+        return refresh_repo(dry_run=args.dry_run, color=ref_color)
+
+    # --cleanup mode: interactive deletion of stale branches and cruft
+    if args.cleanup:
+        cl_color = False if args.no_color else None
+        return cleanup_repo(dry_run=args.dry_run, color=cl_color)
 
     color = False if args.no_color else None
 

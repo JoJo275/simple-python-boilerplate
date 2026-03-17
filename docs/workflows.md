@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **35 workflow files** in `.github/workflows/`. All workflows
+This project has **36 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -61,9 +61,10 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Container
 
-| Workflow            | File                                                            | Triggers                       | Job name(s)             | Purpose                                                    |
-| ------------------- | --------------------------------------------------------------- | ------------------------------ | ----------------------- | ---------------------------------------------------------- |
-| **Container Build** | [container-build.yml](../.github/workflows/container-build.yml) | push (main + tags), PR, manual | `Build container image` | Builds OCI container image, pushes to ghcr.io on main/tags |
+| Workflow                | File                                                                      | Triggers                                | Job name(s)               | Purpose                                                    |
+| ----------------------- | ------------------------------------------------------------------------- | --------------------------------------- | ------------------------- | ---------------------------------------------------------- |
+| **Container Build**     | [container-build.yml](../.github/workflows/container-build.yml)           | push (main + tags), PR, manual          | `Build container image`   | Builds OCI container image, pushes to ghcr.io on main/tags |
+| **Dev Container Build** | [devcontainer-build.yml](../.github/workflows/devcontainer-build.yml)     | push (main, path-filtered), PR, manual  | `Build dev container`     | Validates dev container config builds and runs correctly    |
 
 ### Maintenance
 
