@@ -5467,6 +5467,7 @@ def _show_commits_markdown() -> int:
 
     # Count unique authors and files touched
     authors = {str(cm.get("author", "")) for cm in commits if cm.get("author")}
+    author_label = "Author" if len(authors) == 1 else "Authors"
     all_files: set[str] = set()
     for cm in commits:
         files = cm.get("files", [])
@@ -5475,6 +5476,46 @@ def _show_commits_markdown() -> int:
                 fname = str(f.get("file", ""))
                 if fname:
                     all_files.add(fname)
+
+    def _pad_table(
+        rows: list[list[str]], alignments: list[str] | None = None
+    ) -> list[str]:
+        """Pad a table's columns so the raw Markdown source is neatly aligned.
+
+        *rows* is a list of rows; the first row is the header.
+        *alignments* is a list of 'l' or 'r' per column (default: all left).
+        Returns a list of formatted Markdown lines (header + separator + data).
+        """
+        if not rows:
+            return []
+        col_count = len(rows[0])
+        if alignments is None:
+            alignments = ["l"] * col_count
+        # Compute max width per column
+        widths = [0] * col_count
+        for row in rows:
+            for j, cell in enumerate(row):
+                widths[j] = max(widths[j], len(cell))
+        # Build lines
+        out: list[str] = []
+        for idx, row in enumerate(rows):
+            cells: list[str] = []
+            for j, cell in enumerate(row):
+                if alignments[j] == "r":
+                    cells.append(cell.rjust(widths[j]))
+                else:
+                    cells.append(cell.ljust(widths[j]))
+            out.append("| " + " | ".join(cells) + " |")
+            if idx == 0:
+                # Separator row
+                sep_cells: list[str] = []
+                for j in range(col_count):
+                    if alignments[j] == "r":
+                        sep_cells.append("-" * (widths[j] - 1) + ":")
+                    else:
+                        sep_cells.append(":" + "-" * (widths[j] - 1))
+                out.append("| " + " | ".join(sep_cells) + " |")
+        return out
 
     lines: list[str] = []
     a = lines.append
@@ -5487,36 +5528,43 @@ def _show_commits_markdown() -> int:
     # ── Quick Stats ──
     a("## Quick Stats")
     a("")
-    a("| Metric | Value |")
-    a("| :----- | ----: |")
-    a(f"| Commits | {len(commits)} |")
-    a(f"| Insertions | +{total_ins} |")
-    a(f"| Deletions | -{total_del} |")
-    a(f"| Files touched | {len(all_files)} |")
-    a(f"| Authors | {len(authors)} |")
+    stat_rows: list[list[str]] = [
+        ["Metric", "Value"],
+        ["Commits", str(len(commits))],
+        ["Insertions", f"+{total_ins}"],
+        ["Deletions", f"-{total_del}"],
+        ["Files touched", str(len(all_files))],
+        [author_label, str(len(authors))],
+    ]
     if conflict_files:
-        a(f"| **Conflicts** | **{len(conflict_files)}** |")
+        stat_rows.append(["**Conflicts**", f"**{len(conflict_files)}**"])
     else:
-        a("| Conflicts | 0 |")
+        stat_rows.append(["Conflicts", "0"])
+    for ln in _pad_table(stat_rows, ["l", "r"]):
+        a(ln)
     a("")
 
     # ── Branch Overview ──
     a("## Branch Overview")
     a("")
-    a("| Field | Value |")
-    a("| :---- | :---- |")
-    a(f"| **Current working branch** | `{current_branch}` |")
-    a(f"| **Origin branch** | `{origin_info.get('origin_branch', '(unknown)')}` |")
+    overview_rows: list[list[str]] = [
+        ["Field", "Value"],
+        ["**Current working branch**", f"`{current_branch}`"],
+        ["**Origin branch**", f"`{origin_info.get('origin_branch', '(unknown)')}`"],
+    ]
     merge_base_short = origin_info.get("merge_base_short", "")
     merge_base_date = origin_info.get("merge_base_date", "")
     if merge_base_short:
-        a(
-            f"| **Merge base** | `{merge_base_short}` ({merge_base_date}) -- "
-            f"last common ancestor with `{default_branch}` |"
+        overview_rows.append(
+            [
+                "**Merge base**",
+                f"`{merge_base_short}` ({merge_base_date}) -- last common ancestor with `{default_branch}`",
+            ]
         )
-    a(f"| **Total commits** | {len(commits)} |")
-    a(f"| **Total insertions** | +{total_ins} |")
-    a(f"| **Total deletions** | -{total_del} |")
+    overview_rows.append(["**Total commits**", str(len(commits))])
+    overview_rows.append(["**Insertions / Deletions**", f"+{total_ins} / -{total_del}"])
+    for ln in _pad_table(overview_rows, ["l", "l"]):
+        a(ln)
     a("")
 
     # ── Table of Contents ──
@@ -5526,10 +5574,8 @@ def _show_commits_markdown() -> int:
         for i, cm in enumerate(commits, 1):
             sha_short = str(cm["sha_short"])
             msg = str(cm["message"])
-            anchor_text = f"{i}-{sha_short}-{msg}"
-            anchor = re.sub(r"[^a-z0-9\s-]", "", anchor_text.lower())
-            anchor = re.sub(r"[\s]+", "-", anchor).strip("-")
-            a(f"{i}. [`{sha_short}`](#{anchor}) -- {msg}")
+            # Use explicit HTML anchor IDs for reliable linking
+            a(f"{i}. [`{sha_short}`](#commit-{i}) -- {msg}")
         a("")
 
     # ── Detailed Commits ──
@@ -5555,26 +5601,39 @@ def _show_commits_markdown() -> int:
                 else f"`{sha_full}`"
             )
 
-            a(f"### {i}. `{sha_short}` -- {msg}")
+            # HTML anchor for TOC linking
+            a(f'<a id="commit-{i}"></a>')
             a("")
-            a("| Field | Value |")
-            a("| :---- | :---- |")
-            a(f"| **SHA** | {sha_link} |")
-            a(f"| **Author** | {author} |")
-            a(f"| **Date** | {dt} ({date_rel}) |")
-            a(
-                f"| **Insertions / Deletions** | +{cm_ins} / -{cm_del} in {len(files)} file(s) |"
-            )
+            a(f"### [{i}/{len(commits)}] `{sha_short}` -- {msg}")
+            a("")
+            detail_rows: list[list[str]] = [
+                ["Field", "Value"],
+                ["**SHA**", sha_link],
+                ["**Author**", author],
+                ["**Date**", f"{dt} ({date_rel})"],
+                [
+                    "**Insertions / Deletions**",
+                    f"+{cm_ins} / -{cm_del} in {len(files)} file(s)",
+                ],
+            ]
+            for ln in _pad_table(detail_rows, ["l", "l"]):
+                a(ln)
             a("")
 
             if files:
-                a("| File Name | Insertions | Deletions |")
-                a("| :-------- | ---------: | --------: |")
+                file_rows: list[list[str]] = [["File Name", "Insertions", "Deletions"]]
                 for f in files:
                     fname = str(f.get("file", ""))
                     fins = int(f.get("insertions", 0))
                     fdel = int(f.get("deletions", 0))
-                    a(f"| `{fname}` | +{fins} | -{fdel} |")
+                    file_rows.append([f"`{fname}`", f"+{fins}", f"-{fdel}"])
+                for ln in _pad_table(file_rows, ["l", "r", "r"]):
+                    a(ln)
+                a("")
+
+            # Visual separator between commits (except after the last one)
+            if i < len(commits):
+                a("---")
                 a("")
 
     # ── Conflicts ──
@@ -5593,14 +5652,30 @@ def _show_commits_markdown() -> int:
         a(f"No conflicts detected with `{default_branch}`.")
     a("")
 
-    # ── Summary ──
+    # ── Summary Footer ──
     a("---")
     a("")
-    a(
-        f"*{len(commits)} commit(s) -- "
-        f"+{total_ins} / -{total_del} -- "
-        f"git-doctor v{SCRIPT_VERSION}*"
-    )
+    a("## Summary")
+    a("")
+    summary_rows: list[list[str]] = [
+        ["Metric", "Value"],
+        ["Total commits", str(len(commits))],
+        ["Total insertions", f"+{total_ins}"],
+        ["Total deletions", f"-{total_del}"],
+        [
+            "Net change",
+            f"+{total_ins - total_del}"
+            if total_ins >= total_del
+            else str(total_ins - total_del),
+        ],
+        ["Files touched", str(len(all_files))],
+        [author_label, ", ".join(sorted(authors)) if authors else "(none)"],
+        ["Conflicts", str(len(conflict_files))],
+    ]
+    for ln in _pad_table(summary_rows, ["l", "r"]):
+        a(ln)
+    a("")
+    a(f"*Generated by `git_doctor.py --view-commits --markdown` v{SCRIPT_VERSION}*")
 
     # Write to file
     from pathlib import Path
@@ -5767,7 +5842,7 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
 
     def _facet_sep(indent: int = 4) -> None:
         pad = " " * indent
-        print(f"{pad}{c.dim(f'{_thin_dot} ' * 20)}")
+        print(f"{pad}{c.green(f'{_thin_dot} ' * 20)}")
 
     # ── Branch Overview ──
     _section(f"Branch Overview: {c.green(current_branch)}")
@@ -5775,64 +5850,53 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
     _facet_sep()
     _kv(
         "Origin branch",
-        origin_info.get("origin_branch", "(unknown)"),
+        f"{origin_info.get('origin_branch', '(unknown)')}  {c.dim('(created from)')}",
     )
-    _kv_hint("the branch this was created from")
     _facet_sep()
     merge_base_short = origin_info.get("merge_base_short", "")
     merge_base_date = origin_info.get("merge_base_date", "")
     if merge_base_short:
         _kv(
             "Merge base",
-            f"{c.yellow(merge_base_short)}  {c.dim(merge_base_date)}",
-        )
-        _kv_hint(
-            f"last common ancestor commit with {default_branch} "
-            f"{arrow} the point where this branch diverged"
+            f"{c.yellow(merge_base_short)}  {c.dim(merge_base_date)}"
+            f"  {c.dim(f'{arrow} divergence point from {default_branch}')}",
         )
         _facet_sep()
     _kv("Total commits on branch", str(len(commits)))
     _facet_sep()
     _kv(
-        "Total changes",
-        f"{c.green(f'+{total_ins}')} / {c.red(f'-{total_del}')}",
+        "Insertions / Deletions",
+        f"{c.green(f'+{total_ins}')} / {c.red(f'-{total_del}')}"
+        f"  {c.dim('across all commits')}",
     )
-    _kv_hint("lines added / removed across all commits")
 
     # ── All Commit SHAs ──
     if commits:
         _section("Commit SHAs (quick reference)")
+        # Note about GitHub links
+        if commit_url_base:
+            print(f"    {c.dim(f'{dot} GitHub links open the commit on github.com')}")
+            print(f"    {c.dim(f'{dot} Commits not yet pushed will return a 404')}")
+            print()
         # Table header — pad plain text first, then colorize
         print(
             f"    {c.bold('#'.rjust(4))}  "
             f"{c.bold('SHA'.ljust(10))}  "
-            f"{c.bold('Message'.ljust(45))}  "
-            f"{c.bold('GitHub'.ljust(8))}  "
-            f"{c.bold('Jump')}"
+            f"{c.bold('Message'.ljust(50))}  "
+            f"{c.bold('GitHub')}"
         )
-        print(
-            f"    {h_line * 4}  {h_line * 10}  {h_line * 45}  {h_line * 8}  {h_line * 6}"
-        )
+        print(f"    {h_line * 4}  {h_line * 10}  {h_line * 50}  {h_line * 6}")
         for i, cm in enumerate(commits, 1):
             sha_short = str(cm["sha_short"])
             sha_full = str(cm["sha"])
             msg = str(cm["message"])
-            if len(msg) > 45:
-                msg = msg[:42] + "..."
+            if len(msg) > 50:
+                msg = msg[:47] + "..."
             num = c.cyan(c.bold(str(i).rjust(4)))
             sha_url = f"{commit_url_base}{sha_full}" if commit_url_base else ""
             sha_display = c.yellow(sha_short.ljust(10))
-            gh_link = (
-                _osc_link(sha_url, c.magenta("view".ljust(8)))
-                if sha_url
-                else c.dim("n/a".ljust(8))
-            )
-            # Terminal anchor link using OSC 8 with #commit-N fragment
-            anchor_id = f"commit-{i}"
-            loc_link = (
-                _osc_link(f"#{anchor_id}", c.cyan(f"#{i}")) if use_color else f"#{i}"
-            )
-            print(f"    {num}  {sha_display}  {msg:<45s}  {gh_link}  {loc_link}")
+            gh_link = _osc_link(sha_url, c.magenta("view")) if sha_url else c.dim("n/a")
+            print(f"    {num}  {sha_display}  {msg:<50s}  {gh_link}")
         print()
 
     # ── Detailed Commits ──
@@ -5851,23 +5915,23 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
             if not isinstance(files, list):
                 files = []
 
-            # Commit header with number in brackets
+            # Commit header with number merged into title
             commit_border = h_line * 56
-            print(f"    {c.dim(f'[{c.cyan(c.bold(str(i)))}/{len(commits)}]')}")
             print(f"    {c.cyan(commit_border)}")
             sha_url = f"{commit_url_base}{sha_full}" if commit_url_base else ""
             sha_display = _osc_link(sha_url, c.bold(c.yellow(sha_short)))
-            print(f"    {sha_display}  {c.bold(msg)}")
+            idx_label = c.dim(f"[{c.cyan(c.bold(str(i)))}/{len(commits)}]")
+            print(f"    {idx_label} {sha_display}  {c.bold(msg)}")
             print(f"    {c.cyan(commit_border)}")
             print()
-            print(f"      {'SHA:':<20s} {c.dim(sha_full)}")
+            print(f"      {'SHA:':<24s} {c.dim(sha_full)}")
             _facet_sep(6)
-            print(f"      {'Author:':<20s} {author}")
+            print(f"      {'Author:':<24s} {author}")
             _facet_sep(6)
-            print(f"      {'Date:':<20s} {dt}  {c.dim(f'({date_rel})')}")
+            print(f"      {'Date:':<24s} {dt}  {c.dim(f'({date_rel})')}")
             _facet_sep(6)
             print(
-                f"      {'Changes:':<20s} "
+                f"      {'Insertions / Deletions:':<24s} "
                 f"{c.green(f'+{cm_ins}')} / {c.red(f'-{cm_del}')}"
                 f"  {c.dim(f'in {len(files)} file(s)')}"
             )
