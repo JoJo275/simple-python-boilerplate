@@ -5,7 +5,21 @@
 #   bash scripts/test_docker_compose.sh
 #   KEEP=1 bash scripts/test_docker_compose.sh    # skip cleanup
 #   VERBOSE=1 bash scripts/test_docker_compose.sh # show build output
+#
+# TODO (template users): Update service names and test steps to match
+#   your docker-compose.yml (e.g. add health check waits, DB tests).
 set -euo pipefail
+
+# Check docker is available before doing anything
+if ! command -v docker &>/dev/null; then
+    echo "ERROR: docker CLI not found on PATH"
+    exit 1
+fi
+if ! docker info &>/dev/null; then
+    echo "ERROR: Docker daemon not running or not accessible"
+    echo "  Start Docker Desktop or the docker service first."
+    exit 1
+fi
 
 cleanup() {
     if [ "${KEEP:-0}" != "1" ]; then
@@ -33,8 +47,12 @@ docker compose run --rm app --help
 echo "--- Checking non-root user ---"
 ID_OUTPUT=$(docker compose run --rm --entrypoint id app)
 echo "  $ID_OUTPUT"
-if echo "$ID_OUTPUT" | grep -q "uid=0"; then
+if echo "$ID_OUTPUT" | grep -qP 'uid=0\b'; then
     echo "ERROR: Container is running as root (uid=0)"
+    exit 1
+fi
+if ! echo "$ID_OUTPUT" | grep -qP 'uid=\d+'; then
+    echo "ERROR: Could not parse uid from id output"
     exit 1
 fi
 
