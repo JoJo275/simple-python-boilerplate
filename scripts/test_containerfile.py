@@ -26,21 +26,29 @@ from __future__ import annotations
 
 import argparse
 import logging
-import re
+import os
 import subprocess  # nosec B404
 import sys
 
-# TODO: Import _imports.find_repo_root and os.chdir(ROOT) to avoid
-#   CWD dependency — currently the docker build context assumes the
-#   script is run from the repo root.
-# TODO: Import Spinner from _progress.py to wrap the docker build
-#   step (can take 60-300+ seconds with no visual feedback).
+from _container_common import (
+    check_docker_available as _check_docker_available,
+)
+from _container_common import (
+    check_non_root as _check_non_root,
+)
+from _container_common import (
+    run as _run,
+)
+from _imports import find_repo_root, import_sibling
+
+Spinner = import_sibling("_progress").Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+ROOT = find_repo_root()
 # TODO (template users): Update IMAGE_NAME to match your project.
 IMAGE_NAME = "simple-python-boilerplate:test"
 # Maximum expected image size in MB (flag a warning if exceeded)
@@ -55,73 +63,6 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-
-def _run(
-    args: list[str],
-    *,
-    check: bool = True,
-    timeout: int = 300,
-    verbose: bool = False,
-) -> subprocess.CompletedProcess[str]:
-    """Run a command and return the CompletedProcess."""
-    logger.info("Running: %s", " ".join(args))
-    result = subprocess.run(  # nosec B603
-        args,
-        check=check,
-        timeout=timeout,
-        capture_output=True,
-        text=True,
-    )
-    if result.stdout:
-        for line in result.stdout.splitlines():
-            logger.info("  %s", line)
-    if verbose and result.stderr:
-        for line in result.stderr.splitlines():
-            logger.debug("  stderr: %s", line)
-    if result.returncode != 0 and result.stderr:
-        for line in result.stderr.splitlines():
-            logger.error("  %s", line)
-    return result
-
-
-def _check_docker_available() -> bool:
-    """Verify docker CLI is available and the daemon is running."""
-    try:
-        result = subprocess.run(  # nosec B603 B607
-            ["docker", "info"],
-            check=False,
-            timeout=15,
-            capture_output=True,
-            text=True,
-        )
-        if result.returncode != 0:
-            logger.error(
-                "Docker daemon not running or not accessible. "
-                "Start Docker Desktop or the docker service first."
-            )
-            return False
-        return True
-    except FileNotFoundError:
-        logger.error("docker CLI not found on PATH")
-        return False
-    except subprocess.TimeoutExpired:
-        logger.error("docker info timed out — daemon may be unresponsive")
-        return False
-
-
-def _check_non_root(output: str) -> bool:
-    """Verify the container is not running as root (uid=0)."""
-    # `id` output looks like: uid=1000(app) gid=1000(app) groups=1000(app)
-    uid_match = re.search(r"uid=(\d+)", output)
-    if not uid_match:
-        logger.error("Could not parse uid from `id` output: %s", output.strip())
-        return False
-    if uid_match.group(1) == "0":
-        logger.error("Container is running as root (uid=0)")
-        return False
-    logger.info("  Non-root verified: %s", output.strip().split()[0])
-    return True
 
 
 def _check_image_size(image: str, *, verbose: bool = False) -> bool:
@@ -193,6 +134,9 @@ def main() -> int:
     if not args.dry_run and not _check_docker_available():
         return 1
 
+    # Ensure we're in the repo root so the docker build context is correct
+    os.chdir(ROOT)
+
     # TODO (template users): Add or remove build steps to match your
     #   Containerfile (e.g. HEALTHCHECK validation, extra entrypoints,
     #   environment variable checks).
@@ -234,30 +178,32 @@ def main() -> int:
 
     step_timeout = args.timeout
     failed = False
-    for desc, cmd in steps:
-        logger.info("Step: %s", desc)
-        try:
-            result = _run(cmd, verbose=args.verbose, timeout=step_timeout)
-            if result.returncode != 0:
-                logger.error("Step failed: %s (exit %d)", desc, result.returncode)
+    with Spinner("Running containerfile tests", log_interval=5) as spin:
+        for desc, cmd in steps:
+            spin.update(desc)
+            logger.info("Step: %s", desc)
+            try:
+                result = _run(cmd, verbose=args.verbose, timeout=step_timeout)
+                if result.returncode != 0:
+                    logger.error("Step failed: %s (exit %d)", desc, result.returncode)
+                    failed = True
+                    break
+                # Extra validation for the non-root check
+                if desc == "Check non-root user" and not _check_non_root(result.stdout):
+                    failed = True
+                    break
+            except subprocess.TimeoutExpired:
+                logger.error(
+                    "Step timed out after %ds: %s (increase with --timeout)",
+                    step_timeout,
+                    desc,
+                )
                 failed = True
                 break
-            # Extra validation for the non-root check
-            if desc == "Check non-root user" and not _check_non_root(result.stdout):
+            except subprocess.CalledProcessError as exc:
+                logger.error("Step failed: %s (exit %d)", desc, exc.returncode)
                 failed = True
                 break
-        except subprocess.TimeoutExpired:
-            logger.error(
-                "Step timed out after %ds: %s (increase with --timeout)",
-                step_timeout,
-                desc,
-            )
-            failed = True
-            break
-        except subprocess.CalledProcessError as exc:
-            logger.error("Step failed: %s (exit %d)", desc, exc.returncode)
-            failed = True
-            break
 
     # Report image size (non-fatal)
     if not failed:

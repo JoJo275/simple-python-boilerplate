@@ -93,6 +93,15 @@ Search your project for these placeholders and replace them with your values:
 | [.github/copilot-instructions.md](../.github/copilot-instructions.md) | Replace domain/business context for Copilot                      |
 | [\_typos.toml](../_typos.toml)                                        | Spellchecker exceptions and ignored words                        |
 | [.markdownlint-cli2.jsonc](../.markdownlint-cli2.jsonc)               | Markdown lint rule overrides                                     |
+| [Containerfile](../Containerfile)                                     | Entrypoint, OCI labels, base image pin                           |
+| [docker-compose.yml](../docker-compose.yml)                           | Service name, image name, ports, volumes, env vars               |
+| [container-structure-test.yml](../container-structure-test.yml)        | Package name, entrypoint, user/group assertions                  |
+| [.devcontainer/devcontainer.json](../.devcontainer/devcontainer.json) | Project name, Python version, extensions, features               |
+| [.github/dependabot.yml](../.github/dependabot.yml)                   | Timezone, reviewers, package ignore rules                        |
+| [.editorconfig](../.editorconfig)                                     | Indent sizes per file type if team conventions differ             |
+| [.gitattributes](../.gitattributes)                                   | Binary/text overrides for project-specific file types            |
+| [.gitmessage.txt](../.gitmessage.txt)                                 | Commit template path if renamed or moved                         |
+| [release-please-config.json](../release-please-config.json)           | Package name and extra-files path                                |
 
 ---
 
@@ -210,6 +219,13 @@ check items off as you go.
 - [ ] Update `[project.scripts]` entry points in [pyproject.toml](../pyproject.toml)
 - [ ] Replace placeholder code in [src/](../src/) and [tests/](../tests/)
 
+### Containers (if keeping)
+
+- [ ] Update [Containerfile](../Containerfile) — entrypoint, OCI labels, base image
+- [ ] Update [docker-compose.yml](../docker-compose.yml) — service name, image name, ports
+- [ ] Update [container-structure-test.yml](../container-structure-test.yml) — package name, entrypoint
+- [ ] Update [.devcontainer/devcontainer.json](../.devcontainer/devcontainer.json) — name, Python version, extensions
+
 ### GitHub Configuration
 
 - [ ] Enable Discussions (optional)
@@ -226,6 +242,7 @@ check items off as you go.
 - [ ] Clear [CHANGELOG.md](../CHANGELOG.md) for your project's history
 - [ ] Remove template-specific notes from documentation
 - [ ] Add `experiments/` and `var/` to `.gitignore` if keeping those directories
+- [ ] Update [.github/dependabot.yml](../.github/dependabot.yml) — reviewers, timezone, ignore rules
 
 ### Verification
 

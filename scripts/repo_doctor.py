@@ -539,6 +539,10 @@ _SHARED_MODULE_DEPENDENTS: dict[str, list[str]] = {
         "dep_versions.py",
         "workflow_versions.py",
     ],
+    "_container_common.py": [
+        "test_containerfile.py",
+        "test_docker_compose.py",
+    ],
 }
 
 
