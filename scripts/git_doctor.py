@@ -137,7 +137,8 @@ import subprocess  # nosec B404
 import sys
 import time
 from collections.abc import Callable, Sequence
-from datetime import UTC
+from datetime import UTC, datetime
+from pathlib import Path
 
 from _colors import Colors
 from _colors import status_icon as _icon
@@ -2610,6 +2611,12 @@ def run(
     c = Colors(enabled=use_color)
 
     # Box-drawing characters for section headers
+    # TODO: The box-drawing char initialization and _section/_kv/_row helpers
+    #   are duplicated across run(), apply_from_reference(),
+    #   apply_recommended_config(), apply_recommended_minimal_config(),
+    #   refresh_repo(), cleanup_repo(), create_new_branch(), and
+    #   _show_commits_terminal(). Extract into a shared _UIContext dataclass
+    #   or namedtuple to eliminate ~200 lines of duplication.
     h_line = "\u2500" if use_unicode else "-"  # ─
     h_double = "\u2550" if use_unicode else "="  # ═
     tl = "\u250c" if use_unicode else "+"  # ┌
@@ -3325,9 +3332,6 @@ def export_git_config_reference(filepath: str) -> str:
     Returns:
         The absolute path of the written file.
     """
-    from datetime import datetime
-    from pathlib import Path
-
     timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     # Build table of contents from catalog sections
@@ -3939,8 +3943,6 @@ def apply_from_reference(filepath: str, *, dry_run: bool = False) -> int:
     Returns:
         Number of settings applied (or that would be applied in dry-run).
     """
-    from pathlib import Path
-
     use_color = _supports_color(sys.stdout)
     use_unicode = _supports_unicode(sys.stdout)
     c = Colors(enabled=use_color)
@@ -4785,7 +4787,7 @@ def refresh_repo(
 
     # 1. Fetch all remotes + prune stale remote-tracking refs
     remotes_raw = get_all_remotes()
-    remote_names = sorted({r.split("\t")[0] for r in remotes_raw if "\t" in r})
+    remote_names = sorted({r["name"] for r in remotes_raw if r.get("name")})
     if remote_names:
         operations.append(
             (
@@ -5467,8 +5469,6 @@ def show_commits(
 
 def _show_commits_markdown() -> int:
     """Write a Markdown commit report file with a clickable table of contents."""
-    from datetime import datetime
-
     generated_at = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     current_branch = get_current_branch()
@@ -5721,9 +5721,7 @@ def _show_commits_markdown() -> int:
     )
 
     # Write to file
-    from pathlib import Path
-
-    out_path = Path(ROOT) / "commit-report.md"
+    out_path = ROOT / "commit-report.md"
     out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Commit report written to: {out_path}")
     return 0
