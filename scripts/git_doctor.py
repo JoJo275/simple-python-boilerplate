@@ -159,6 +159,17 @@ SCRIPT_VERSION = "3.0.0"
 # Printed in git-config-reference.md so readers know the catalog's age.
 CATALOG_LAST_UPDATED = "2026-03-16"
 
+# TODO (template users): Tune these thresholds to match your team's workflow.
+#   _LARGE_FILE_THRESHOLD_MB: files above this trigger the staged-files check.
+#   _MERGE_BASE_THRESHOLD: commits-ahead before merge-base freshness warns.
+#   _STALE_BRANCH_DAYS / _AGING_BRANCH_DAYS: branch activity buckets.
+#   _LOOSE_OBJECTS_GC_THRESHOLD: count-objects trigger for gc suggestion.
+_LARGE_FILE_THRESHOLD_MB: int = 5
+_MERGE_BASE_THRESHOLD: int = 10
+_STALE_BRANCH_DAYS: int = 30
+_AGING_BRANCH_DAYS: int = 7
+_LOOSE_OBJECTS_GC_THRESHOLD: int = 50
+
 logger = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
@@ -1244,7 +1255,9 @@ def get_remote_branches() -> list[str]:
 
 def get_recent_commits(count: int = 5) -> list[dict[str, str]]:
     """Return recent commits on the current branch."""
-    code, out, _ = _run_git(["log", f"-{count}", "--format=%h\t%s\t%an\t%ar"])
+    code, out, _ = _run_git(
+        ["log", f"--max-count={count}", "--format=%h\t%s\t%an\t%ar"]
+    )
     if code != 0 or not out:
         return []
     commits: list[dict[str, str]] = []
@@ -1479,9 +1492,9 @@ def get_branch_characteristics() -> dict[str, str]:
     if code == 0 and out:
         last_commit_ts = int(out)
         days_since = (time.time() - last_commit_ts) / 86400
-        if days_since > 30:
+        if days_since > _STALE_BRANCH_DAYS:
             chars["stale"] = f"stale ({int(days_since)} days since last commit)"
-        elif days_since > 7:
+        elif days_since > _AGING_BRANCH_DAYS:
             chars["stale"] = f"aging ({int(days_since)} days since last commit)"
         else:
             chars["stale"] = "active"
@@ -2168,7 +2181,7 @@ def check_gitignore_exists() -> tuple[bool, str]:
 
 
 def check_no_large_files_staged() -> tuple[bool, str]:
-    """Warn about files > 5 MB staged for commit."""
+    """Warn about files above *_LARGE_FILE_THRESHOLD_MB* staged for commit."""
     code, out, _ = _run_git(["diff", "--cached", "--name-only"])
     if code != 0 or not out:
         return True, "No large staged files"
@@ -2177,7 +2190,7 @@ def check_no_large_files_staged() -> tuple[bool, str]:
         fpath = ROOT / fname
         if fpath.is_file():
             size_mb = fpath.stat().st_size / (1024 * 1024)
-            if size_mb > 5:
+            if size_mb > _LARGE_FILE_THRESHOLD_MB:
                 large.append(f"{fname} ({size_mb:.1f} MB)")
     if large:
         return False, f"Large staged files: {', '.join(large[:3])}"
@@ -2372,9 +2385,6 @@ def check_merge_base_freshness() -> tuple[bool, str]:
     Checks how many commits the default branch is ahead of the merge-base.
     A high divergence means the branch may have merge conflicts waiting.
     """
-    # TODO (template users): Adjust the threshold (default_ahead <= 10)
-    #   to match your team's merge cadence.  Larger repos that merge main
-    #   less frequently may want a higher value (e.g. 25 or 50).
     current = get_current_branch()
     default = get_default_branch()
     if default == "(unknown)" or current == default:
@@ -2389,7 +2399,7 @@ def check_merge_base_freshness() -> tuple[bool, str]:
 
     if default_ahead == 0:
         return True, f"Branch is up to date with {default}"
-    if default_ahead <= 10:
+    if default_ahead <= _MERGE_BASE_THRESHOLD:
         return (
             True,
             f"{default} is {default_ahead} commits ahead (merge-base: {rel_date})",
@@ -5037,7 +5047,7 @@ def cleanup_repo(
 
     # Determine if there's anything to do
     total_items = len(stale_branches) + len(gone_branches)
-    has_gc_work = loose_count > 50 or has_reflog_cruft
+    has_gc_work = loose_count > _LOOSE_OBJECTS_GC_THRESHOLD or has_reflog_cruft
 
     if total_items == 0 and not has_gc_work:
         print()
