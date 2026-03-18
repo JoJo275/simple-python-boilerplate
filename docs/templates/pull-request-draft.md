@@ -6,7 +6,7 @@
 
   Full titles:
     feat: overhaul developer tooling, diagnostics, and documentation
-    feat: enhance git_doctor, env_doctor, documentation, and VS Code config
+    feat: enhance scripts, tests, docs, and VS Code config for v1.0 readiness
 
   Available prefixes:
     feat:     — new feature or capability
@@ -22,7 +22,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: enhancement, documentation, developer-experience, scripts -->
+<!-- Suggested labels: enhancement, documentation, developer-experience, scripts, tests -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -40,50 +40,55 @@
 
 ## Description
 
-Major overhaul of developer tooling, diagnostics scripts, documentation, and
-VS Code configuration. This PR touches 66 files across scripts, docs, tests,
-and editor config — primarily improving the developer experience for both
-template authors and template users.
+Major overhaul of developer tooling, diagnostics, documentation, container
+support, and test coverage across 116 files (+13,053 / -1,955 lines) —
+bringing the template to v1.0 release readiness.
 
 **What changes you made:**
 
-- **`git_doctor.py`** — rewrote from scratch (v2.0.0): added git config
-  reference export (`--export-config`), auto-apply (`--apply-recommended`), branch
-  characteristics, commit activity charts, file change summaries, fetch/prune
-  at startup, column-header config display, improved status overview
-- **`env_doctor.py`** — expanded with OS/platform checks, Node.js/container
-  runtime detection, git remote health, disk space, progress bars
-- **VS Code configuration** — added `.vscode/settings.json` (shared project
-  settings) and `.vscode/extensions.json`; expanded `.code-workspace` with
-  detailed extension recommendations and customization guide
-- **Documentation** — major expansion of `USING_THIS_TEMPLATE.md` (containers,
-  VS Code config, editor/git file handling, git configuration, copilot
-  customization, optional tools); enhanced `repo-layout.md`, learning notes,
-  troubleshooting guide
-- **Tests** — added unit tests for git_doctor, bootstrap, customize,
-  apply_labels, changelog_check, check_todos, check_nul_bytes, imports
-- **Scripts** — Unicode symbol support, progress spinners, color improvements,
-  version bumps across all scripts
-- **Security** — enhanced SECURITY.md with PGP setup instructions, added
-  `pgp-key.asc`
-- **CI** — added `doctor-all.yml` workflow, updated link-checker config
+- **`git_doctor.py`** — major rewrite: git config reference export
+  (`--export-config`), auto-apply (`--apply-recommended`), branch
+  characteristics, commit activity charts, file change summaries,
+  fetch/prune at startup, column-header config display, improved
+  status overview
+- **`workflow_versions.py`** — rate-limit handling overhaul: early
+  bail-out on 403, single warning instead of spam, summary of skipped
+  actions, GitHub token setup guide in docstring
+- **`customize.py`** — added missing container files to STRIPPABLE,
+  corrected advanced-workflows count, added drift TODOs
+- **Container tooling** — new `test_containerfile.py`,
+  `test_docker_compose.py`, shared `_container_common.py`, bash
+  equivalents, `devcontainer-build.yml` workflow
+- **Documentation** — major expansion of `USING_THIS_TEMPLATE.md`
+  (containers, VS Code config, LLM-assisted setup note, editor/git
+  handling, git configuration); new `branch-workflows.md`,
+  `scripts.md` reference; 5 new ADRs (036-040); enhanced
+  troubleshooting, learning notes, release docs
+- **Tests** — new test suites for customize (interactive + unit),
+  workflow_versions (rate-limit), test_containerfile,
+  test_docker_compose; expanded existing test files
+- **VS Code** — updated `.vscode/settings.json`, expanded
+  `.code-workspace` with extension recommendations
+- **CI/CD** — SHA-pinned action updates across ~20 workflow files,
+  new `devcontainer-build.yml`, updated `repo_doctor.d/` rules
+- **Security** — enhanced SECURITY.md with PGP setup instructions
 
 **Why you made them:**
 
-The template's developer experience had gaps: no shared VS Code settings,
-limited diagnostics, sparse documentation for template users on containers
-and editor config, and no test coverage for most scripts. This PR fills
-those gaps so template users get a more complete, well-documented starting
-point.
+The template had gaps in developer experience: limited diagnostics,
+sparse container testing, no rate-limit handling in workflow_versions,
+incomplete test coverage for scripts, and documentation that didn't
+cover containers or VS Code config. This PR fills those gaps for a
+complete, well-documented v1.0 release.
 
 ## Related Issue
 
-N/A — exploratory development and documentation improvements accumulated on
-a scratch branch over the course of iterative template development.
+N/A — accumulated improvements toward v1.0 release readiness
+(see ADR 040).
 
 ## Type of Change
 
-- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [x] 🐛 Bug fix (non-breaking change that fixes an issue)
 - [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [x] 📚 Documentation update
@@ -94,49 +99,43 @@ a scratch branch over the course of iterative template development.
 
 **Steps:**
 
-1. Run `python scripts/git_doctor.py` — verify the status overview shows
-   three labeled lines (Working tree, Remote sync, Health) and the Git
-   Configuration section has column headers (Key, Scope, Value)
-2. Run `python scripts/git_doctor.py --export-config` — verify
-   `git-config-reference.md` is generated with the Scope Guide including
-   command examples
-3. Run `python scripts/git_doctor.py --apply-recommended --dry-run` — verify it lists
-   recommended settings without applying them
-4. Run `python scripts/env_doctor.py` — verify expanded checks run
-5. Open the project in VS Code as a workspace — verify settings and
+1. Run `python scripts/git_doctor.py` — verify status overview, config
+   table with column headers, and health checks
+2. Run `python scripts/workflow_versions.py show --filter stale` — verify
+   no rate-limit spam (if unauthenticated, one warning then skip)
+3. Run `python scripts/customize.py --dry-run` — verify container files
+   appear in STRIPPABLE listing
+4. Open the project in VS Code as a workspace — verify settings and
    extension recommendations load
 
 **Test command(s):**
 
 ```bash
-# Run full test suite
+# Full test suite
 task test
 
-# Run just the new/modified test files
-pytest tests/unit/test_git_doctor.py tests/unit/test_env_doctor.py -v
-pytest tests/unit/test_bootstrap.py tests/unit/test_customize.py -v
-pytest tests/unit/test_apply_labels.py tests/unit/test_check_todos.py -v
+# New/modified test files
+pytest tests/unit/test_customize.py tests/unit/test_customize_interactive.py -v
+pytest tests/unit/test_workflow_versions.py -v
+pytest tests/unit/test_test_containerfile.py tests/unit/test_test_docker_compose.py -v
 
-# Verify scripts have no syntax errors
+# Verify scripts parse cleanly
 python -c "import ast, pathlib; [ast.parse(f.read_text('utf-8')) for f in pathlib.Path('scripts').glob('*.py')]"
-
-# Run diagnostics
-python scripts/git_doctor.py
-python scripts/env_doctor.py
 ```
 
 **Screenshots / Demo (if applicable):**
 
-<!-- Add screenshots of git_doctor output showing new formatting -->
+<!-- Add screenshots of workflow_versions rate-limit handling, git_doctor output -->
 
 ## Risk / Impact
 
 **Risk level:** Low
 
-**What could break:** The git_doctor.py rewrite is the biggest change —
-if the output formatting regresses, it affects the developer experience
-but not any production code or CI gates. VS Code settings are additive
-and won't affect users who don't open the workspace file.
+**What could break:** `git_doctor.py` is the largest change — output
+formatting regressions affect DX but not production code or CI gates.
+`workflow_versions.py` rate-limit changes are purely additive (cached
+responses still work). VS Code settings are additive and only apply when
+opening the workspace file.
 
 **Rollback plan:** Revert this PR
 
@@ -157,27 +156,27 @@ interfaces. No config migrations needed.
 - [x] I have made corresponding changes to the documentation
 - [ ] No new warnings (or explained in Additional Notes)
 - [x] I have added tests that prove my fix is effective or that my feature works
-- [ ] Relevant tests pass locally (or explained in Additional Notes)
-- [ ] No security concerns introduced (or flagged for review)
+- [x] Relevant tests pass locally (or explained in Additional Notes)
+- [x] No security concerns introduced (or flagged for review)
 - [x] No performance regressions expected (or flagged for review)
 
 ## Reviewer Focus (Optional)
 
-- **`scripts/git_doctor.py`** — this is the largest change (~2600 lines).
-  Focus on the display logic in `run()` and the `export_git_config_reference()`
-  function. The health checks and data collection functions are lower risk.
-- **`docs/USING_THIS_TEMPLATE.md`** — review the new "Editor & Git File
-  Handling" and "Git Configuration" sections for accuracy.
-- **VS Code config** — verify `.vscode/settings.json` defaults are sensible
-  and don't override user preferences inappropriately.
+- **`scripts/workflow_versions.py`** — review the rate-limit bail-out
+  logic in `_gh_api()` and the docstring token setup guide for accuracy
+- **`scripts/customize.py`** — verify STRIPPABLE paths match actual repo
+  files (path integrity tests catch this, but a visual check is good)
+- **`docs/USING_THIS_TEMPLATE.md`** — review the new LLM-assisted setup
+  note and container sections for clarity
+- **New test files** — check that mocked boundaries are reasonable and
+  tests aren't testing implementation details
 
 ## Additional Notes
 
-- This branch has 42 commits across 66 files (+9924 / -511 lines). Consider
-  squash-merging to keep main's history clean.
-- The `git-config-reference.md` file is auto-generated — it will be
-  regenerated on each `--export-config` run, so don't review its content
-  line-by-line.
-- Several commits on this branch have overly broad messages (e.g., "enhance
-  git_doctor with new features and improvements"). The PR title and this
-  description provide the accurate summary for the squash-merge commit.
+- This branch has ~20 commits across 116 files. Consider squash-merging
+  to keep main's history clean.
+- `git-config-reference.md` and `test-config-ref.md` are auto-generated —
+  don't review their content line-by-line.
+- The `workflow_versions.py` token guide recommends fine-grained tokens
+  scoped to public-repo metadata only — verify this matches GitHub's
+  current token UI.
