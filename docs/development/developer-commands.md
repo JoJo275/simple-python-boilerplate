@@ -195,6 +195,19 @@ task doctor
 python scripts/env_doctor.py
 task doctor:env
 
+# Git health dashboard
+python scripts/git_doctor.py
+task doctor:git
+
+# Fetch, prune stale refs, sync tags
+task doctor:git:refresh
+
+# Detailed commit report
+task doctor:git:commits
+
+# All health checks in one report
+task doctor:all
+
 # One-command setup for fresh clones
 python scripts/bootstrap.py
 task bootstrap
@@ -402,3 +415,5 @@ hatch run <env>:<command>
 - [dev-setup.md](dev-setup.md) — Detailed environment setup
 - [development.md](development.md) — Full development workflows
 - [pull-requests.md](pull-requests.md) — PR guidelines
+- [Command Reference](../reference/commands.md) — Auto-generated task & script reference
+- [Command Workflows](command-workflows.md) — How commands flow through the tooling layers

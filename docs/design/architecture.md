@@ -25,7 +25,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────┐   ┌────────────┐   ┌──────────────┐          │
-│  │  main.py   │──▶│   cli.py  │──▶│  engine.py   │          │
+│  │  main.py   │──▶│   cli.py   │──▶│  engine.py   │          │
 │  │  (entry    │   │  (argparse │   │  (core logic │          │
 │  │   points)  │   │   parsing) │   │   TypedDicts)│          │
 │  └────────────┘   └────────────┘   └──────┬───────┘          │
@@ -117,12 +117,15 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 │   ├── archive_todos.py         # Archive completed TODO items
 │   ├── bootstrap.py             # One-command setup for fresh clones
 │   ├── changelog_check.py       # Verify CHANGELOG matches git tags
+│   ├── check_known_issues.py    # Check for stale resolved entries
 │   ├── check_todos.py           # Scan for TODO (template users) comments
 │   ├── clean.py                 # Remove build artifacts and caches
 │   ├── customize.py             # Interactive project customization
 │   ├── dep_versions.py          # Dependency version reporting
 │   ├── doctor.py                # Diagnostics bundle for bug reports
 │   ├── env_doctor.py            # Environment health check
+│   ├── generate_command_reference.py # Generate docs/reference/commands.md
+│   ├── git_doctor.py            # Git health check and branch dashboard
 │   ├── repo_doctor.py           # Repository health checks
 │   ├── workflow_versions.py     # SHA-pinned action version reporting
 │   ├── precommit/               # Custom pre-commit hooks
@@ -132,7 +135,7 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 │       └── scratch.example.sql
 │
 ├── docs/                        # Documentation (MkDocs source)
-│   ├── adr/                     # Architecture Decision Records (32+)
+│   ├── adr/                     # Architecture Decision Records (39)
 │   ├── design/                  # Architecture, tool decisions, database, CI/CD
 │   ├── development/             # Dev setup, commands, workflows, PRs
 │   ├── guide/                   # Getting started, troubleshooting
@@ -152,7 +155,9 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 │   └── example_data_exploration.py
 │
 ├── mkdocs-hooks/                # MkDocs build hooks
-│   └── repo_links.py           # Rewrites repo-relative links → GitHub URLs
+│   ├── repo_links.py           # Rewrites repo-relative links → GitHub URLs
+│   ├── generate_commands.py    # Auto-regenerates command reference
+│   └── include_templates.py    # Includes template content in docs
 │
 ├── labels/                      # GitHub label definitions (labels-as-code)
 │   ├── baseline.json            # Core workflow labels
@@ -182,6 +187,7 @@ Configured in `pyproject.toml` under `[project.scripts]`:
 | `spb`         | `main:main`          | Primary CLI — parses args via `cli.py`, dispatches to `engine.py` |
 | `spb-version` | `main:print_version` | Print package + Python version                                    |
 | `spb-doctor`  | `main:doctor`        | Diagnose environment (venv, tools, config files)                  |
+| `spb-start`   | `main:start`         | Start the application (alias for `spb run`)                       |
 
 ## Data Flow
 
@@ -231,7 +237,7 @@ Version is derived from git tags at build time via `hatch-vcs`
 
 ## CI/CD Architecture
 
-35 workflow files in `.github/workflows/`, all SHA-pinned
+36 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../adr/011-repository-guard-pattern.md)).
 

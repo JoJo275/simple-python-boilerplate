@@ -256,3 +256,55 @@ After setting these, `git st` is equivalent to `git status -sb`, etc.
 - [ADR 022 — Rebase+merge strategy](../adr/022-rebase-merge-strategy.md)
 - [Pro Git book (free)](https://git-scm.com/book/en/v2)
 - [Oh Shit, Git!?!](https://ohshitgit.com/)
+
+---
+
+## Project Health & Diagnostics
+
+Quick commands for keeping the repo in shape. See
+[commands.md](../reference/commands.md) for the full reference.
+
+### Health Checks
+
+| Command | What it does |
+|---------|-------------|
+| `task doctor:all` | Run all health checks in one report |
+| `task doctor:env` | Python, Hatch, tools, editable install |
+| `task doctor:repo` | Repo structure, conventions, missing files |
+| `task doctor:git` | Git dashboard: branches, remotes, health |
+| `task doctor:git:refresh` | Fetch remotes, prune stale refs, sync tags |
+| `task doctor:git:cleanup` | Delete stale local branches, run `git gc` |
+| `task doctor:git:commits` | Detailed commit report (SHAs, per-file stats) |
+| `task doctor:git:commits:md` | Write commit report to `commit-report.md` |
+
+### Git Config Management
+
+| Command | What it does |
+|---------|-------------|
+| `task doctor:git:config:export` | Export full git config reference to Markdown |
+| `task doctor:git:config:minimal` | Apply 12 core recommended configs |
+| `task doctor:git:config:apply` | Apply ALL catalog recommended configs |
+| `task doctor:git:config:apply -- --dry-run` | Preview changes before applying |
+
+### Dependency & Action Management
+
+| Command | What it does |
+|---------|-------------|
+| `task deps:versions` | Show installed vs. latest dependency versions |
+| `task deps:upgrade` | Upgrade a dependency |
+| `task actions:versions` | Show pinned GitHub Actions with version tags |
+| `task actions:upgrade` | Upgrade pinned actions to latest |
+| `task actions:check` | CI gate: exit non-zero if stale actions |
+
+### Quality Gates
+
+| Command | What it does |
+|---------|-------------|
+| `task check` | Run all quality gates (lint, format, typecheck, test) |
+| `task test` | Run tests |
+| `task test:cov` | Run tests with coverage |
+| `task lint` | Check for linting issues |
+| `task lint:fix` | Auto-fix linting issues |
+| `task fmt` | Apply formatting |
+| `task typecheck` | Run mypy type checker |
+| `task security` | Run bandit security linter |

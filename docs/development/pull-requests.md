@@ -11,9 +11,9 @@ How to create, review, and merge pull requests in this project.
 1. **Create a feature branch** from `main`
 
    ```bash
-   git checkout main
+   git switch main
    git pull --ff-only
-   git checkout -b feature/your-feature-name
+   git switch -c feature/your-feature-name
    ```
 
 2. **Make your changes** with clear, atomic commits

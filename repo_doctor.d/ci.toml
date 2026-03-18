@@ -147,3 +147,30 @@ impact = "No labeler config — PRs won't be automatically labeled by changed fi
 hint = "Add .github/labeler.yml and a labeler workflow for automatic PR labeling."
 only_if.path = ".github/workflows"
 only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Health check workflows
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = ".github/workflows/doctor-all.yml"
+kind = "file"
+level = "info"
+category = "ci"
+impact = "No unified doctor workflow — CI won't run combined health checks (env, repo, git) on push/PR."
+hint = "Add .github/workflows/doctor-all.yml to run all doctor scripts in CI."
+only_if.path = "scripts/doctor.py"
+only_if.regex = "(?s)."
+
+[[rule]]
+type = "exists"
+path = ".github/workflows/cache-cleanup.yml"
+kind = "file"
+level = "info"
+category = "ci"
+impact = "No cache cleanup workflow — stale branch caches may evict main branch caches, slowing CI."
+hint = "Add .github/workflows/cache-cleanup.yml to clean up caches when PRs are closed."
+only_if.path = ".github/workflows"
+only_if.regex = "(?s)."

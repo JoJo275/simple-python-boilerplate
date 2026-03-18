@@ -23,7 +23,7 @@ simple-python-boilerplate/
 │   ├── ISSUE_TEMPLATE/         # Issue templates (bug, feature, etc.)
 │   ├── labeler.yml             # Auto-label rules for PRs
 │   ├── PULL_REQUEST_TEMPLATE.md
-│   ├── workflows/              # GitHub Actions CI/CD (34 files)
+│   ├── workflows/              # GitHub Actions CI/CD (36 files)
 │   │   ├── ci-gate.yml         # Single required check for branch protection
 │   │   ├── lint-format.yml     # Ruff linting and formatting
 │   │   ├── release.yml         # Build artifacts on tag push
@@ -62,7 +62,9 @@ simple-python-boilerplate/
 │   └── extended.json           # Full label set (62)
 │
 ├── mkdocs-hooks/               # MkDocs build hooks
-│   └── repo_links.py           # Rewrite repo-relative links
+│   ├── repo_links.py           # Rewrite repo-relative links
+│   ├── generate_commands.py    # Auto-regenerate command reference
+│   └── include_templates.py    # Include file templates in docs
 │
 ├── repo_doctor.d/              # Diagnostic check definitions
 │   └── *.toml                  # Check configs (ci, docs, python, etc.)
@@ -73,6 +75,9 @@ simple-python-boilerplate/
 │   ├── customize.py            # Interactive project customization
 │   ├── clean.py                # Remove build artifacts/caches
 │   ├── doctor.py               # Diagnostics bundle for bug reports
+│   ├── env_doctor.py           # Environment health check
+│   ├── git_doctor.py           # Git health dashboard and config manager
+│   ├── repo_doctor.py          # Repository structure health checks
 │   ├── precommit/              # Pre-commit helper scripts
 │   └── sql/                    # SQL utility scripts
 │

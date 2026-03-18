@@ -66,6 +66,54 @@ only_if.regex = "(?s)."
 
 
 # ---------------------------------------------------------------------------
+# MkDocs hooks
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "mkdocs-hooks"
+kind = "dir"
+level = "info"
+category = "docs"
+impact = "No mkdocs-hooks/ directory — MkDocs build hooks (link rewriting, command-ref generation, template inclusion) are missing."
+only_if.path = "mkdocs.yml"
+only_if.regex = "(?i)hooks:"
+
+[[rule]]
+type = "exists"
+path = "mkdocs-hooks/repo_links.py"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs repo_links hook missing — repo-relative links in docs won't be rewritten to GitHub URLs during build."
+hint = "Restore mkdocs-hooks/repo_links.py or remove the hooks: entry from mkdocs.yml."
+only_if.path = "mkdocs.yml"
+only_if.regex = "repo_links"
+
+[[rule]]
+type = "exists"
+path = "mkdocs-hooks/generate_commands.py"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs generate_commands hook missing — docs/reference/commands.md won't be auto-regenerated on build."
+hint = "Restore mkdocs-hooks/generate_commands.py or remove the hooks: entry from mkdocs.yml."
+only_if.path = "mkdocs.yml"
+only_if.regex = "generate_commands"
+
+[[rule]]
+type = "exists"
+path = "mkdocs-hooks/include_templates.py"
+kind = "file"
+level = "warn"
+category = "docs"
+impact = "MkDocs include_templates hook missing — docs/templates/ pages will be silently excluded on MkDocs 1.6+."
+hint = "Restore mkdocs-hooks/include_templates.py or add exclude_docs: '!templates/' to mkdocs.yml."
+only_if.path = "mkdocs.yml"
+only_if.regex = "include_templates"
+
+
+# ---------------------------------------------------------------------------
 # ADRs (Architecture Decision Records)
 # ---------------------------------------------------------------------------
 

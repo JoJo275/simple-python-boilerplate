@@ -44,20 +44,21 @@ task test
 
 The same pattern applies to every command:
 
-| You type           | Taskfile runs              | Hatch script | Actual tool                         |
-| ------------------ | -------------------------- | ------------ | ----------------------------------- |
-| `task test`        | `hatch run test`           | `test`       | `pytest`                            |
-| `task test:cov`    | `hatch run test-cov`       | `test-cov`   | `pytest --cov`                      |
-| `task lint`        | `hatch run lint`           | `lint`       | `ruff check src/ tests/`            |
-| `task lint:fix`    | `hatch run lint-fix`       | `lint-fix`   | `ruff check --fix src/ tests/`      |
-| `task fmt`         | `hatch run fmt`            | `fmt`        | `ruff format src/ tests/`           |
-| `task fmt:check`   | `hatch run fmt-check`      | `fmt-check`  | `ruff format --check src/ tests/`   |
-| `task typecheck`   | `hatch run typecheck`      | `typecheck`  | `mypy src/`                         |
-| `task security`    | `hatch run bandit -r src/` | _(direct)_   | `bandit -r src/`                    |
-| `task check`       | `hatch run check`          | `check`      | lint + fmt-check + typecheck + test |
-| `task test:matrix` | `hatch run test:run`       | `test:run`   | pytest across Python 3.11–3.13      |
-| `task docs:serve`  | `hatch run docs:serve`     | `docs:serve` | `mkdocs serve`                      |
-| `task docs:build`  | `hatch run docs:build`     | `docs:build` | `mkdocs build --strict`             |
+| You type             | Taskfile runs              | Hatch script | Actual tool                                    |
+| -------------------- | -------------------------- | ------------ | ---------------------------------------------- |
+| `task test`          | `hatch run test`           | `test`       | `pytest`                                       |
+| `task test:cov`      | `hatch run test-cov`       | `test-cov`   | `pytest --cov`                                 |
+| `task lint`          | `hatch run lint`           | `lint`       | `ruff check src/ tests/`                       |
+| `task lint:fix`      | `hatch run lint-fix`       | `lint-fix`   | `ruff check --fix src/ tests/`                 |
+| `task fmt`           | `hatch run fmt`            | `fmt`        | `ruff format src/ tests/`                      |
+| `task fmt:check`     | `hatch run fmt-check`      | `fmt-check`  | `ruff format --check src/ tests/`              |
+| `task typecheck`     | `hatch run typecheck`      | `typecheck`  | `mypy src/`                                    |
+| `task security`      | `hatch run bandit -r src/` | _(direct)_   | `bandit -r src/`                               |
+| `task check`         | `hatch run check`          | `check`      | lint + fmt-check + typecheck + test            |
+| `task test:matrix`   | `hatch run test:run`       | `test:run`   | pytest across Python 3.11–3.13                 |
+| `task docs:serve`    | `hatch run docs:serve`     | `docs:serve` | `mkdocs serve`                                 |
+| `task docs:build`    | `hatch run docs:build`     | `docs:build` | `mkdocs build --strict`                        |
+| `task docs:commands` | _(runs script directly)_   | —            | `python scripts/generate_command_reference.py` |
 
 <!-- TODO (template users): Update the table above after renaming Hatch scripts
      or adding new ones in pyproject.toml. Add rows for any domain-specific
@@ -247,6 +248,23 @@ workflows. Run `task --list-all` to see everything.
 | `task doctor:repo` | Run repository health checks             |
 | `task commit`      | Interactive conventional commit          |
 | `task version`     | Show project version                     |
+| `task security`    | Run bandit security linter               |
+
+### Doctor & Health Checks
+
+| Task                              | What it does                         |
+| --------------------------------- | ------------------------------------ |
+| `task doctor:all`                 | All health checks in one report      |
+| `task doctor:env`                 | Environment health check             |
+| `task doctor:repo`                | Repository structure checks          |
+| `task doctor:git`                 | Git health dashboard                 |
+| `task doctor:git:refresh`         | Fetch, prune stale refs, sync tags   |
+| `task doctor:git:cleanup`         | Delete stale branches, run gc        |
+| `task doctor:git:commits`         | Detailed commit report               |
+| `task doctor:git:watch`           | Re-run git dashboard every N seconds |
+| `task doctor:git:config:export`   | Export git config reference          |
+| `task doctor:git:config:apply`    | Apply recommended git config         |
+| `task doctor:git:config:minimal`  | Apply core subset (12 keys)          |
 
 ---
 
@@ -323,5 +341,6 @@ hatch env show                  # show Hatch envs and their scripts
 - [developer-commands.md](developer-commands.md) — Complete command reference
 - [dev-setup.md](dev-setup.md) — Environment setup instructions
 - [Getting Started](../guide/getting-started.md) — Quick start guide
+- [Command Reference](../reference/commands.md) — Auto-generated task & script reference
 - [ADR 016](../adr/016-hatchling-and-hatch.md) — Why Hatch
 - [ADR 017](../adr/017-task-runner.md) — Why Taskfile

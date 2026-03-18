@@ -71,7 +71,7 @@ Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
 
 ### GitHub Actions Workflows
 
-~35 workflow files in `.github/workflows/`, all SHA-pinned
+~36 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
 **Canonical inventory:** `docs/workflows.md` — that file is authoritative.
@@ -120,6 +120,7 @@ MkDocs Material stack. See `docs/.instructions.md` for conventions and
 | `.markdownlint-cli2.jsonc`   | markdownlint rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)                                   |
 | `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
 | `mkdocs-hooks/generate_commands.py` | MkDocs build hook: auto-regenerates `docs/reference/commands.md` before each build                                   |
+| `mkdocs-hooks/include_templates.py` | MkDocs build hook: force-includes `docs/templates/` on MkDocs 1.6+ (which silently excludes `templates/` dirs)       |
 | `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config. **Note:** `${workspaceFolder}` doesn't reliably expand in `.code-workspace` settings — use relative paths instead. |
 
 ### Targeted Instruction Files

@@ -137,3 +137,19 @@ impact = "docker-compose.yml doesn't set no-new-privileges — container process
 hint = "Add security_opt: [no-new-privileges:true] to harden the container."
 only_if.path = "docker-compose.yml"
 only_if.regex = "(?s)."
+
+
+# ---------------------------------------------------------------------------
+# Container structure tests
+# ---------------------------------------------------------------------------
+
+[[rule]]
+type = "exists"
+path = "container-structure-test.yml"
+kind = "file"
+level = "info"
+category = "container"
+impact = "No container-structure-test.yml — container image validation tests are missing."
+hint = "Add container-structure-test.yml to define command, file, and metadata tests for the built image."
+only_if.path = "Containerfile"
+only_if.regex = "(?s)."

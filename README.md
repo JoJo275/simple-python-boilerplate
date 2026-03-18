@@ -28,7 +28,7 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 | [**Linting**][adr-005]      | Ruff (lint + format), mypy (strict), bandit (security)      |
 | [**Testing**][adr-006]      | pytest, pytest-cov, Python 3.11–3.13 matrix                 |
 | [**Pre-commit**][adr-008]   | 43 hooks across 4 stages (commit, commit-msg, push, manual) |
-| [**CI/CD**][workflows]      | 34 GitHub Actions workflows, SHA-pinned                     |
+| [**CI/CD**][workflows]      | 36 GitHub Actions workflows, SHA-pinned                     |
 | [**Docs**][adr-020]         | MkDocs Material + mkdocstrings, auto-deploy to Pages        |
 | [**Release**][adr-021]      | release-please → automated changelog + versioning           |
 | [**Security**][adr-012]     | CodeQL, pip-audit, Trivy, dependency-review, gitleaks       |
@@ -38,9 +38,10 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 
 ### Prerequisites
 
-- Python **3.11+**
-- [Hatch](https://hatch.pypa.io/) (`pipx install hatch`)
-- [Task](https://taskfile.dev/) (optional, for convenience commands)
+- Python **3.11+** (required)
+- [Git](https://git-scm.com/) (recommended — hooks, branching, CI)
+- [Hatch](https://hatch.pypa.io/) (recommended — `pipx install hatch`)
+- [Task](https://taskfile.dev/) (optional — short aliases for Hatch commands)
 
 ### Setup
 
@@ -59,22 +60,27 @@ task pre-commit:install
 ### Daily Workflow
 
 ```bash
-task test              # Run tests
-task test:cov          # Run tests with coverage
-task test:matrix       # Run across Python 3.11-3.13
-task lint              # Check linting issues
-task lint:fix          # Auto-fix linting issues
-task fmt               # Apply formatting
-task typecheck         # Run mypy
-task check             # All quality gates at once
-task doctor:all        # All health checks in one report
-task docs:serve        # Live-reload docs at localhost:8000
-task docs:build        # Build docs (strict mode)
-task docs:commands     # Regenerate command reference
-task security          # Run bandit security linter
+task test                 # Run tests
+task test:cov             # Run tests with coverage
+task test:matrix          # Run across Python 3.11-3.13
+task lint                 # Check linting issues
+task lint:fix             # Auto-fix linting issues
+task fmt                  # Apply formatting
+task typecheck            # Run mypy
+task check                # All quality gates at once
+task doctor:all           # All health checks in one report
+task doctor:git           # Git health dashboard
+task doctor:git:refresh   # Fetch, prune stale refs, sync tags
+task doctor:git:commits   # Detailed commit report
+task branch:create        # Interactive branch creation
+task docs:serve           # Live-reload docs at localhost:8000
+task docs:build           # Build docs (strict mode)
+task docs:commands        # Regenerate command reference
+task security             # Run bandit security linter
 ```
 
-> No Task installed? Use `hatch run <command>` directly (e.g., `hatch run test`).
+> Run `task --list` for all commands, or see [Taskfile.yml](Taskfile.yml) directly.
+> No Task installed? Use `hatch run <command>` instead (e.g., `hatch run test`).
 
 ### Alternative: pip
 
@@ -94,7 +100,7 @@ tests/unit/                      # Unit tests
 tests/integration/               # Integration tests
 docs/                            # MkDocs documentation
 scripts/                         # Developer utility scripts
-.github/workflows/               # 34 CI/CD workflows
+.github/workflows/               # 36 CI/CD workflows
 db/                              # Database schema, migrations, seeds
 ```
 

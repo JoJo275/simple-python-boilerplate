@@ -239,6 +239,40 @@ python scripts/workflow_versions.py show --quiet || echo "Actions need attention
 
 ---
 
+## Local Health Scripts
+
+These scripts complement the CI workflows above by providing instant
+local diagnostics. The `doctor-all.yml` workflow runs all of them in CI.
+
+| Script | Task shortcut | Purpose |
+| ------ | ------------- | ------- |
+| `scripts/env_doctor.py` | `task doctor:env` | Check Python, Hatch, tools, editable install |
+| `scripts/repo_doctor.py` | `task doctor:repo` | Verify repo structure and conventions |
+| `scripts/git_doctor.py` | `task doctor:git` | Git health dashboard, branch stats, remote sync |
+| `scripts/doctor.py` | `task doctor` | Diagnostics bundle (for bug reports) |
+
+### git_doctor.py Commands
+
+`git_doctor.py` is the most feature-rich local script. Key Taskfile shortcuts:
+
+| Task | What it does |
+| ---- | ------------ |
+| `task doctor:git` | Dashboard: branches, remotes, health checks |
+| `task doctor:git:watch` | Auto-refresh dashboard every N seconds |
+| `task doctor:git:refresh` | Fetch remotes, prune refs, sync tags |
+| `task doctor:git:cleanup` | Delete stale branches, run `git gc` |
+| `task doctor:git:commits` | Detailed commit report (SHAs, stats) |
+| `task doctor:git:commits:md` | Write commit report to `commit-report.md` |
+| `task doctor:git:config:export` | Export git config reference to Markdown |
+| `task doctor:git:config:apply` | Apply recommended git config |
+| `task doctor:git:config:minimal` | Apply core subset (12 keys) |
+| `task branch:create` | Interactive branch creation off `origin/main` |
+
+All commands support `--dry-run` where applicable. Pass extra flags with
+`task doctor:git -- --json` or `task doctor:git:cleanup -- --dry-run`.
+
+---
+
 ## See Also
 
 - [Architecture — CI/CD section](design/architecture.md) — CI/CD architecture diagram
