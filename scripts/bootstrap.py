@@ -41,6 +41,10 @@ import time
 from _colors import unicode_symbols
 from _imports import find_repo_root
 
+# TODO: Add Spinner from _progress.py around long-running subprocess
+#   calls (hatch env create, pre-commit install) for visual feedback.
+#   See git_doctor.py or doctor.py for Spinner integration examples.
+
 log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()

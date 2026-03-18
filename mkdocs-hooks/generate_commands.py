@@ -152,11 +152,14 @@ def on_pre_build(config: MkDocsConfig, **kwargs: object) -> None:
         log.exception("Failed to generate command reference — skipping")
         return
 
-    # Only write if content changed (avoids unnecessary live-reload triggers)
+    # Only write if content changed (avoids unnecessary live-reload triggers).
+    # Strip volatile lines (timestamps, version) from the comparison so
+    # that only structural content changes cause a write.
     _OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     if _OUTPUT.exists():
         existing = _OUTPUT.read_text(encoding="utf-8")
-        if existing == content:
+        strip = getattr(generator, "_strip_volatile_lines", None)
+        if strip and strip(existing) == strip(content):
             log.info("Command reference is up to date — no write needed")
             return
 

@@ -7,21 +7,21 @@ release-please branches, and git-related health checks.
 
 Flags::
 
-    --help            Show help message and exit
-    --no-color        Disable colored output
-    --json            Output results as JSON (for CI integration)
-    --export-config   Export full git config reference to Markdown file
-    --apply-from PATH Apply desired values from an edited reference file
+    --help                       Show help message and exit
+    --no-color                   Disable colored output
+    --json                       Output results as JSON (for CI integration)
+    --export-config              Export full git config reference to Markdown file
+    --apply-from PATH            Apply desired values from an edited reference file
     --apply-recommended          Apply ALL catalog recommended values and scopes
     --apply-recommended-minimal  Apply core subset of recommended configs (12 keys)
-    --dry-run         With --apply-from/--apply-recommended/--apply-recommended-minimal/--refresh/--cleanup, preview without applying
-    --new-branch      Interactive branch creation off origin/main
-    --watch [N]       Re-run dashboard every N seconds (default: 10, minimum: 2 to prevent slamming git)
-    --refresh         Interactive refresh: fetch remotes, prune stale refs, sync tags, update remote HEAD
-    --cleanup         Interactive cleanup: delete stale local branches (90+ days), gone upstream branches, run git gc
-    --view-commits    Detailed commit report: SHAs, messages, authors, dates, per-file stats, conflicts
-    --markdown        With --view-commits, write a Markdown commit report to commit-report.md
-    --version         Print version and exit
+    --dry-run                    Preview changes without applying (with --apply-from/--apply-recommended/--apply-recommended-minimal/--refresh/--cleanup)
+    --new-branch                 Interactive branch creation off origin/main
+    --watch [N]                  Re-run dashboard every N seconds (default: 10, minimum: 2)
+    --refresh                    Interactive refresh: fetch remotes, prune stale refs, sync tags, update remote HEAD
+    --cleanup                    Interactive cleanup: delete stale local branches (90+ days), gone upstream branches, run git gc
+    --view-commits               Detailed commit report: SHAs, messages, authors, dates, per-file stats, conflicts
+    --markdown                   With --view-commits, write a Markdown commit report to commit-report.md
+    --version                    Print version and exit
 
 Usage::
 
@@ -146,7 +146,7 @@ from _colors import supports_unicode as _supports_unicode
 from _colors import unicode_symbols as _unicode_symbols
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
-from _progress import Spinner
+from _progress import ProgressBar, Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -1752,11 +1752,19 @@ def get_branch_origin_point() -> dict[str, str]:
     return result
 
 
-def get_detailed_branch_commits() -> list[dict[str, object]]:
+def get_detailed_branch_commits(
+    *,
+    progress_bar: ProgressBar | None = None,
+) -> list[dict[str, object]]:
     """Return every commit on the current branch (unique vs default).
 
     Each entry contains: sha, message, author, date, datetime, and a
     list of files with per-file insertions/deletions.
+
+    Args:
+        progress_bar: Optional ProgressBar whose ``total`` will be set
+            to the commit count once known, then ``update()`` called
+            after each commit's file stats are fetched.
     """
     default = get_default_branch()
     current = get_current_branch()
@@ -1767,13 +1775,19 @@ def get_detailed_branch_commits() -> list[dict[str, object]]:
         base = _resolve_comparison_base(default)
         range_spec = f"{base}..HEAD"
 
-    # Get commit SHAs first
+    # Get commit SHAs first (fast — single git call)
     code, out, _ = _run_git(["log", range_spec, "--format=%H\t%h\t%s\t%an\t%aI\t%ar"])
     if code != 0 or not out:
         return []
 
+    raw_lines = [ln for ln in out.splitlines() if ln.split("\t", 1)[0]]
+
+    # Set progress bar total now that we know the commit count
+    if progress_bar is not None:
+        progress_bar.total = len(raw_lines)
+
     commits: list[dict[str, object]] = []
-    for line in out.splitlines():
+    for line in raw_lines:
         parts = line.split("\t", 5)
         if len(parts) < 2:
             continue
@@ -1813,6 +1827,9 @@ def get_detailed_branch_commits() -> list[dict[str, object]]:
         entry["total_insertions"] = commit_ins
         entry["total_deletions"] = commit_del
         commits.append(entry)
+
+        if progress_bar is not None:
+            progress_bar.update(parts[1])  # short SHA
 
     return commits
 
@@ -5458,8 +5475,11 @@ def _show_commits_markdown() -> int:
     default_branch = get_default_branch()
     origin_info = get_branch_origin_point()
 
-    with Spinner("Collecting commit data", log_interval=5):
-        commits = get_detailed_branch_commits()
+    bar = ProgressBar(total=1, label="Collecting commit data", color="cyan")
+    commits = get_detailed_branch_commits(progress_bar=bar)
+    bar.finish()
+
+    with Spinner("Checking for conflicts", log_interval=5):
         conflict_files = get_branch_conflict_files()
 
     total_ins = sum(int(cm.get("total_insertions", 0)) for cm in commits)
@@ -5813,8 +5833,13 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
     default_branch = get_default_branch()
     origin_info = get_branch_origin_point()
 
-    with Spinner("Collecting commit data", log_interval=5):
-        commits = get_detailed_branch_commits()
+    # Fetch commit details with a visible progress bar (the per-commit
+    # diff-tree calls are the slow part — one git invocation per SHA).
+    bar = ProgressBar(total=1, label="Collecting commit data", color="cyan")
+    commits = get_detailed_branch_commits(progress_bar=bar)
+    bar.finish()
+
+    with Spinner("Checking for conflicts", log_interval=5):
         conflict_files = get_branch_conflict_files()
 
     # Compute totals
