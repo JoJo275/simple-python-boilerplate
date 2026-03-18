@@ -20,6 +20,7 @@ Flags::
     --refresh         Interactive refresh: fetch remotes, prune stale refs, sync tags, update remote HEAD
     --cleanup         Interactive cleanup: delete stale local branches (90+ days), gone upstream branches, run git gc
     --view-commits    Detailed commit report: SHAs, messages, authors, dates, per-file stats, conflicts
+    --markdown        With --view-commits, write a Markdown commit report to commit-report.md
     --version         Print version and exit
 
 Usage::
@@ -145,7 +146,7 @@ from _colors import supports_unicode as _supports_unicode
 from _colors import unicode_symbols as _unicode_symbols
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
-from _progress import ProgressBar, Spinner
+from _progress import Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -5597,11 +5598,6 @@ def _show_commits_markdown() -> int:
     if commits:
         a("## Commits")
         a("")
-        md_bar = (
-            ProgressBar(total=len(commits), label="Writing commits", color="cyan")
-            if len(commits) >= 3
-            else None
-        )
         for i, cm in enumerate(commits, 1):
             sha_short = str(cm["sha_short"])
             sha_full = str(cm["sha"])
@@ -5655,12 +5651,6 @@ def _show_commits_markdown() -> int:
             if i < len(commits):
                 a("---")
                 a("")
-
-            if md_bar is not None:
-                md_bar.update(sha_short)
-
-        if md_bar is not None:
-            md_bar.finish()
 
     # Separator before conflicts section
     a("---")
@@ -5826,11 +5816,6 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
     with Spinner("Collecting commit data", log_interval=5):
         commits = get_detailed_branch_commits()
         conflict_files = get_branch_conflict_files()
-
-    # Progress bar for rendering (used when printing detailed commits)
-    _bar: ProgressBar | None = None
-    if len(commits) >= 3:
-        _bar = ProgressBar(total=len(commits), label="Rendering commits", color="cyan")
 
     # Compute totals
     total_ins = sum(int(cm.get("total_insertions", 0)) for cm in commits)
@@ -6005,14 +5990,6 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
 
             print()
             print()
-
-            # Update progress bar
-            if _bar is not None:
-                _bar.update(sha_short)
-
-        # Finish progress bar before continuing to next section
-        if _bar is not None:
-            _bar.finish()
 
     # ── Conflicts ──
     _section(f"Conflicts with {default_branch}")

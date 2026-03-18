@@ -10,6 +10,7 @@ Flags::
     --set {baseline,extended}  Label set to apply (required)
     --repo OWNER/REPO          Target repository (default: current repo)
     --dry-run                  Print commands without executing them
+    --version                  Print version and exit
 
 Usage::
 

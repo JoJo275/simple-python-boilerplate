@@ -7,6 +7,11 @@ corruption, bad copy-paste) and silently break many tools.
 Usage (called by pre-commit, receives filenames as arguments):
     python scripts/precommit/check_nul_bytes.py file1 file2 ...
 
+Flags::
+
+    files             Files to check (positional, passed by pre-commit)
+    --version         Print version and exit
+
 Exit codes:
     0 — no NUL bytes found
     1 — one or more files contain NUL bytes
