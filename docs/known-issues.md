@@ -20,13 +20,12 @@ they're resolved; add new ones as they're found.
 | **CI**       | CI gate check-name drift risk      | If a workflow job's `name:` field is renamed without updating `REQUIRED_CHECKS` in `ci-gate.yml`, the gate silently stops finding it and times out.                        | Medium   |
 | **Docs**     | `docs/workflows.md` can drift      | Manually maintained workflow inventory. Adding/removing workflows without updating this file makes it misleading.                                                           | Medium   |
 | **Template** | Placeholder source code            | Everything under `src/simple_python_boilerplate/` is example code. Template users must replace it entirely.                                                                | Info     |
-| **Release**  | Pre-1.0 version bump config       | `release-please-config.json` has `bump-minor-pre-major: true`. Before tagging 1.0, this should be set to `false` so post-1.0 breaking changes bump the major version per SemVer.     | Medium   |
-| **Release**  | Classifier still says Beta         | `pyproject.toml` classifiers say "Development Status :: 4 - Beta". Must change to "5 - Production/Stable" before (or at) the 1.0 release.                                         | Medium   |
-| **Release**  | Coverage badge token is placeholder | `README.md` coverage badge uses `token=YOUR_TOKEN`. Replace with actual Codecov token or remove the badge before 1.0.                                                               | Low      |
 | **Hatch**    | Stale env after dependency removal | After removing a dependency from `pyproject.toml`, the old package silently remains. Hatch inherits pip's limitation: `install` adds packages but never removes them. No auto-uninstall mechanism exists in Hatch. Workaround: `task env:reset` or `hatch env remove default`. | Medium   |
 | **VS Code**  | Ruff-lsp deprecation warning       | The legacy `ruff-lsp` server has been replaced by the native Ruff extension. If `ruff.lint.run` exists in VS Code User Settings, a deprecation warning appears. Remove it from User Settings (Ctrl+Shift+P → "Open User Settings (JSON)"). See [Troubleshooting](guide/troubleshooting.md#the-legacy-server-ruff-lsp-has-been-deprecated). | Low      |
 | **Tooling**  | Global pip footgun                 | Running bare `pip install <pkg>` outside a Hatch env is easy to do and silently pollutes the global Python. No guardrail beyond convention.                                | Medium   |
 | **Scripts**  | Shebang requires manual chmod      | After adding a shebang (`#!/usr/bin/env python3`) to a script, you must `git add --chmod=+x` it separately. The pre-commit hook catches it, but only at commit time.      | Low      |
+| **Scripts**  | UI helper duplication in git_doctor | Box-drawing char init, `_section()`, `_kv()`, and `_merge_row()` are duplicated across 8 functions in `git_doctor.py`. ~200 lines of boilerplate. Extract into a shared `_UIContext` dataclass. | Low      |
+| **Release**  | Coverage badge token is placeholder | `README.md` coverage badge uses `token=YOUR_TOKEN`. Replace with actual Codecov token or remove the badge.                                                                          | Low      |
 
 ## Resolved
 
@@ -35,6 +34,8 @@ then delete them after a release cycle.
 
 | Area | Issue | Resolution | Date |
 | :--- | :---- | :--------- | :--- |
+| **Release** | Pre-1.0 version bump config | Set `bump-minor-pre-major: false` in `release-please-config.json`. Breaking changes now bump major per SemVer. Removed stale `_comment_todo` / `_comment_versioning` fields. | 2026-03 |
+| **Release** | Classifier still says Beta | Changed to `Development Status :: 5 - Production/Stable` in `pyproject.toml`. Also set `major_version_zero = false` in `[tool.commitizen]`. | 2026-03 |
 | **Scripts** | Doctor scripts overlap | Shared check logic extracted into `_doctor_common.py` (imported by `doctor.py`, `env_doctor.py`, `git_doctor.py`). Color helpers centralised in `_colors.py`. Remaining per-script logic is intentionally specialised — each doctor script has a distinct scope (env, git, repo). | 2026-03 |
 | **Scripts** | `_SKIP_SCRIPTS` is hardcoded | By design: convention-based exclusion (`_` prefix) handles all internal modules. The explicit set only contains `__init__.py`. Making this configurable via `pyproject.toml` adds complexity for no practical benefit since the `_` prefix convention covers all current and foreseeable cases. | 2026-03 |
 | **Security** | PGP key import path unclear | `SECURITY.md` now documents both relative (`gpg --import pgp-key.asc` from repo root) and absolute path options, with a note explaining when each is appropriate. | 2026-03 |

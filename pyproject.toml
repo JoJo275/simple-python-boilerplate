@@ -26,12 +26,10 @@ keywords = [
 ]
 
 # PyPI classifiers - see: https://pypi.org/classifiers/
-# TODO (template users): Before your 1.0 release, change the Development
-# Status classifier from Beta to Production/Stable.
 classifiers = [
     # "Development Status :: 3 - Alpha",
-    "Development Status :: 4 - Beta",
-    # "Development Status :: 5 - Production/Stable",  # Enable at 1.0
+    # "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
@@ -427,7 +425,7 @@ name = "cz_conventional_commits"
 version_provider = "scm"                # Read version from git tags (matches hatch-vcs)
 tag_format = "v$version"                # Tags created by release-please: v1.2.3
 update_changelog_on_bump = false        # release-please manages CHANGELOG.md
-major_version_zero = true               # Allow breaking changes without major bump while < 1.0
+major_version_zero = false              # Post-1.0: breaking changes bump major version
 
 # -- Black (formatter) - if not using Ruff format --
 # [tool.black]

@@ -409,8 +409,9 @@ Key ADRs that most affect day-to-day work:
 | 008 | Pre-commit hooks (full inventory, 43 hooks)          |
 | 024 | CI gate pattern (single required check)              |
 | 031 | Script conventions (argparse, logging, shebang, etc) |
+| 040 | v1.0 release readiness checklist                     |
 
-Full index (39 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
+Full index (40 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
 
 ## Common Issues to Catch
 

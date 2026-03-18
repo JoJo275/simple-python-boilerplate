@@ -2611,12 +2611,13 @@ def run(
     c = Colors(enabled=use_color)
 
     # Box-drawing characters for section headers
-    # TODO: The box-drawing char initialization and _section/_kv/_row helpers
-    #   are duplicated across run(), apply_from_reference(),
-    #   apply_recommended_config(), apply_recommended_minimal_config(),
-    #   refresh_repo(), cleanup_repo(), create_new_branch(), and
-    #   _show_commits_terminal(). Extract into a shared _UIContext dataclass
-    #   or namedtuple to eliminate ~200 lines of duplication.
+    # TODO: Extract box-drawing char initialization, _section(), _kv(), and
+    #   _merge_row() into a shared _UIContext dataclass.  Duplicated in 8
+    #   functions: run(), apply_from_reference(), apply_recommended_config(),
+    #   apply_recommended_minimal_config(), refresh_repo(), cleanup_repo(),
+    #   create_new_branch(), _show_commits_terminal().  ~200 lines of
+    #   boilerplate could collapse to a single factory call per function.
+    #   Tracked in known-issues.md.
     h_line = "\u2500" if use_unicode else "-"  # ─
     h_double = "\u2550" if use_unicode else "="  # ═
     tl = "\u250c" if use_unicode else "+"  # ┌

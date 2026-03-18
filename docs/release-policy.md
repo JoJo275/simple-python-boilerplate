@@ -31,9 +31,14 @@ The package version comes from **git tags** via [hatch-vcs](https://github.com/o
 - Dev builds between releases get PEP 440 versions like `0.1.1.dev3+gabcdef`
 - The `__init__.py` fallback is updated by release-please for human readability
 
-### Pre-1.0 Versioning
+### Pre-1.0 Versioning (Historical)
 
-`bump-minor-pre-major: true` in [`release-please-config.json`](../release-please-config.json) means:
+> **Note:** This section describes behavior before the 1.0 release and is
+> retained for historical context. As of 1.0, `bump-minor-pre-major` is
+> `false` in [`release-please-config.json`](../release-please-config.json)
+> and breaking changes bump the major version per SemVer.
+
+While `bump-minor-pre-major` was `true`:
 
 | Commit type       | Version bump      | Example           |
 | ----------------- | ----------------- | ----------------- |
@@ -41,8 +46,9 @@ The package version comes from **git tags** via [hatch-vcs](https://github.com/o
 | `feat:`           | Minor             | `0.6.0` → `0.7.0` |
 | `BREAKING CHANGE` | Minor (not major) | `0.6.0` → `0.7.0` |
 
-Reaching `1.0.0` is a **manual decision**. See [How to Release 1.0.0](releasing.md#how-to-release-100)
-for the available approaches (`Release-As` trailer, manual PR edit, or manifest update).
+Reaching `1.0.0` was achieved by using the `Release-As: 1.0.0` trailer
+in a conventional commit message. See [How to Release 1.0.0](releasing.md#how-to-release-100)
+for the approaches available (`Release-As` trailer, manual PR edit, or manifest update).
 After `1.0.0`, breaking changes bump major as expected by SemVer.
 
 ### Pre-release Versions

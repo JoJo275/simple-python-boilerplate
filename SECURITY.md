@@ -8,8 +8,8 @@
 
 | Version  | Supported          |
 | -------- | ------------------ |
-| Latest   | :white_check_mark: |
-| < Latest | :x:                |
+| 1.x      | :white_check_mark: |
+| < 1.0    | :x:                |
 
 <!-- TODO (template users): Update this table as you release new versions.
      If you support multiple release branches, list each one. Example:
