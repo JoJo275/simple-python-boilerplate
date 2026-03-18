@@ -492,6 +492,103 @@ def _format_warning(
 
 
 # ---------------------------------------------------------------------------
+# Shared module dependency checks
+# ---------------------------------------------------------------------------
+
+# Maps shared internal modules (underscore-prefixed) to the scripts that
+# import from them.  If a shared module is deleted or missing, every script
+# listed here will fail on import.
+#
+# TODO (template users): Update this map when you add new shared modules
+#   or new scripts that depend on them.
+_SHARED_MODULE_DEPENDENTS: dict[str, list[str]] = {
+    "_colors.py": [
+        "doctor.py",
+        "env_doctor.py",
+        "git_doctor.py",
+        "repo_doctor.py",
+        "apply_labels.py",
+        "bootstrap.py",
+        "customize.py",
+        "dep_versions.py",
+        "workflow_versions.py",
+        "check_todos.py",
+        "archive_todos.py",
+        "changelog_check.py",
+        "check_known_issues.py",
+        "clean.py",
+    ],
+    "_doctor_common.py": [
+        "doctor.py",
+        "env_doctor.py",
+        "git_doctor.py",
+    ],
+    "_imports.py": [
+        "doctor.py",
+        "env_doctor.py",
+        "git_doctor.py",
+        "repo_doctor.py",
+        "bootstrap.py",
+        "dep_versions.py",
+        "workflow_versions.py",
+    ],
+    "_progress.py": [
+        "apply_labels.py",
+        "git_doctor.py",
+        "repo_doctor.py",
+        "dep_versions.py",
+        "workflow_versions.py",
+    ],
+}
+
+
+def _check_shared_modules(
+    root: Path,
+    *,
+    deleted: set[str],
+    use_color: bool,
+) -> list[Warning]:
+    """Warn if shared internal modules are missing or staged for deletion.
+
+    Scripts that import from ``_colors.py``, ``_doctor_common.py``,
+    ``_imports.py``, or ``_progress.py`` will crash at startup if any
+    of those modules are removed.
+    """
+    extra_warnings: list[Warning] = []
+    scripts_dir = root / "scripts"
+
+    for module, dependents in _SHARED_MODULE_DEPENDENTS.items():
+        module_path = scripts_dir / module
+        rel_path = f"scripts/{module}"
+        missing = not module_path.is_file() or rel_path in deleted
+
+        if missing:
+            dep_list = ", ".join(dependents[:5])
+            suffix = f" (+{len(dependents) - 5} more)" if len(dependents) > 5 else ""
+            rule = Rule(
+                type="exists",
+                path=rel_path,
+                kind="file",
+                level="warn",
+                category="scripts",
+                impact=(
+                    f"Removing {module} will break {len(dependents)} script(s) "
+                    f"that import from it: {dep_list}{suffix}"
+                ),
+                hint=(
+                    f"Restore {module} or update dependent scripts to "
+                    f"remove the import."
+                ),
+                link="docs/adr/031-script-conventions.md",
+            )
+            extra_warnings.append(
+                Warning(rule=rule, message=f"Shared module missing: {rel_path}")
+            )
+
+    return extra_warnings
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -640,6 +737,10 @@ def main() -> int:
         warnings, passed = _evaluate_rules(
             root, rules, check_missing=args.missing, deleted=deleted
         )
+
+    # Built-in check: shared internal modules that other scripts depend on
+    shared_warnings = _check_shared_modules(root, deleted=deleted, use_color=use_color)
+    warnings.extend(shared_warnings)
 
     if args.show_passed and passed:
         print(
