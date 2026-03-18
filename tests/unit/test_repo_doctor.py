@@ -795,6 +795,7 @@ class TestMain:
                 "repo_doctor._build_parser",
                 return_value=self._parser(["--missing"]),
             ),
+            patch("repo_doctor._check_shared_modules", return_value=[]),
         ):
             ret = main()
         assert ret == 0

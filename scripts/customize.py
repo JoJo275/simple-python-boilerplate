@@ -189,6 +189,9 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "docker-compose.yml",
             ".github/workflows/container-build.yml",
             ".github/workflows/container-scan.yml",
+            "scripts/_container_common.py",
+            "scripts/test_containerfile.py",
+            "scripts/test_docker_compose.py",
         ],
     },
     "optional-workflows": {

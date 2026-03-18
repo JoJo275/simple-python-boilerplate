@@ -200,6 +200,8 @@ class TestOnPreBuildContentChanged:
         with patch.object(generate_commands, "_load_generator") as mock_load:
             mock_gen = MagicMock()
             mock_gen._generate.return_value = new_content
+            # Identity function so strip(old) != strip(new) triggers a write
+            mock_gen._strip_volatile_lines.side_effect = lambda text: text
             mock_load.return_value = mock_gen
 
             with patch.object(generate_commands, "_OUTPUT") as mock_output:

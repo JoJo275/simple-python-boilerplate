@@ -1,5 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "_comment": "TODO (template users): Update package-name and the extra-files path to match your package name.",
   "packages": {
     ".": {
       "release-type": "simple",
