@@ -171,6 +171,38 @@ class TestPromptMulti:
         with patch("builtins.input", side_effect=EOFError), pytest.raises(SystemExit):
             _prompt_multi("Select:", choices)
 
+    def test_all_of_the_above_standalone(self) -> None:
+        """Entering the 'all of the above' index selects every choice."""
+        choices = {"a": "Option A", "b": "Option B", "c": "Option C"}
+        # all_idx = len(choices) + 1 = 4
+        with patch("builtins.input", return_value="4"):
+            result = _prompt_multi("Select:", choices)
+        assert result == ["a", "b", "c"]
+
+    def test_all_of_the_above_in_comma_list(self) -> None:
+        """Including the 'all' index in a comma list selects everything."""
+        choices = {"x": "X", "y": "Y"}
+        # all_idx = 3; entering "1,3" should trigger the all-of-the-above
+        # short-circuit and return all keys
+        with patch("builtins.input", return_value="1,3"):
+            result = _prompt_multi("Select:", choices)
+        assert result == ["x", "y"]
+
+    def test_select_by_key_name(self) -> None:
+        """Entering a key name directly (not a number) should select it."""
+        choices = {"db": "Database", "var": "Variable dir"}
+        with patch("builtins.input", return_value="var"):
+            result = _prompt_multi("Select:", choices)
+        assert result == ["var"]
+
+    def test_keyboard_interrupt_exits(self) -> None:
+        choices = {"a": "Option A"}
+        with (
+            patch("builtins.input", side_effect=KeyboardInterrupt),
+            pytest.raises(SystemExit),
+        ):
+            _prompt_multi("Select:", choices)
+
 
 # ---------------------------------------------------------------------------
 # gather_config_interactive
@@ -226,6 +258,53 @@ class TestGatherConfigInteractive:
 
         assert cfg.project_name == "test-proj"
         assert len(cfg.strip_dirs) == 2
+
+    def test_interactive_strip_dirs_all_of_the_above(self) -> None:
+        """Selecting 'all of the above' for strip dirs selects every entry."""
+        from customize import STRIPPABLE
+
+        all_idx = str(len(STRIPPABLE) + 1)
+        inputs = iter(
+            [
+                "my-app",  # project name
+                "",  # package name (default)
+                "Author",  # author
+                "user",  # github user
+                "",  # description (default)
+                "",  # CLI prefix (default)
+                "",  # license (default)
+                all_idx,  # strip dirs — all of the above
+                "0",  # template cleanup (none)
+            ]
+        )
+        with patch("builtins.input", side_effect=inputs):
+            cfg = gather_config_interactive()
+
+        assert cfg.strip_dirs == list(STRIPPABLE.keys())
+
+    def test_interactive_template_cleanup_all_of_the_above(self) -> None:
+        """Selecting 'all of the above' for template cleanup selects all."""
+        from customize import TEMPLATE_CLEANUP
+
+        all_idx = str(len(TEMPLATE_CLEANUP) + 1)
+        inputs = iter(
+            [
+                "my-app",  # project name
+                "",  # package name (default)
+                "Author",  # author
+                "user",  # github user
+                "",  # description (default)
+                "",  # CLI prefix (default)
+                "",  # license (default)
+                "0",  # strip dirs (none)
+                all_idx,  # template cleanup — all of the above
+                "y",  # confirm disclaimers
+            ]
+        )
+        with patch("builtins.input", side_effect=inputs):
+            cfg = gather_config_interactive()
+
+        assert cfg.template_cleanup == list(TEMPLATE_CLEANUP.keys())
 
     def test_interactive_with_template_cleanup_confirmed(self) -> None:
         """Simulate selecting template cleanup items and confirming."""

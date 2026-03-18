@@ -183,15 +183,18 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         "paths": ["docs/templates/"],
     },
     "container": {
-        "label": "Container files (Containerfile, container build & scan workflows)",
+        "label": "Container files (Containerfile, docker-compose, build & scan workflows)",
         "paths": [
             "Containerfile",
             "docker-compose.yml",
+            "container-structure-test.yml",
             ".github/workflows/container-build.yml",
             ".github/workflows/container-scan.yml",
             "scripts/_container_common.py",
             "scripts/test_containerfile.py",
+            "scripts/test_containerfile.sh",
             "scripts/test_docker_compose.py",
+            "scripts/test_docker_compose.sh",
         ],
     },
     "optional-workflows": {
@@ -396,10 +399,12 @@ TEMPLATE_CLEANUP: dict[str, dict[str, object]] = {
     "advanced-workflows": {
         "label": "Advanced workflows (keep only essential CI subset)",
         "paths": [],  # Handled specially — deletes all except ESSENTIAL_WORKFLOWS
+        # TODO (template users): Update the "~28" count in the disclaimer
+        #   below if you add or remove workflow files in .github/workflows/.
         "disclaimer": (
             "⚠ Deletes ALL .yml files in .github/workflows/ EXCEPT the "
             "essential set: ci-gate, test, lint-format, type-check, coverage, "
-            "security-audit, dependency-review, docs-build. This removes ~26 "
+            "security-audit, dependency-review, docs-build. This removes ~28 "
             "workflows including: release automation (release-please), "
             "container builds & scans, nightly security scans, Scorecard, "
             "SBOM generation, spellcheck, label management, welcome bot, "
