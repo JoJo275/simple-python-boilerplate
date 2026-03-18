@@ -252,19 +252,19 @@ workflows. Run `task --list-all` to see everything.
 
 ### Doctor & Health Checks
 
-| Task                              | What it does                         |
-| --------------------------------- | ------------------------------------ |
-| `task doctor:all`                 | All health checks in one report      |
-| `task doctor:env`                 | Environment health check             |
-| `task doctor:repo`                | Repository structure checks          |
-| `task doctor:git`                 | Git health dashboard                 |
-| `task doctor:git:refresh`         | Fetch, prune stale refs, sync tags   |
-| `task doctor:git:cleanup`         | Delete stale branches, run gc        |
-| `task doctor:git:commits`         | Detailed commit report               |
-| `task doctor:git:watch`           | Re-run git dashboard every N seconds |
-| `task doctor:git:config:export`   | Export git config reference          |
-| `task doctor:git:config:apply`    | Apply recommended git config         |
-| `task doctor:git:config:minimal`  | Apply core subset (12 keys)          |
+| Task                             | What it does                         |
+| -------------------------------- | ------------------------------------ |
+| `task doctor:all`                | All health checks in one report      |
+| `task doctor:env`                | Environment health check             |
+| `task doctor:repo`               | Repository structure checks          |
+| `task doctor:git`                | Git health dashboard                 |
+| `task doctor:git:refresh`        | Fetch, prune stale refs, sync tags   |
+| `task doctor:git:cleanup`        | Delete stale branches, run gc        |
+| `task doctor:git:commits`        | Detailed commit report               |
+| `task doctor:git:watch`          | Re-run git dashboard every N seconds |
+| `task doctor:git:config:export`  | Export git config reference          |
+| `task doctor:git:config:apply`   | Apply recommended git config         |
+| `task doctor:git:config:minimal` | Apply core subset (12 keys)          |
 
 ---
 
@@ -291,10 +291,10 @@ Add a new task to `Taskfile.yml`:
 
 ```yaml
 tasks:
-  my-command:
-    desc: Run my custom tool
-    cmds:
-      - hatch run my-command {{.CLI_ARGS}}
+    my-command:
+        desc: Run my custom tool
+        cmds:
+            - hatch run my-command {{.CLI_ARGS}}
 ```
 
 Then run with `task my-command`.

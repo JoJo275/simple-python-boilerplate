@@ -211,20 +211,20 @@ After pushing, go to your repository on GitHub and create a pull request:
 
 3. **Write the PR title** — Use conventional commit format. This is validated by the `pr-title` workflow.
 
-   | Element      | Format                        | Example                                  |
-   | ------------ | ----------------------------- | ---------------------------------------- |
-   | **PR title** | Conventional commit format    | `feat: add user authentication`          |
-   | **PR body**  | Free-form for human reviewers | Describe what, why, and any context      |
-   | **Commits**  | Conventional commit messages  | The commits are what matter for releases |
+    | Element      | Format                        | Example                                  |
+    | ------------ | ----------------------------- | ---------------------------------------- |
+    | **PR title** | Conventional commit format    | `feat: add user authentication`          |
+    | **PR body**  | Free-form for human reviewers | Describe what, why, and any context      |
+    | **Commits**  | Conventional commit messages  | The commits are what matter for releases |
 
 4. **Fill in the PR description** — The repo includes a [PR template](../.github/PULL_REQUEST_TEMPLATE.md) that pre-fills the body with a structured checklist. Fill in:
-   - **Description** — what you changed and why
-   - **Related Issue** — link to an issue (`Fixes #123`) or write "N/A"
-   - **Type of Change** — check the relevant box (bug fix, feature, docs, etc.)
-   - **How to Test** — steps and commands so reviewers can verify your changes
-   - **Checklist** — confirm you've run tests, updated docs, etc.
+    - **Description** — what you changed and why
+    - **Related Issue** — link to an issue (`Fixes #123`) or write "N/A"
+    - **Type of Change** — check the relevant box (bug fix, feature, docs, etc.)
+    - **How to Test** — steps and commands so reviewers can verify your changes
+    - **Checklist** — confirm you've run tests, updated docs, etc.
 
-   > **Tip:** Copilot can help draft your PR description. When filling in the PR body on GitHub, click the **Copilot** sparkle icon in the description editor to generate a summary from your commits and diff. You can then edit the output to add context Copilot can't infer (motivation, testing notes, related issues). This is especially useful for large PRs where summarizing changes manually is tedious.
+    > **Tip:** Copilot can help draft your PR description. When filling in the PR body on GitHub, click the **Copilot** sparkle icon in the description editor to generate a summary from your commits and diff. You can then edit the output to add context Copilot can't infer (motivation, testing notes, related issues). This is especially useful for large PRs where summarizing changes manually is tedious.
 
 5. **Add labels** — In the right sidebar, click **Labels** and apply relevant ones (e.g., `enhancement`, `bug`, `documentation`). The `labeler` workflow also auto-applies labels based on changed file paths, but manual labels help with filtering and triage.
 
@@ -278,21 +278,21 @@ flowchart TD
 
 1. **Identify the failure** — On the PR page, failed checks show a red ✗. Click **Details** next to the failed check to open the workflow run logs.
 2. **Read the logs** — Expand the failed step to see the error. Common failures:
-   - **Ruff (lint/format)** — style or lint violation → run `task lint:fix` and `task fmt` locally
-   - **mypy (type check)** — type error → fix type annotations or add `# type: ignore` with justification
-   - **pytest (test)** — test failure → fix the test or the code under test
-   - **Bandit (security)** — security issue in Python source → fix the flagged pattern
-   - **pr-title** — PR title doesn't follow conventional format → edit the PR title on GitHub
-   - **commit-lint** — commit messages don't follow conventional format → amend or rebase commits
-   - **OpenSSF Scorecard** — repository security practices issue (see example below)
+    - **Ruff (lint/format)** — style or lint violation → run `task lint:fix` and `task fmt` locally
+    - **mypy (type check)** — type error → fix type annotations or add `# type: ignore` with justification
+    - **pytest (test)** — test failure → fix the test or the code under test
+    - **Bandit (security)** — security issue in Python source → fix the flagged pattern
+    - **pr-title** — PR title doesn't follow conventional format → edit the PR title on GitHub
+    - **commit-lint** — commit messages don't follow conventional format → amend or rebase commits
+    - **OpenSSF Scorecard** — repository security practices issue (see example below)
 3. **Fix and push** — Make the fix locally, commit, and push to the same branch. CI re-runs automatically on every push to a PR branch. No need to close and reopen the PR.
 
-   ```bash
-   # Fix the issue locally, then:
-   git add -A
-   git commit -m "fix: resolve lint errors from CI"
-   git push
-   ```
+    ```bash
+    # Fix the issue locally, then:
+    git add -A
+    git commit -m "fix: resolve lint errors from CI"
+    git push
+    ```
 
 4. **Repeat** — Keep fixing until all checks are green. Each push triggers a fresh CI run.
 
@@ -541,10 +541,10 @@ PyPI publishing is disabled by default. To enable:
 1. Go to [PyPI](https://pypi.org/) and create an account
 2. Create a new project or claim the package name
 3. Configure **Trusted Publishing**:
-   - Publisher: GitHub Actions
-   - Repository: `your-username/simple-python-boilerplate`
-   - Workflow: `release.yml`
-   - Environment: `release`
+    - Publisher: GitHub Actions
+    - Repository: `your-username/simple-python-boilerplate`
+    - Workflow: `release.yml`
+    - Environment: `release`
 
 ### Add the Secret
 
@@ -663,72 +663,70 @@ scoped only to the permissions you grant — no broader access than needed.
 **One-time setup:**
 
 1. **Create a GitHub App:**
-   - Go to your **GitHub profile icon** (top-right) → **Settings** →
-     scroll down to **Developer settings** (bottom of left sidebar) →
-     **GitHub Apps** → **New GitHub App**
-   - For an organization: **Organization Settings** → **Developer settings**
-     → **GitHub Apps** → **New GitHub App**
-   - Fill in the required fields:
+    - Go to your **GitHub profile icon** (top-right) → **Settings** →
+      scroll down to **Developer settings** (bottom of left sidebar) →
+      **GitHub Apps** → **New GitHub App**
+    - For an organization: **Organization Settings** → **Developer settings**
+      → **GitHub Apps** → **New GitHub App**
+    - Fill in the required fields:
 
-   | Field | Value | Notes |
-   |---|---|---|
-   | **App name** | e.g. `yourproject-release-bot` | Must be globally unique across all of GitHub |
-   | **Homepage URL** | Your repository URL | e.g. `https://github.com/you/yourrepo` |
-   | **Webhook → Active** | **Uncheck** this box | The App doesn't need to receive events |
-   | **Webhook URL** | Leave blank or any URL | Only required if Active is checked (it shouldn't be) |
+    | Field                | Value                          | Notes                                                |
+    | -------------------- | ------------------------------ | ---------------------------------------------------- |
+    | **App name**         | e.g. `yourproject-release-bot` | Must be globally unique across all of GitHub         |
+    | **Homepage URL**     | Your repository URL            | e.g. `https://github.com/you/yourrepo`               |
+    | **Webhook → Active** | **Uncheck** this box           | The App doesn't need to receive events               |
+    | **Webhook URL**      | Leave blank or any URL         | Only required if Active is checked (it shouldn't be) |
+    - Scroll down to **Permissions → Repository permissions** and set:
 
-   - Scroll down to **Permissions → Repository permissions** and set:
-
-   | Permission | Access level | Why |
-   |---|---|---|
-   | **Contents** | Read and write | Create git tags and GitHub Releases |
-   | **Pull requests** | Read and write | Create and update the Release PR |
-   | **Metadata** | Read-only | Preselected, can't be changed |
-
-   - Leave all other permissions as **No access**
-   - Under **Where can this GitHub App be installed?** select
-     **Only on this account**
-   - Click **Create GitHub App**
+    | Permission        | Access level   | Why                                 |
+    | ----------------- | -------------- | ----------------------------------- |
+    | **Contents**      | Read and write | Create git tags and GitHub Releases |
+    | **Pull requests** | Read and write | Create and update the Release PR    |
+    | **Metadata**      | Read-only      | Preselected, can't be changed       |
+    - Leave all other permissions as **No access**
+    - Under **Where can this GitHub App be installed?** select
+      **Only on this account**
+    - Click **Create GitHub App**
 
 2. **Note the App ID:**
-   - After creation, you'll land on the App's settings page
-   - The **App ID** is the numeric value shown near the top (e.g. `123456`)
-   - Copy this — you'll need it in step 4
+    - After creation, you'll land on the App's settings page
+    - The **App ID** is the numeric value shown near the top (e.g. `123456`)
+    - Copy this — you'll need it in step 4
 
 3. **Generate a private key:**
-   - On the same App settings page, scroll down to **Private keys**
-   - Click **Generate a private key**
-   - Your browser downloads a `.pem` file — save it somewhere secure
-   - This file is the App's authentication credential (treat it like a password)
+    - On the same App settings page, scroll down to **Private keys**
+    - Click **Generate a private key**
+    - Your browser downloads a `.pem` file — save it somewhere secure
+    - This file is the App's authentication credential (treat it like a password)
 
 4. **Install the App on your repository:**
-   - On the App settings page, click **Install App** in the left sidebar
-   - Click **Install** next to your account/org
-   - Select **Only select repositories** and choose your repository
-   - Click **Install**
+    - On the App settings page, click **Install App** in the left sidebar
+    - Click **Install** next to your account/org
+    - Select **Only select repositories** and choose your repository
+    - Click **Install**
 
 5. **Add secrets to the repository:**
-   - Go to your **repository** on GitHub → **Settings** → **Secrets and
-     variables** → **Actions** → **New repository secret**
-   - Create two secrets:
+    - Go to your **repository** on GitHub → **Settings** → **Secrets and
+      variables** → **Actions** → **New repository secret**
+    - Create two secrets:
 
-   | Secret name | Value |
-   |---|---|
-   | `RELEASE_APP_ID` | The numeric App ID from step 2 |
-   | `RELEASE_APP_PRIVATE_KEY` | The entire contents of the `.pem` file (open it in a text editor, select all, paste) |
+    | Secret name               | Value                                                                                |
+    | ------------------------- | ------------------------------------------------------------------------------------ |
+    | `RELEASE_APP_ID`          | The numeric App ID from step 2                                                       |
+    | `RELEASE_APP_PRIVATE_KEY` | The entire contents of the `.pem` file (open it in a text editor, select all, paste) |
 
 6. **Trigger a new Release PR:**
-   - The existing Release PR was created with `GITHUB_TOKEN` so it won't
-     retroactively get CI checks. You have two options:
-   - **Option A (recommended):** Close the existing Release PR. The next
-     push to `main` re-runs release-please, which now uses the App token
-     to create a fresh PR — CI checks will fire. **Closing the PR does not
-     lose any changes** — release-please regenerates its content by scanning
-     commits on `main`, which are the source of truth. The PR branch is a
-     derived artifact and is fully reproducible.
-   - **Option B:** Merge the existing PR manually if you trust the changes
-     (it only contains CHANGELOG + version bump). The next Release PR will
-     use the App token correctly.
+    - The existing Release PR was created with `GITHUB_TOKEN` so it won't
+      retroactively get CI checks. You have two options:
+    - **Option A (recommended):** Close the existing Release PR. The next
+      push to `main` re-runs release-please, which now uses the App token
+      to create a fresh PR — CI checks will fire. **Closing the PR does not
+      lose any changes** — release-please regenerates its content by scanning
+      commits on `main`, which are the source of truth. The PR branch is a
+      derived artifact and is fully reproducible.
+    - **Option B:** Merge the existing PR manually if you trust the changes
+      (it only contains CHANGELOG + version bump). The next Release PR will
+      use the App token correctly.
 
 ### Merge Conflicts on a Feature Branch
 
@@ -771,9 +769,9 @@ automatically.
   If you already did this, rebase locally to flatten the history.
 - **If rebase gets messy**, abort and start over:
 
-  ```bash
-  git rebase --abort               # undo the in-progress rebase
-  ```
+    ```bash
+    git rebase --abort               # undo the in-progress rebase
+    ```
 
 - **After rebasing, CI re-runs from scratch** — previous check results
   are invalidated because the commit SHAs changed.

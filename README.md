@@ -139,18 +139,18 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 | `scripts/customize.py`                  | Interactive project customization (placeholders, license, optional dirs) |
 | `scripts/repo_doctor.py`                | Health checker with `--fix` support                                      |
 | `scripts/env_doctor.py`                 | Quick environment health check                                           |
-| `scripts/git_doctor.py`                | Git health check and branch activity dashboard                           |
+| `scripts/git_doctor.py`                 | Git health check and branch activity dashboard                           |
 | `scripts/doctor.py`                     | Diagnostics bundle for bug reports                                       |
 | `scripts/dep_versions.py`               | Show/update dependency versions                                          |
 | `scripts/workflow_versions.py`          | Show/update SHA-pinned action versions                                   |
 | `scripts/generate_command_reference.py` | Generate docs/reference/commands.md from project commands                |
 | `scripts/apply_labels.py`               | Apply GitHub labels (`--set baseline\|extended`)                         |
-| `scripts/check_todos.py`               | Scan for `TODO (template users)` comments                                |
-| `scripts/archive_todos.py`             | Archive resolved TODOs                                                   |
-| `scripts/changelog_check.py`           | Verify CHANGELOG.md matches git tags                                     |
-| `scripts/clean.py`                     | Remove build artifacts and caches                                        |
-| `scripts/test_containerfile.py`        | Test the Containerfile image: build, validate, clean up                  |
-| `scripts/test_docker_compose.py`       | Test docker compose stack: build, run, validate, clean up                |
+| `scripts/check_todos.py`                | Scan for `TODO (template users)` comments                                |
+| `scripts/archive_todos.py`              | Archive resolved TODOs                                                   |
+| `scripts/changelog_check.py`            | Verify CHANGELOG.md matches git tags                                     |
+| `scripts/clean.py`                      | Remove build artifacts and caches                                        |
+| `scripts/test_containerfile.py`         | Test the Containerfile image: build, validate, clean up                  |
+| `scripts/test_docker_compose.py`        | Test docker compose stack: build, run, validate, clean up                |
 
 ## Using This Template
 
@@ -160,9 +160,9 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
 
 1. Click "Use this template" on GitHub
 2. Run `python scripts/customize.py` for interactive setup, **or** manually:
-   1. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
-   2. Update `pyproject.toml` (name, description, URLs, author)
-   3. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
+    1. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
+    2. Update `pyproject.toml` (name, description, URLs, author)
+    3. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
 3. Delete placeholder code in `src/` and `tests/`
 4. Enable repository guards via repository variables (see [ADR 011][adr-011])
 5. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`

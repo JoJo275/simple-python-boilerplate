@@ -329,11 +329,11 @@ A **quality gate** is a checkpoint that code must pass before moving forward (e.
 > **codespell: report-only by default.** codespell does _not_ auto-fix typos unless you pass `--write-changes` (or `-w`). Without that flag it reports the misspelling and a suggested fix, then exits non-zero — which blocks your commit. You have two options:
 >
 > 1. **Auto-fix:** Add `-w` to the hook args in `.pre-commit-config.yaml`:
->    ```yaml
->    - id: codespell
->      args: [-w, --skip, ".git,.venv,dist,build,..."]
->    ```
->    codespell will rewrite the file in-place. The commit still fails (the file changed), but re-running `git add` + `git commit` picks up the fix.
+>     ```yaml
+>     - id: codespell
+>       args: [-w, --skip, ".git,.venv,dist,build,..."]
+>     ```
+>     codespell will rewrite the file in-place. The commit still fails (the file changed), but re-running `git add` + `git commit` picks up the fix.
 > 2. **Manual fix:** Read the output, fix the typo yourself, then re-commit. This is safer when codespell's suggestion is wrong (it happens with domain-specific terms).
 >
 > **Tip:** If codespell flags a word that's correct (e.g., a variable name or technical term), add it to an ignore list: `args: [-L, "word1,word2", --skip, "..."]` or set `[tool.codespell]` in `pyproject.toml` with `ignore-words-list = "word1,word2"`.
@@ -699,26 +699,26 @@ pre-commit install
 
 ```yaml
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
-    hooks:
-      - id: ruff # Linting
-        args: [--fix]
-      - id: ruff-format # Formatting
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.8.6
+      hooks:
+          - id: ruff # Linting
+            args: [--fix]
+          - id: ruff-format # Formatting
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
-    hooks:
-      - id: mypy
-        additional_dependencies: []
+    - repo: https://github.com/pre-commit/mirrors-mypy
+      rev: v1.14.1
+      hooks:
+          - id: mypy
+            additional_dependencies: []
 
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: check-yaml
+          - id: check-added-large-files
 ```
 
 ### Key Commands
@@ -920,24 +920,24 @@ To install hooks for non-default stages: `pre-commit install --hook-type commit-
 name: Tests # Display name
 
 on: # Triggers
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 permissions: # Least-privilege access
-  contents: read
+    contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@... # Pinned SHA
-      - uses: actions/setup-python@...
-        with:
-          python-version: "3.11"
-      - run: pip install -e ".[dev]"
-      - run: pytest
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@... # Pinned SHA
+            - uses: actions/setup-python@...
+              with:
+                  python-version: "3.11"
+            - run: pip install -e ".[dev]"
+            - run: pytest
 ```
 
 ### Common Workflow Patterns
@@ -955,9 +955,9 @@ Test across multiple Python versions:
 
 ```yaml
 strategy:
-  matrix:
-    python-version: ["3.11", "3.12", "3.13"]
-    os: [ubuntu-latest, windows-latest]
+    matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+        os: [ubuntu-latest, windows-latest]
 ```
 
 ### Caching Dependencies
@@ -967,8 +967,8 @@ Speed up workflows by caching pip:
 ```yaml
 - uses: actions/setup-python@...
   with:
-    python-version: "3.11"
-    cache: "pip"
+      python-version: "3.11"
+      cache: "pip"
 ```
 
 ### Useful Actions
@@ -1007,21 +1007,21 @@ A workflow file lives in `.github/workflows/` and has four main sections:
 name: Human-readable name # Shows in the Actions tab
 
 on: # 1. TRIGGERS — when does this run?
-  push: ...
-  pull_request: ...
-  schedule: ...
-  workflow_dispatch: ...
+    push: ...
+    pull_request: ...
+    schedule: ...
+    workflow_dispatch: ...
 
 permissions: # 2. PERMISSIONS — least-privilege GITHUB_TOKEN scope
-  contents: read
+    contents: read
 
 jobs: # 3. JOBS — what to run (each gets its own runner)
-  my-job:
-    runs-on: ubuntu-latest
-    if: <condition> # 4. GUARDS — should this job run at all?
-    steps:
-      - uses: owner/action@sha # Use a published action
-      - run: echo "shell command" # Run a shell command
+    my-job:
+        runs-on: ubuntu-latest
+        if: <condition> # 4. GUARDS — should this job run at all?
+        steps:
+            - uses: owner/action@sha # Use a published action
+            - run: echo "shell command" # Run a shell command
 ```
 
 #### Triggers (`on:`)
@@ -1046,11 +1046,11 @@ has broad access; narrowing it limits blast radius if a dependency is compromise
 
 ```yaml
 permissions:
-  contents: read # Read repo contents (most workflows)
-  pull-requests: write # Create/comment on PRs
-  security-events: write # Upload SARIF to Security tab
-  issues: write # Comment on / close issues
-  id-token: write # OIDC token (OpenSSF Scorecard, cloud auth)
+    contents: read # Read repo contents (most workflows)
+    pull-requests: write # Create/comment on PRs
+    security-events: write # Upload SARIF to Security tab
+    issues: write # Comment on / close issues
+    id-token: write # OIDC token (OpenSSF Scorecard, cloud auth)
 ```
 
 **Repo-level setting:** Some permissions also require a repo setting toggle.
@@ -1064,13 +1064,13 @@ Control whether a job runs using expressions:
 
 ```yaml
 jobs:
-  deploy:
-    # Only run on the main repo, not forks
-    if: github.repository == 'myorg/myrepo'
+    deploy:
+        # Only run on the main repo, not forks
+        if: github.repository == 'myorg/myrepo'
 
-  auto-merge:
-    # Only run for Dependabot PRs
-    if: github.actor == 'dependabot[bot]'
+    auto-merge:
+        # Only run for Dependabot PRs
+        if: github.actor == 'dependabot[bot]'
 ```
 
 This project uses a repository guard pattern (see [ADR 011](../adr/011-repository-guard-pattern.md))
@@ -1235,8 +1235,8 @@ Admins can bypass, but it's logged. Use sparingly!
 ```yaml
 - name: Security audit
   run: |
-    pip install pip-audit
-    pip-audit
+      pip install pip-audit
+      pip-audit
 ```
 
 ### Bandit in CI
@@ -1244,8 +1244,8 @@ Admins can bypass, but it's logged. Use sparingly!
 ```yaml
 - name: Security scan
   run: |
-    pip install bandit
-    bandit -r src/ -ll
+      pip install bandit
+      bandit -r src/ -ll
 ```
 
 ### Dependabot Configuration (`.github/dependabot.yml`)
@@ -1253,21 +1253,21 @@ Admins can bypass, but it's logged. Use sparingly!
 ```yaml
 version: 2
 updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      dev-dependencies:
-        patterns:
-          - "pytest*"
-          - "ruff"
-          - "mypy"
+    - package-ecosystem: "pip"
+      directory: "/"
+      schedule:
+          interval: "weekly"
+      groups:
+          dev-dependencies:
+              patterns:
+                  - "pytest*"
+                  - "ruff"
+                  - "mypy"
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "weekly"
 ```
 
 ---
@@ -1310,15 +1310,15 @@ When you see automated commits, PR comments, or status checks from names like `d
 
 ### GitHub Apps vs Personal Access Tokens (PATs)
 
-| | GitHub App | Personal Access Token (PAT) |
-|---|---|---|
-| **Identity** | Independent bot identity | Tied to a human user account |
-| **Token lifetime** | Short-lived (1 hour, auto-expires) | Long-lived (up to no expiration) |
-| **Permission scope** | Fine-grained per-repository permissions | Broad (classic) or fine-grained |
-| **Rate limits** | Higher (5,000+/hour per installation) | Standard user limits (5,000/hour) |
-| **Survives user leaving** | Yes — not tied to any person | No — token dies when the user is removed |
-| **Audit trail** | Actions attributed to `app-name[bot]` | Actions attributed to the human user |
-| **Cost** | Free | Free |
+|                           | GitHub App                              | Personal Access Token (PAT)              |
+| ------------------------- | --------------------------------------- | ---------------------------------------- |
+| **Identity**              | Independent bot identity                | Tied to a human user account             |
+| **Token lifetime**        | Short-lived (1 hour, auto-expires)      | Long-lived (up to no expiration)         |
+| **Permission scope**      | Fine-grained per-repository permissions | Broad (classic) or fine-grained          |
+| **Rate limits**           | Higher (5,000+/hour per installation)   | Standard user limits (5,000/hour)        |
+| **Survives user leaving** | Yes — not tied to any person            | No — token dies when the user is removed |
+| **Audit trail**           | Actions attributed to `app-name[bot]`   | Actions attributed to the human user     |
+| **Cost**                  | Free                                    | Free                                     |
 
 ### How GitHub Apps Work
 
@@ -1352,27 +1352,27 @@ Well-known GitHub Apps include Dependabot, Renovate, Codecov, Netlify, Vercel, a
 
 GitHub Apps use a granular permission system. You pick exactly what the App can access:
 
-| Permission | Access levels | Example use |
-|---|---|---|
-| **Contents** | None / Read / Read+Write | Push commits, create tags, manage files |
-| **Pull requests** | None / Read / Read+Write | Create/update/merge PRs, post comments |
-| **Issues** | None / Read / Read+Write | Create/close issues, add labels |
-| **Actions** | None / Read / Read+Write | Manage workflow runs, download artifacts |
-| **Checks** | None / Read / Read+Write | Create check runs, report CI results |
-| **Metadata** | Read (always required) | Basic repo information (always on) |
+| Permission        | Access levels            | Example use                              |
+| ----------------- | ------------------------ | ---------------------------------------- |
+| **Contents**      | None / Read / Read+Write | Push commits, create tags, manage files  |
+| **Pull requests** | None / Read / Read+Write | Create/update/merge PRs, post comments   |
+| **Issues**        | None / Read / Read+Write | Create/close issues, add labels          |
+| **Actions**       | None / Read / Read+Write | Manage workflow runs, download artifacts |
+| **Checks**        | None / Read / Read+Write | Create check runs, report CI results     |
+| **Metadata**      | Read (always required)   | Basic repo information (always on)       |
 
 You grant the minimum permissions needed. If your App only creates Release PRs, it only needs Contents + Pull requests — nothing else.
 
 ### Key Terminology
 
-| Term | Meaning |
-|---|---|
-| **GitHub App** | The registration (name, permissions, webhooks) |
-| **Installation** | A specific repo (or org) where the App is installed |
-| **Installation token** | The short-lived credential the App uses to call the GitHub API |
-| **Private key** | The `.pem` file used to authenticate as the App (kept secret) |
-| **App ID** | The numeric identifier for the App (not secret, but needed for auth) |
-| **`[bot]` suffix** | How App actions appear in Git history and PR timelines |
+| Term                   | Meaning                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| **GitHub App**         | The registration (name, permissions, webhooks)                       |
+| **Installation**       | A specific repo (or org) where the App is installed                  |
+| **Installation token** | The short-lived credential the App uses to call the GitHub API       |
+| **Private key**        | The `.pem` file used to authenticate as the App (kept secret)        |
+| **App ID**             | The numeric identifier for the App (not secret, but needed for auth) |
+| **`[bot]` suffix**     | How App actions appear in Git history and PR timelines               |
 
 ### Further Reading
 
@@ -3698,15 +3698,15 @@ If you keep schema, migrations, and queries as `.sql` files:
 ```yaml
 # .pre-commit-config.yaml
 repos:
-  - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 3.3.1 # check for latest
-    hooks:
-      - id: sqlfluff-lint
-        args: [--dialect, sqlite] # or postgres, mysql, etc.
-        files: \.sql$
-      - id: sqlfluff-fix
-        args: [--dialect, sqlite]
-        files: \.sql$
+    - repo: https://github.com/sqlfluff/sqlfluff
+      rev: 3.3.1 # check for latest
+      hooks:
+          - id: sqlfluff-lint
+            args: [--dialect, sqlite] # or postgres, mysql, etc.
+            files: \.sql$
+          - id: sqlfluff-fix
+            args: [--dialect, sqlite]
+            files: \.sql$
 ```
 
 **CI workflow example (schema validation):**
@@ -3952,19 +3952,19 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 
 const staged = execSync("git diff --cached --name-only --diff-filter=ACM")
-  .toString()
-  .trim()
-  .split("\n")
-  .filter((f) => f.endsWith(".json"));
+    .toString()
+    .trim()
+    .split("\n")
+    .filter((f) => f.endsWith(".json"));
 
 let failed = false;
 for (const file of staged) {
-  try {
-    JSON.parse(fs.readFileSync(file, "utf8"));
-  } catch (e) {
-    console.error(`Invalid JSON: ${file} — ${e.message}`);
-    failed = true;
-  }
+    try {
+        JSON.parse(fs.readFileSync(file, "utf8"));
+    } catch (e) {
+        console.error(`Invalid JSON: ${file} — ${e.message}`);
+        failed = true;
+    }
 }
 process.exit(failed ? 1 : 0);
 ```
@@ -4055,15 +4055,15 @@ In practice, choosing a language for hooks is mostly academic if you use the `pr
 
 ```yaml
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit # Rust binary
-    hooks:
-      - id: ruff # ← you don't care that Ruff is written in Rust
-  - repo: https://github.com/pre-commit/mirrors-mypy # Python tool
-    hooks:
-      - id: mypy # ← you don't care that mypy is Python
-  - repo: https://github.com/pre-commit/pre-commit-hooks # Python scripts
-    hooks:
-      - id: check-yaml # ← you don't care about the implementation
+    - repo: https://github.com/astral-sh/ruff-pre-commit # Rust binary
+      hooks:
+          - id: ruff # ← you don't care that Ruff is written in Rust
+    - repo: https://github.com/pre-commit/mirrors-mypy # Python tool
+      hooks:
+          - id: mypy # ← you don't care that mypy is Python
+    - repo: https://github.com/pre-commit/pre-commit-hooks # Python scripts
+      hooks:
+          - id: check-yaml # ← you don't care about the implementation
 ```
 
 The framework:
@@ -4398,16 +4398,16 @@ Push a Git tag → CI builds, publishes, releases. The simplest CI-driven approa
 ```yaml
 # .github/workflows/publish.yml
 on:
-  push:
-    tags: ["v*"]
+    push:
+        tags: ["v*"]
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@...
-      - run: python -m build
-      - uses: pypa/gh-action-pypi-publish@...
+    publish:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@...
+            - run: python -m build
+            - uses: pypa/gh-action-pypi-publish@...
 ```
 
 You manually (or via a bump tool) create the tag. CI handles the rest.
@@ -4555,17 +4555,17 @@ that behaviour stop working, it's a breaking change.
 
 #### Examples of Breaking Changes
 
-| Domain              | Breaking change example                                                       | Why it breaks                                          |
-| ------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------ |
-| **Python library**  | Renaming a public function from `get_users()` to `fetch_users()`              | All callers must update their import / call site        |
-| **REST API**        | Removing the `/api/v1/users` endpoint                                         | Clients sending requests to that URL get 404            |
-| **CLI tool/script** | Removing `--fix` flag from `git_doctor.py`                                    | Scripts or aliases using `--fix` fail with "unknown arg" |
-| **Config format**   | Changing YAML key from `database_url` to `db.url`                             | Existing config files are silently ignored              |
-| **Database**        | Dropping a column that other code reads                                       | Queries crash with "column not found"                   |
-| **File format**     | Changing a CSV export from comma-separated to tab-separated                   | Downstream parsers split on the wrong character         |
-| **Game**            | Removing a character ability after players invested in it                     | Players' builds/strategies break                        |
-| **OS**              | Dropping support for a system call (Linux kernel) or API (Win32)              | Programs compiled against the old API crash or fail     |
-| **Browser**         | Removing `document.all` or changing CSS default behaviour                     | Old websites visually break or lose functionality       |
+| Domain              | Breaking change example                                          | Why it breaks                                            |
+| ------------------- | ---------------------------------------------------------------- | -------------------------------------------------------- |
+| **Python library**  | Renaming a public function from `get_users()` to `fetch_users()` | All callers must update their import / call site         |
+| **REST API**        | Removing the `/api/v1/users` endpoint                            | Clients sending requests to that URL get 404             |
+| **CLI tool/script** | Removing `--fix` flag from `git_doctor.py`                       | Scripts or aliases using `--fix` fail with "unknown arg" |
+| **Config format**   | Changing YAML key from `database_url` to `db.url`                | Existing config files are silently ignored               |
+| **Database**        | Dropping a column that other code reads                          | Queries crash with "column not found"                    |
+| **File format**     | Changing a CSV export from comma-separated to tab-separated      | Downstream parsers split on the wrong character          |
+| **Game**            | Removing a character ability after players invested in it        | Players' builds/strategies break                         |
+| **OS**              | Dropping support for a system call (Linux kernel) or API (Win32) | Programs compiled against the old API crash or fail      |
+| **Browser**         | Removing `document.all` or changing CSS default behaviour        | Old websites visually break or lose functionality        |
 
 #### What Is NOT a Breaking Change
 
@@ -4602,11 +4602,11 @@ will keep working.
 
 The most widely used scheme is **Semantic Versioning** (SemVer): `MAJOR.MINOR.PATCH`.
 
-| Component   | When to bump                    | What it signals to users                          | Example               |
-| ----------- | ------------------------------- | ------------------------------------------------- | --------------------- |
-| **PATCH**   | Bug fix, docs, internal cleanup | "Safe to upgrade — nothing new, just fixes."       | `1.2.3` → `1.2.4`    |
-| **MINOR**   | New feature, non-breaking       | "New stuff available, old stuff still works."       | `1.2.4` → `1.3.0`    |
-| **MAJOR**   | Breaking change                 | "Read the changelog — something you use may break." | `1.3.0` → `2.0.0`    |
+| Component | When to bump                    | What it signals to users                            | Example           |
+| --------- | ------------------------------- | --------------------------------------------------- | ----------------- |
+| **PATCH** | Bug fix, docs, internal cleanup | "Safe to upgrade — nothing new, just fixes."        | `1.2.3` → `1.2.4` |
+| **MINOR** | New feature, non-breaking       | "New stuff available, old stuff still works."       | `1.2.4` → `1.3.0` |
+| **MAJOR** | Breaking change                 | "Read the changelog — something you use may break." | `1.3.0` → `2.0.0` |
 
 When you bump a higher component, lower ones reset to zero:
 
@@ -4618,13 +4618,13 @@ When you bump a higher component, lower ones reset to zero:
 Strictly by SemVer, a major bump signals a breaking change. In practice,
 projects interpret this differently:
 
-| Approach                    | Who does it                        | Philosophy                                                  |
-| --------------------------- | ---------------------------------- | ----------------------------------------------------------- |
-| **Strict SemVer**           | Libraries with public API contracts | Major = breaking. Period. Even if the change is small.       |
-| **Marketing / milestone**   | Games, apps, commercial software   | Major bump for big feature milestones, even if nothing breaks |
-| **Time-based**              | Ubuntu, some enterprise software   | Major bump on a schedule (Ubuntu 22.04 → 24.04)              |
-| **Internal scripts/tools**  | Teams, personal projects           | Major bump when it "feels like a new version" — less rigorous |
-| **ZeroVer (0.x.y)**         | Pre-1.0 projects                   | Everything is unstable, bump minor freely, never commit       |
+| Approach                   | Who does it                         | Philosophy                                                    |
+| -------------------------- | ----------------------------------- | ------------------------------------------------------------- |
+| **Strict SemVer**          | Libraries with public API contracts | Major = breaking. Period. Even if the change is small.        |
+| **Marketing / milestone**  | Games, apps, commercial software    | Major bump for big feature milestones, even if nothing breaks |
+| **Time-based**             | Ubuntu, some enterprise software    | Major bump on a schedule (Ubuntu 22.04 → 24.04)               |
+| **Internal scripts/tools** | Teams, personal projects            | Major bump when it "feels like a new version" — less rigorous |
+| **ZeroVer (0.x.y)**        | Pre-1.0 projects                    | Everything is unstable, bump minor freely, never commit       |
 
 **Bottom line:** For libraries consumed by others, follow SemVer strictly.
 For internal tools, scripts, and apps, a major bump for a significant
@@ -4658,14 +4658,14 @@ Format: Varies. `MAJOR.MINOR` (Chrome 122), `MAJOR.MINOR.PATCH`
 
 Format: Varies widely.
 
-| Pattern                     | Example                         | Notes                                                    |
-| --------------------------- | ------------------------------- | -------------------------------------------------------- |
-| **Major.Minor**             | Minecraft 1.21                  | Minor = content updates. Major rarely changes.            |
-| **Sequential**              | Final Fantasy XVI                | Each game is a new product, not a version bump.           |
-| **Season / patch**          | Fortnite Chapter 5 Season 2     | Marketing-driven; "patch 29.10" for internal builds.      |
-| **Year**                    | FIFA 24, F1 2024                | Annual franchise, version = year.                         |
-| **Build number**            | Dwarf Fortress 50.12            | Incrementing build; major changes are just bigger numbers. |
-| **Early access / alpha**    | Valheim 0.217.46                | Pre-1.0, ZeroVer, rapid iteration.                        |
+| Pattern                  | Example                     | Notes                                                      |
+| ------------------------ | --------------------------- | ---------------------------------------------------------- |
+| **Major.Minor**          | Minecraft 1.21              | Minor = content updates. Major rarely changes.             |
+| **Sequential**           | Final Fantasy XVI           | Each game is a new product, not a version bump.            |
+| **Season / patch**       | Fortnite Chapter 5 Season 2 | Marketing-driven; "patch 29.10" for internal builds.       |
+| **Year**                 | FIFA 24, F1 2024            | Annual franchise, version = year.                          |
+| **Build number**         | Dwarf Fortress 50.12        | Incrementing build; major changes are just bigger numbers. |
+| **Early access / alpha** | Valheim 0.217.46            | Pre-1.0, ZeroVer, rapid iteration.                         |
 
 Games care about player perception and marketing more than API
 compatibility, so version numbers serve branding purposes.
@@ -4683,14 +4683,14 @@ convention, but rules are looser.
 
 #### Operating Systems
 
-| OS          | Scheme                          | Example                     | Notes                                               |
-| ----------- | ------------------------------- | --------------------------- | --------------------------------------------------- |
-| **Linux**   | `MAJOR.MINOR` (kernel)          | 6.8                         | Even/odd minor was once stable/dev. Now just linear. |
-| **Ubuntu**  | CalVer `YY.MM`                  | 24.04 (April 2024)          | LTS every 2 years. Version = release date.           |
-| **macOS**   | Marketing + `MAJOR.MINOR.PATCH` | Sonoma 14.4                 | Marketing name changes yearly, version increments.   |
-| **Windows** | Marketing number                | Windows 11 (build 22621)    | Version number is mostly marketing. Build number is internal. |
-| **Android** | API level + marketing           | Android 14 (API 34)         | API level is the real version for developers.        |
-| **iOS**     | `MAJOR.MINOR.PATCH`             | 17.4.1                      | Major = yearly, minor = features, patch = fixes.     |
+| OS          | Scheme                          | Example                  | Notes                                                         |
+| ----------- | ------------------------------- | ------------------------ | ------------------------------------------------------------- |
+| **Linux**   | `MAJOR.MINOR` (kernel)          | 6.8                      | Even/odd minor was once stable/dev. Now just linear.          |
+| **Ubuntu**  | CalVer `YY.MM`                  | 24.04 (April 2024)       | LTS every 2 years. Version = release date.                    |
+| **macOS**   | Marketing + `MAJOR.MINOR.PATCH` | Sonoma 14.4              | Marketing name changes yearly, version increments.            |
+| **Windows** | Marketing number                | Windows 11 (build 22621) | Version number is mostly marketing. Build number is internal. |
+| **Android** | API level + marketing           | Android 14 (API 34)      | API level is the real version for developers.                 |
+| **iOS**     | `MAJOR.MINOR.PATCH`             | 17.4.1                   | Major = yearly, minor = features, patch = fixes.              |
 
 Operating systems face the hardest compatibility challenge: they must
 support millions of programs built over decades. Breaking changes in OS
@@ -4699,25 +4699,25 @@ compatibility shims, migration guides).
 
 ### How Version Bumps Are Triggered
 
-| Method                 | How it works                                                  | Best for                        |
-| ---------------------- | ------------------------------------------------------------- | ------------------------------- |
-| **Manual edit**        | Change the version string in a file and commit                | Solo projects, learning          |
-| **Bump tool**          | `hatch version minor` / `bump-my-version bump patch`          | Semi-automated workflows         |
+| Method                   | How it works                                                           | Best for                     |
+| ------------------------ | ---------------------------------------------------------------------- | ---------------------------- |
+| **Manual edit**          | Change the version string in a file and commit                         | Solo projects, learning      |
+| **Bump tool**            | `hatch version minor` / `bump-my-version bump patch`                   | Semi-automated workflows     |
 | **Conventional commits** | `feat:` = minor, `fix:` = patch, `feat!:` / `BREAKING CHANGE:` = major | Fully automated CI pipelines |
-| **Git tag**            | `git tag v1.2.3` — version derived from tag at build time     | Tag-driven releases              |
-| **Release PR**         | Bot (release-please) opens a PR with the version bump         | Team projects, code review       |
+| **Git tag**              | `git tag v1.2.3` — version derived from tag at build time              | Tag-driven releases          |
+| **Release PR**           | Bot (release-please) opens a PR with the version bump                  | Team projects, code review   |
 
 ### Pre-release & Build Metadata
 
 SemVer also defines pre-release and build metadata suffixes:
 
-| Suffix                   | Meaning                      | Example          | Use case                            |
-| ------------------------ | ---------------------------- | ---------------- | ----------------------------------- |
-| `-alpha.1`               | Early unstable release        | `2.0.0-alpha.1`  | Internal testing, incomplete API     |
-| `-beta.2`                | Feature-complete but untested | `2.0.0-beta.2`   | External beta testers                |
-| `-rc.1`                  | Release candidate             | `2.0.0-rc.1`     | Final validation before release      |
-| `+build.123`             | Build metadata (ignored in precedence) | `2.0.0+build.123` | CI tracking, debug info       |
-| `.dev4` (Python/PEP 440) | Development pre-release       | `2.0.0.dev4`     | Nightly builds, dev installs         |
+| Suffix                   | Meaning                                | Example           | Use case                         |
+| ------------------------ | -------------------------------------- | ----------------- | -------------------------------- |
+| `-alpha.1`               | Early unstable release                 | `2.0.0-alpha.1`   | Internal testing, incomplete API |
+| `-beta.2`                | Feature-complete but untested          | `2.0.0-beta.2`    | External beta testers            |
+| `-rc.1`                  | Release candidate                      | `2.0.0-rc.1`      | Final validation before release  |
+| `+build.123`             | Build metadata (ignored in precedence) | `2.0.0+build.123` | CI tracking, debug info          |
+| `.dev4` (Python/PEP 440) | Development pre-release                | `2.0.0.dev4`      | Nightly builds, dev installs     |
 
 Pre-release versions have **lower** precedence than the release:
 `1.0.0-alpha.1 < 1.0.0-beta.1 < 1.0.0-rc.1 < 1.0.0`.
@@ -4759,15 +4759,15 @@ Where `M` is the merge commit with parents `B` and `E`.
 - **Original SHAs:** Preserved — the branch commits keep their hashes
 - **Merge event:** Visible — the merge commit marks exactly where the branch was integrated
 - **Pros:**
-  - Full history preserved with branch context
-  - Easy to revert an entire feature: `git revert -m 1 <merge-commit>`
-  - Original SHAs intact — links to branch commits never break
-  - `git log --merges` shows all integration points
+    - Full history preserved with branch context
+    - Easy to revert an entire feature: `git revert -m 1 <merge-commit>`
+    - Original SHAs intact — links to branch commits never break
+    - `git log --merges` shows all integration points
 - **Cons:**
-  - Cluttered history with merge commits between every PR
-  - Hard to `git bisect` when merge commits are involved
-  - `git log` without `--graph` is confusing (interleaved commits from multiple branches)
-  - Non-linear history is harder for tools to parse
+    - Cluttered history with merge commits between every PR
+    - Hard to `git bisect` when merge commits are involved
+    - `git log` without `--graph` is confusing (interleaved commits from multiple branches)
+    - Non-linear history is harder for tools to parse
 
 ### Squash and Merge
 
@@ -4783,15 +4783,15 @@ main:     A ─ B ─ S    (1 commit, S = squashed C+D+E)
 - **Original SHAs:** Lost — all branch commits are discarded, replaced by one new commit
 - **Merge event:** No — just a single commit, no visual merge point
 - **Pros:**
-  - Clean, linear history — one commit per logical change
-  - PR title becomes the commit message — only enforce PR title format
-  - Easy to `git bisect` (each commit is one PR's worth of change)
-  - Good for messy branches with WIP/fixup commits
+    - Clean, linear history — one commit per logical change
+    - PR title becomes the commit message — only enforce PR title format
+    - Easy to `git bisect` (each commit is one PR's worth of change)
+    - Good for messy branches with WIP/fixup commits
 - **Cons:**
-  - **Loses individual commit detail** — can't go back to specific changes within a PR
-  - Author attribution may be lost (shows merger, not individual committers via co-authored-by)
-  - Can't cherry-pick individual changes from a squashed PR
-  - Large PRs become one giant commit — hard to review in `git log`
+    - **Loses individual commit detail** — can't go back to specific changes within a PR
+    - Author attribution may be lost (shows merger, not individual committers via co-authored-by)
+    - Can't cherry-pick individual changes from a squashed PR
+    - Large PRs become one giant commit — hard to review in `git log`
 
 ### Rebase and Merge (What This Project Uses)
 
@@ -4809,18 +4809,18 @@ The `'` marks indicate new SHAs — the commits are re-hashed because their pare
 - **Original SHAs:** Changed — rebased commits get new hashes
 - **Merge event:** No — no visual merge point in the graph
 - **Pros:**
-  - **Linear AND detailed** — best of both worlds
-  - Individual commits preserved — can navigate to specific changes
-  - Easy to `git bisect` — each commit is atomic and testable
-  - Clean `git log` — no merge commit noise
-  - Commit authors preserved — individual attribution maintained
-  - Fine-grained CHANGELOG — tools can generate one entry per commit
+    - **Linear AND detailed** — best of both worlds
+    - Individual commits preserved — can navigate to specific changes
+    - Easy to `git bisect` — each commit is atomic and testable
+    - Clean `git log` — no merge commit noise
+    - Commit authors preserved — individual attribution maintained
+    - Fine-grained CHANGELOG — tools can generate one entry per commit
 - **Cons:**
-  - **Original SHAs change** — links to branch commits break after rebase
-  - **No merge graph** — can't see where a PR started/ended in `git log --graph`
-  - Requires commit message discipline — every commit message matters
-  - Force-push needed to update branch after rebase: `git push --force-with-lease`
-  - Contributors must understand rebase workflow
+    - **Original SHAs change** — links to branch commits break after rebase
+    - **No merge graph** — can't see where a PR started/ended in `git log --graph`
+    - Requires commit message discipline — every commit message matters
+    - Force-push needed to update branch after rebase: `git push --force-with-lease`
+    - Contributors must understand rebase workflow
 
 ### Comparison Summary
 
@@ -5023,11 +5023,11 @@ git config --list --show-origin
 
 Git reads configuration from three levels, each overriding the previous:
 
-| Scope      | File Location                                                                     | Applies To            | Use For                                                          |
-| ---------- | --------------------------------------------------------------------------------- | --------------------- | ---------------------------------------------------------------- |
+| Scope      | File Location                                                                  | Applies To            | Use For                                                          |
+| ---------- | ------------------------------------------------------------------------------ | --------------------- | ---------------------------------------------------------------- |
 | **system** | `/etc/gitconfig` (Linux/macOS), `C:\Program Files\Git\etc\gitconfig` (Windows) | Every user on machine | Machine-wide defaults (usually set by installers, rarely by you) |
-| **global** | `~/.gitconfig` or `~/.config/git/config`                                          | All your repositories | Personal preferences: identity, editor, aliases, merge tools     |
-| **local**  | `.git/config` inside a repository                                                 | This repository only  | Project-specific overrides: email for work repos, hooks path     |
+| **global** | `~/.gitconfig` or `~/.config/git/config`                                       | All your repositories | Personal preferences: identity, editor, aliases, merge tools     |
+| **local**  | `.git/config` inside a repository                                              | This repository only  | Project-specific overrides: email for work repos, hooks path     |
 
 **Precedence:** local > global > system. A local setting always wins.
 
@@ -5138,16 +5138,16 @@ Signed commits show a "Verified" badge on GitHub. SSH signing (Git 2.34+) is sim
 
 ### Why Configure Git?
 
-| Problem                                          | Config fix                    |
-| ------------------------------------------------ | ----------------------------- |
-| Accidental merge commits on pull                 | `pull.rebase true`            |
-| CRLF/LF diffs everywhere on Windows              | `core.autocrlf true`          |
-| "Please tell me who you are" error               | `user.name` + `user.email`    |
-| Stale remote branches cluttering `git branch -r` | `fetch.prune true`            |
-| `--set-upstream` on every first push             | `push.autoSetupRemote true`   |
-| Merge conflicts hard to understand               | `merge.conflictstyle zdiff3`  |
-| Dirty worktree blocks rebase                     | `rebase.autostash true`       |
-| Repeating the same conflict resolution           | `rerere.enabled true`         |
+| Problem                                          | Config fix                   |
+| ------------------------------------------------ | ---------------------------- |
+| Accidental merge commits on pull                 | `pull.rebase true`           |
+| CRLF/LF diffs everywhere on Windows              | `core.autocrlf true`         |
+| "Please tell me who you are" error               | `user.name` + `user.email`   |
+| Stale remote branches cluttering `git branch -r` | `fetch.prune true`           |
+| `--set-upstream` on every first push             | `push.autoSetupRemote true`  |
+| Merge conflicts hard to understand               | `merge.conflictstyle zdiff3` |
+| Dirty worktree blocks rebase                     | `rebase.autostash true`      |
+| Repeating the same conflict resolution           | `rerere.enabled true`        |
 
 ### Global vs Local — When to Use Which
 
@@ -5177,15 +5177,15 @@ Signed commits show a "Verified" badge on GitHub. SSH signing (Git 2.34+) is sim
 5. **`.gitattributes` > `core.autocrlf`** — for line endings, `.gitattributes` in the repo is more reliable than per-machine config because it travels with the repo.
 6. **Conditional includes** — Git supports `[includeIf]` to load different configs based on directory, remote URL, or branch. Useful for different identities per org:
 
-   ```ini
-   # In ~/.gitconfig
-   [includeIf "gitdir:~/work/"]
-       path = ~/.gitconfig-work
+    ```ini
+    # In ~/.gitconfig
+    [includeIf "gitdir:~/work/"]
+        path = ~/.gitconfig-work
 
-   # In ~/.gitconfig-work
-   [user]
-       email = you@company.com
-   ```
+    # In ~/.gitconfig-work
+    [user]
+        email = you@company.com
+    ```
 
 7. **Inspect with `--show-origin`** — when a config value is unexpected, `git config --show-origin <key>` tells you exactly which file is setting it.
 
@@ -5230,13 +5230,13 @@ VS Code has its own git settings in `settings.json` that control **VS Code's git
 
 **They are separate systems:**
 
-| Setting | Where it lives | What reads it |
-| --- | --- | --- |
-| `git.autofetch` | VS Code `settings.json` | VS Code only |
-| `fetch.prune` | `.gitconfig` (global/local) | All git clients (terminal, CI, editors) |
-| `git.pullRebase` | VS Code `settings.json` | VS Code only (overrides `pull.rebase` for VS Code pull button) |
-| `pull.rebase` | `.gitconfig` (global/local) | All git clients |
-| `git.enableSmartCommit` | VS Code `settings.json` | VS Code only (no git equivalent) |
+| Setting                 | Where it lives              | What reads it                                                  |
+| ----------------------- | --------------------------- | -------------------------------------------------------------- |
+| `git.autofetch`         | VS Code `settings.json`     | VS Code only                                                   |
+| `fetch.prune`           | `.gitconfig` (global/local) | All git clients (terminal, CI, editors)                        |
+| `git.pullRebase`        | VS Code `settings.json`     | VS Code only (overrides `pull.rebase` for VS Code pull button) |
+| `pull.rebase`           | `.gitconfig` (global/local) | All git clients                                                |
+| `git.enableSmartCommit` | VS Code `settings.json`     | VS Code only (no git equivalent)                               |
 
 **Key facts:**
 
@@ -5251,13 +5251,13 @@ Common VS Code git settings (these go in `settings.json`, NOT `.gitconfig`):
 
 ```json
 {
-  "git.autofetch": true,
-  "git.fetchOnPull": true,
-  "git.pruneOnFetch": true,
-  "git.confirmSync": false,
-  "git.enableSmartCommit": true,
-  "git.suggestSmartCommit": false,
-  "git.openRepositoryInParentFolders": "always"
+    "git.autofetch": true,
+    "git.fetchOnPull": true,
+    "git.pruneOnFetch": true,
+    "git.confirmSync": false,
+    "git.enableSmartCommit": true,
+    "git.suggestSmartCommit": false,
+    "git.openRepositoryInParentFolders": "always"
 }
 ```
 
@@ -5416,13 +5416,13 @@ To strictly enforce issue references, you'd need a custom commitizen plugin or a
 # In commit-lint.yml — add a step after the cz check:
 - name: Check for issue references
   run: |
-    # Check that every feat/fix commit has a "Refs:" or "Fixes" footer
-    git log --format="%H %s%n%b---" origin/${{ github.base_ref }}..HEAD | \
-    awk '
-      /^[a-f0-9]+ (feat|fix)/ { needs_ref=1; sha=$1; subject=$0 }
-      /Refs:|Fixes|Closes|Resolves/ { needs_ref=0 }
-      /^---$/ { if (needs_ref) print "Missing issue ref: " subject; needs_ref=0 }
-    '
+      # Check that every feat/fix commit has a "Refs:" or "Fixes" footer
+      git log --format="%H %s%n%b---" origin/${{ github.base_ref }}..HEAD | \
+      awk '
+        /^[a-f0-9]+ (feat|fix)/ { needs_ref=1; sha=$1; subject=$0 }
+        /Refs:|Fixes|Closes|Resolves/ { needs_ref=0 }
+        /^---$/ { if (needs_ref) print "Missing issue ref: " subject; needs_ref=0 }
+      '
 ```
 
 **Trade-offs:**
@@ -5701,11 +5701,11 @@ much shorter.
 Every process on Unix/Windows has three standard I/O streams, opened
 automatically by the OS before `main()` runs:
 
-| Stream   | File Descriptor | Python Object  | Default Destination | Purpose                                    |
-| -------- | --------------- | -------------- | ------------------- | ------------------------------------------ |
-| **stdin**  | 0             | `sys.stdin`    | Keyboard / pipe     | Input data (interactive prompts, piped data) |
-| **stdout** | 1             | `sys.stdout`   | Terminal / pipe      | Normal program output (results, reports)    |
-| **stderr** | 2             | `sys.stderr`   | Terminal / pipe      | Errors, warnings, diagnostics               |
+| Stream     | File Descriptor | Python Object | Default Destination | Purpose                                      |
+| ---------- | --------------- | ------------- | ------------------- | -------------------------------------------- |
+| **stdin**  | 0               | `sys.stdin`   | Keyboard / pipe     | Input data (interactive prompts, piped data) |
+| **stdout** | 1               | `sys.stdout`  | Terminal / pipe     | Normal program output (results, reports)     |
+| **stderr** | 2               | `sys.stderr`  | Terminal / pipe     | Errors, warnings, diagnostics                |
 
 ### Why Two Output Streams?
 
@@ -5781,12 +5781,12 @@ script is working correctly.
 
 Split output by intent:
 
-| What                        | Stream   | Python API            | Why                                                |
-| --------------------------- | -------- | --------------------- | -------------------------------------------------- |
-| Human status reports        | stdout   | `print()`             | Passes cleanly through pipes, Task, PowerShell     |
-| Errors and warnings         | stderr   | `log.error()` / `log.warning()` | Goes to stderr where it belongs          |
-| Machine-readable output     | stdout   | `print(json.dumps())` | Consumers expect data on stdout                    |
-| Debug/diagnostic info       | stderr   | `log.debug()`         | Hidden unless `--verbose`, doesn't pollute stdout  |
+| What                    | Stream | Python API                      | Why                                               |
+| ----------------------- | ------ | ------------------------------- | ------------------------------------------------- |
+| Human status reports    | stdout | `print()`                       | Passes cleanly through pipes, Task, PowerShell    |
+| Errors and warnings     | stderr | `log.error()` / `log.warning()` | Goes to stderr where it belongs                   |
+| Machine-readable output | stdout | `print(json.dumps())`           | Consumers expect data on stdout                   |
+| Debug/diagnostic info   | stderr | `log.debug()`                   | Hidden unless `--verbose`, doesn't pollute stdout |
 
 ```python
 # Before (broken on PowerShell):
@@ -5829,14 +5829,14 @@ This pattern appears in `scripts/clean.py` for the `--include-venv` confirmation
 Each stream has an encoding (`sys.stdout.encoding`). On modern Linux/macOS,
 it's almost always UTF-8. On Windows, it depends:
 
-| Terminal        | Default Encoding | Unicode Safe? |
-| --------------- | --------------- | ------------- |
-| Windows Terminal | UTF-8           | Yes           |
-| PowerShell 7    | UTF-8           | Yes           |
-| PowerShell 5.1  | Often CP1252    | No — ✓ → garbled |
-| cmd.exe         | CP437/CP1252    | No            |
-| VS Code terminal | UTF-8          | Yes           |
-| GitHub Actions  | UTF-8           | Yes           |
+| Terminal         | Default Encoding | Unicode Safe?    |
+| ---------------- | ---------------- | ---------------- |
+| Windows Terminal | UTF-8            | Yes              |
+| PowerShell 7     | UTF-8            | Yes              |
+| PowerShell 5.1   | Often CP1252     | No — ✓ → garbled |
+| cmd.exe          | CP437/CP1252     | No               |
+| VS Code terminal | UTF-8            | Yes              |
+| GitHub Actions   | UTF-8            | Yes              |
 
 This is why the project has `_colors.supports_unicode()` — it checks
 `sys.stdout.encoding` (with a `locale.getpreferredencoding()` fallback)
@@ -5982,12 +5982,12 @@ You never edit these — they're the baseline that everything else overrides.
 
 #### 2. User Settings — `settings.json`
 
-| Aspect       | Detail                                                                                  |
-| ------------ | --------------------------------------------------------------------------------------- |
+| Aspect       | Detail                                                                                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Location** | Windows: `%APPDATA%\Code\User\settings.json` · macOS: `~/Library/Application Support/Code/User/settings.json` · Linux: `~/.config/Code/User/settings.json` |
-| **Scope**    | Applies to **every** VS Code window, every project, every workspace                    |
-| **Commit?**  | **No** — this is personal to your machine                                               |
-| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open User Settings (JSON)`                              |
+| **Scope**    | Applies to **every** VS Code window, every project, every workspace                                                                                        |
+| **Commit?**  | **No** — this is personal to your machine                                                                                                                  |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open User Settings (JSON)`                                                                                                  |
 
 **What belongs here:**
 
@@ -6015,7 +6015,7 @@ You never edit these — they're the baseline that everything else overrides.
     "gitlens.ai.model": "vscode",
     "gitlens.ai.vscode.model": "copilot:gpt-4.1",
     "errorLens.enabled": true,
-    "cSpell.language": "en"
+    "cSpell.language": "en",
 }
 ```
 
@@ -6023,10 +6023,10 @@ You never edit these — they're the baseline that everything else overrides.
 
 | Aspect       | Detail                                                                       |
 | ------------ | ---------------------------------------------------------------------------- |
-| **Location** | Repo root (e.g., `my-project.code-workspace`)                               |
+| **Location** | Repo root (e.g., `my-project.code-workspace`)                                |
 | **Scope**    | Applies when you open the workspace file (`File → Open Workspace from File`) |
 | **Commit?**  | **Yes** — this is the team's shared baseline                                 |
-| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Workspace Settings (JSON)`              |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Workspace Settings (JSON)`               |
 
 A `.code-workspace` file is a JSON file with three top-level keys:
 
@@ -6062,12 +6062,12 @@ extension finds `.venv` automatically).
 
 #### 4. Folder Settings — `.vscode/settings.json`
 
-| Aspect       | Detail                                                              |
-| ------------ | ------------------------------------------------------------------- |
-| **Location** | `.vscode/settings.json` inside the project folder                   |
-| **Scope**    | Applies to files in that specific folder only                       |
-| **Commit?**  | **It depends** — see below                                          |
-| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Folder Settings (JSON)`        |
+| Aspect       | Detail                                                      |
+| ------------ | ----------------------------------------------------------- |
+| **Location** | `.vscode/settings.json` inside the project folder           |
+| **Scope**    | Applies to files in that specific folder only               |
+| **Commit?**  | **It depends** — see below                                  |
+| **Open it**  | `Ctrl+Shift+P` → `Preferences: Open Folder Settings (JSON)` |
 
 This is the **highest priority** settings file. It overrides everything above it.
 
@@ -6090,13 +6090,13 @@ while ignoring `.vscode/settings.json`.
 
 ### Workspace File vs Folder Settings — When to Use Which
 
-| Scenario                                     | Use                        |
-| -------------------------------------------- | -------------------------- |
-| Team-shared settings for a single-root repo  | `.code-workspace` file     |
-| Multi-root workspace (multiple project dirs) | `.code-workspace` file     |
-| Machine-specific overrides (interpreter path)| `.vscode/settings.json`    |
-| Project doesn't use a workspace file         | `.vscode/settings.json`    |
-| Personal preferences (not project-specific)  | User `settings.json`       |
+| Scenario                                      | Use                     |
+| --------------------------------------------- | ----------------------- |
+| Team-shared settings for a single-root repo   | `.code-workspace` file  |
+| Multi-root workspace (multiple project dirs)  | `.code-workspace` file  |
+| Machine-specific overrides (interpreter path) | `.vscode/settings.json` |
+| Project doesn't use a workspace file          | `.vscode/settings.json` |
+| Personal preferences (not project-specific)   | User `settings.json`    |
 
 ### What Happens When Settings Conflict
 
@@ -6131,7 +6131,7 @@ This means:
 
     // ── Extensions ──────────────────────────────────
     "gitlens.ai.model": "vscode",
-    "errorLens.enabled": true
+    "errorLens.enabled": true,
 }
 ```
 
@@ -6144,22 +6144,19 @@ This means:
         // Language-specific formatters the team agreed on
         "[python]": {
             "editor.defaultFormatter": "charliermarsh.ruff",
-            "editor.formatOnSave": true
+            "editor.formatOnSave": true,
         },
         // Project-specific file exclusions
         "files.exclude": {
             "**/__pycache__": true,
-            "**/*.egg-info": true
+            "**/*.egg-info": true,
         },
         // Line-length rulers matching project config
-        "editor.rulers": [88, 120]
+        "editor.rulers": [88, 120],
     },
     "extensions": {
-        "recommendations": [
-            "ms-python.python",
-            "charliermarsh.ruff"
-        ]
-    }
+        "recommendations": ["ms-python.python", "charliermarsh.ruff"],
+    },
 }
 ```
 
@@ -6187,11 +6184,11 @@ This means:
 
 ### Where This Project Defines Settings
 
-| File                                        | What it defines                                              |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| `simple-python-boilerplate.code-workspace`  | Shared formatter choices, file exclusions, rulers, indent rainbow colours, recommended extensions |
-| User `settings.json` (your machine)         | Personal theme, font, GitLens AI model, Error Lens, Copilot, spell checker, terminal profile     |
-| `.vscode/settings.json`                     | Not committed — used for machine-local overrides if needed   |
+| File                                       | What it defines                                                                                   |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `simple-python-boilerplate.code-workspace` | Shared formatter choices, file exclusions, rulers, indent rainbow colours, recommended extensions |
+| User `settings.json` (your machine)        | Personal theme, font, GitLens AI model, Error Lens, Copilot, spell checker, terminal profile      |
+| `.vscode/settings.json`                    | Not committed — used for machine-local overrides if needed                                        |
 
 ### Release & Versioning
 

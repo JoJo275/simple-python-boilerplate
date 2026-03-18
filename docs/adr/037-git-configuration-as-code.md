@@ -55,10 +55,10 @@ python scripts/git_doctor.py --apply-from git-config-reference.md
 
 Two preset modes for convenience:
 
-| Preset                      | Keys | Use case                     |
-| :-------------------------- | ---: | :--------------------------- |
-| `--apply-recommended`       |   62 | Full catalog baseline        |
-| `--apply-recommended-minimal` | 12 | Core high-impact keys only |
+| Preset                        | Keys | Use case                   |
+| :---------------------------- | ---: | :------------------------- |
+| `--apply-recommended`         |   62 | Full catalog baseline      |
+| `--apply-recommended-minimal` |   12 | Core high-impact keys only |
 
 Both support `--dry-run` for previewing.
 

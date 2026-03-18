@@ -32,10 +32,10 @@ Configuration lives in a single file:
 site_name: simple-python-boilerplate
 docs_dir: docs
 theme:
-  name: material
+    name: material
 plugins:
-  - search
-  - mkdocstrings
+    - search
+    - mkdocstrings
 ```
 
 Documentation source lives in `docs/` alongside ADRs, notes, and design docs.
@@ -96,8 +96,8 @@ Sphinx-based tool with MyST Markdown support.
 - [docs/](../../docs/) — Documentation source files
 - [pyproject.toml](../../pyproject.toml) — Dependencies in `[project.optional-dependencies.docs]`
 - [pyproject.toml](../../pyproject.toml) — Hatch scripts in `[tool.hatch.envs.docs.scripts]`:
-  - `hatch run docs:serve` — Live-reload dev server
-  - `hatch run docs:build` — Build static site (strict mode)
+    - `hatch run docs:serve` — Live-reload dev server
+    - `hatch run docs:build` — Build static site (strict mode)
 
 ## References
 

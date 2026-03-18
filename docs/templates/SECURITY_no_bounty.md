@@ -84,11 +84,11 @@ Instead, please report security vulnerabilities via one of the following methods
 3. **PGP Encrypted Email** (Optional)
    For sensitive communications, you may encrypt your report using our PGP key.
 
-   <!-- TODO (template users): Add your PGP key fingerprint (full 40-character
-        format), or remove this entire option if you don't use PGP:
-   Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
-   Public key: https://keys.openpgp.org/search?q=security@example.com
-   -->
+     <!-- TODO (template users): Add your PGP key fingerprint (full 40-character
+          format), or remove this entire option if you don't use PGP:
+     Key fingerprint: `XXXX XXXX XXXX XXXX XXXX  XXXX XXXX XXXX XXXX XXXX`
+     Public key: https://keys.openpgp.org/search?q=security@example.com
+     -->
 
 ### What to Include
 

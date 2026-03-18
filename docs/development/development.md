@@ -75,26 +75,26 @@ Install GitHub CLI:
 
 - **Windows (winget):**
 
-  ```bash
-  winget install --id GitHub.cli
-  ```
+    ```bash
+    winget install --id GitHub.cli
+    ```
 
 - **Windows (Chocolatey):**
 
-  ```bash
-  choco install gh
-  ```
+    ```bash
+    choco install gh
+    ```
 
 - **macOS (Homebrew):**
 
-  ```bash
-  brew install gh
-  ```
+    ```bash
+    brew install gh
+    ```
 
 - **Linux (Debian/Ubuntu):**
-  ```bash
-  sudo apt install gh
-  ```
+    ```bash
+    sudo apt install gh
+    ```
 
 After installation, authenticate with GitHub:
 

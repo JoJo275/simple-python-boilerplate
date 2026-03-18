@@ -242,6 +242,6 @@ action.
   guide if you're forking the boilerplate
 
 !!! tip "Something not working?"
-    See **[Troubleshooting & FAQ](troubleshooting.md)** for solutions to
-    common errors with installation, pre-commit hooks, Git, CI/CD, testing,
-    documentation builds, and more. Check there before opening an issue.
+See **[Troubleshooting & FAQ](troubleshooting.md)** for solutions to
+common errors with installation, pre-commit hooks, Git, CI/CD, testing,
+documentation builds, and more. Check there before opening an issue.

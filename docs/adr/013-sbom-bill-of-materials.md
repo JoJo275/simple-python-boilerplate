@@ -45,12 +45,12 @@ Channels 1 and 4 populate the same Dependency Graph UI but may differ because (1
 3. **Generator: Syft** (via `anchore/sbom-action`) — single tool produces both formats; actively maintained; first-party GitHub Action available.
 4. **Enable all four distribution channels simultaneously:**
 
-   | Channel                      | Workflow                      | Authoritative?                                  |
-   | ---------------------------- | ----------------------------- | ----------------------------------------------- |
-   | 1. Dependency Graph export   | Built-in (no workflow needed) | No — GitHub-computed, may differ                |
-   | 2. Actions artifact          | `sbom.yml`                    | No — per-commit snapshot                        |
-   | 3. Release asset             | `release.yml`                 | **Yes — authoritative for each tagged version** |
-   | 4. Dependency Submission API | `sbom.yml` (push to main)     | No — enriches GitHub UI/alerts                  |
+    | Channel                      | Workflow                      | Authoritative?                                  |
+    | ---------------------------- | ----------------------------- | ----------------------------------------------- |
+    | 1. Dependency Graph export   | Built-in (no workflow needed) | No — GitHub-computed, may differ                |
+    | 2. Actions artifact          | `sbom.yml`                    | No — per-commit snapshot                        |
+    | 3. Release asset             | `release.yml`                 | **Yes — authoritative for each tagged version** |
+    | 4. Dependency Submission API | `sbom.yml` (push to main)     | No — enriches GitHub UI/alerts                  |
 
 5. **Authoritative SBOM:** The release-asset SBOM (channel 3) attached to a tagged release is the authoritative SBOM for that version. It is generated from the same commit that produced the release artifacts.
 

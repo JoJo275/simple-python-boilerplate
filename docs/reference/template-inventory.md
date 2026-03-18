@@ -13,26 +13,26 @@ the project consistent.
 
 ## Quick Reference
 
-| Category           | Template / Example                              | Location                                                                       | Notes                                                            |
-| :----------------- | :---------------------------------------------- | :----------------------------------------------------------------------------- | :--------------------------------------------------------------- |
-| **ADR**            | ADR template                                    | [`docs/adr/template.md`](../adr/template.md)                                  | Copy to `NNN-short-title.md`, fill in sections                   |
-| **Workflow**       | Any existing workflow                           | [`.github/workflows/*.yml`](../../.github/workflows/)                          | Follow repo guard pattern, SHA-pinned actions, naming conventions |
-| **Script (CLI)**   | Any script in `scripts/`                        | [`scripts/`](../../scripts/)                                                   | Use argparse, shebang, logging; mark executable in git            |
-| **Script (lib)**   | Shared progress module                          | [`scripts/_progress.py`](../../scripts/_progress.py)                           | Underscore prefix = internal module, not a CLI                   |
-| **MkDocs hook**    | repo_links hook                                 | [`mkdocs-hooks/repo_links.py`](../../mkdocs-hooks/repo_links.py)              | Register in `mkdocs.yml` under `hooks:`                          |
-| **Migration**      | Example SQL migration                           | [`db/migrations/001_example_migration.sql`](../../db/migrations/001_example_migration.sql) | Numbered, idempotent, with rollback                  |
-| **Seed**           | Example seed data                               | [`db/seeds/001_example_seed.sql`](../../db/seeds/001_example_seed.sql)         | Numbered, idempotent                                             |
-| **SQL query**      | Example queries                                 | [`db/queries/example_queries.sql`](../../db/queries/example_queries.sql)       | Documented queries for common operations                         |
-| **Security policy**| Standard (no bounty)                            | [`docs/templates/SECURITY_no_bounty.md`](../templates/SECURITY_no_bounty.md)   | Copy to repo root as `SECURITY.md`                               |
-| **Security policy**| With bug bounty                                 | [`docs/templates/SECURITY_with_bounty.md`](../templates/SECURITY_with_bounty.md) | Copy to repo root as `SECURITY.md`                             |
-| **Bug bounty**     | Standalone bounty policy                        | [`docs/templates/BUG_BOUNTY.md`](../templates/BUG_BOUNTY.md)                  | Link from `SECURITY.md`                                          |
-| **PR template**    | Pull request description                        | [`docs/templates/pull-request-draft.md`](../templates/pull-request-draft.md)   | Copy to `.github/PULL_REQUEST_TEMPLATE.md`                       |
-| **Issue template** | Bug report, feature request, docs               | [`.github/ISSUE_TEMPLATE/*.yml`](../../.github/ISSUE_TEMPLATE/)                | YAML-based issue forms                                           |
-| **Issue template** | Additional templates (question, perf)           | [`docs/templates/issue_templates/`](../templates/issue_templates/README.md)     | Copy what you need to `.github/ISSUE_TEMPLATE/`                  |
-| **VS Code**        | Workspace settings                              | [`*.code-workspace`](../../simple-python-boilerplate.code-workspace)           | Extensions, settings, file exclusions                            |
-| **Experiment**     | API test, data exploration                      | [`experiments/`](../../experiments/)                                            | Throwaway scripts, not part of the package                       |
-| **Commit message** | Conventional commit template                    | [`.gitmessage.txt`](../../.gitmessage.txt)                                     | `git config commit.template .gitmessage.txt`                     |
-| **Repo doctor**    | Health check rules                              | [`repo_doctor.d/*.toml`](../../repo_doctor.d/)                                 | Add new `.toml` rule files per category                          |
+| Category            | Template / Example                    | Location                                                                                   | Notes                                                             |
+| :------------------ | :------------------------------------ | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------- |
+| **ADR**             | ADR template                          | [`docs/adr/template.md`](../adr/template.md)                                               | Copy to `NNN-short-title.md`, fill in sections                    |
+| **Workflow**        | Any existing workflow                 | [`.github/workflows/*.yml`](../../.github/workflows/)                                      | Follow repo guard pattern, SHA-pinned actions, naming conventions |
+| **Script (CLI)**    | Any script in `scripts/`              | [`scripts/`](../../scripts/)                                                               | Use argparse, shebang, logging; mark executable in git            |
+| **Script (lib)**    | Shared progress module                | [`scripts/_progress.py`](../../scripts/_progress.py)                                       | Underscore prefix = internal module, not a CLI                    |
+| **MkDocs hook**     | repo_links hook                       | [`mkdocs-hooks/repo_links.py`](../../mkdocs-hooks/repo_links.py)                           | Register in `mkdocs.yml` under `hooks:`                           |
+| **Migration**       | Example SQL migration                 | [`db/migrations/001_example_migration.sql`](../../db/migrations/001_example_migration.sql) | Numbered, idempotent, with rollback                               |
+| **Seed**            | Example seed data                     | [`db/seeds/001_example_seed.sql`](../../db/seeds/001_example_seed.sql)                     | Numbered, idempotent                                              |
+| **SQL query**       | Example queries                       | [`db/queries/example_queries.sql`](../../db/queries/example_queries.sql)                   | Documented queries for common operations                          |
+| **Security policy** | Standard (no bounty)                  | [`docs/templates/SECURITY_no_bounty.md`](../templates/SECURITY_no_bounty.md)               | Copy to repo root as `SECURITY.md`                                |
+| **Security policy** | With bug bounty                       | [`docs/templates/SECURITY_with_bounty.md`](../templates/SECURITY_with_bounty.md)           | Copy to repo root as `SECURITY.md`                                |
+| **Bug bounty**      | Standalone bounty policy              | [`docs/templates/BUG_BOUNTY.md`](../templates/BUG_BOUNTY.md)                               | Link from `SECURITY.md`                                           |
+| **PR template**     | Pull request description              | [`docs/templates/pull-request-draft.md`](../templates/pull-request-draft.md)               | Copy to `.github/PULL_REQUEST_TEMPLATE.md`                        |
+| **Issue template**  | Bug report, feature request, docs     | [`.github/ISSUE_TEMPLATE/*.yml`](../../.github/ISSUE_TEMPLATE/)                            | YAML-based issue forms                                            |
+| **Issue template**  | Additional templates (question, perf) | [`docs/templates/issue_templates/`](../templates/issue_templates/README.md)                | Copy what you need to `.github/ISSUE_TEMPLATE/`                   |
+| **VS Code**         | Workspace settings                    | [`*.code-workspace`](../../simple-python-boilerplate.code-workspace)                       | Extensions, settings, file exclusions                             |
+| **Experiment**      | API test, data exploration            | [`experiments/`](../../experiments/)                                                       | Throwaway scripts, not part of the package                        |
+| **Commit message**  | Conventional commit template          | [`.gitmessage.txt`](../../.gitmessage.txt)                                                 | `git config commit.template .gitmessage.txt`                      |
+| **Repo doctor**     | Health check rules                    | [`repo_doctor.d/*.toml`](../../repo_doctor.d/)                                             | Add new `.toml` rule files per category                           |
 
 ---
 

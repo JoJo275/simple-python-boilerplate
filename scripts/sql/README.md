@@ -7,10 +7,10 @@ Scratch space for SQL experimentation and one-off scripts.
 
 ## Contents
 
-| Script                                             | Description                    |
-| -------------------------------------------------- | ------------------------------ |
-| [reset.sql](reset.sql)                             | Reset database (drop/recreate) |
-| [scratch.example.sql](scratch.example.sql)         | Template for ad-hoc queries    |
+| Script                                     | Description                    |
+| ------------------------------------------ | ------------------------------ |
+| [reset.sql](reset.sql)                     | Reset database (drop/recreate) |
+| [scratch.example.sql](scratch.example.sql) | Template for ad-hoc queries    |
 
 ## Usage
 

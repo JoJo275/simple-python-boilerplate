@@ -175,15 +175,15 @@ See [workflows.md](workflows.md) for full workflow documentation.
 
 ### Development Experience
 
-| Path                      | Purpose                                          | What Breaks If Removed                |
-| ------------------------- | ------------------------------------------------ | ------------------------------------- |
-| `.pre-commit-config.yaml` | Pre-commit hooks                                 | Local checks disabled                 |
-| `requirements-dev.txt`    | Dev dependencies list                            | Unclear what to install               |
-| `.gitignore`              | Exclude generated files                          | Caches committed to git               |
-| `.gitattributes`          | Line ending normalization, diff drivers, binary file detection, linguist stats | Cross-platform line ending mismatches |
-| `.editorconfig`           | Cross-editor indent, charset, EOL, trailing whitespace rules | Inconsistent formatting across editors |
-| `.gitmessage.txt`         | Commit message template (Conventional Commits)   | No guided commit format               |
-| `git-config-reference.md` | Generated git config reference (via `git_doctor.py --export-config`) | Regenerated on demand; informational only |
+| Path                      | Purpose                                                                        | What Breaks If Removed                    |
+| ------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------- |
+| `.pre-commit-config.yaml` | Pre-commit hooks                                                               | Local checks disabled                     |
+| `requirements-dev.txt`    | Dev dependencies list                                                          | Unclear what to install                   |
+| `.gitignore`              | Exclude generated files                                                        | Caches committed to git                   |
+| `.gitattributes`          | Line ending normalization, diff drivers, binary file detection, linguist stats | Cross-platform line ending mismatches     |
+| `.editorconfig`           | Cross-editor indent, charset, EOL, trailing whitespace rules                   | Inconsistent formatting across editors    |
+| `.gitmessage.txt`         | Commit message template (Conventional Commits)                                 | No guided commit format                   |
+| `git-config-reference.md` | Generated git config reference (via `git_doctor.py --export-config`)           | Regenerated on demand; informational only |
 
 ### Optional Components
 

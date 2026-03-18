@@ -21,11 +21,11 @@ correctly during the docs build.
 
 ## Sections
 
-| Page                                            | Description                                |
-| ----------------------------------------------- | ------------------------------------------ |
-| [API](api.md)                                   | Public modules: engine, main, cli, and api |
-| [Commands](commands.md)                         | Auto-generated task & script reference     |
-| [Template Inventory](template-inventory.md)     | Templates, examples, and file conventions  |
+| Page                                        | Description                                |
+| ------------------------------------------- | ------------------------------------------ |
+| [API](api.md)                               | Public modules: engine, main, cli, and api |
+| [Commands](commands.md)                     | Auto-generated task & script reference     |
+| [Template Inventory](template-inventory.md) | Templates, examples, and file conventions  |
 
 ## Writing good docstrings
 

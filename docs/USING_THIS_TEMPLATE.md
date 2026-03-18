@@ -20,22 +20,22 @@ fit your project.
 2. **Run the customization script** — handles placeholders, package
    renaming, license selection, and optional directory stripping:
 
-   ```bash
-   python scripts/customize.py          # interactive
-   python scripts/customize.py --dry-run # preview changes first
-   ```
+    ```bash
+    python scripts/customize.py          # interactive
+    python scripts/customize.py --dry-run # preview changes first
+    ```
 
-   Or do it manually: find-and-replace all placeholders (see
-   [Placeholders to Replace](#placeholders-to-replace)), delete what you
-   don't need, and customize the remaining files.
+    Or do it manually: find-and-replace all placeholders (see
+    [Placeholders to Replace](#placeholders-to-replace)), delete what you
+    don't need, and customize the remaining files.
 
 3. **Bootstrap your environment** — installs Hatch envs, pre-commit hooks,
    and verifies the setup:
 
-   ```bash
-   python scripts/bootstrap.py          # full setup
-   python scripts/bootstrap.py --dry-run # preview
-   ```
+    ```bash
+    python scripts/bootstrap.py          # full setup
+    python scripts/bootstrap.py --dry-run # preview
+    ```
 
 > **What's the difference?** [`scripts/customize.py`](../scripts/customize.py)
 > rewrites files (renames packages, swaps placeholders, changes the license).
@@ -146,7 +146,7 @@ For the security scanning CI setup, see [ADR 012](adr/012-multi-layer-security-s
 After creating your repo, consider enabling:
 
 - [ ] **Discussions** — For Q&A and community conversations (also enables the
-  Discussions link in the [Need Help?](#need-help) section below)
+      Discussions link in the [Need Help?](#need-help) section below)
 - [ ] **Private vulnerability reporting** — For security issues
 - [ ] **Dependabot alerts** — For dependency vulnerabilities
 - [ ] **Dependabot security updates** — Auto-create PRs for vulnerable deps
@@ -308,16 +308,16 @@ Not every project needs all 36 workflows:
 
 ### Workflow Categories
 
-| Category          | Workflows                                                                                                                | Always run?                                  |
-| :---------------- | :----------------------------------------------------------------------------------------------------------------------- | :------------------------------------------- |
-| **Quality**       | test, lint-format, type-check, coverage, spellcheck, spellcheck-autofix, todo-check                                      | Yes — in CI gate (except spellcheck-autofix, todo-check) |
-| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard, license-check                      | Mixed — some path-filtered                   |
-| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                                            | Yes — in CI gate                             |
-| **Release**       | release-please, release, sbom                                                                                             | Push to main / tags only                     |
-| **Documentation** | docs-build, docs-deploy                                                                                                   | docs-build in gate; deploy is path-filtered  |
-| **Container**     | container-build, container-scan, devcontainer-build                                                                       | container-build in gate; devcontainer path-filtered |
-| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor, doctor-all | Scheduled / event-triggered             |
-| **Gate**          | ci-gate                                                                                                                   | Yes — the single required check              |
+| Category          | Workflows                                                                                                                                   | Always run?                                              |
+| :---------------- | :------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------- |
+| **Quality**       | test, lint-format, type-check, coverage, spellcheck, spellcheck-autofix, todo-check                                                         | Yes — in CI gate (except spellcheck-autofix, todo-check) |
+| **Security**      | security-audit, bandit, dependency-review, CodeQL, container-scan, nightly, scorecard, license-check                                        | Mixed — some path-filtered                               |
+| **PR Hygiene**    | pr-title, commit-lint, labeler                                                                                                              | Yes — in CI gate                                         |
+| **Release**       | release-please, release, sbom                                                                                                               | Push to main / tags only                                 |
+| **Documentation** | docs-build, docs-deploy                                                                                                                     | docs-build in gate; deploy is path-filtered              |
+| **Container**     | container-build, container-scan, devcontainer-build                                                                                         | container-build in gate; devcontainer path-filtered      |
+| **Maintenance**   | pre-commit-update, stale, link-checker, auto-merge-dependabot, cache-cleanup, regenerate-files, known-issues-check, repo-doctor, doctor-all | Scheduled / event-triggered                              |
+| **Gate**          | ci-gate                                                                                                                                     | Yes — the single required check                          |
 
 ---
 
@@ -388,24 +388,24 @@ project setup, maintenance, and diagnostics. Each script supports
 `--help` for full flag details (also documented in the docstring at
 the top of each file).
 
-| Script                                                    | Purpose                                                        | Key flags                                                   |
-| :-------------------------------------------------------- | :------------------------------------------------------------- | :---------------------------------------------------------- |
-| [`customize.py`](../scripts/customize.py)                 | Replace boilerplate placeholders, rename package, swap license | `--dry-run`, `--non-interactive`, `--enable-workflows SLUG` |
-| [`bootstrap.py`](../scripts/bootstrap.py)                 | One-command dev environment setup (Hatch envs, hooks, verify)  | `--dry-run`, `--skip-hooks`, `--skip-test-matrix`           |
-| [`clean.py`](../scripts/clean.py)                         | Remove build artifacts and caches                              | `--dry-run`, `--include-venv`                               |
-| [`doctor.py`](../scripts/doctor.py)                       | Diagnostics bundle for bug reports                             | `--markdown`, `--json`, `--output PATH`                     |
-| [`env_doctor.py`](../scripts/env_doctor.py)               | Quick environment health check                                 | `--strict`, `--json`                                        |
-| [`repo_doctor.py`](../scripts/repo_doctor.py)             | Repository structure health checks (configurable rules)        | `--profile NAME`, `--fix`, `--category NAME`                |
-| [`dep_versions.py`](../scripts/dep_versions.py)           | Show/update/upgrade dependency versions                        | `show --offline`, `upgrade --dry-run`                       |
-| [`workflow_versions.py`](../scripts/workflow_versions.py) | Show/update/upgrade SHA-pinned GitHub Actions                  | `show --filter stale`, `upgrade --dry-run`                  |
-| [`git_doctor.py`](../scripts/git_doctor.py)               | Git health dashboard, config management, branch ops            | `--refresh`, `--cleanup`, `--view-commits`, `--apply-recommended` |
-| [`check_todos.py`](../scripts/check_todos.py)             | Scan for remaining TODO (template users) comments              | `--count`, `--json`                                         |
-| [`archive_todos.py`](../scripts/archive_todos.py)         | Archive completed TODOs from notes                             | `--dry-run`, `--no-backup`                                  |
-| [`changelog_check.py`](../scripts/changelog_check.py)     | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                      |
-| [`check_known_issues.py`](../scripts/check_known_issues.py) | Flag stale Resolved entries in known-issues.md               | `--days N`, `--json`, `--quiet`                             |
-| [`apply_labels.py`](../scripts/apply_labels.py)           | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                    |
-| [`test_containerfile.py`](../scripts/test_containerfile.py) | Test the Containerfile image: build, validate, clean up      | `--dry-run`, `--keep`                                       |
-| [`test_docker_compose.py`](../scripts/test_docker_compose.py) | Test docker compose stack: build, run, validate, clean up  | `--dry-run`                                                 |
+| Script                                                        | Purpose                                                        | Key flags                                                         |
+| :------------------------------------------------------------ | :------------------------------------------------------------- | :---------------------------------------------------------------- |
+| [`customize.py`](../scripts/customize.py)                     | Replace boilerplate placeholders, rename package, swap license | `--dry-run`, `--non-interactive`, `--enable-workflows SLUG`       |
+| [`bootstrap.py`](../scripts/bootstrap.py)                     | One-command dev environment setup (Hatch envs, hooks, verify)  | `--dry-run`, `--skip-hooks`, `--skip-test-matrix`                 |
+| [`clean.py`](../scripts/clean.py)                             | Remove build artifacts and caches                              | `--dry-run`, `--include-venv`                                     |
+| [`doctor.py`](../scripts/doctor.py)                           | Diagnostics bundle for bug reports                             | `--markdown`, `--json`, `--output PATH`                           |
+| [`env_doctor.py`](../scripts/env_doctor.py)                   | Quick environment health check                                 | `--strict`, `--json`                                              |
+| [`repo_doctor.py`](../scripts/repo_doctor.py)                 | Repository structure health checks (configurable rules)        | `--profile NAME`, `--fix`, `--category NAME`                      |
+| [`dep_versions.py`](../scripts/dep_versions.py)               | Show/update/upgrade dependency versions                        | `show --offline`, `upgrade --dry-run`                             |
+| [`workflow_versions.py`](../scripts/workflow_versions.py)     | Show/update/upgrade SHA-pinned GitHub Actions                  | `show --filter stale`, `upgrade --dry-run`                        |
+| [`git_doctor.py`](../scripts/git_doctor.py)                   | Git health dashboard, config management, branch ops            | `--refresh`, `--cleanup`, `--view-commits`, `--apply-recommended` |
+| [`check_todos.py`](../scripts/check_todos.py)                 | Scan for remaining TODO (template users) comments              | `--count`, `--json`                                               |
+| [`archive_todos.py`](../scripts/archive_todos.py)             | Archive completed TODOs from notes                             | `--dry-run`, `--no-backup`                                        |
+| [`changelog_check.py`](../scripts/changelog_check.py)         | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                            |
+| [`check_known_issues.py`](../scripts/check_known_issues.py)   | Flag stale Resolved entries in known-issues.md                 | `--days N`, `--json`, `--quiet`                                   |
+| [`apply_labels.py`](../scripts/apply_labels.py)               | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                          |
+| [`test_containerfile.py`](../scripts/test_containerfile.py)   | Test the Containerfile image: build, validate, clean up        | `--dry-run`, `--keep`                                             |
+| [`test_docker_compose.py`](../scripts/test_docker_compose.py) | Test docker compose stack: build, run, validate, clean up      | `--dry-run`                                                       |
 
 Bash equivalents (`test_containerfile.sh`, `test_docker_compose.sh`) are also
 available for shell-based CI pipelines.
@@ -600,15 +600,15 @@ separate images**. The Dev Container pulls the
 **Setup:**
 
 1. **Install prerequisites:**
-   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Podman)
-   - [VS Code](https://code.visualstudio.com/)
-   - [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+    - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Podman)
+    - [VS Code](https://code.visualstudio.com/)
+    - [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
 2. **Open in container:**
-   - Open the project in VS Code
-   - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
-   - Run "Dev Containers: Reopen in Container"
-   - Wait for the container to build and `postCreateCommand` to finish
+    - Open the project in VS Code
+    - Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+    - Run "Dev Containers: Reopen in Container"
+    - Wait for the container to build and `postCreateCommand` to finish
 
 3. **Start working:** Everything is ready — Hatch env, pre-commit hooks,
    extensions, and settings are all configured.
@@ -654,12 +654,12 @@ running as root" before deployment.
 
 **What gets tested** (defined in `container-structure-test.yml`):
 
-| Category          | Tests                                                              |
-| :---------------- | :----------------------------------------------------------------- |
-| **Metadata**      | Entrypoint, user, workdir, env vars (PYTHONDONTWRITEBYTECODE, etc) |
-| **Commands**      | Python installed, package importable, pip available, no gcc, non-root user, UID/GID |
-| **File existence**| /app dir exists, /home/app exists                                  |
-| **File content**  | /etc/passwd and /etc/group contain the app user/group              |
+| Category           | Tests                                                                               |
+| :----------------- | :---------------------------------------------------------------------------------- |
+| **Metadata**       | Entrypoint, user, workdir, env vars (PYTHONDONTWRITEBYTECODE, etc)                  |
+| **Commands**       | Python installed, package importable, pip available, no gcc, non-root user, UID/GID |
+| **File existence** | /app dir exists, /home/app exists                                                   |
+| **File content**   | /etc/passwd and /etc/group contain the app user/group                               |
 
 **Setup:**
 
@@ -831,12 +831,12 @@ python scripts/test_containerfile.py --dry-run # Preview without executing
 
 **Troubleshooting:**
 
-| Problem | Solution |
-| :------ | :------- |
-| `failed to connect to the docker API` | Docker Desktop is not running. Start it from the Start menu / system tray. |
-| `port is already allocated` | Another process is using the port. Change the host port in `docker-compose.yml` (e.g., `9000:8000`). |
-| Build fails at `pip install` | Check that `pyproject.toml` and `src/` are correct. Run `python -m build` locally first to verify. |
-| Container exits immediately | Check `docker compose logs`. For CLI tools, this is normal — the command ran and exited. Use `docker compose run` instead of `up`. |
+| Problem                               | Solution                                                                                                                           |
+| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------- |
+| `failed to connect to the docker API` | Docker Desktop is not running. Start it from the Start menu / system tray.                                                         |
+| `port is already allocated`           | Another process is using the port. Change the host port in `docker-compose.yml` (e.g., `9000:8000`).                               |
+| Build fails at `pip install`          | Check that `pyproject.toml` and `src/` are correct. Run `python -m build` locally first to verify.                                 |
+| Container exits immediately           | Check `docker compose logs`. For CLI tools, this is normal — the command ran and exited. Use `docker compose run` instead of `up`. |
 
 ---
 
@@ -880,10 +880,10 @@ task docs:commands -- --dry-run # Preview output without writing to disk
 ```
 
 !!! tip "How auto-generation works"
-    The `mkdocs-hooks/generate_commands.py` hook runs during `on_pre_build`,
-    imports the generator from `scripts/generate_command_reference.py`, and
-    writes the output to `docs/reference/commands.md` only if the content
-    has changed (avoiding unnecessary live-reload triggers during `mkdocs serve`).
+The `mkdocs-hooks/generate_commands.py` hook runs during `on_pre_build`,
+imports the generator from `scripts/generate_command_reference.py`, and
+writes the output to `docs/reference/commands.md` only if the content
+has changed (avoiding unnecessary live-reload triggers during `mkdocs serve`).
 
     To disable auto-generation, add to `mkdocs.yml`:
 
@@ -928,24 +928,24 @@ and the docs you don't need.
 Three files work together to ensure consistent formatting and line endings
 across editors, operating systems, and git operations:
 
-| File | Controls | Applies where |
-| :--- | :------- | :------------ |
-| `.editorconfig` | Indentation, charset, trailing whitespace, final newline | Any editor that supports EditorConfig (VS Code via extension, JetBrains natively, etc.) |
-| `.gitattributes` | Line ending normalization in git, diff drivers, binary file detection, linguist stats | Git operations (commit, checkout, diff, archive) |
-| `.vscode/settings.json` | Formatter choice, format-on-save, rulers, test runner, file exclusions | VS Code only |
+| File                    | Controls                                                                              | Applies where                                                                           |
+| :---------------------- | :------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------- |
+| `.editorconfig`         | Indentation, charset, trailing whitespace, final newline                              | Any editor that supports EditorConfig (VS Code via extension, JetBrains natively, etc.) |
+| `.gitattributes`        | Line ending normalization in git, diff drivers, binary file detection, linguist stats | Git operations (commit, checkout, diff, archive)                                        |
+| `.vscode/settings.json` | Formatter choice, format-on-save, rulers, test runner, file exclusions                | VS Code only                                                                            |
 
 ### How They Relate
 
 These files target **different layers** of the editing and version control
 pipeline:
 
-1. **`.editorconfig`** sets editor behavior *as you type* — indent size,
+1. **`.editorconfig`** sets editor behavior _as you type_ — indent size,
    tab vs. spaces, line endings in the editor buffer, trailing whitespace
    trimming. It's editor-agnostic: any IDE that supports the standard reads
    it. In VS Code, the [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
    applies these rules automatically.
 
-2. **`.gitattributes`** controls what happens when files pass *through git* —
+2. **`.gitattributes`** controls what happens when files pass _through git_ —
    normalizing line endings on commit (`* text=auto eol=lf`), forcing LF for
    shell scripts even on Windows, marking binary files so git doesn't try to
    diff them, and setting diff drivers (`*.py diff=python`) for better hunk
@@ -990,11 +990,11 @@ read and write individual settings via the terminal.
 
 Git config has three scopes, each stored in a different file:
 
-| Scope | File location | Applies to | Set with |
-| :---- | :------------ | :--------- | :------- |
-| **system** | `/etc/gitconfig` (Linux/macOS) or `C:\Program Files\Git\etc\gitconfig` (Windows) | All users on the machine | `git config --system <key> <value>` |
-| **global** | `~/.gitconfig` or `~/.config/git/config` | All your repositories | `git config --global <key> <value>` |
-| **local** | `.git/config` in the repository | This repository only | `git config --local <key> <value>` (or just `git config <key> <value>`) |
+| Scope      | File location                                                                    | Applies to               | Set with                                                                |
+| :--------- | :------------------------------------------------------------------------------- | :----------------------- | :---------------------------------------------------------------------- |
+| **system** | `/etc/gitconfig` (Linux/macOS) or `C:\Program Files\Git\etc\gitconfig` (Windows) | All users on the machine | `git config --system <key> <value>`                                     |
+| **global** | `~/.gitconfig` or `~/.config/git/config`                                         | All your repositories    | `git config --global <key> <value>`                                     |
+| **local**  | `.git/config` in the repository                                                  | This repository only     | `git config --local <key> <value>` (or just `git config <key> <value>`) |
 
 **Precedence:** local > global > system. A local setting overrides global,
 which overrides system.
@@ -1041,19 +1041,19 @@ see [git-config-reference.md](../git-config-reference.md) (generated by
 
 ## Further Reading
 
-| Topic                              | Document                                                           |
-| :--------------------------------- | :----------------------------------------------------------------- |
-| Repo layout explained              | [repo-layout.md](repo-layout.md)                                  |
-| All tools at a glance              | [tooling.md](tooling.md)                                          |
-| Why each tool was chosen           | [tool-decisions.md](design/tool-decisions.md)                     |
-| Architecture overview              | [architecture.md](design/architecture.md)                         |
-| Templates & examples inventory     | [template-inventory.md](reference/template-inventory.md)          |
-| Known issues & tech debt           | [known-issues.md](known-issues.md)                                |
-| Learning resources (links)         | [resources_links.md](notes/resources_links.md)                    |
-| Learning resources (written)       | [resources_written.md](notes/resources_written.md)                |
-| Release policy                     | [releasing.md](releasing.md)                                      |
-| Contributing guide                 | [CONTRIBUTING.md](../CONTRIBUTING.md)                             |
-| ADR index                          | [docs/adr/](adr/README.md)                                        |
+| Topic                          | Document                                                 |
+| :----------------------------- | :------------------------------------------------------- |
+| Repo layout explained          | [repo-layout.md](repo-layout.md)                         |
+| All tools at a glance          | [tooling.md](tooling.md)                                 |
+| Why each tool was chosen       | [tool-decisions.md](design/tool-decisions.md)            |
+| Architecture overview          | [architecture.md](design/architecture.md)                |
+| Templates & examples inventory | [template-inventory.md](reference/template-inventory.md) |
+| Known issues & tech debt       | [known-issues.md](known-issues.md)                       |
+| Learning resources (links)     | [resources_links.md](notes/resources_links.md)           |
+| Learning resources (written)   | [resources_written.md](notes/resources_written.md)       |
+| Release policy                 | [releasing.md](releasing.md)                             |
+| Contributing guide             | [CONTRIBUTING.md](../CONTRIBUTING.md)                    |
+| ADR index                      | [docs/adr/](adr/README.md)                               |
 
 ---
 
@@ -1062,10 +1062,10 @@ see [git-config-reference.md](../git-config-reference.md) (generated by
 This template uses **two complementary VS Code configuration files** with
 different scopes and purposes:
 
-| File | Committed? | Who it's for | What it controls |
-| :--- | :--------: | :----------- | :--------------- |
+| File                    |  Committed?  | Who it's for     | What it controls                                                               |
+| :---------------------- | :----------: | :--------------- | :----------------------------------------------------------------------------- |
 | `.vscode/settings.json` | Yes (shared) | All contributors | Project-functional settings: formatters, linters, test config, file exclusions |
-| `.code-workspace` | Yes (shared) | All contributors | Extension recommendations, cosmetic preferences (indentRainbow) |
+| `.code-workspace`       | Yes (shared) | All contributors | Extension recommendations, cosmetic preferences (indentRainbow)                |
 
 ### How They Work Together
 
@@ -1092,17 +1092,17 @@ functional settings should be authoritative.
      See .gitignore for the corresponding TODO. -->
 
 **Personal overrides:** If you need to override a shared setting for your
-local environment only, use VS Code's *User Settings* (`Ctrl+,` → User tab)
+local environment only, use VS Code's _User Settings_ (`Ctrl+,` → User tab)
 or a profile. User Settings take lowest priority so they won't affect
 other contributors.
 
 ### When Does Each File Load?
 
-| Open method                       | `.vscode/settings.json` | `.code-workspace` |
-| :-------------------------------- | :---------------------: | :----------------: |
-| **File → Open Folder**            | Yes                     | Ignored            |
-| **File → Open Workspace from File** | Yes (folder-level)   | Yes (supplements)  |
-| **Codespaces / Dev Containers**   | Yes                     | Ignored            |
+| Open method                         | `.vscode/settings.json` | `.code-workspace` |
+| :---------------------------------- | :---------------------: | :---------------: |
+| **File → Open Folder**              |           Yes           |      Ignored      |
+| **File → Open Workspace from File** |   Yes (folder-level)    | Yes (supplements) |
+| **Codespaces / Dev Containers**     |           Yes           |      Ignored      |
 
 This means `.vscode/settings.json` works regardless of how the project is
 opened, making it the right place for functional settings (formatters,
@@ -1122,10 +1122,10 @@ extension recommendations in one place.
 
 ### What It Provides
 
-| Section         | What it controls                                                                     |
-| :-------------- | :----------------------------------------------------------------------------------- |
-| **Settings**    | Python formatter (Ruff), format-on-save, Markdown word wrap, file exclusions, rulers |
-| **Extensions**  | Recommended extensions that VS Code prompts to install on first open                 |
+| Section        | What it controls                                                                     |
+| :------------- | :----------------------------------------------------------------------------------- |
+| **Settings**   | Python formatter (Ruff), format-on-save, Markdown word wrap, file exclusions, rulers |
+| **Extensions** | Recommended extensions that VS Code prompts to install on first open                 |
 
 ### Opening the Workspace
 
@@ -1144,34 +1144,34 @@ should review both and remove or comment out anything that doesn't apply.
 
 **Project-essential** — directly tied to project tooling and CI:
 
-| Extension | Why it's included |
-| :--- | :--- |
-| `ms-python.python` + `ms-python.vscode-pylance` | Core Python IntelliSense |
-| `ms-python.mypy-type-checker` | Real-time type error feedback (matches CI mypy) |
-| `charliermarsh.ruff` | In-editor linting + format-on-save (Ruff is the CLI linter, the extension gives live feedback) |
-| `DavidAnson.vscode-markdownlint` | Markdown lint errors inline |
-| `esbenp.prettier-vscode` | Markdown/YAML/JSON formatting |
-| `bierner.markdown-mermaid` | Renders mermaid diagrams in VS Code's Markdown preview (e.g., [releasing.md](releasing.md)) |
-| `tamasfe.even-better-toml` | TOML syntax for `pyproject.toml` |
-| `redhat.vscode-yaml` | YAML validation for workflows and configs |
-| `eamodio.gitlens` | Git blame, history, and annotations |
-| `GitHub.vscode-github-actions` | Workflow syntax validation and auto-complete (36 workflows in this project) |
-| `task.vscode-task` | Task runner integration for `Taskfile.yml` |
-| `EditorConfig.EditorConfig` | Consistent editor settings across editors |
-| `streetsidesoftware.code-spell-checker` | Spell checking in code and docs |
+| Extension                                       | Why it's included                                                                              |
+| :---------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| `ms-python.python` + `ms-python.vscode-pylance` | Core Python IntelliSense                                                                       |
+| `ms-python.mypy-type-checker`                   | Real-time type error feedback (matches CI mypy)                                                |
+| `charliermarsh.ruff`                            | In-editor linting + format-on-save (Ruff is the CLI linter, the extension gives live feedback) |
+| `DavidAnson.vscode-markdownlint`                | Markdown lint errors inline                                                                    |
+| `esbenp.prettier-vscode`                        | Markdown/YAML/JSON formatting                                                                  |
+| `bierner.markdown-mermaid`                      | Renders mermaid diagrams in VS Code's Markdown preview (e.g., [releasing.md](releasing.md))    |
+| `tamasfe.even-better-toml`                      | TOML syntax for `pyproject.toml`                                                               |
+| `redhat.vscode-yaml`                            | YAML validation for workflows and configs                                                      |
+| `eamodio.gitlens`                               | Git blame, history, and annotations                                                            |
+| `GitHub.vscode-github-actions`                  | Workflow syntax validation and auto-complete (36 workflows in this project)                    |
+| `task.vscode-task`                              | Task runner integration for `Taskfile.yml`                                                     |
+| `EditorConfig.EditorConfig`                     | Consistent editor settings across editors                                                      |
+| `streetsidesoftware.code-spell-checker`         | Spell checking in code and docs                                                                |
 
 **Quality-of-life** — improve the editing experience but not project-critical:
 
-| Extension | Why it's included |
-| :--- | :--- |
-| `aaron-bond.better-comments` | Colourised TODO/FIXME/HACK comments |
-| `usernamehw.errorlens` | Inline error/warning display at end of line |
-| `github.copilot-chat` | AI assistant (pairs with `copilot-instructions.md`) |
-| `oderwat.indent-rainbow` | Colourised indentation levels (custom high-contrast colours in settings) |
-| `ms-python.vscode-python-envs` | Visual Python environment manager |
-| `inferrinizzard.prettier-sql-vscode` | SQL formatting (useful if keeping `db/` scaffolding) |
-| `mechatroner.rainbow-csv` | CSV/TSV column highlighting |
-| `ms-azuretools.vscode-docker` | Docker/container integration |
+| Extension                            | Why it's included                                                        |
+| :----------------------------------- | :----------------------------------------------------------------------- |
+| `aaron-bond.better-comments`         | Colourised TODO/FIXME/HACK comments                                      |
+| `usernamehw.errorlens`               | Inline error/warning display at end of line                              |
+| `github.copilot-chat`                | AI assistant (pairs with `copilot-instructions.md`)                      |
+| `oderwat.indent-rainbow`             | Colourised indentation levels (custom high-contrast colours in settings) |
+| `ms-python.vscode-python-envs`       | Visual Python environment manager                                        |
+| `inferrinizzard.prettier-sql-vscode` | SQL formatting (useful if keeping `db/` scaffolding)                     |
+| `mechatroner.rainbow-csv`            | CSV/TSV column highlighting                                              |
+| `ms-azuretools.vscode-docker`        | Docker/container integration                                             |
 
 <!-- TODO (template users): Review both tiers. Remove QoL extensions your
      team doesn't need. Add extensions specific to your stack (e.g., database
@@ -1195,19 +1195,19 @@ should review both and remove or comment out anything that doesn't apply.
 
 VS Code applies settings in layers. Each layer overrides the one above it:
 
-| Priority | Source | Where It Lives | Scope |
-| :------: | :----- | :------------- | :---- |
-| 1 (lowest) | **Default settings** | Built into VS Code | All workspaces |
-| 2 | **User settings** | `%APPDATA%/Code/User/settings.json` (Windows) | All workspaces |
-| 3 | **Workspace settings** | `.code-workspace` file → `"settings"` block | Everyone who opens this workspace file |
-| 4 (highest) | **Folder settings** | `.vscode/settings.json` inside a folder | That folder only (multi-root workspaces) |
+|  Priority   | Source                 | Where It Lives                                | Scope                                    |
+| :---------: | :--------------------- | :-------------------------------------------- | :--------------------------------------- |
+| 1 (lowest)  | **Default settings**   | Built into VS Code                            | All workspaces                           |
+|      2      | **User settings**      | `%APPDATA%/Code/User/settings.json` (Windows) | All workspaces                           |
+|      3      | **Workspace settings** | `.code-workspace` file → `"settings"` block   | Everyone who opens this workspace file   |
+| 4 (highest) | **Folder settings**    | `.vscode/settings.json` inside a folder       | That folder only (multi-root workspaces) |
 
 Within any layer, **language-specific overrides** (e.g.,
 `"[python]": { "editor.formatOnSave": true }`) take precedence over
 general settings at that same layer.
 
-**Where Profiles fit:** A VS Code Profile is *not* a separate layer — it
-*replaces* the User Settings layer entirely. Each profile has its own
+**Where Profiles fit:** A VS Code Profile is _not_ a separate layer — it
+_replaces_ the User Settings layer entirely. Each profile has its own
 `settings.json`, its own set of enabled extensions, and its own keybindings.
 Switching profiles swaps which User Settings are active. Workspace settings
 (from `.code-workspace`) still override whatever profile is active.
@@ -1222,7 +1222,7 @@ Practical implications:
   create a `.vscode/settings.json` inside the repo root (it’s
   git-ignored by default). This is the Folder Settings layer and
   has the highest priority.
-- Profile settings let you control which *extensions* are active
+- Profile settings let you control which _extensions_ are active
   per project, which the workspace file cannot enforce.
 
 ### Using with VS Code Profiles
@@ -1237,7 +1237,7 @@ A common pattern: use `code-workspace` for project-agreed settings, and a
 VS Code profile to disable extensions from other projects that clutter your
 sidebar (e.g., Java extensions when doing Python work).
 
-Note that `.code-workspace` can only *recommend* extensions — it cannot
+Note that `.code-workspace` can only _recommend_ extensions — it cannot
 force-install or force-disable them. For disabling unwanted extension
 suggestions, use the `"unwantedRecommendations"` array in the `extensions`
 block.
@@ -1265,6 +1265,7 @@ The `bierner.markdown-mermaid` extension does handle ` ```mermaid ` blocks
 in VS Code's Markdown preview.
 
 ---
+
 ## Copilot Customization
 
 <!-- TODO (template users): After forking, update these files to match YOUR
@@ -1276,24 +1277,24 @@ behaviour in VS Code. They use three complementary mechanisms:
 
 ### How It Works
 
-| Mechanism            | File pattern          | When Copilot reads it                         | Use for                                    |
-| :------------------- | :-------------------- | :-------------------------------------------- | :----------------------------------------- |
-| **Instructions**     | `.instructions.md`    | Automatically, when editing files matching `applyTo` glob | File-type-specific rules (e.g., "all workflow YAML files must use SHA-pinned actions") |
-| **Global instructions** | `copilot-instructions.md` | Every interaction in the workspace        | Project-wide context, conventions, review priorities |
-| **Skills**           | `SKILL.md`            | When Copilot determines the skill is relevant | Multi-step procedures (e.g., "add a new ADR") |
-| **Agents**           | `AGENTS.md`           | When the named agent is invoked              | Specialized personas with tool restrictions |
+| Mechanism               | File pattern              | When Copilot reads it                                     | Use for                                                                                |
+| :---------------------- | :------------------------ | :-------------------------------------------------------- | :------------------------------------------------------------------------------------- |
+| **Instructions**        | `.instructions.md`        | Automatically, when editing files matching `applyTo` glob | File-type-specific rules (e.g., "all workflow YAML files must use SHA-pinned actions") |
+| **Global instructions** | `copilot-instructions.md` | Every interaction in the workspace                        | Project-wide context, conventions, review priorities                                   |
+| **Skills**              | `SKILL.md`                | When Copilot determines the skill is relevant             | Multi-step procedures (e.g., "add a new ADR")                                          |
+| **Agents**              | `AGENTS.md`               | When the named agent is invoked                           | Specialized personas with tool restrictions                                            |
 
 ### Files Included
 
-| File                                          | Scope                              |
-| --------------------------------------------- | ---------------------------------- |
-| `.github/copilot-instructions.md`             | Project-wide rules and context     |
-| `.github/SKILL.md`                            | Multi-step component procedures    |
-| `.github/workflows/.instructions.md`          | Workflow YAML conventions          |
-| `scripts/.instructions.md`                    | Script conventions                 |
-| `docs/.instructions.md`                       | Documentation conventions          |
-| `docs/adr/.instructions.md`                   | ADR creation procedure             |
-| `tests/.instructions.md`                      | Test conventions                   |
+| File                                 | Scope                           |
+| ------------------------------------ | ------------------------------- |
+| `.github/copilot-instructions.md`    | Project-wide rules and context  |
+| `.github/SKILL.md`                   | Multi-step component procedures |
+| `.github/workflows/.instructions.md` | Workflow YAML conventions       |
+| `scripts/.instructions.md`           | Script conventions              |
+| `docs/.instructions.md`              | Documentation conventions       |
+| `docs/adr/.instructions.md`          | ADR creation procedure          |
+| `tests/.instructions.md`             | Test conventions                |
 
 ### Customizing for Your Project
 
@@ -1311,6 +1312,7 @@ For details on each mechanism, see the
 [VS Code Copilot customization docs](https://code.visualstudio.com/docs/copilot/copilot-customization).
 
 ---
+
 ## Optional Tools to Consider
 
 Not included in the template, but worth evaluating. Some overlap with

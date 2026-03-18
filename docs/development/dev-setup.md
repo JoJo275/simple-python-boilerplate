@@ -242,7 +242,7 @@ simple-python-boilerplate/
 1. Open the workspace file: `simple-python-boilerplate.code-workspace`
 2. Install recommended extensions when prompted
 3. Select the Python interpreter from `.venv`:
-   - `Ctrl+Shift+P` → "Python: Select Interpreter" → Choose `.venv`
+    - `Ctrl+Shift+P` → "Python: Select Interpreter" → Choose `.venv`
 
 **Recommended Extensions:**
 

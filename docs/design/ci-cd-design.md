@@ -120,13 +120,13 @@ Each job starts with an `if:` condition:
 
 ```yaml
 jobs:
-  my-job:
-    if: >-
-      ${{
-        github.repository == 'YOURNAME/YOURREPO'
-        || vars.ENABLE_WORKFLOWS == 'true'
-        || vars.ENABLE_MY_WORKFLOW == 'true'
-      }}
+    my-job:
+        if: >-
+            ${{
+              github.repository == 'YOURNAME/YOURREPO'
+              || vars.ENABLE_WORKFLOWS == 'true'
+              || vars.ENABLE_MY_WORKFLOW == 'true'
+            }}
 ```
 
 The three opt-in methods (in order of convenience):
@@ -204,8 +204,8 @@ All workflows use concurrency groups to cancel superseded runs:
 
 ```yaml
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 ```
 
 This means: if you push two commits in quick succession, the first run is
@@ -220,7 +220,7 @@ Each workflow declares the minimum permissions it needs:
 
 ```yaml
 permissions:
-  contents: read # Most workflows only need to read code
+    contents: read # Most workflows only need to read code
 ```
 
 Workflows that need more (e.g. creating PRs, pushing to registries) declare
@@ -250,13 +250,13 @@ When adding a workflow to this project:
    display name to `REQUIRED_CHECKS` in `ci-gate.yml` and tag the
    `name:` line with `# ci-gate: required`
 7. **Update documentation:**
-   - [workflows.md](../workflows.md) — add to the workflow inventory
-   - [architecture.md](architecture.md) — update the CI/CD diagram if
-     the new workflow fits a different category
-   - [tool-decisions.md](tool-decisions.md) — if the workflow introduces
-     a new tool, document the tool choice rationale
-   - [copilot-instructions.md](../../.github/copilot-instructions.md) — update
-     the workflow categories summary
+    - [workflows.md](../workflows.md) — add to the workflow inventory
+    - [architecture.md](architecture.md) — update the CI/CD diagram if
+      the new workflow fits a different category
+    - [tool-decisions.md](tool-decisions.md) — if the workflow introduces
+      a new tool, document the tool choice rationale
+    - [copilot-instructions.md](../../.github/copilot-instructions.md) — update
+      the workflow categories summary
 
 ### SHA-Pinning Actions
 
@@ -334,9 +334,9 @@ For services like Codecov, Snyk, or SonarCloud:
 3. For CI gate issues, check which required checks are missing or pending
 4. Use `actionlint` locally to catch YAML/expression errors before pushing:
 
-   ```bash
-   actionlint .github/workflows/my-workflow.yml
-   ```
+    ```bash
+    actionlint .github/workflows/my-workflow.yml
+    ```
 
 ---
 

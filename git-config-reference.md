@@ -146,7 +146,7 @@ git config --list --show-origin
 
 ## Core
 
-*Fundamental git behavior: line endings, editor, pager, file handling.*
+_Fundamental git behavior: line endings, editor, pager, file handling._
 
 ### `core.autocrlf`
 
@@ -373,7 +373,7 @@ Whether filenames are case-insensitive (auto-detected on clone). Affects 'git mv
 
 ## Fetch
 
-*How git retrieves objects and refs from remotes.*
+_How git retrieves objects and refs from remotes._
 
 ### `fetch.prune`
 
@@ -430,7 +430,7 @@ Verify integrity of objects received during fetch (catches corruption)
 
 ## Pull
 
-*Behavior when pulling changes from a remote branch.*
+_Behavior when pulling changes from a remote branch._
 
 ### `pull.rebase`
 
@@ -470,7 +470,7 @@ Fast-forward behavior on pull: 'only' refuses merge commits, 'true' allows any m
 
 ## Push
 
-*Defaults for pushing commits to remotes.*
+_Defaults for pushing commits to remotes._
 
 ### `push.default`
 
@@ -527,7 +527,7 @@ Push annotated tags along with commits automatically
 
 ## Merge
 
-*How git handles merges and conflict markers.*
+_How git handles merges and conflict markers._
 
 ### `merge.ff`
 
@@ -601,7 +601,7 @@ Include one-line descriptions of merged commits in merge commit message
 
 ## Rebase
 
-*Rebase workflow helpers: auto-stash, fixup squashing, stacked refs.*
+_Rebase workflow helpers: auto-stash, fixup squashing, stacked refs._
 
 ### `rebase.autostash`
 
@@ -658,7 +658,7 @@ Auto-update stacked branch refs during rebase. Git 2.38+
 
 ## Rerere
 
-*Reuse recorded resolutions for recurring merge conflicts.*
+_Reuse recorded resolutions for recurring merge conflicts._
 
 ### `rerere.enabled`
 
@@ -681,7 +681,7 @@ REuse REcorded Resolution -- remember and replay merge conflict fixes
 
 ## Stash
 
-*Temporary work storage: stash display and behavior.*
+_Temporary work storage: stash display and behavior._
 
 ### `stash.showPatch`
 
@@ -704,7 +704,7 @@ Show the patch (diff) in 'git stash show' instead of just a file stat summary
 
 ## Branch & Init
 
-*Branch/tag display, sorting, and defaults for new repositories.*
+_Branch/tag display, sorting, and defaults for new repositories._
 
 ### `branch.autosetuprebase`
 
@@ -778,7 +778,7 @@ Sort for 'git tag': 'version:refname' gives natural version ordering (v1.9 < v1.
 
 ## Identity & Signing
 
-*Author identity and GPG/SSH commit/tag signing.*
+_Author identity and GPG/SSH commit/tag signing._
 
 ### `user.name`
 
@@ -886,7 +886,7 @@ Allowed SSH public keys file for signature verification
 
 ## Commit
 
-*Commit message templates and editor behavior.*
+_Commit message templates and editor behavior._
 
 ### `commit.template`
 
@@ -926,7 +926,7 @@ Show diff of staged changes in commit message editor for review
 
 ## Diff
 
-*Diff algorithm, moved-line detection, and rename handling.*
+_Diff algorithm, moved-line detection, and rename handling._
 
 ### `diff.algorithm`
 
@@ -1034,7 +1034,7 @@ Submodule diff format: 'log' shows commit summaries, 'short' shows only SHAs
 
 ## Log & Display
 
-*Date format, color output, and column display for listings.*
+_Date format, color output, and column display for listings._
 
 ### `log.date`
 
@@ -1091,7 +1091,7 @@ Display branch/tag listings in columns when terminal is wide enough
 
 ## Credential & Transfer
 
-*Credential storage, SSL, and object integrity verification.*
+_Credential storage, SSL, and object integrity verification._
 
 ### `credential.helper`
 
@@ -1148,7 +1148,7 @@ Verify object integrity during push/pull transfers
 
 ## Performance
 
-*Garbage collection, index format, and large-repo optimizations.*
+_Garbage collection, index format, and large-repo optimizations._
 
 ### `gc.auto`
 
@@ -1205,7 +1205,7 @@ Index format version. V4 is more compact and faster
 
 ## Help & UX
 
-*Autocorrect, advice messages, and other UX settings.*
+_Autocorrect, advice messages, and other UX settings._
 
 ### `help.autocorrect`
 
@@ -1279,7 +1279,7 @@ Show hints in 'git status' about staging, unstaging, and conflict resolution
 
 ## Protocol
 
-*Git wire protocol version for network communication.*
+_Git wire protocol version for network communication._
 
 ### `protocol.version`
 
@@ -1334,24 +1334,24 @@ This reference is generated from the `GIT_CONFIG_CATALOG` list in
 
 1. Add a tuple to `GIT_CONFIG_CATALOG` in the appropriate section:
 
-   ```python
-   ("section.key", "recommended_scope", "Description of what it does", "recommended value"),
-   ```
+    ```python
+    ("section.key", "recommended_scope", "Description of what it does", "recommended value"),
+    ```
 
 2. Add a valid-values entry to `CONFIG_VALID_VALUES`:
 
-   ```python
-   "section.key": "`value1`, `value2`, `value3`",
-   ```
+    ```python
+    "section.key": "`value1`, `value2`, `value3`",
+    ```
 
 3. If the key belongs to a new section, add it to `CONFIG_SECTION_MAP`
    and `SECTION_DESCRIPTIONS`.
 
 4. Regenerate this file:
 
-   ```bash
-   python scripts/git_doctor.py --export-config
-   ```
+    ```bash
+    python scripts/git_doctor.py --export-config
+    ```
 
 ### Removing a Config Entry
 

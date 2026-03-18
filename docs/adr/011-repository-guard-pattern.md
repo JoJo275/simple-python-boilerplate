@@ -26,11 +26,11 @@ Use a repository guard pattern in all optional workflows. Each workflow job incl
 
 ```yaml
 if: >-
-  ${{
-    github.repository == 'YOURNAME/YOURREPO'
-    || vars.ENABLE_WORKFLOWS == 'true'
-    || vars.ENABLE_<WORKFLOW_NAME> == 'true'
-  }}
+    ${{
+      github.repository == 'YOURNAME/YOURREPO'
+      || vars.ENABLE_WORKFLOWS == 'true'
+      || vars.ENABLE_<WORKFLOW_NAME> == 'true'
+    }}
 ```
 
 ### Three ways to opt in

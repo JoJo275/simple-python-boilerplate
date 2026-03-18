@@ -63,13 +63,13 @@ An interactive script that transforms the template into a real project:
 
 ### Why they're separate
 
-| Concern         | `bootstrap.py`           | `customize.py`           |
-| :-------------- | :----------------------- | :----------------------- |
-| When to run     | Every clone              | Once after forking       |
-| Idempotent      | Yes                      | No                       |
-| Modifies source | No                       | Yes                      |
-| Risk level      | Safe                     | Irreversible             |
-| CI usage        | Yes (verify env)         | No                       |
+| Concern         | `bootstrap.py`   | `customize.py`     |
+| :-------------- | :--------------- | :----------------- |
+| When to run     | Every clone      | Once after forking |
+| Idempotent      | Yes              | No                 |
+| Modifies source | No               | Yes                |
+| Risk level      | Safe             | Irreversible       |
+| CI usage        | Yes (verify env) | No                 |
 
 Combining these would mean either: (a) customize runs on every clone
 (dangerous), or (b) bootstrap is gated behind "have you customized yet?"

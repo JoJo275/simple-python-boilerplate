@@ -43,11 +43,11 @@ Each file contains an array of label objects:
 
 ```json
 [
-  {
-    "name": "bug",
-    "description": "Something isn't working",
-    "color": "d73a4a"
-  }
+    {
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+    }
 ]
 ```
 

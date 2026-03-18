@@ -10,53 +10,53 @@ How to create, review, and merge pull requests in this project.
 
 1. **Create a feature branch** from `main`
 
-   ```bash
-   git switch main
-   git pull --ff-only
-   git switch -c feature/your-feature-name
-   ```
+    ```bash
+    git switch main
+    git pull --ff-only
+    git switch -c feature/your-feature-name
+    ```
 
 2. **Make your changes** with clear, atomic commits
 
-   Follow the [Conventional Commits](https://www.conventionalcommits.org/) format (see [development.md](development.md#commit-messages-conventional-commits) for the full rules):
+    Follow the [Conventional Commits](https://www.conventionalcommits.org/) format (see [development.md](development.md#commit-messages-conventional-commits) for the full rules):
 
-   ```bash
-   git commit -m "feat: add user authentication"
-   ```
+    ```bash
+    git commit -m "feat: add user authentication"
+    ```
 
 3. **Run quality checks locally**
 
-   **Quick (fix & test):**
+    **Quick (fix & test):**
 
-   ```bash
-   task check                # All quality gates in one command
-   # or individually:
-   ruff format . && ruff check --fix . && pytest
-   ```
+    ```bash
+    task check                # All quality gates in one command
+    # or individually:
+    ruff format . && ruff check --fix . && pytest
+    ```
 
-   **Apply fixes:**
+    **Apply fixes:**
 
-   ```bash
-   task fmt                  # Auto-format code (ruff format)
-   task lint:fix             # Auto-fix lint issues (ruff check --fix)
-   ```
+    ```bash
+    task fmt                  # Auto-format code (ruff format)
+    task lint:fix             # Auto-fix lint issues (ruff check --fix)
+    ```
 
-   **Verify (CI-like):**
+    **Verify (CI-like):**
 
-   ```bash
-   task test                 # Tests pass
-   task lint                 # Linting passes
-   task typecheck            # Type checking (mypy)
-   ```
+    ```bash
+    task test                 # Tests pass
+    task lint                 # Linting passes
+    task typecheck            # Type checking (mypy)
+    ```
 
-   > See [developer-commands.md](developer-commands.md) for the full command reference.
-   > All `task` commands wrap `hatch run` — see the [Taskfile](../../Taskfile.yml).
+    > See [developer-commands.md](developer-commands.md) for the full command reference.
+    > All `task` commands wrap `hatch run` — see the [Taskfile](../../Taskfile.yml).
 
 4. **Push your branch**
 
-   ```bash
-   git push -u origin feature/your-feature-name
-   ```
+    ```bash
+    git push -u origin feature/your-feature-name
+    ```
 
 ## Creating a Pull Request
 

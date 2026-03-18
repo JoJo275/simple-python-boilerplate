@@ -21,7 +21,7 @@ lightweight plugins that don't require packaging or installation.
 ```yaml
 # mkdocs.yml
 hooks:
-  - mkdocs-hooks/repo_links.py
+    - mkdocs-hooks/repo_links.py
 ```
 
 ### Available Events
@@ -62,11 +62,11 @@ Promote to a plugin if the logic is reusable across multiple projects.
 
 ## Inventory
 
-| Hook                    | Event              | Purpose                                                             |
-| :---------------------- | :----------------- | :------------------------------------------------------------------ |
-| `repo_links.py`         | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs |
-| `generate_commands.py`  | `on_pre_build`     | Auto-regenerate `docs/reference/commands.md` before each build      |
-| `include_templates.py`  | `on_files`         | Force-include `docs/templates/` on all MkDocs versions (workaround for 1.6+ default exclusion) |
+| Hook                   | Event              | Purpose                                                                                        |
+| :--------------------- | :----------------- | :--------------------------------------------------------------------------------------------- |
+| `repo_links.py`        | `on_page_markdown` | Rewrite repo-relative links (`../../pyproject.toml`) to GitHub URLs                            |
+| `generate_commands.py` | `on_pre_build`     | Auto-regenerate `docs/reference/commands.md` before each build                                 |
+| `include_templates.py` | `on_files`         | Force-include `docs/templates/` on all MkDocs versions (workaround for 1.6+ default exclusion) |
 
 `repo_links.py` handles standard Markdown links, HTML `<a href>` links,
 and reference-style link definitions (`[ref]: ../path`). Code blocks,
@@ -80,12 +80,12 @@ inline code, and HTML comments are automatically protected from rewriting.
 2. Define one or more event handler functions (see table above)
 3. Register it in `mkdocs.yml`:
 
-   ```yaml
-   hooks:
-     - mkdocs-hooks/repo_links.py
-     - mkdocs-hooks/generate_commands.py
-     - mkdocs-hooks/my_hook.py
-   ```
+    ```yaml
+    hooks:
+        - mkdocs-hooks/repo_links.py
+        - mkdocs-hooks/generate_commands.py
+        - mkdocs-hooks/my_hook.py
+    ```
 
 4. Update this README with the new hook's purpose
 5. Test with `hatch run docs:build` and `hatch run docs:serve`

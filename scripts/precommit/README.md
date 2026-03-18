@@ -21,15 +21,15 @@ These scripts are called from `.pre-commit-config.yaml` under the `repo: local` 
 3. Add a shebang line: `#!/usr/bin/env python3`
 4. Register it in `.pre-commit-config.yaml` under the `repo: local` section:
 
-   ```yaml
-   - repo: local
-     hooks:
-       - id: check-something
-         name: Check something
-         entry: scripts/precommit/check_something.py
-         language: python
-         types: [text]
-   ```
+    ```yaml
+    - repo: local
+      hooks:
+          - id: check-something
+            name: Check something
+            entry: scripts/precommit/check_something.py
+            language: python
+            types: [text]
+    ```
 
 5. Update this README with the new hook
 6. Update the hook inventory in [ADR 008](../../docs/adr/008-pre-commit-hooks.md)
