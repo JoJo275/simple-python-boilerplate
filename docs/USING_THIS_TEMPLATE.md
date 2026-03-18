@@ -46,6 +46,12 @@ fit your project.
 > Both scripts support `--dry-run` to preview changes and `--help` for the
 > full list of flags. See the docstring at the top of each script for details.
 
+> **LLM-assisted setup:** An LLM coding assistant (e.g. Claude, GPT, or
+> GitHub Copilot in agent mode) can help you customize this template —
+> renaming packages, updating placeholders, adjusting workflows, and
+> navigating the repo structure. Point it at this file and ask it to walk
+> you through the setup.
+
 ---
 
 ## Placeholders to Replace
