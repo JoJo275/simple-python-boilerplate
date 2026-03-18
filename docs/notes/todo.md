@@ -20,7 +20,7 @@ Things to explore, implement, or learn more about.
 - [x] Final file check: release-please-config.json
 - [x] Final file check: codecov.yml
 - [x] Final file check: mkdocs.yml
-- [ ] Final file check: _typos.toml
+- [ ] Final file check: \_typos.toml
 - [ ] Final file check: CHANGELOG.md
 - [ ] Final file check: simple-python-boilerplate.code-workspace
 
@@ -257,8 +257,8 @@ Things to explore, implement, or learn more about.
 
 - [ ] Final file check: scripts/.instructions.md
 - [ ] Final file check: scripts/README.md
-- [ ] Final file check: scripts/_imports.py
-- [ ] Final file check: scripts/_progress.py
+- [ ] Final file check: scripts/\_imports.py
+- [ ] Final file check: scripts/\_progress.py
 - [ ] Final file check: scripts/apply_labels.py
 - [ ] Final file check: scripts/apply-labels.sh
 - [ ] Final file check: scripts/archive_todos.py
@@ -283,16 +283,16 @@ Things to explore, implement, or learn more about.
 ### src/
 
 - [ ] Final file check: src/README.md
-- [ ] Final file check: src/simple_python_boilerplate/__init__.py
-- [ ] Final file check: src/simple_python_boilerplate/_version.py
+- [ ] Final file check: src/simple_python_boilerplate/**init**.py
+- [ ] Final file check: src/simple_python_boilerplate/\_version.py
 - [ ] Final file check: src/simple_python_boilerplate/api.py
 - [ ] Final file check: src/simple_python_boilerplate/cli.py
 - [ ] Final file check: src/simple_python_boilerplate/engine.py
 - [ ] Final file check: src/simple_python_boilerplate/main.py
 - [ ] Final file check: src/simple_python_boilerplate/py.typed
-- [ ] Final file check: src/simple_python_boilerplate/dev_tools/__init__.py
+- [ ] Final file check: src/simple_python_boilerplate/dev_tools/**init**.py
 - [ ] Final file check: src/simple_python_boilerplate/sql/README.md
-- [ ] Final file check: src/simple_python_boilerplate/sql/__init__.py
+- [ ] Final file check: src/simple_python_boilerplate/sql/**init**.py
 - [ ] Final file check: src/simple_python_boilerplate/sql/example_query.sql
 
 ### tests/
@@ -300,7 +300,7 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: tests/.instructions.md
 - [ ] Final file check: tests/README.md
 - [ ] Final file check: tests/conftest.py
-- [ ] Final file check: tests/unit/__init__.py
+- [ ] Final file check: tests/unit/**init**.py
 - [ ] Final file check: tests/unit/conftest.py
 - [ ] Final file check: tests/unit/test_api.py
 - [ ] Final file check: tests/unit/test_archive_todos.py
@@ -318,7 +318,7 @@ Things to explore, implement, or learn more about.
 - [ ] Final file check: tests/unit/test_repo_links.py
 - [ ] Final file check: tests/unit/test_version.py
 - [ ] Final file check: tests/unit/test_workflow_versions.py
-- [ ] Final file check: tests/integration/__init__.py
+- [ ] Final file check: tests/integration/**init**.py
 - [ ] Final file check: tests/integration/conftest.py
 - [ ] Final file check: tests/integration/test_cli_smoke.py
 - [ ] Final file check: tests/integration/test_db_example.py

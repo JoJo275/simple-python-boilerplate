@@ -13,27 +13,27 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Quality
 
-| Workflow               | File                                                                  | Triggers         | Job name(s)                            | Purpose                                    |
-| ---------------------- | --------------------------------------------------------------------- | ---------------- | -------------------------------------- | ------------------------------------------ |
-| **Test**               | [test.yml](../.github/workflows/test.yml)                             | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix |
-| **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks             |
-| **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`            |
-| **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov   |
-| **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes              |
-| **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes |
+| Workflow               | File                                                                  | Triggers         | Job name(s)                            | Purpose                                         |
+| ---------------------- | --------------------------------------------------------------------- | ---------------- | -------------------------------------- | ----------------------------------------------- |
+| **Test**               | [test.yml](../.github/workflows/test.yml)                             | push, PR, manual | `Test (Python 3.11)` / `3.12` / `3.13` | Runs pytest across Python 3.11–3.13 matrix      |
+| **Lint + Format**      | [lint-format.yml](../.github/workflows/lint-format.yml)               | push, PR, manual | `Ruff (lint & format)`                 | Ruff linting and format checks                  |
+| **Type Check**         | [type-check.yml](../.github/workflows/type-check.yml)                 | push, PR, manual | `mypy (strict)`                        | mypy strict mode against `src/`                 |
+| **Coverage**           | [coverage.yml](../.github/workflows/coverage.yml)                     | push, PR, manual | `Test + upload coverage`               | pytest with coverage, uploads to Codecov        |
+| **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
+| **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes      |
 | **TODO Check**         | [todo-check.yml](../.github/workflows/todo-check.yml)                 | push, PR, manual | `Check template TODOs`                 | Reports remaining TODO (template users) markers |
 
 ### Security
 
-| Workflow              | File                                                                | Triggers                                                | Job name(s)                                                                                              | Purpose                                                  |
-| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| **Security Audit**    | [security-audit.yml](../.github/workflows/security-audit.yml)       | push, PR, weekly, manual                                | `pip-audit`                                                                                              | Checks Python deps against OSV/PyPI vuln databases       |
-| **Bandit**            | [bandit.yml](../.github/workflows/bandit.yml)                       | push (path-filtered), PR (path-filtered), daily, manual | `Bandit security scan`                                                                                   | Static security analysis for Python source               |
-| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR                                                      | `Scan dependencies`                                                                                      | Scans PRs for vulnerable or risky new dependencies       |
-| **CodeQL**            | [security-codeql.yml](../.github/workflows/security-codeql.yml)     | push, PR, weekly                                        | `CodeQL Analysis`                                                                                        | GitHub CodeQL static analysis                            |
-| **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                | `Build container image`, `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
-| **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                           | Multiple (SBOM rescan, pip-audit, container scans)                                                       | Consolidated nightly sweep against latest vuln databases |
-| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                             | `Scorecard analysis`                                                                                     | Evaluates repo security practices via OpenSSF Scorecard  |
+| Workflow              | File                                                                | Triggers                                                 | Job name(s)                                                                                              | Purpose                                                  |
+| --------------------- | ------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Security Audit**    | [security-audit.yml](../.github/workflows/security-audit.yml)       | push, PR, weekly, manual                                 | `pip-audit`                                                                                              | Checks Python deps against OSV/PyPI vuln databases       |
+| **Bandit**            | [bandit.yml](../.github/workflows/bandit.yml)                       | push (path-filtered), PR (path-filtered), daily, manual  | `Bandit security scan`                                                                                   | Static security analysis for Python source               |
+| **Dependency Review** | [dependency-review.yml](../.github/workflows/dependency-review.yml) | PR                                                       | `Scan dependencies`                                                                                      | Scans PRs for vulnerable or risky new dependencies       |
+| **CodeQL**            | [security-codeql.yml](../.github/workflows/security-codeql.yml)     | push, PR, weekly                                         | `CodeQL Analysis`                                                                                        | GitHub CodeQL static analysis                            |
+| **Container Scan**    | [container-scan.yml](../.github/workflows/container-scan.yml)       | push, PR, weekly, manual                                 | `Build container image`, `Trivy vulnerability scan`, `Grype vulnerability scan`, `Dockerfile / IaC lint` | Multi-scanner container security pipeline                |
+| **Nightly Security**  | [nightly-security.yml](../.github/workflows/nightly-security.yml)   | daily, manual                                            | Multiple (SBOM rescan, pip-audit, container scans)                                                       | Consolidated nightly sweep against latest vuln databases |
+| **OpenSSF Scorecard** | [scorecard.yml](../.github/workflows/scorecard.yml)                 | push (main), weekly, manual                              | `Scorecard analysis`                                                                                     | Evaluates repo security practices via OpenSSF Scorecard  |
 | **License Check**     | [license-check.yml](../.github/workflows/license-check.yml)         | push (path-filtered), PR (path-filtered), weekly, manual | `Verify dependency licenses`                                                                             | Verifies dependency licenses are compatible with project |
 
 ### PR Hygiene
@@ -61,30 +61,30 @@ follow the conventions described at the bottom of this page. Configure these wor
 
 ### Container
 
-| Workflow                | File                                                                      | Triggers                                | Job name(s)               | Purpose                                                    |
-| ----------------------- | ------------------------------------------------------------------------- | --------------------------------------- | ------------------------- | ---------------------------------------------------------- |
-| **Container Build**     | [container-build.yml](../.github/workflows/container-build.yml)           | push (main + tags), PR, manual          | `Build container image`   | Builds OCI container image, pushes to ghcr.io on main/tags |
-| **Dev Container Build** | [devcontainer-build.yml](../.github/workflows/devcontainer-build.yml)     | push (main, path-filtered), PR, manual  | `Build dev container`     | Validates dev container config builds and runs correctly    |
+| Workflow                | File                                                                  | Triggers                               | Job name(s)             | Purpose                                                    |
+| ----------------------- | --------------------------------------------------------------------- | -------------------------------------- | ----------------------- | ---------------------------------------------------------- |
+| **Container Build**     | [container-build.yml](../.github/workflows/container-build.yml)       | push (main + tags), PR, manual         | `Build container image` | Builds OCI container image, pushes to ghcr.io on main/tags |
+| **Dev Container Build** | [devcontainer-build.yml](../.github/workflows/devcontainer-build.yml) | push (main, path-filtered), PR, manual | `Build dev container`   | Validates dev container config builds and runs correctly   |
 
 ### Maintenance
 
-| Workflow                  | File                                                                        | Triggers                                                 | Job name(s)                | Purpose                                                                                       |
-| ------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------- |
-| **Pre-commit Update**     | [pre-commit-update.yml](../.github/workflows/pre-commit-update.yml)         | weekly, manual                                           | `Auto-update hooks`        | Runs `pre-commit autoupdate` and opens a PR                                                   |
-| **Stale**                 | [stale.yml](../.github/workflows/stale.yml)                                 | daily, manual                                            | `Close stale issues & PRs` | Marks and closes inactive issues/PRs                                                          |
-| **Link Checker**          | [link-checker.yml](../.github/workflows/link-checker.yml)                   | push (path-filtered), PR (path-filtered), weekly, manual | `Check links`              | Checks Markdown/HTML for broken links using lychee                                            |
-| **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target                                      | `Auto-approve & merge`     | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes                     |
-| **Cache Cleanup**         | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml)                 | PR closed, manual                                        | `Clean branch caches`      | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
-| **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files`     | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
-| **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v*), manual                            | `Check stale resolved issues`  | Flags stale entries in docs/known-issues.md Resolved table                                    |
-| **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`            | Warn-only repo structure checks (missing files, broken conventions)                           |
-| **Doctor All**            | [doctor-all.yml](../.github/workflows/doctor-all.yml)                       | push, PR, weekly, manual                                 | `Full health check`            | Runs all doctor scripts (env, repo, git, TODOs, known issues, diagnostics) — warn-only        |
+| Workflow                  | File                                                                        | Triggers                                                 | Job name(s)                   | Purpose                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------- |
+| **Pre-commit Update**     | [pre-commit-update.yml](../.github/workflows/pre-commit-update.yml)         | weekly, manual                                           | `Auto-update hooks`           | Runs `pre-commit autoupdate` and opens a PR                                                   |
+| **Stale**                 | [stale.yml](../.github/workflows/stale.yml)                                 | daily, manual                                            | `Close stale issues & PRs`    | Marks and closes inactive issues/PRs                                                          |
+| **Link Checker**          | [link-checker.yml](../.github/workflows/link-checker.yml)                   | push (path-filtered), PR (path-filtered), weekly, manual | `Check links`                 | Checks Markdown/HTML for broken links using lychee                                            |
+| **Auto-merge Dependabot** | [auto-merge-dependabot.yml](../.github/workflows/auto-merge-dependabot.yml) | pull_request_target                                      | `Auto-approve & merge`        | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes                     |
+| **Cache Cleanup**         | [cache-cleanup.yml](../.github/workflows/cache-cleanup.yml)                 | PR closed, manual                                        | `Clean branch caches`         | Deletes GitHub Actions caches for closed/merged PR branches to prevent cache eviction of main |
+| **Regenerate Files**      | [regenerate-files.yml](../.github/workflows/regenerate-files.yml)           | weekly, manual                                           | `Regenerate derived files`    | Regenerates requirements.txt and requirements-dev.txt from pyproject.toml and opens a PR      |
+| **Known Issues Check**    | [known-issues-check.yml](../.github/workflows/known-issues-check.yml)       | weekly, tag push (v\*), manual                           | `Check stale resolved issues` | Flags stale entries in docs/known-issues.md Resolved table                                    |
+| **Repo Doctor**           | [repo-doctor.yml](../.github/workflows/repo-doctor.yml)                     | push, PR, manual                                         | `Repo health check`           | Warn-only repo structure checks (missing files, broken conventions)                           |
+| **Doctor All**            | [doctor-all.yml](../.github/workflows/doctor-all.yml)                       | push, PR, weekly, manual                                 | `Full health check`           | Runs all doctor scripts (env, repo, git, TODOs, known issues, diagnostics) — warn-only        |
 
 ### Community
 
-| Workflow    | File                                              | Triggers             | Job name(s)                        | Purpose                                                          |
-| ----------- | ------------------------------------------------- | -------------------- | ---------------------------------- | ---------------------------------------------------------------- |
-| **Welcome** | [welcome.yml](../.github/workflows/welcome.yml)   | issue opened, PR opened | `Welcome first-time contributors` | Posts a welcome comment on first-time contributors' first issue or PR |
+| Workflow    | File                                            | Triggers                | Job name(s)                       | Purpose                                                               |
+| ----------- | ----------------------------------------------- | ----------------------- | --------------------------------- | --------------------------------------------------------------------- |
+| **Welcome** | [welcome.yml](../.github/workflows/welcome.yml) | issue opened, PR opened | `Welcome first-time contributors` | Posts a welcome comment on first-time contributors' first issue or PR |
 
 ### Gate
 
@@ -244,29 +244,29 @@ python scripts/workflow_versions.py show --quiet || echo "Actions need attention
 These scripts complement the CI workflows above by providing instant
 local diagnostics. The `doctor-all.yml` workflow runs all of them in CI.
 
-| Script | Task shortcut | Purpose |
-| ------ | ------------- | ------- |
-| `scripts/env_doctor.py` | `task doctor:env` | Check Python, Hatch, tools, editable install |
-| `scripts/repo_doctor.py` | `task doctor:repo` | Verify repo structure and conventions |
-| `scripts/git_doctor.py` | `task doctor:git` | Git health dashboard, branch stats, remote sync |
-| `scripts/doctor.py` | `task doctor` | Diagnostics bundle (for bug reports) |
+| Script                   | Task shortcut      | Purpose                                         |
+| ------------------------ | ------------------ | ----------------------------------------------- |
+| `scripts/env_doctor.py`  | `task doctor:env`  | Check Python, Hatch, tools, editable install    |
+| `scripts/repo_doctor.py` | `task doctor:repo` | Verify repo structure and conventions           |
+| `scripts/git_doctor.py`  | `task doctor:git`  | Git health dashboard, branch stats, remote sync |
+| `scripts/doctor.py`      | `task doctor`      | Diagnostics bundle (for bug reports)            |
 
 ### git_doctor.py Commands
 
 `git_doctor.py` is the most feature-rich local script. Key Taskfile shortcuts:
 
-| Task | What it does |
-| ---- | ------------ |
-| `task doctor:git` | Dashboard: branches, remotes, health checks |
-| `task doctor:git:watch` | Auto-refresh dashboard every N seconds |
-| `task doctor:git:refresh` | Fetch remotes, prune refs, sync tags |
-| `task doctor:git:cleanup` | Delete stale branches, run `git gc` |
-| `task doctor:git:commits` | Detailed commit report (SHAs, stats) |
-| `task doctor:git:commits:md` | Write commit report to `commit-report.md` |
-| `task doctor:git:config:export` | Export git config reference to Markdown |
-| `task doctor:git:config:apply` | Apply recommended git config |
-| `task doctor:git:config:minimal` | Apply core subset (12 keys) |
-| `task branch:create` | Interactive branch creation off `origin/main` |
+| Task                             | What it does                                  |
+| -------------------------------- | --------------------------------------------- |
+| `task doctor:git`                | Dashboard: branches, remotes, health checks   |
+| `task doctor:git:watch`          | Auto-refresh dashboard every N seconds        |
+| `task doctor:git:refresh`        | Fetch remotes, prune refs, sync tags          |
+| `task doctor:git:cleanup`        | Delete stale branches, run `git gc`           |
+| `task doctor:git:commits`        | Detailed commit report (SHAs, stats)          |
+| `task doctor:git:commits:md`     | Write commit report to `commit-report.md`     |
+| `task doctor:git:config:export`  | Export git config reference to Markdown       |
+| `task doctor:git:config:apply`   | Apply recommended git config                  |
+| `task doctor:git:config:minimal` | Apply core subset (12 keys)                   |
+| `task branch:create`             | Interactive branch creation off `origin/main` |
 
 All commands support `--dry-run` where applicable. Pass extra flags with
 `task doctor:git -- --json` or `task doctor:git:cleanup -- --dry-run`.

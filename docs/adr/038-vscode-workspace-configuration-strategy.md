@@ -9,11 +9,11 @@ Accepted
 VS Code loads settings from multiple sources in a specific priority order.
 This project supports three ways of opening the codebase:
 
-| Open method                       | `.vscode/settings.json` | `.code-workspace` settings |
-| :-------------------------------- | :--------------------: | :------------------------: |
-| File > Open Folder                |       Loaded           |        Ignored             |
-| File > Open Workspace from File   |       Loaded           |     Loaded (overrides)     |
-| Codespaces / Dev Containers       |       Loaded           |        Ignored             |
+| Open method                     | `.vscode/settings.json` | `.code-workspace` settings |
+| :------------------------------ | :---------------------: | :------------------------: |
+| File > Open Folder              |         Loaded          |          Ignored           |
+| File > Open Workspace from File |         Loaded          |     Loaded (overrides)     |
+| Codespaces / Dev Containers     |         Loaded          |          Ignored           |
 
 If functional settings (formatters, linters, test config) are placed in the
 `.code-workspace` file, they only apply when opened as a workspace — not

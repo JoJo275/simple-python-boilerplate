@@ -26,26 +26,26 @@
 
 ## Table of Contents
 
-|  # | SHA                     | Message                                                                                                                                          |
-| -: | :---------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
-|  1 | [`2739d2f`](#commit-1)  | feat: Enhance Markdown Output in git_doctor.py                                                                                                   |
-|  2 | [`675aae6`](#commit-2)  | feat: improved formatting and output of --view-commits flag and --commit-flag --markdown flag for git_doctor.py                                  |
-|  3 | [`a55dd7b`](#commit-3)  | feat: Add detailed commit reporting markdown option. Formatted output of --commit flag.                                                          |
-|  4 | [`ac001f2`](#commit-4)  | feat: Enhance container testing with smoke tests and image size validation                                                                       |
-|  5 | [`ff1fcde`](#commit-5)  | feat: Add testing scripts for Containerfile and Docker Compose                                                                                   |
-|  6 | [`edf1780`](#commit-6)  | feat: Update README and devcontainer.json with clearer instructions for exiting the container and additional context on settings                 |
-|  7 | [`ed66009`](#commit-7)  | docs: Add ADRs for VS Code configuration strategy and developer onboarding automation                                                            |
-|  8 | [`d883133`](#commit-8)  | refactor: VS Code settings and add beginner-friendly notes to git configuration                                                                  |
-|  9 | [`ad8263b`](#commit-9)  | refactor: updated formatting of git-config-reference.md. Added versioning section into learning.md                                               |
-| 10 | [`de6a9f3`](#commit-10) | feat: Enhance git settings with additional confirmation and auto-stash options; improve health check name width calculation in git_doctor.py     |
-| 11 | [`1ada958`](#commit-11) | feat: Add --watch option to git_doctor.py for periodic dashboard updates and enhance git-config-reference.md with additional notes and resources |
-| 12 | [`efa2463`](#commit-12) | feat: Enhance git_doctor.py local branches output with dynamic column widths and improved formatting                                             |
-| 13 | [`e41d8bc`](#commit-13) | feat: Update git_doctor.py output formatting for improved clarity and alignment                                                                  |
-| 14 | [`3b2544c`](#commit-14) | feat: Add interactive branch creation command and update documentation                                                                           |
-| 15 | [`73b0722`](#commit-15) | feat: Add branch workflows documentation and updated git_doctor.py output formatting.                                                            |
-| 16 | [`46f893e`](#commit-16) | feat: Improve output formatting in git_doctor.py with enhanced section headers and key-value pair alignment                                      |
-| 17 | [`35d8f0f`](#commit-17) | feat: Enhance git_doctor.py output with color-coded sections and detailed hints for key-value pairs                                              |
-| 18 | [`0cee44f`](#commit-18) | feat: Added --export-config flag to git_doctor.py. Update formatting of git_doctor.py output.                                                    |
+|   # | SHA                     | Message                                                                                                                                          |
+| --: | :---------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- |
+|   1 | [`2739d2f`](#commit-1)  | feat: Enhance Markdown Output in git_doctor.py                                                                                                   |
+|   2 | [`675aae6`](#commit-2)  | feat: improved formatting and output of --view-commits flag and --commit-flag --markdown flag for git_doctor.py                                  |
+|   3 | [`a55dd7b`](#commit-3)  | feat: Add detailed commit reporting markdown option. Formatted output of --commit flag.                                                          |
+|   4 | [`ac001f2`](#commit-4)  | feat: Enhance container testing with smoke tests and image size validation                                                                       |
+|   5 | [`ff1fcde`](#commit-5)  | feat: Add testing scripts for Containerfile and Docker Compose                                                                                   |
+|   6 | [`edf1780`](#commit-6)  | feat: Update README and devcontainer.json with clearer instructions for exiting the container and additional context on settings                 |
+|   7 | [`ed66009`](#commit-7)  | docs: Add ADRs for VS Code configuration strategy and developer onboarding automation                                                            |
+|   8 | [`d883133`](#commit-8)  | refactor: VS Code settings and add beginner-friendly notes to git configuration                                                                  |
+|   9 | [`ad8263b`](#commit-9)  | refactor: updated formatting of git-config-reference.md. Added versioning section into learning.md                                               |
+|  10 | [`de6a9f3`](#commit-10) | feat: Enhance git settings with additional confirmation and auto-stash options; improve health check name width calculation in git_doctor.py     |
+|  11 | [`1ada958`](#commit-11) | feat: Add --watch option to git_doctor.py for periodic dashboard updates and enhance git-config-reference.md with additional notes and resources |
+|  12 | [`efa2463`](#commit-12) | feat: Enhance git_doctor.py local branches output with dynamic column widths and improved formatting                                             |
+|  13 | [`e41d8bc`](#commit-13) | feat: Update git_doctor.py output formatting for improved clarity and alignment                                                                  |
+|  14 | [`3b2544c`](#commit-14) | feat: Add interactive branch creation command and update documentation                                                                           |
+|  15 | [`73b0722`](#commit-15) | feat: Add branch workflows documentation and updated git_doctor.py output formatting.                                                            |
+|  16 | [`46f893e`](#commit-16) | feat: Improve output formatting in git_doctor.py with enhanced section headers and key-value pair alignment                                      |
+|  17 | [`35d8f0f`](#commit-17) | feat: Enhance git_doctor.py output with color-coded sections and detailed hints for key-value pairs                                              |
+|  18 | [`0cee44f`](#commit-18) | feat: Added --export-config flag to git_doctor.py. Update formatting of git_doctor.py output.                                                    |
 
 ## Commits
 
@@ -426,4 +426,4 @@ No conflicts detected with `main`.
 | Author           | Joseph |
 | Conflicts        |      0 |
 
-*Generated by `git_doctor.py --view-commits --markdown` v3.0.0 at 2026-03-17 22:28:18 UTC*
+_Generated by `git_doctor.py --view-commits --markdown` v3.0.0 at 2026-03-17 22:28:18 UTC_

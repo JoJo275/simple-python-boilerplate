@@ -222,33 +222,33 @@ GitHub's default labels plus useful extras for basic triage and prioritization. 
 
 > GitHub's 9 default labels: (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`). This boilerplate adds 17 extras: release-please labels (`autorelease: pending`, `autorelease: tagged`), automation-friendly labels (`dependencies`, `docker`, `github-actions`, `python`), process labels (`pinned`, `security`, `stale`), a minimal `status:` subset (`needs-triage`, `needs-info`, `blocked`), and `priority:` labels (`p1-high`, `p2-medium`, `p3-low`, `backlog`).
 
-| Label                  | Description                                            | Color     |
-| ---------------------- | ------------------------------------------------------ | --------- |
-| `autorelease: pending` | Release PR is open and waiting to be merged            | `#ededed` |
-| `autorelease: tagged`  | Release PR was merged and the release tag was created  | `#ededed` |
-| `bug`                  | Something isn't working                                | `#d73a4a` |
-| `dependencies`         | Pull requests that update a dependency file            | `#0366d6` |
-| `docker`               | Pull requests that update Docker/container config      | `#2496ed` |
-| `documentation`        | Improvements or additions to documentation             | `#0075ca` |
-| `duplicate`            | This issue or pull request already exists              | `#cfd3d7` |
-| `enhancement`          | New feature or request                                 | `#a2eeef` |
-| `github-actions`       | Pull requests that update GitHub Actions code          | `#000000` |
-| `good first issue`     | Good for newcomers                                     | `#7057ff` |
-| `help wanted`          | Extra attention is needed                              | `#008672` |
-| `invalid`              | This doesn't seem right                                | `#e4e669` |
-| `pinned`               | Exempt from stale bot; kept open indefinitely          | `#006b75` |
-| `python`               | Pull requests that update Python dependencies          | `#3572a5` |
-| `question`             | Further information is requested                       | `#d876e3` |
-| `security`             | Security-related; exempt from stale bot                | `#ee0701` |
-| `stale`                | Inactive; may be closed if no response                 | `#eeeeee` |
-| `wontfix`              | This will not be worked on                             | `#ffffff` |
-| `status: needs-triage` | New issue; not yet reviewed/confirmed                  | `#fbca04` |
-| `status: needs-info`   | Reporter needs to provide missing details              | `#fef2c0` |
-| `status: blocked`      | Blocked by dependency/decision/external factor         | `#b60205` |
-| `priority: p1-high`    | Important; should be addressed soon                    | `#d93f0b` |
-| `priority: p2-medium`  | Normal priority                                        | `#fbca04` |
-| `priority: p3-low`     | Nice-to-have                                           | `#c2e0c6` |
-| `priority: backlog`    | Accepted but not scheduled                             | `#bfdadc` |
+| Label                  | Description                                           | Color     |
+| ---------------------- | ----------------------------------------------------- | --------- |
+| `autorelease: pending` | Release PR is open and waiting to be merged           | `#ededed` |
+| `autorelease: tagged`  | Release PR was merged and the release tag was created | `#ededed` |
+| `bug`                  | Something isn't working                               | `#d73a4a` |
+| `dependencies`         | Pull requests that update a dependency file           | `#0366d6` |
+| `docker`               | Pull requests that update Docker/container config     | `#2496ed` |
+| `documentation`        | Improvements or additions to documentation            | `#0075ca` |
+| `duplicate`            | This issue or pull request already exists             | `#cfd3d7` |
+| `enhancement`          | New feature or request                                | `#a2eeef` |
+| `github-actions`       | Pull requests that update GitHub Actions code         | `#000000` |
+| `good first issue`     | Good for newcomers                                    | `#7057ff` |
+| `help wanted`          | Extra attention is needed                             | `#008672` |
+| `invalid`              | This doesn't seem right                               | `#e4e669` |
+| `pinned`               | Exempt from stale bot; kept open indefinitely         | `#006b75` |
+| `python`               | Pull requests that update Python dependencies         | `#3572a5` |
+| `question`             | Further information is requested                      | `#d876e3` |
+| `security`             | Security-related; exempt from stale bot               | `#ee0701` |
+| `stale`                | Inactive; may be closed if no response                | `#eeeeee` |
+| `wontfix`              | This will not be worked on                            | `#ffffff` |
+| `status: needs-triage` | New issue; not yet reviewed/confirmed                 | `#fbca04` |
+| `status: needs-info`   | Reporter needs to provide missing details             | `#fef2c0` |
+| `status: blocked`      | Blocked by dependency/decision/external factor        | `#b60205` |
+| `priority: p1-high`    | Important; should be addressed soon                   | `#d93f0b` |
+| `priority: p2-medium`  | Normal priority                                       | `#fbca04` |
+| `priority: p3-low`     | Nice-to-have                                          | `#c2e0c6` |
+| `priority: backlog`    | Accepted but not scheduled                            | `#bfdadc` |
 
 ## Extended set
 

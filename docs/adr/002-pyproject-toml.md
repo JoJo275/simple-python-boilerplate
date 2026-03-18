@@ -68,12 +68,12 @@ Separate files for each tool: `.flake8`, `mypy.ini`, `pytest.ini`, etc.
 ## Implementation
 
 - [pyproject.toml](../../pyproject.toml) — Single configuration file containing:
-  - `[build-system]` — Build backend configuration
-  - `[project]` — Package metadata (PEP 621)
-  - `[tool.pytest.ini_options]` — pytest configuration
-  - `[tool.coverage]` — Coverage configuration
-  - `[tool.ruff]` — Ruff linter/formatter configuration
-  - `[tool.mypy]` — mypy type checker configuration
+    - `[build-system]` — Build backend configuration
+    - `[project]` — Package metadata (PEP 621)
+    - `[tool.pytest.ini_options]` — pytest configuration
+    - `[tool.coverage]` — Coverage configuration
+    - `[tool.ruff]` — Ruff linter/formatter configuration
+    - `[tool.mypy]` — mypy type checker configuration
 
 ## References
 

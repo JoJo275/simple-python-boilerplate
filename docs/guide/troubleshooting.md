@@ -938,8 +938,8 @@ in the selected interpreter's environment.
 
 ```json
 {
-  "python.terminal.activateEnvironment": true,
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+    "python.terminal.activateEnvironment": true,
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
 }
 ```
 
@@ -956,9 +956,9 @@ regardless of VS Code settings.
 
 ```json
 {
-  "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": ["tests"],
-  "python.testing.unittestEnabled": false
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"],
+    "python.testing.unittestEnabled": false
 }
 ```
 
@@ -1014,8 +1014,8 @@ outdated.
 
 ```yaml
 updates:
-  - package-ecosystem: pip
-    open-pull-requests-limit: 5 # Max concurrent PRs
+    - package-ecosystem: pip
+      open-pull-requests-limit: 5 # Max concurrent PRs
 ```
 
 The `auto-merge-dependabot.yml` workflow helps by auto-merging minor/patch
@@ -1375,10 +1375,10 @@ task lint:fix     # Auto-fix lint issues
 1. Search existing [issues](https://github.com/JoJo275/simple-python-boilerplate/issues) — someone may have hit the same problem
 2. Run the diagnostic tool: `spb-doctor` or `python scripts/doctor.py`
 3. Open a [new issue](https://github.com/JoJo275/simple-python-boilerplate/issues/new) with:
-   - What you tried
-   - Expected vs. actual behavior
-   - Output of `spb-doctor`
-   - Python version and OS
+    - What you tried
+    - Expected vs. actual behavior
+    - Output of `spb-doctor`
+    - Python version and OS
 
 ---
 

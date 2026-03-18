@@ -87,9 +87,9 @@ should be regenerated when `pyproject.toml` changes.
 
 1. Remove it from `[project.optional-dependencies]`
 2. Recreate the Hatch environment:
-   ```bash
-   hatch env remove default   # or: hatch env prune (removes ALL envs)
-   ```
+    ```bash
+    hatch env remove default   # or: hatch env prune (removes ALL envs)
+    ```
 3. Update `requirements*.txt` if applicable
 
 Hatch does not auto-uninstall removed packages — the environment must be

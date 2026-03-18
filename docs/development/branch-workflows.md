@@ -98,13 +98,13 @@ git push --force-with-lease       # update remote (rebase rewrites history)
      rebase frequency preferences. Some teams rebase daily, others only
      before merge. -->
 
-| Situation | Action |
-| --------- | ------ |
-| `main` has new commits you need | `git fetch origin && git rebase origin/main` |
-| CI fails due to main changes | Rebase to get the fixes |
-| Before requesting review | Rebase to ensure branch is current |
-| Merge conflicts appear on PR | Rebase locally, resolve, force-push |
-| Long-running branch (>1 week) | Rebase periodically to avoid conflict buildup |
+| Situation                       | Action                                        |
+| ------------------------------- | --------------------------------------------- |
+| `main` has new commits you need | `git fetch origin && git rebase origin/main`  |
+| CI fails due to main changes    | Rebase to get the fixes                       |
+| Before requesting review        | Rebase to ensure branch is current            |
+| Merge conflicts appear on PR    | Rebase locally, resolve, force-push           |
+| Long-running branch (>1 week)   | Rebase periodically to avoid conflict buildup |
 
 ### Merge Bot Branches Before Creating New Branches
 
@@ -153,7 +153,7 @@ The git doctor shows two related but different characteristics:
   own, even if you've rebased on top of the latest `main`.
 
 **These are not contradictory.** A branch can be both "up to date" AND
-"diverged" simultaneously. This is the *normal* state for an active feature
+"diverged" simultaneously. This is the _normal_ state for an active feature
 branch that's been rebased onto `main`:
 
 ```text
@@ -531,12 +531,12 @@ rather than living on a long-running branch. This gives you:
 
 **Common implementations:**
 
-| Approach | Complexity | Best for |
-| -------- | ---------- | -------- |
-| Boolean config/env variable | Low | Small teams, simple on/off toggles |
-| Config file (JSON/TOML) | Low | Multiple flags, environment-specific |
-| Database-backed flags | Medium | Runtime toggling without redeployment |
-| Feature flag service (LaunchDarkly, Unleash) | High | Large teams, A/B tests, gradual rollouts |
+| Approach                                     | Complexity | Best for                                 |
+| -------------------------------------------- | ---------- | ---------------------------------------- |
+| Boolean config/env variable                  | Low        | Small teams, simple on/off toggles       |
+| Config file (JSON/TOML)                      | Low        | Multiple flags, environment-specific     |
+| Database-backed flags                        | Medium     | Runtime toggling without redeployment    |
+| Feature flag service (LaunchDarkly, Unleash) | High       | Large teams, A/B tests, gradual rollouts |
 
 **When to use feature flags:**
 
@@ -707,19 +707,19 @@ git stash pop                     # restore your uncommitted work
 ### Preventing Bot PR Conflicts
 
 - Merge bot PRs promptly — don't let them pile up
-- Merge bot PRs *before* creating new feature branches (see
+- Merge bot PRs _before_ creating new feature branches (see
   [Merge Bot Branches First](#merge-bot-branches-before-creating-new-branches))
 - Keep lockfiles and config files well-structured so bot changes are
   isolated to specific sections
 
 ### Priority of Bot PRs
 
-| Bot PR type | Urgency | Action |
-| ----------- | ------- | ------ |
-| Security update (Dependabot) | High | Merge ASAP, even if it means pausing feature work |
-| Minor/patch dependency update | Medium | Merge within a day or two if CI passes |
-| release-please PR | Low | Merge when you're ready to cut a release |
-| Other automated PRs | Low | Review and merge at your convenience |
+| Bot PR type                   | Urgency | Action                                            |
+| ----------------------------- | ------- | ------------------------------------------------- |
+| Security update (Dependabot)  | High    | Merge ASAP, even if it means pausing feature work |
+| Minor/patch dependency update | Medium  | Merge within a day or two if CI passes            |
+| release-please PR             | Low     | Merge when you're ready to cut a release          |
+| Other automated PRs           | Low     | Review and merge at your convenience              |
 
 ---
 
@@ -744,14 +744,14 @@ that helps your team (and your future self) understand what's happening.
 
 ### When Comments Help Most
 
-| Situation | Useful comment |
-| --------- | -------------- |
-| Large PR | "Core change is in `auth.py`, rest is mechanical updates" |
+| Situation           | Useful comment                                             |
+| ------------------- | ---------------------------------------------------------- |
+| Large PR            | "Core change is in `auth.py`, rest is mechanical updates"  |
 | Conflict resolution | "Resolved conflict in `config.py` by keeping both changes" |
-| CI re-run | "Test failure was flaky network timeout, re-running" |
-| Stacked PRs | "This depends on #45, merge that first" |
-| Design decision | "Chose polling over webhooks because of X" |
-| Bot PR fix | "Added missing type stub to fix Dependabot CI failure" |
+| CI re-run           | "Test failure was flaky network timeout, re-running"       |
+| Stacked PRs         | "This depends on #45, merge that first"                    |
+| Design decision     | "Chose polling over webhooks because of X"                 |
+| Bot PR fix          | "Added missing type stub to fix Dependabot CI failure"     |
 
 ### Comments on Your Own PRs
 
@@ -790,13 +790,13 @@ unblocks everyone, not just you.
 
 Understanding when CI runs helps avoid surprise failures:
 
-| What you do | What triggers |
-| ----------- | ------------- |
-| Push to feature branch (no PR) | Nothing — CI only runs on PRs targeting `main` |
-| Open PR targeting `main` | All PR workflows (lint, test, typecheck, security) |
-| Push to PR branch | CI re-runs on the updated PR |
-| Merge PR to `main` | Push-to-main workflows (release-please, doctor-all) |
-| release-please creates tag | Release workflow (build, publish, SBOM) |
+| What you do                    | What triggers                                       |
+| ------------------------------ | --------------------------------------------------- |
+| Push to feature branch (no PR) | Nothing — CI only runs on PRs targeting `main`      |
+| Open PR targeting `main`       | All PR workflows (lint, test, typecheck, security)  |
+| Push to PR branch              | CI re-runs on the updated PR                        |
+| Merge PR to `main`             | Push-to-main workflows (release-please, doctor-all) |
+| release-please creates tag     | Release workflow (build, publish, SBOM)             |
 
 > **Pre-commit hooks** are your local safety net. They catch issues before
 > code reaches CI. See the [Releasing guide](../releasing.md) for hook
@@ -814,13 +814,13 @@ shows as "skipped" in your PR checks:
 
 Common guards:
 
-| Workflow | Variable to enable |
-| -------- | ------------------ |
-| Doctor All | `ENABLE_DOCTOR_ALL` or `ENABLE_WORKFLOWS` |
-| Repo Doctor | `ENABLE_REPO_DOCTOR` or `ENABLE_WORKFLOWS` |
-| Release Please | `ENABLE_RELEASE_PLEASE` |
-| Release | `ENABLE_RELEASE` |
-| Commit Lint | `ENABLE_COMMIT_LINT` |
+| Workflow       | Variable to enable                         |
+| -------------- | ------------------------------------------ |
+| Doctor All     | `ENABLE_DOCTOR_ALL` or `ENABLE_WORKFLOWS`  |
+| Repo Doctor    | `ENABLE_REPO_DOCTOR` or `ENABLE_WORKFLOWS` |
+| Release Please | `ENABLE_RELEASE_PLEASE`                    |
+| Release        | `ENABLE_RELEASE`                           |
+| Commit Lint    | `ENABLE_COMMIT_LINT`                       |
 
 > **Skipped ≠ failed.** The CI gate treats skipped workflows as passing.
 > This is by design — optional workflows shouldn't block merges.
@@ -829,19 +829,19 @@ Common guards:
 
 ## Branch Naming Conventions
 
-| Prefix | Use for | Example |
-| ------ | ------- | ------- |
-| `feature/` | New functionality | `feature/add-login` |
-| `fix/` | Bug fixes | `fix/null-byte-check` |
-| `chore/` | Maintenance, deps | `chore/update-ruff` |
-| `docs/` | Documentation | `docs/release-guide` |
-| `spike/` | Experimental / exploratory | `spike/try-fastapi` |
-| `wip/` | Work in progress / scratch | `wip/2026-03-06-scratch` |
-| `hotfix/` | Urgent production fixes | `hotfix/critical-auth-bug` |
-| `release/` | Manual release prep | `release/v2.0.0` |
-| `refactor/` | Code restructuring | `refactor/extract-auth` |
-| `test/` | Test additions/experiments | `test/integration-suite` |
-| `ci/` | CI/CD changes | `ci/add-matrix-test` |
+| Prefix      | Use for                    | Example                    |
+| ----------- | -------------------------- | -------------------------- |
+| `feature/`  | New functionality          | `feature/add-login`        |
+| `fix/`      | Bug fixes                  | `fix/null-byte-check`      |
+| `chore/`    | Maintenance, deps          | `chore/update-ruff`        |
+| `docs/`     | Documentation              | `docs/release-guide`       |
+| `spike/`    | Experimental / exploratory | `spike/try-fastapi`        |
+| `wip/`      | Work in progress / scratch | `wip/2026-03-06-scratch`   |
+| `hotfix/`   | Urgent production fixes    | `hotfix/critical-auth-bug` |
+| `release/`  | Manual release prep        | `release/v2.0.0`           |
+| `refactor/` | Code restructuring         | `refactor/extract-auth`    |
+| `test/`     | Test additions/experiments | `test/integration-suite`   |
+| `ci/`       | CI/CD changes              | `ci/add-matrix-test`       |
 
 > For the full branch prefixes reference, see
 > [learning.md — Branch Prefixes](../notes/learning.md#branch-prefixes).
@@ -872,14 +872,14 @@ pick 789abcd feat: add validation
 
 Common actions:
 
-| Action | What it does |
-| ------ | ------------ |
-| `pick` | Keep the commit as-is |
-| `reword` | Keep the commit but edit the message |
-| `squash` | Merge into the previous commit (combine messages) |
-| `fixup` | Merge into the previous commit (discard this message) |
-| `drop` | Remove the commit entirely |
-| `edit` | Pause at this commit so you can amend it |
+| Action   | What it does                                          |
+| -------- | ----------------------------------------------------- |
+| `pick`   | Keep the commit as-is                                 |
+| `reword` | Keep the commit but edit the message                  |
+| `squash` | Merge into the previous commit (combine messages)     |
+| `fixup`  | Merge into the previous commit (discard this message) |
+| `drop`   | Remove the commit entirely                            |
+| `edit`   | Pause at this commit so you can amend it              |
 
 **Example — squash a typo fix into the original commit:**
 
@@ -1031,30 +1031,30 @@ git stash clear                   # delete ALL stashes (be careful)
 
 Common commands used throughout this guide, with brief descriptions:
 
-| Command | What it does |
-| ------- | ------------ |
-| `git fetch origin` | Download new commits/branches/tags from remote (doesn't change working tree) |
-| `git fetch --prune` | Fetch and remove local tracking refs for deleted remote branches |
-| `git pull --ff-only` | Update current branch only if it can fast-forward (no merge commits) |
-| `git switch -c <name> <base>` | Create a new branch from `<base>` and switch to it |
-| `git switch <name>` | Switch to an existing branch |
-| `git rebase origin/main` | Replay current branch's commits on top of `origin/main` |
-| `git rebase -i HEAD~N` | Interactively edit the last N commits |
-| `git push -u origin HEAD` | Push current branch and set upstream tracking |
-| `git push --force-with-lease` | Force-push safely (fails if remote has unexpected new commits) |
-| `git cherry-pick <hash>` | Apply a specific commit onto the current branch |
-| `git stash` / `git stash pop` | Temporarily save/restore uncommitted changes |
-| `git branch -d <name>` | Delete a fully-merged local branch |
-| `git branch -D <name>` | Force-delete a local branch (even unmerged) |
-| `git log --oneline` | Show compact one-line commit log |
-| `git reflog` | Show recent HEAD movements (useful for recovery) |
-| `git restore --staged <file>` | Unstage a file without discarding changes |
-| `git restore <file>` | Discard uncommitted changes to a file |
-| `git reset --soft HEAD~1` | Undo last commit, keep changes staged |
-| `git reset --hard HEAD~1` | Undo last commit and discard all changes |
-| `git commit --amend` | Modify the last commit (message or content) |
-| `git diff main..branch` | Show what changed between main and branch |
-| `git rev-list --count A..B` | Count commits reachable from B but not A |
+| Command                       | What it does                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `git fetch origin`            | Download new commits/branches/tags from remote (doesn't change working tree) |
+| `git fetch --prune`           | Fetch and remove local tracking refs for deleted remote branches             |
+| `git pull --ff-only`          | Update current branch only if it can fast-forward (no merge commits)         |
+| `git switch -c <name> <base>` | Create a new branch from `<base>` and switch to it                           |
+| `git switch <name>`           | Switch to an existing branch                                                 |
+| `git rebase origin/main`      | Replay current branch's commits on top of `origin/main`                      |
+| `git rebase -i HEAD~N`        | Interactively edit the last N commits                                        |
+| `git push -u origin HEAD`     | Push current branch and set upstream tracking                                |
+| `git push --force-with-lease` | Force-push safely (fails if remote has unexpected new commits)               |
+| `git cherry-pick <hash>`      | Apply a specific commit onto the current branch                              |
+| `git stash` / `git stash pop` | Temporarily save/restore uncommitted changes                                 |
+| `git branch -d <name>`        | Delete a fully-merged local branch                                           |
+| `git branch -D <name>`        | Force-delete a local branch (even unmerged)                                  |
+| `git log --oneline`           | Show compact one-line commit log                                             |
+| `git reflog`                  | Show recent HEAD movements (useful for recovery)                             |
+| `git restore --staged <file>` | Unstage a file without discarding changes                                    |
+| `git restore <file>`          | Discard uncommitted changes to a file                                        |
+| `git reset --soft HEAD~1`     | Undo last commit, keep changes staged                                        |
+| `git reset --hard HEAD~1`     | Undo last commit and discard all changes                                     |
+| `git commit --amend`          | Modify the last commit (message or content)                                  |
+| `git diff main..branch`       | Show what changed between main and branch                                    |
+| `git rev-list --count A..B`   | Count commits reachable from B but not A                                     |
 
 ---
 
@@ -1183,29 +1183,29 @@ git log --oneline main..my-branch # commits on my-branch not on main
 
 Quick definitions of Git terms used throughout this guide:
 
-| Term | Definition |
-| ---- | ---------- |
-| **HEAD** | A pointer to the current commit your working directory is based on. Usually points to a branch name. |
-| **origin** | The default name for the remote repository (on GitHub). Your local repo fetches from and pushes to `origin`. |
-| **upstream** | The remote branch your local branch tracks. Set with `git push -u` or `push.autoSetupRemote`. |
-| **tracking branch** | A local branch configured to follow a remote branch (e.g., `main` tracks `origin/main`). |
-| **remote-tracking ref** | A read-only local reference to a remote branch (e.g., `origin/main`). Updated by `git fetch`. |
-| **fast-forward** | A merge where the target branch pointer simply moves forward — no merge commit needed. Happens when there's no divergence. |
-| **rebase** | Replaying your commits on top of another branch. Rewrites commit SHAs but produces a clean linear history. |
-| **merge commit** | A commit with two parents that joins two branches. This project avoids them (uses rebase+merge). |
-| **force-push** | Overwriting the remote branch with your local version. Use `--force-with-lease` for safety. |
-| **detached HEAD** | When HEAD points to a commit directly (not a branch). Usually unintentional — create a branch to save work. |
-| **merge-base** | The most recent common ancestor commit between two branches. Where your branch diverged from `main`. |
-| **reflog** | A local log of every position HEAD has pointed to. Your safety net for recovering from mistakes. |
-| **stash** | A temporary storage area for uncommitted changes. Like a clipboard for your working directory. |
-| **cherry-pick** | Applying a specific commit from one branch onto another. Creates a new commit with a new SHA. |
-| **interactive rebase** | A rebase where you choose what to do with each commit (keep, squash, reword, drop, reorder). |
-| **feature flag** | A conditional check that enables/disables a feature at runtime, allowing incomplete code to merge to `main` safely. |
-| **diverged** | When two branches have commits the other doesn't. Normal for feature branches vs `main`. |
-| **[gone]** | Git's label for a tracking branch whose remote counterpart has been deleted (usually after PR merge). |
-| **SHA / hash** | The 40-character (or abbreviated 7-char) identifier for a commit. Globally unique. |
-| **working tree** | The actual files on disk in your repo. Distinct from the index (staging area) and committed history. |
-| **index / staging area** | The "prep area" between your working tree and the next commit. Files go here via `git add`. |
+| Term                     | Definition                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **HEAD**                 | A pointer to the current commit your working directory is based on. Usually points to a branch name.                       |
+| **origin**               | The default name for the remote repository (on GitHub). Your local repo fetches from and pushes to `origin`.               |
+| **upstream**             | The remote branch your local branch tracks. Set with `git push -u` or `push.autoSetupRemote`.                              |
+| **tracking branch**      | A local branch configured to follow a remote branch (e.g., `main` tracks `origin/main`).                                   |
+| **remote-tracking ref**  | A read-only local reference to a remote branch (e.g., `origin/main`). Updated by `git fetch`.                              |
+| **fast-forward**         | A merge where the target branch pointer simply moves forward — no merge commit needed. Happens when there's no divergence. |
+| **rebase**               | Replaying your commits on top of another branch. Rewrites commit SHAs but produces a clean linear history.                 |
+| **merge commit**         | A commit with two parents that joins two branches. This project avoids them (uses rebase+merge).                           |
+| **force-push**           | Overwriting the remote branch with your local version. Use `--force-with-lease` for safety.                                |
+| **detached HEAD**        | When HEAD points to a commit directly (not a branch). Usually unintentional — create a branch to save work.                |
+| **merge-base**           | The most recent common ancestor commit between two branches. Where your branch diverged from `main`.                       |
+| **reflog**               | A local log of every position HEAD has pointed to. Your safety net for recovering from mistakes.                           |
+| **stash**                | A temporary storage area for uncommitted changes. Like a clipboard for your working directory.                             |
+| **cherry-pick**          | Applying a specific commit from one branch onto another. Creates a new commit with a new SHA.                              |
+| **interactive rebase**   | A rebase where you choose what to do with each commit (keep, squash, reword, drop, reorder).                               |
+| **feature flag**         | A conditional check that enables/disables a feature at runtime, allowing incomplete code to merge to `main` safely.        |
+| **diverged**             | When two branches have commits the other doesn't. Normal for feature branches vs `main`.                                   |
+| **[gone]**               | Git's label for a tracking branch whose remote counterpart has been deleted (usually after PR merge).                      |
+| **SHA / hash**           | The 40-character (or abbreviated 7-char) identifier for a commit. Globally unique.                                         |
+| **working tree**         | The actual files on disk in your repo. Distinct from the index (staging area) and committed history.                       |
+| **index / staging area** | The "prep area" between your working tree and the next commit. Files go here via `git add`.                                |
 
 ---
 

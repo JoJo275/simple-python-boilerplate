@@ -7,10 +7,10 @@ User-facing guides for getting started and day-to-day development.
 
 ## Contents
 
-| Guide                                      | Description                              |
-| ------------------------------------------ | ---------------------------------------- |
-| [Getting Started](getting-started.md)      | First-time setup and orientation         |
-| [Troubleshooting](troubleshooting.md)      | Common problems and how to resolve them  |
+| Guide                                 | Description                             |
+| ------------------------------------- | --------------------------------------- |
+| [Getting Started](getting-started.md) | First-time setup and orientation        |
+| [Troubleshooting](troubleshooting.md) | Common problems and how to resolve them |
 
 ## See Also
 

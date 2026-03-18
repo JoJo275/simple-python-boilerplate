@@ -32,22 +32,22 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 
 ## Quick links
 
-| Resource                                               | Description                                  |
-| ------------------------------------------------------ | -------------------------------------------- |
-| [Getting Started](guide/getting-started.md)            | Installation and local development           |
-| [Using This Template](USING_THIS_TEMPLATE.md)          | Customizing the boilerplate for your project |
-| [Development Guide](development/development.md)        | Developer tools and workflows                |
-| [Command Reference](reference/commands.md)             | All task / hatch / script commands in one place |
-| [API Reference](reference/api.md)                      | Auto-generated from source docstrings        |
-| [Architecture](design/architecture.md)                 | System overview and module responsibilities  |
-| [ADRs](adr/README.md)                                  | Architecture Decision Records                |
-| [Workflows](workflows.md)                              | GitHub Actions inventory                     |
-| [Tooling](tooling.md)                                  | All repo tools at a glance                   |
-| [Troubleshooting](guide/troubleshooting.md)            | Common issues and fixes                      |
-| [Security Policy](../SECURITY.md)                      | Vulnerability reporting and tooling          |
-| [Learning Notes](notes/learning.md)                    | Concepts and tool comparisons from building  |
-| [Resources (Links)](notes/resources_links.md)          | Curated external links and further reading   |
-| [Resources (Written)](notes/resources_written.md)      | Self-written references and cheat sheets     |
+| Resource                                          | Description                                     |
+| ------------------------------------------------- | ----------------------------------------------- |
+| [Getting Started](guide/getting-started.md)       | Installation and local development              |
+| [Using This Template](USING_THIS_TEMPLATE.md)     | Customizing the boilerplate for your project    |
+| [Development Guide](development/development.md)   | Developer tools and workflows                   |
+| [Command Reference](reference/commands.md)        | All task / hatch / script commands in one place |
+| [API Reference](reference/api.md)                 | Auto-generated from source docstrings           |
+| [Architecture](design/architecture.md)            | System overview and module responsibilities     |
+| [ADRs](adr/README.md)                             | Architecture Decision Records                   |
+| [Workflows](workflows.md)                         | GitHub Actions inventory                        |
+| [Tooling](tooling.md)                             | All repo tools at a glance                      |
+| [Troubleshooting](guide/troubleshooting.md)       | Common issues and fixes                         |
+| [Security Policy](../SECURITY.md)                 | Vulnerability reporting and tooling             |
+| [Learning Notes](notes/learning.md)               | Concepts and tool comparisons from building     |
+| [Resources (Links)](notes/resources_links.md)     | Curated external links and further reading      |
+| [Resources (Written)](notes/resources_written.md) | Self-written references and cheat sheets        |
 
 ## Project layout
 

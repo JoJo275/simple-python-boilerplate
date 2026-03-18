@@ -134,9 +134,9 @@ We will not pursue legal action against researchers who:
 placeholders below before publishing. Do not ship this file with example values.
 
 1. **Preferred:** [GitHub Security Advisory](https://github.com/[OWNER]/[REPO]/security/advisories/new)
-   <!-- TODO (template users): Replace `[OWNER]/[REPO]` with your actual repo path -->
+ <!-- TODO (template users): Replace `[OWNER]/[REPO]` with your actual repo path -->
 2. **Email:** `[security-email]@[your-domain].com`
-   <!-- TODO (template users): Replace with your actual security email -->
+ <!-- TODO (template users): Replace with your actual security email -->
 3. **PGP Encrypted:** See key details below (if available)
 
 <!-- TODO (template users): Add your PGP key fingerprint (full 40-character format),

@@ -7,10 +7,10 @@ Technical reference material — API docs, configuration options, and specificat
 
 ## Contents
 
-| Reference            | Description                                      |
-| -------------------- | ------------------------------------------------ |
-| [API](api.md)        | Public API reference (auto-generated docstrings) |
-| [Index](index.md)    | Reference section landing page                   |
+| Reference         | Description                                      |
+| ----------------- | ------------------------------------------------ |
+| [API](api.md)     | Public API reference (auto-generated docstrings) |
+| [Index](index.md) | Reference section landing page                   |
 
 ## See Also
 

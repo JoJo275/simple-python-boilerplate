@@ -51,12 +51,12 @@ pytest -k "test_name_pattern"  # By name pattern
 
 ### Unit vs Integration
 
-| Aspect           | Unit (`tests/unit/`)        | Integration (`tests/integration/`) |
-| ---------------- | --------------------------- | ---------------------------------- |
-| **Speed**        | Fast (milliseconds)         | Slower (may involve I/O)           |
-| **Dependencies** | Mocked / none               | Real database, filesystem, APIs    |
-| **Isolation**    | Fully isolated              | May share state                    |
-| **Run when**     | Every commit                | Every commit + dedicated CI job    |
+| Aspect           | Unit (`tests/unit/`) | Integration (`tests/integration/`) |
+| ---------------- | -------------------- | ---------------------------------- |
+| **Speed**        | Fast (milliseconds)  | Slower (may involve I/O)           |
+| **Dependencies** | Mocked / none        | Real database, filesystem, APIs    |
+| **Isolation**    | Fully isolated       | May share state                    |
+| **Run when**     | Every commit         | Every commit + dedicated CI job    |
 
 ## Coverage
 
