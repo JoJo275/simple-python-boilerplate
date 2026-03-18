@@ -67,12 +67,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
       - name: Build dev container
-        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3.1900000417
+        uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # Action to simplify using Dev Containers… (v0.3.1900000417)
         with:
           runCmd: |
             echo "=== Dev container built successfully ==="

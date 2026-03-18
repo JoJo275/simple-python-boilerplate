@@ -13,6 +13,7 @@ import pytest
 # scripts/ is not an installed package — add it to sys.path so we can import
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts"))
 
+import workflow_versions as _wv_mod
 from _colors import Colors
 from workflow_versions import (
     _USES_RE,
@@ -30,6 +31,14 @@ from workflow_versions import (
     upgrade_action,
     upgrade_all_actions,
 )
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limit_state() -> None:
+    """Reset the module-level rate-limit flag between tests."""
+    _wv_mod._rate_limited = False
+    _wv_mod._rate_limit["remaining"] = None
+
 
 # ---------------------------------------------------------------------------
 # SCRIPT_VERSION
@@ -1237,3 +1246,82 @@ class TestCommentRegexB1Fix:
             rows = scan_workflows(resolve_tags=False)
 
         assert rows[0]["comment_tag"] == "v4.2.0"
+
+
+# ---------------------------------------------------------------------------
+# Rate-limit early bail-out
+# ---------------------------------------------------------------------------
+
+
+class TestRateLimitBailOut:
+    """Tests for the _rate_limited flag and early bail-out behavior."""
+
+    def test_gh_api_returns_none_when_rate_limited(self) -> None:
+        """Once _rate_limited is set, _gh_api should return None immediately."""
+        _wv_mod._rate_limited = True
+        result = _wv_mod._gh_api("https://api.github.com/repos/test/tags")
+        assert result is None
+
+    def test_gh_api_sets_flag_on_403(self) -> None:
+        """A 403 HTTP error should set _rate_limited to True."""
+        import urllib.error
+
+        exc = urllib.error.HTTPError(
+            "https://api.github.com/test",
+            403,
+            "rate limit exceeded",
+            {},
+            None,
+        )
+        with patch("urllib.request.urlopen", side_effect=exc):
+            result = _wv_mod._gh_api("https://api.github.com/test")
+        assert result is None
+        assert _wv_mod._rate_limited is True
+
+    def test_rate_limit_warning_logged_only_once(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """The rate-limit warning should appear exactly once, not per call."""
+        import urllib.error
+
+        exc = urllib.error.HTTPError(
+            "https://api.github.com/test",
+            403,
+            "rate limit exceeded",
+            {},
+            None,
+        )
+        with (
+            patch("urllib.request.urlopen", side_effect=exc),
+            caplog.at_level("WARNING"),
+        ):
+            _wv_mod._gh_api("https://api.github.com/test1")
+            _wv_mod._gh_api("https://api.github.com/test2")
+            _wv_mod._gh_api("https://api.github.com/test3")
+
+        rate_warnings = [r for r in caplog.records if "rate limit" in r.message.lower()]
+        assert len(rate_warnings) == 1
+
+    def test_cached_api_still_returns_cache_when_rate_limited(
+        self, tmp_path: Path
+    ) -> None:
+        """Cached responses should still be returned even after rate limiting."""
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
+        # Pre-populate the cache
+        import hashlib
+
+        url = "https://api.github.com/repos/test/cached"
+        url_hash = hashlib.sha256(url.encode()).hexdigest()[:16]
+        cache_file = cache_dir / f"{url_hash}.json"
+        cache_file.write_text('{"cached": true}', encoding="utf-8")
+
+        _wv_mod._rate_limited = True
+        with (
+            patch("workflow_versions._CACHE_DIR", cache_dir),
+            patch("workflow_versions._CACHE_TTL", 3600),
+        ):
+            result = _cached_gh_api(url)
+
+        assert result == {"cached": True}

@@ -99,7 +99,7 @@ spb-start = "simple_python_boilerplate.main:start"
 # Or directly: hatch run python scripts/dep_versions.py update-comments
 [project.optional-dependencies]
 test = [
-    "pytest>=8.0",  # Testing framework (v9.0.2)
+    "pytest>=8.0",  # Testing framework (v8.4.2)
     "pytest-cov>=6.0",  # Code coverage for pytest (v7.0.0)
     "mkdocs>=1.6",  # Needed by tests/unit/test_include_templates.py (v1.6.1)
     # "pytest-asyncio>=0.24",  # For async test support
@@ -110,11 +110,11 @@ dev = [
     # TODO (template users): Update "simple-python-boilerplate" below to
     # match your [project] name — otherwise pip install -e ".[dev]" breaks.
     "simple-python-boilerplate[test]",
-    "ruff>=0.11",  # Fast linter and formatter (v0.15.1)
+    "ruff>=0.11",  # Fast linter and formatter (v0.15.4)
     "mypy>=1.15",  # Static type checker (v1.19.1)
     "pre-commit>=4.0",  # Git hooks for automated checks (v4.5.1)
-    "bandit>=1.8",  # Security linter (v1.9.3)
-    "commitizen>=4.4",  # Conventional commit helper + validator (v4.13.8)
+    "bandit>=1.8",  # Security linter (v1.9.4)
+    "commitizen>=4.4",  # Conventional commit helper + validator (v4.13.9)
     "deptry>=0.22",  # Dependency hygiene — unused, missing, transitive deps (v0.24.0)
 ]
 # Helpful but not required tools: pip install -e ".[extras]"
@@ -131,7 +131,7 @@ docs = [
     "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
     "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
     "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
-    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v0.29.1)
+    "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
 ]
 
 # ============================================================================

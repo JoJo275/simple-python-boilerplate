@@ -130,6 +130,10 @@ _colors = Colors()
 # Rate-limit tracking (updated by _gh_api on every successful response)
 _rate_limit: dict[str, int | None] = {"remaining": None}
 
+# Set to True after the first 403 — prevents further uncached API calls
+# and suppresses duplicate warning messages.
+_rate_limited: bool = False
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -140,8 +144,16 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
     """Make a GET request to the GitHub API and return parsed JSON.
 
     Uses ``GITHUB_TOKEN`` / ``GH_TOKEN`` env var if available.
-    Returns ``None`` on any failure.
+    Returns ``None`` on any failure.  After the first 403 (rate
+    limit), sets ``_rate_limited`` so callers can skip further
+    uncached requests.
     """
+    global _rate_limited
+
+    # Skip immediately if we already hit the rate limit
+    if _rate_limited:
+        return None
+
     headers = {
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
@@ -160,11 +172,14 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
         if exc.code == 403:
-            logger.warning(
-                "GitHub API rate limit reached."
-                " Set GITHUB_TOKEN env var for 5,000 req/hr"
-                " (current: 60/hr unauthenticated)."
-            )
+            if not _rate_limited:
+                _rate_limited = True
+                logger.warning(
+                    "GitHub API rate limit reached."
+                    " Set GITHUB_TOKEN env var for 5,000 req/hr"
+                    " (current: 60/hr unauthenticated)."
+                    " Skipping remaining uncached API calls."
+                )
         elif exc.code == 404:
             pass  # repo or ref not found — expected for some lookups
         else:
@@ -1214,6 +1229,23 @@ def main() -> int:
             )
         else:
             print(f"\n  {_colors.dim('No changes made.')}")
+
+        if _rate_limited:
+            # Report how many actions still lack descriptions due to rate limiting
+            still_no_desc = [
+                r
+                for r in rows
+                if r.get("has_description") != "yes"
+                and r["stale"] in ("yes", "missing", "no-desc")
+            ]
+            if still_no_desc:
+                n = len({r["action"] for r in still_no_desc if r["action"]})
+                print(
+                    f"\n  {_colors.yellow(f'{n} action(s)')} could not fetch descriptions"
+                    " (rate-limited)."
+                    f"\n  Re-run after setting {_colors.cyan('GITHUB_TOKEN')} or wait"
+                    " for the rate limit to reset."
+                )
 
     elif command == "upgrade":
         action_arg = getattr(args, "action", None)

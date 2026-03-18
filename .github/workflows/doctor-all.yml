@@ -59,13 +59,13 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
           fetch-depth: 0  # Full history for git_doctor.py
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # Set up a specific version of Python and add… (v6.2.0)
         with:
           python-version: "3.12"
           cache: "pip"

@@ -63,7 +63,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # Checkout a Git repository at a particular version (v6.0.2)
         with:
           persist-credentials: false
 
@@ -73,7 +73,7 @@ jobs:
       # On PR:            ghcr.io/owner/repo:pr-123 (not pushed)
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # Extract metadata (tags, labels) for Docker (v6.0.0)
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -88,7 +88,7 @@ jobs:
 
       - name: Log in to GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # Login against a Docker registry (v4.0.0)
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -96,7 +96,7 @@ jobs:
 
       - name: Build and push
         id: build
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # Build and push Docker images with Buildx (v7.0.0)
         with:
           context: .
           file: Containerfile
