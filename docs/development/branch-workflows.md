@@ -72,6 +72,17 @@ When `main` moves ahead while you're working on a feature branch, you need
 to incorporate those changes. Use **rebase**, not merge:
 
 ```bash
+# Quick: one command that fetches, prunes stale refs, and syncs tags
+task doctor:git:refresh
+
+# Then rebase and push
+git rebase origin/main            # replay your commits on top of updated main
+git push --force-with-lease       # update remote (rebase rewrites history)
+```
+
+Or do the fetch manually:
+
+```bash
 git fetch origin                  # download latest commits
 git rebase origin/main            # replay your commits on top of updated main
 git push --force-with-lease       # update remote (rebase rewrites history)
@@ -1054,7 +1065,7 @@ A condensed reference for the most common daily tasks:
 ### Starting Your Day
 
 ```bash
-git fetch origin                  # sync remote state
+task doctor:git:refresh            # fetch, prune stale refs, sync tags
 git switch my-branch              # switch to your working branch
 git rebase origin/main            # get any overnight changes from main
 git push --force-with-lease       # update remote if rebase applied
@@ -1084,7 +1095,8 @@ git push --force-with-lease       # update remote branch
 git switch main                   # go back to main
 git pull --ff-only                # fast-forward to latest
 git branch -d my-branch           # delete the merged branch locally
-git fetch --prune                 # clean up stale remote refs
+task doctor:git:refresh            # fetch, prune stale refs, sync tags
+# or: git fetch --prune
 ```
 
 ---
@@ -1215,6 +1227,12 @@ git branch -d feature/my-feature  # -d only works if the branch is fully merged
 The git doctor script flags stale branches (>30 days since last commit)
 and branches whose remote tracking ref is `[gone]`.
 
+For a full cleanup (delete stale branches and run `git gc`):
+
+```bash
+task doctor:git:cleanup           # delete stale branches, gc
+```
+
 ---
 
 ## See Also
@@ -1222,6 +1240,8 @@ and branches whose remote tracking ref is `[gone]`.
 - [Releasing](../releasing.md) — Release process, conventional commits, version bumps
 - [Pull Requests](pull-requests.md) — PR creation and review guidelines
 - [Workflows](../workflows.md) — CI/CD workflow reference
+- [Command Workflows](command-workflows.md) — How commands flow through the tooling layers
 - [ADR 022 — Rebase+merge strategy](../adr/022-rebase-merge-strategy.md)
 - [ADR 023 — Branch protection rules](../adr/023-branch-protection-rules.md)
 - [Git Doctor](../../scripts/README.md) — Branch health checks and diagnostics
+- [Command Reference](../reference/commands.md) — Auto-generated task & script reference

@@ -195,6 +195,46 @@ tasks:
     cmds:
       - python scripts/git_doctor.py {{.CLI_ARGS}}
 
+  doctor:git:watch:
+    desc: Re-run git dashboard every N seconds (default 10)
+    cmds:
+      - python scripts/git_doctor.py --watch {{.CLI_ARGS}}
+
+  doctor:git:refresh:
+    desc: "Fetch remotes, prune stale refs, sync tags"
+    cmds:
+      - python scripts/git_doctor.py --refresh {{.CLI_ARGS}}
+
+  doctor:git:cleanup:
+    desc: "Delete stale local branches and run git gc"
+    cmds:
+      - python scripts/git_doctor.py --cleanup {{.CLI_ARGS}}
+
+  doctor:git:commits:
+    desc: Detailed commit report for current branch
+    cmds:
+      - python scripts/git_doctor.py --view-commits {{.CLI_ARGS}}
+
+  doctor:git:commits:md:
+    desc: Write commit report to commit-report.md
+    cmds:
+      - python scripts/git_doctor.py --view-commits --markdown
+
+  doctor:git:config:export:
+    desc: Export git config reference to Markdown
+    cmds:
+      - python scripts/git_doctor.py --export-config
+
+  doctor:git:config:apply:
+    desc: "Apply recommended git config (usage: task doctor:git:config:apply, or with --dry-run)"
+    cmds:
+      - python scripts/git_doctor.py --apply-recommended {{.CLI_ARGS}}
+
+  doctor:git:config:minimal:
+    desc: Apply core subset of recommended git configs (12 keys)
+    cmds:
+      - python scripts/git_doctor.py --apply-recommended-minimal {{.CLI_ARGS}}
+
   doctor:all:
     desc: Run ALL health checks (env, repo, git, extended, TODOs, known issues) -- unified error report
     cmds:

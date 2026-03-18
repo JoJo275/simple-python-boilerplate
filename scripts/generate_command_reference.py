@@ -217,6 +217,34 @@ def _hatch_env_show() -> str | None:
 
 
 # ---------------------------------------------------------------------------
+# CLI entry points
+# ---------------------------------------------------------------------------
+
+
+def _parse_entry_points() -> list[tuple[str, str]]:
+    """Parse ``[project.scripts]`` from ``pyproject.toml``.
+
+    Returns a list of ``(command_name, module:function)`` tuples.
+    """
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.is_file():
+        return []
+
+    try:
+        import tomllib
+    except ModuleNotFoundError:  # pragma: no cover - Python < 3.11
+        return []
+
+    try:
+        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    scripts = data.get("project", {}).get("scripts", {})
+    return sorted(scripts.items())
+
+
+# ---------------------------------------------------------------------------
 # Markdown generation
 # ---------------------------------------------------------------------------
 
@@ -373,6 +401,43 @@ def _generate() -> str:
         parts.append(
             "*Could not capture Hatch environments. Is `hatch` installed?*\n\n"
         )
+
+    # ── CLI entry points ─────────────────────────────────────
+    parts.append("## CLI Entry Points\n\n")
+    parts.append(
+        "Console commands installed by `pip install -e .` or `hatch shell`. "
+        "Defined in `[project.scripts]` in `pyproject.toml`.\n\n"
+    )
+
+    entry_points = _parse_entry_points()
+    if entry_points:
+        parts.append("| Command | Entry point |\n")
+        parts.append("| ------- | ----------- |\n")
+        for cmd_name, target in entry_points:
+            parts.append(f"| `{cmd_name}` | `{target}` |\n")
+        parts.append("\n")
+    else:
+        parts.append("*No entry points found in pyproject.toml.*\n\n")
+
+    # ── Common flag patterns ──────────────────────────────────
+    parts.append("## Common Flag Patterns\n\n")
+    parts.append("Most scripts in this project follow consistent flag conventions:\n\n")
+    parts.append(
+        "| Flag | Meaning | Used by |\n"
+        "| ---- | ------- | ------- |\n"
+        "| `--help` | Show usage and exit | All scripts |\n"
+        "| `--version` | Print version and exit | All scripts |\n"
+        "| `--dry-run` | Preview changes without writing | "
+        "clean, customize, bootstrap, dep_versions, workflow_versions, git_doctor |\n"
+        "| `--json` | Machine-readable JSON output | "
+        "doctor, env_doctor, git_doctor, check_todos, check_known_issues |\n"
+        "| `--no-color` | Disable colored terminal output | "
+        "doctor, env_doctor, git_doctor, repo_doctor, workflow_versions |\n"
+        "| `-q, --quiet` | Suppress informational output | "
+        "clean, bootstrap, archive_todos, changelog_check, check_known_issues, "
+        "workflow_versions |\n"
+    )
+    parts.append("\n")
 
     # ── Quick-reference table ─────────────────────────────────
     # Auto-generated from all parsed Taskfile tasks — no manual

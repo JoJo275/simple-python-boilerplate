@@ -23,7 +23,7 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 - **MkDocs + Material** — documentation with auto-generated API reference.
 - **43 pre-commit hooks** — across 4 stages: pre-commit, commit-msg,
   pre-push, manual ([ADR 008](adr/008-pre-commit-hooks.md)).
-- **34 GitHub Actions workflows** — all SHA-pinned, with repository
+- **36 GitHub Actions workflows** — all SHA-pinned, with repository
   guard pattern ([ADR 004](adr/004-pin-action-shas.md),
   [ADR 011](adr/011-repository-guard-pattern.md)).
 - **Security scanning** — Bandit, pip-audit, CodeQL, Trivy, Gitleaks,
@@ -37,7 +37,7 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 | [Getting Started](guide/getting-started.md)            | Installation and local development           |
 | [Using This Template](USING_THIS_TEMPLATE.md)          | Customizing the boilerplate for your project |
 | [Development Guide](development/development.md)        | Developer tools and workflows                |
-| [Command Reference](development/developer-commands.md) | All task / hatch commands in one place       |
+| [Command Reference](reference/commands.md)             | All task / hatch / script commands in one place |
 | [API Reference](reference/api.md)                      | Auto-generated from source docstrings        |
 | [Architecture](design/architecture.md)                 | System overview and module responsibilities  |
 | [ADRs](adr/README.md)                                  | Architecture Decision Records                |
@@ -62,11 +62,11 @@ src/
     dev_tools/        # Development utilities (clean, etc.)
 tests/                # Test suite (unit + integration)
 docs/                 # Documentation source (this site)
-scripts/              # Utility scripts (bootstrap, clean, doctor, etc.)
+scripts/              # Utility scripts (bootstrap, clean, doctor, git_doctor, etc.)
 db/                   # Database schema, migrations, seeds, queries
 experiments/          # Scratch files for exploration (not packaged)
 .github/
-  workflows/          # 34 GitHub Actions workflows (SHA-pinned)
+  workflows/          # 36 GitHub Actions workflows (SHA-pinned)
   ISSUE_TEMPLATE/     # Issue form templates
 pyproject.toml        # Project configuration (single source of truth)
 Taskfile.yml          # Task runner shortcuts

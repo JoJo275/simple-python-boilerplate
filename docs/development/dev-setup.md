@@ -8,10 +8,11 @@ This guide walks you through setting up the development environment for this pro
 
 ## Prerequisites
 
-- **Python 3.11+** - [Download Python](https://www.python.org/downloads/)
-- **Git** - [Download Git](https://git-scm.com/downloads)
-- **Hatch** - [Install Hatch](https://hatch.pypa.io/latest/install/) (install with pipx: `pipx install hatch`)
-- **VS Code** (recommended) - [Download VS Code](https://code.visualstudio.com/)
+- **Python 3.11+** — [Download Python](https://www.python.org/downloads/) (required)
+- **Git** — [Download Git](https://git-scm.com/downloads) (recommended — hooks, branching, CI)
+- **Hatch** — [Install Hatch](https://hatch.pypa.io/latest/install/) (recommended — `pipx install hatch`)
+- **Task** — [Install Task](https://taskfile.dev/installation/) (optional — short aliases for Hatch commands)
+- **VS Code** (recommended) — [Download VS Code](https://code.visualstudio.com/)
 
 ## Quick Start
 

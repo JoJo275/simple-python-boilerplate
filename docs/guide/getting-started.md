@@ -232,7 +232,16 @@ action.
   setup including VS Code, pre-commit, and Python version management
 - [Developer Commands](../development/developer-commands.md) — complete
   command reference for testing, linting, formatting, and more
+- [Command Reference](../reference/commands.md) — auto-generated reference
+  of all Taskfile tasks, scripts, Hatch envs, and CLI entry points
 - [Command Workflows](../development/command-workflows.md) — how commands
   flow through Taskfile → Hatch → Python tools
 - [Pull Requests](../development/pull-requests.md) — PR guidelines and
   conventions
+- [Using This Template](../USING_THIS_TEMPLATE.md) — full customization
+  guide if you're forking the boilerplate
+
+!!! tip "Something not working?"
+    See **[Troubleshooting & FAQ](troubleshooting.md)** for solutions to
+    common errors with installation, pre-commit hooks, Git, CI/CD, testing,
+    documentation builds, and more. Check there before opening an issue.

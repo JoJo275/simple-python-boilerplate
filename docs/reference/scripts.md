@@ -3,12 +3,19 @@
 <!-- TODO (template users): Update this file after renaming, removing, or
      adding scripts. Keep it in sync with scripts/README.md. -->
 
+!!! note "Consider using commands.md instead"
+    [commands.md](commands.md) is **auto-generated** and covers everything
+    in this file plus Taskfile tasks, Hatch environments, CLI entry points,
+    and common flag patterns. This hand-curated page provides a quick-scan
+    flag table but requires manual updates. If you only maintain one
+    reference, prefer commands.md.
+
 Comprehensive reference of every script in `scripts/` and the flags each
 supports. Internal modules (prefixed with `_`) are listed at the bottom
 for completeness but are not intended to be run directly.
 
-> **See also:** [commands.md](commands.md) for Taskfile tasks and Hatch
-> environment commands (auto-generated).
+> **See also:** [commands.md](commands.md) for the auto-generated
+> comprehensive command reference (Taskfile + scripts + Hatch + entry points).
 
 ---
 

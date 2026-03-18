@@ -262,6 +262,9 @@ def _check_key_config_files(root: Path) -> dict[str, str]:
         "codecov.yml": root / "codecov.yml",
         ".github/dependabot.yml": root / ".github" / "dependabot.yml",
         "_typos.toml": root / "_typos.toml",
+        ".markdownlint-cli2.jsonc": root / ".markdownlint-cli2.jsonc",
+        "Containerfile": root / "Containerfile",
+        "container-structure-test.yml": root / "container-structure-test.yml",
     }
     return {name: "present" if p.is_file() else "MISSING" for name, p in files.items()}
 

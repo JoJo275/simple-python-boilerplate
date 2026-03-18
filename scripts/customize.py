@@ -210,6 +210,8 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/repo_doctor.py",
             "scripts/doctor.py",
             "scripts/env_doctor.py",
+            "scripts/git_doctor.py",
+            "scripts/_doctor_common.py",
         ],
     },
 }
