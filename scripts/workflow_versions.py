@@ -14,6 +14,60 @@ with a succinct description of the action (fetched from the action's
 a description are left unchanged; lines with only a version tag
 receive a new ``# <description> (vX.Y.Z)`` annotation.
 
+GitHub Token Setup:
+    This script works without a token but is limited to 60 API
+    requests/hour (unauthenticated). With a token you get 5,000/hr.
+
+    **Create a token** (one-time):
+
+    1. Go to https://github.com/settings/tokens?type=beta
+    2. Click "Generate new token"
+    3. Name it something memorable (e.g. ``workflow-versions-local``)
+    4. Set expiration (e.g. 90 days — you'll need to regenerate after)
+    5. Under "Repository access" choose "Public Repositories (read-only)"
+       — no other permissions are needed
+    6. Click "Generate token" and **copy the token immediately**
+
+    **Option A — Set for this session only** (lost when terminal closes):
+
+    *PowerShell*::
+
+        $env:GITHUB_TOKEN = "ghp_YourTokenHere"
+
+    *Bash / Zsh*::
+
+        export GITHUB_TOKEN="ghp_YourTokenHere"
+
+    **Option B — Set permanently** (persists across terminal sessions):
+
+    *PowerShell (Windows)* — writes to the User registry::
+
+        [System.Environment]::SetEnvironmentVariable(
+            'GITHUB_TOKEN', 'ghp_YourTokenHere', 'User')
+
+    Then **restart your terminal** (or open a new one) for the change
+    to take effect.
+
+    *Bash / Zsh (macOS / Linux)* — add to your shell profile::
+
+        echo 'export GITHUB_TOKEN="ghp_YourTokenHere"' >> ~/.bashrc
+        source ~/.bashrc
+
+    (Use ``~/.zshrc`` for Zsh.)
+
+    **Verify** (either option)::
+
+        echo $env:GITHUB_TOKEN        # PowerShell
+        echo "$GITHUB_TOKEN"           # Bash / Zsh
+
+    **Security notes**:
+    - The fine-grained token above is scoped to public-repo metadata
+      only — it cannot read private repos or modify anything.
+    - Never commit tokens to source control. This script reads the
+      token from the environment, not from any config file.
+    - If compromised, revoke at https://github.com/settings/tokens
+      and generate a new one.
+
 Requirements:
     - Python 3.11+
     - Internet access (queries the GitHub API)
