@@ -30,6 +30,12 @@ import re
 import subprocess  # nosec B404
 import sys
 
+# TODO: Import _imports.find_repo_root and os.chdir(ROOT) to avoid
+#   CWD dependency — currently the docker build context assumes the
+#   script is run from the repo root.
+# TODO: Import Spinner from _progress.py to wrap the docker build
+#   step (can take 60-300+ seconds with no visual feedback).
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------

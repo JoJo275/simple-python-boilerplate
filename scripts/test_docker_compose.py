@@ -30,11 +30,16 @@ import re
 import subprocess  # nosec B404
 import sys
 
+# TODO: Import _imports.find_repo_root and os.chdir(ROOT) to avoid
+#   CWD dependency — currently docker compose commands assume the
+#   script is run from the repo root.
+# TODO: Import Spinner from _progress.py to wrap the docker compose
+#   build/up steps (can take 60-300+ seconds with no visual feedback).
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-# TODO (template users): Update SCRIPT_VERSION when making changes.
 SCRIPT_VERSION = "1.2.0"
 
 logger = logging.getLogger(__name__)
