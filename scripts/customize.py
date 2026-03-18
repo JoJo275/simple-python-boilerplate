@@ -625,6 +625,8 @@ def _prompt_multi(label: str, choices: dict[str, str]) -> list[str]:
     keys = list(choices.keys())
     for i, key in enumerate(keys, 1):
         print(f"    {i}. {choices[key]}")
+    all_idx = len(keys) + 1
+    print(f"    {all_idx}. All of the above")
     print("    0. None of the above")
     try:
         raw = input("  Selection (comma-separated, e.g. 1,3): ").strip()
@@ -633,9 +635,14 @@ def _prompt_multi(label: str, choices: dict[str, str]) -> list[str]:
         raise SystemExit(1) from None
     if not raw or raw == "0":
         return []
+    # "All of the above" shortcut
+    if raw.strip() == str(all_idx):
+        return list(keys)
     selected: list[str] = []
     for part in raw.split(","):
         part = part.strip()
+        if part == str(all_idx):
+            return list(keys)
         try:
             idx = int(part) - 1
             if 0 <= idx < len(keys) and keys[idx] not in selected:
@@ -797,8 +804,10 @@ def gather_config_interactive() -> Config:
     print("  The items below exist to support the template repository's")
     print("  own development. Most template users won't need them.")
     print()
-    print("  ⚠  Each item has trade-offs — read the disclaimers before")
-    print("     committing. You can always recover files from git history.")
+    print("  ⚠  Each item has trade-offs — after you make your selection,")
+    print("     a disclaimer for each chosen item will be shown and you")
+    print("     will be asked to confirm before anything is removed.")
+    print("     You can always recover files from git history.")
     print()
     cleanup_options: dict[str, str] = {}
     for key, entry in TEMPLATE_CLEANUP.items():
@@ -1508,7 +1517,7 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
     """
     print()
     print("┌─────────────────────────────────────────┐")
-    print("│          Customization Plan              │")
+    print("│          Customization Plan             │")
     print("└─────────────────────────────────────────┘")
 
     # Count eligible files upfront for context
