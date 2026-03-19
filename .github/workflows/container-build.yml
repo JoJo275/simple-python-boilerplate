@@ -111,14 +111,22 @@ jobs:
       # ── Smoke tests ──────────────────────────────────────────
       # Run basic validation on the built image (PRs only, since
       # the image is loaded locally via `load: true`).
+      #
+      # github.repository preserves the owner's original casing
+      # (e.g. "JoJo275/repo") but Docker requires lowercase image
+      # names. The image variable below normalises the reference.
       - name: Smoke test — entrypoint
         if: github.event_name == 'pull_request'
-        run: docker run --rm ghcr.io/${{ github.repository }}:pr-${{ github.event.number }} --help
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:pr-${{ github.event.number }}
+        run: docker run --rm "${IMAGE,,}" --help
 
       - name: Smoke test — non-root user
         if: github.event_name == 'pull_request'
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:pr-${{ github.event.number }}
         run: |
-          ID_OUTPUT=$(docker run --rm --entrypoint id ghcr.io/${{ github.repository }}:pr-${{ github.event.number }})
+          ID_OUTPUT=$(docker run --rm --entrypoint id "${IMAGE,,}")
           echo "$ID_OUTPUT"
           if echo "$ID_OUTPUT" | grep -q "uid=0"; then
             echo "::error::Container is running as root (uid=0)"
@@ -127,4 +135,6 @@ jobs:
 
       - name: Smoke test — Python available
         if: github.event_name == 'pull_request'
-        run: docker run --rm --entrypoint python ghcr.io/${{ github.repository }}:pr-${{ github.event.number }} --version
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}:pr-${{ github.event.number }}
+        run: docker run --rm --entrypoint python "${IMAGE,,}" --version
