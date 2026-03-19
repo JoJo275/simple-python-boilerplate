@@ -59,7 +59,7 @@ class TestMetadata:
 class TestRun:
     """Tests for _run() helper."""
 
-    @patch("test_containerfile.subprocess.run")
+    @patch("_container_common.subprocess.run")
     def test_returns_completed_process(self, mock_run) -> None:
         mock_run.return_value = subprocess.CompletedProcess(
             ["echo"], 0, stdout="hello\n", stderr=""
@@ -68,7 +68,7 @@ class TestRun:
         assert result.returncode == 0
         assert result.stdout == "hello\n"
 
-    @patch("test_containerfile.subprocess.run")
+    @patch("_container_common.subprocess.run")
     def test_passes_timeout(self, mock_run) -> None:
         mock_run.return_value = subprocess.CompletedProcess(
             ["cmd"], 0, stdout="", stderr=""
@@ -77,7 +77,7 @@ class TestRun:
         _, kwargs = mock_run.call_args
         assert kwargs["timeout"] == 60
 
-    @patch("test_containerfile.subprocess.run")
+    @patch("_container_common.subprocess.run")
     def test_raises_on_check_failure(self, mock_run) -> None:
         mock_run.side_effect = subprocess.CalledProcessError(1, "cmd")
         with pytest.raises(subprocess.CalledProcessError):
@@ -92,26 +92,26 @@ class TestRun:
 class TestCheckDockerAvailable:
     """Tests for _check_docker_available()."""
 
-    @patch("test_containerfile.subprocess.run")
+    @patch("_container_common.subprocess.run")
     def test_returns_true_when_docker_running(self, mock_run) -> None:
         mock_run.return_value = subprocess.CompletedProcess(
             ["docker", "info"], 0, stdout="", stderr=""
         )
         assert _check_docker_available() is True
 
-    @patch("test_containerfile.subprocess.run")
+    @patch("_container_common.subprocess.run")
     def test_returns_false_when_daemon_not_running(self, mock_run) -> None:
         mock_run.return_value = subprocess.CompletedProcess(
             ["docker", "info"], 1, stdout="", stderr="error"
         )
         assert _check_docker_available() is False
 
-    @patch("test_containerfile.subprocess.run", side_effect=FileNotFoundError)
+    @patch("_container_common.subprocess.run", side_effect=FileNotFoundError)
     def test_returns_false_when_docker_not_installed(self, mock_run) -> None:
         assert _check_docker_available() is False
 
     @patch(
-        "test_containerfile.subprocess.run",
+        "_container_common.subprocess.run",
         side_effect=subprocess.TimeoutExpired(cmd="docker", timeout=15),
     )
     def test_returns_false_on_timeout(self, mock_run) -> None:

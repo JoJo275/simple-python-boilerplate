@@ -32,25 +32,25 @@ GitHub Token Setup:
 
     *PowerShell*::
 
-        $env:GITHUB_TOKEN = "ghp_YourTokenHere"
+        $env:GITHUB_TOKEN = "YOUR_TOKEN_HERE"
 
     *Bash / Zsh*::
 
-        export GITHUB_TOKEN="ghp_YourTokenHere"
+        export GITHUB_TOKEN="YOUR_TOKEN_HERE"
 
     **Option B — Set permanently** (persists across terminal sessions):
 
     *PowerShell (Windows)* — writes to the User registry::
 
         [System.Environment]::SetEnvironmentVariable(
-            'GITHUB_TOKEN', 'ghp_YourTokenHere', 'User')
+            'GITHUB_TOKEN', 'YOUR_TOKEN_HERE', 'User')
 
     Then **restart your terminal** (or open a new one) for the change
     to take effect.
 
     *Bash / Zsh (macOS / Linux)* — add to your shell profile::
 
-        echo 'export GITHUB_TOKEN="ghp_YourTokenHere"' >> ~/.bashrc
+        echo 'export GITHUB_TOKEN="YOUR_TOKEN_HERE"' >> ~/.bashrc
         source ~/.bashrc
 
     (Use ``~/.zshrc`` for Zsh.)
@@ -226,7 +226,12 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as exc:
         if exc.code == 403:
-            if not _rate_limited:
+            # Only treat as rate-limit if headers confirm it
+            remaining = (
+                exc.headers.get("X-RateLimit-Remaining") if exc.headers else None
+            )
+            is_rate_limit = remaining is not None and remaining == "0"
+            if is_rate_limit and not _rate_limited:
                 _rate_limited = True
                 logger.warning(
                     "GitHub API rate limit reached."
@@ -234,6 +239,8 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
                     " (current: 60/hr unauthenticated)."
                     " Skipping remaining uncached API calls."
                 )
+            elif not is_rate_limit:
+                logger.warning("GitHub API 403 for %s (not rate-limit)", url)
         elif exc.code == 404:
             pass  # repo or ref not found — expected for some lookups
         else:

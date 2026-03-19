@@ -1263,14 +1263,17 @@ class TestRateLimitBailOut:
         assert result is None
 
     def test_gh_api_sets_flag_on_403(self) -> None:
-        """A 403 HTTP error should set _rate_limited to True."""
+        """A 403 HTTP error with X-RateLimit-Remaining: 0 should set _rate_limited."""
+        import email.message
         import urllib.error
 
+        hdrs = email.message.Message()
+        hdrs["X-RateLimit-Remaining"] = "0"
         exc = urllib.error.HTTPError(
             "https://api.github.com/test",
             403,
             "rate limit exceeded",
-            {},
+            hdrs,
             None,
         )
         with patch("urllib.request.urlopen", side_effect=exc):
@@ -1282,13 +1285,16 @@ class TestRateLimitBailOut:
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
         """The rate-limit warning should appear exactly once, not per call."""
+        import email.message
         import urllib.error
 
+        hdrs = email.message.Message()
+        hdrs["X-RateLimit-Remaining"] = "0"
         exc = urllib.error.HTTPError(
             "https://api.github.com/test",
             403,
             "rate limit exceeded",
-            {},
+            hdrs,
             None,
         )
         with (
