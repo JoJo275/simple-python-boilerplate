@@ -56,7 +56,6 @@ Tasks, improvements, and ideas for the template repository itself.
 
 - [ ] Spin-off template repos: "minimal", "library", "cli", "data-science", "web-app"
 - [ ] Keep Containerfile in sync with production pipeline best practices
-- [ ] Add a `task doctor:all` that runs `doctor.py`, `env_doctor.py`, `git_doctor.py`, and `repo_doctor.py` in sequence
 - [ ] Add workflow to auto-regenerate `docs/reference/commands.md` on script changes
 - [ ] Consider adding `uv` as an alternative to pip for faster installs in CI
 - [ ] Add smoke test for `scripts/customize.py` (ensure rename + guard enablement works end-to-end)
