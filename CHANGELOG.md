@@ -9,6 +9,40 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.6.0...v1.0.0) (2026-03-19)
+
+
+### Features
+
+* Add --watch option to git_doctor.py for periodic dashboard updates and enhance git-config-reference.md with additional notes and resources ([7e54ad6](https://github.com/JoJo275/simple-python-boilerplate/commit/7e54ad66df35e38633851abe29a76a86296f3c57))
+* Add branch workflows documentation and updated git_doctor.py output formatting. ([b68d2e2](https://github.com/JoJo275/simple-python-boilerplate/commit/b68d2e223d71dd8c28df904396527683080a16d4))
+* Add detailed commit reporting markdown option. Formatted output of --commit flag. ([2b02db1](https://github.com/JoJo275/simple-python-boilerplate/commit/2b02db1a2c0d92f52be7290a38a0e3bbdeaff04f))
+* Add interactive branch creation command and update documentation ([7557272](https://github.com/JoJo275/simple-python-boilerplate/commit/7557272378738476b3a4e1b1028d7f8ed94047a5))
+* add shared container helpers and refactor container test scripts ([429b7f6](https://github.com/JoJo275/simple-python-boilerplate/commit/429b7f65e119bd10da3936eab7f96d77192b865d))
+* Add testing scripts for Containerfile and Docker Compose ([dc9da4f](https://github.com/JoJo275/simple-python-boilerplate/commit/dc9da4fab76a17adede6f760eee38cf9a76fd207))
+* Add version flag to multiple scripts and enhance Markdown output with generation metadata ([9ccdfd4](https://github.com/JoJo275/simple-python-boilerplate/commit/9ccdfd4553a39ec18e3439bdbd67de84f0e19a48))
+* Added --export-config flag to git_doctor.py. Update formatting of git_doctor.py output. ([c4794d2](https://github.com/JoJo275/simple-python-boilerplate/commit/c4794d2330ec17042de0a765b9a00ae7a6517fc3))
+* Enhance command generation and reporting with progress indicators and structural content checks ([37c6bfe](https://github.com/JoJo275/simple-python-boilerplate/commit/37c6bfec0789e2ebb959f664ea064c724df622bc))
+* enhance container file references and improve validation tests in customize.py ([ac11830](https://github.com/JoJo275/simple-python-boilerplate/commit/ac11830cf965b0a7acc9840b5f2fdbc6069ed164))
+* Enhance container testing with smoke tests and image size validation ([a02a731](https://github.com/JoJo275/simple-python-boilerplate/commit/a02a7317f0b57845f3f2d22779bf5c3961e29688))
+* Enhance git settings with additional confirmation and auto-stash options; improve health check name width calculation in git_doctor.py ([a82bb03](https://github.com/JoJo275/simple-python-boilerplate/commit/a82bb0395920f2167617b366b8b4c7e27cf89f0e))
+* Enhance git_doctor.py local branches output with dynamic column widths and improved formatting ([19a4fa8](https://github.com/JoJo275/simple-python-boilerplate/commit/19a4fa814c9bcbb3c444c0519e4683e56c892522))
+* Enhance git_doctor.py output with color-coded sections and detailed hints for key-value pairs ([a9f2ead](https://github.com/JoJo275/simple-python-boilerplate/commit/a9f2eadcde7322a1972683fe6fe4e952f83ed05b))
+* enhance link checker configuration with additional acceptance codes and retry settings ([17e7654](https://github.com/JoJo275/simple-python-boilerplate/commit/17e76546e2b43c801feb11716d0511b618c5533a))
+* Enhance Markdown Output in git_doctor.py ([40aa311](https://github.com/JoJo275/simple-python-boilerplate/commit/40aa3116d9115ad6c4419d26a8c785c768e19ef9))
+* enhance user prompts and refine configuration thresholds in git_doctor.py ([af110c7](https://github.com/JoJo275/simple-python-boilerplate/commit/af110c71ce7d86007ef7f0a663a8320e7662e4ba))
+* Improve output formatting in git_doctor.py with enhanced section headers and key-value pair alignment ([5e38750](https://github.com/JoJo275/simple-python-boilerplate/commit/5e387509418b33eceb722d1b95d43c6df894d719))
+* improved formatting and output of --view-commits flag and --commit-flag --markdown flag for git_doctor.py ([61c7e6f](https://github.com/JoJo275/simple-python-boilerplate/commit/61c7e6f983bd4bb25733b131844e5a272002f198))
+* normalize Docker image names in smoke tests for case sensitivity ([b0fd709](https://github.com/JoJo275/simple-python-boilerplate/commit/b0fd7090d65356328e94a487a328e00ae4bb847e))
+* Refactor imports and improve code structure in git_doctor.py ([d8fc526](https://github.com/JoJo275/simple-python-boilerplate/commit/d8fc526601994d31c7ca980338e5da71ec89c30c))
+* Refactor TODO tracking and bug fixes ([c879c59](https://github.com/JoJo275/simple-python-boilerplate/commit/c879c595fbd8110f7b5f564327651972add8126f))
+* transition to v1.0 release readiness with configuration updates and documentation improvements ([ed19027](https://github.com/JoJo275/simple-python-boilerplate/commit/ed190271d83063a003df902c2a447326fbcd8db4))
+* Update commit report generation with timestamp and progress indicators ([9521dc8](https://github.com/JoJo275/simple-python-boilerplate/commit/9521dc88711b5786ab99f7d98d6b53b273642664))
+* update documentation and scripts for improved developer experience ([87d36a6](https://github.com/JoJo275/simple-python-boilerplate/commit/87d36a6636291c629e7068bda52e8b594520eb19))
+* Update git_doctor.py output formatting for improved clarity and alignment ([1a80dcd](https://github.com/JoJo275/simple-python-boilerplate/commit/1a80dcd41d099e69fbccfd7260317f533344ecf3))
+* update PR title linting to allow lowercase digits and enhance logging in container scripts ([cb5fe34](https://github.com/JoJo275/simple-python-boilerplate/commit/cb5fe341aca31752218e427ab63d57ea6b64e43b))
+* Update README and devcontainer.json with clearer instructions for exiting the container and additional context on settings ([d06fad3](https://github.com/JoJo275/simple-python-boilerplate/commit/d06fad324be05e86e8d1eb2b716fcc88648b6ee6))
+
 ## [0.6.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v0.5.0...v0.6.0) (2026-03-13)
 
 
