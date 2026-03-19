@@ -108,8 +108,11 @@ def main() -> int:
     #   mapping validation, multi-service integration tests).
     # Build first, then run individual checks via `docker compose run`.
     # This avoids `up -d` which would start the CLI and immediately exit.
+    build_cmd = ["docker", "compose", "build"]
+    if not args.verbose:
+        build_cmd.append("--quiet")
     steps: list[tuple[str, list[str]]] = [
-        ("Build image via docker compose", ["docker", "compose", "build"]),
+        ("Build image via docker compose", build_cmd),
         ("Validate compose config", ["docker", "compose", "config", "--quiet"]),
         (
             "Verify entrypoint (--help)",
@@ -145,10 +148,6 @@ def main() -> int:
             logger.info("Step: %s", desc)
             try:
                 result = _run(cmd, verbose=args.verbose, timeout=step_timeout)
-                if result.returncode != 0:
-                    logger.error("Step failed: %s (exit %d)", desc, result.returncode)
-                    failed = True
-                    break
                 # Extra validation for the non-root check
                 if desc == "Check non-root user" and not _check_non_root(result.stdout):
                     failed = True

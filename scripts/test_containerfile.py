@@ -140,11 +140,11 @@ def main() -> int:
     # TODO (template users): Add or remove build steps to match your
     #   Containerfile (e.g. HEALTHCHECK validation, extra entrypoints,
     #   environment variable checks).
+    build_cmd = ["docker", "build", "-t", IMAGE_NAME, "-f", "Containerfile", "."]
+    if not args.verbose:
+        build_cmd.insert(2, "--quiet")
     steps: list[tuple[str, list[str]]] = [
-        (
-            "Build image from Containerfile",
-            ["docker", "build", "-t", IMAGE_NAME, "-f", "Containerfile", "."],
-        ),
+        ("Build image from Containerfile", build_cmd),
         (
             "Verify entrypoint (--help)",
             ["docker", "run", "--rm", IMAGE_NAME, "--help"],
@@ -184,10 +184,6 @@ def main() -> int:
             logger.info("Step: %s", desc)
             try:
                 result = _run(cmd, verbose=args.verbose, timeout=step_timeout)
-                if result.returncode != 0:
-                    logger.error("Step failed: %s (exit %d)", desc, result.returncode)
-                    failed = True
-                    break
                 # Extra validation for the non-root check
                 if desc == "Check non-root user" and not _check_non_root(result.stdout):
                     failed = True

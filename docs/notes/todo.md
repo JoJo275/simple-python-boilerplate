@@ -297,39 +297,39 @@ Things to explore, implement, or learn more about.
 
 ### tests/
 
-- [ ] Final file check: tests/.instructions.md
-- [ ] Final file check: tests/README.md
-- [ ] Final file check: tests/conftest.py
-- [ ] Final file check: tests/unit/**init**.py
-- [ ] Final file check: tests/unit/conftest.py
-- [ ] Final file check: tests/unit/test_api.py
-- [ ] Final file check: tests/unit/test_archive_todos.py
-- [ ] Final file check: tests/unit/test_check_known_issues.py
-- [ ] Final file check: tests/unit/test_clean.py
-- [ ] Final file check: tests/unit/test_dep_versions.py
-- [ ] Final file check: tests/unit/test_doctor.py
-- [ ] Final file check: tests/unit/test_env_doctor.py
-- [ ] Final file check: tests/unit/test_example.py
-- [ ] Final file check: tests/unit/test_generate_command_reference.py
-- [ ] Final file check: tests/unit/test_generate_commands.py
-- [ ] Final file check: tests/unit/test_include_templates.py
-- [ ] Final file check: tests/unit/test_progress.py
-- [ ] Final file check: tests/unit/test_repo_doctor.py
-- [ ] Final file check: tests/unit/test_repo_links.py
-- [ ] Final file check: tests/unit/test_version.py
-- [ ] Final file check: tests/unit/test_workflow_versions.py
-- [ ] Final file check: tests/integration/**init**.py
-- [ ] Final file check: tests/integration/conftest.py
-- [ ] Final file check: tests/integration/test_cli_smoke.py
-- [ ] Final file check: tests/integration/test_db_example.py
-- [ ] Final file check: tests/integration/sql/README.md
-- [ ] Final file check: tests/integration/sql/setup_test_db.sql
-- [ ] Final file check: tests/integration/sql/teardown_test_db.sql
+- [X] Final file check: tests/.instructions.md
+- [X] Final file check: tests/README.md
+- [X] Final file check: tests/conftest.py
+- [X] Final file check: tests/unit/**init**.py
+- [X] Final file check: tests/unit/conftest.py
+- [X] Final file check: tests/unit/test_api.py
+- [X] Final file check: tests/unit/test_archive_todos.py
+- [X] Final file check: tests/unit/test_check_known_issues.py
+- [X] Final file check: tests/unit/test_clean.py
+- [X] Final file check: tests/unit/test_dep_versions.py
+- [X] Final file check: tests/unit/test_doctor.py
+- [X] Final file check: tests/unit/test_env_doctor.py
+- [X] Final file check: tests/unit/test_example.py
+- [X] Final file check: tests/unit/test_generate_command_reference.py
+- [X] Final file check: tests/unit/test_generate_commands.py
+- [X] Final file check: tests/unit/test_include_templates.py
+- [X] Final file check: tests/unit/test_progress.py
+- [X] Final file check: tests/unit/test_repo_doctor.py
+- [X] Final file check: tests/unit/test_repo_links.py
+- [X] Final file check: tests/unit/test_version.py
+- [X] Final file check: tests/unit/test_workflow_versions.py
+- [X] Final file check: tests/integration/**init**.py
+- [X] Final file check: tests/integration/conftest.py
+- [X] Final file check: tests/integration/test_cli_smoke.py
+- [X] Final file check: tests/integration/test_db_example.py
+- [X] Final file check: tests/integration/sql/README.md
+- [X] Final file check: tests/integration/sql/setup_test_db.sql
+- [X] Final file check: tests/integration/sql/teardown_test_db.sql
 
 ### var/
 
-- [ ] Final file check: var/README.md
-- [ ] Final file check: var/app.example.sqlite3
+- [X] Final file check: var/README.md
+- [X] Final file check: var/app.example.sqlite3
 
 ### Previously completed (non-file tasks)
 
