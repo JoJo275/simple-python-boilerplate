@@ -85,6 +85,7 @@ Completed items from [todo.md](todo.md), preserved for reference.
 
 ### Completed
 
+- [X] Add a `task doctor:all` that runs `doctor.py`, `env_doctor.py`, `git_doctor.py`, and `repo_doctor.py` in sequence
 - [x] Final file check: pyproject.toml
 - [x] Final file check: Taskfile.yml
 - [x] Final file check: README.md (root)
