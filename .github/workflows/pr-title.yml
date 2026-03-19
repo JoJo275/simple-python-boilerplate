@@ -80,10 +80,10 @@ jobs:
             perf
             build
             revert
-          # Require lowercase subject
-          subjectPattern: ^[a-z].*$
+          # Require lowercase subject (digits also allowed, e.g. version numbers)
+          subjectPattern: ^[a-z0-9].*$
           subjectPatternError: >
-            The subject "{subject}" must start with a lowercase letter.
+            The subject "{subject}" must start with a lowercase letter or digit.
             Example: "feat: add user authentication"
 
       - name: Suggest corrected PR title

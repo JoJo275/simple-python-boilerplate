@@ -29,8 +29,9 @@ def run(
         text=True,
     )
     if result.stdout:
+        log_stdout = logger.info if verbose else logger.debug
         for line in result.stdout.splitlines():
-            logger.info("  %s", line)
+            log_stdout("  %s", line)
     if verbose and result.stderr:
         for line in result.stderr.splitlines():
             logger.debug("  stderr: %s", line)

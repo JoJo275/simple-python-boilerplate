@@ -46,11 +46,11 @@ docker run --rm "$IMAGE" --help
 echo "--- Checking non-root user ---"
 ID_OUTPUT=$(docker run --rm --entrypoint id "$IMAGE")
 echo "  $ID_OUTPUT"
-if echo "$ID_OUTPUT" | grep -qP 'uid=0\b'; then
+if echo "$ID_OUTPUT" | grep -qE 'uid=0([^0-9]|$)'; then
     echo "ERROR: Container is running as root (uid=0)"
     exit 1
 fi
-if ! echo "$ID_OUTPUT" | grep -qP 'uid=\d+'; then
+if ! echo "$ID_OUTPUT" | grep -qE 'uid=[0-9]+'; then
     echo "ERROR: Could not parse uid from id output"
     exit 1
 fi
