@@ -70,7 +70,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 _progress = import_sibling("_progress")
 ProgressBar = _progress.ProgressBar
@@ -80,7 +82,7 @@ ProgressBar = _progress.ProgressBar
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 # Theme color for this script's dashboard output.
 THEME = "cyan"
@@ -737,21 +739,20 @@ def _validate_package_name(name: str) -> str | None:
 def gather_config_interactive() -> Config:
     """Run an interactive Q&A session and return a populated Config."""
     cfg = Config()
+    c = Colors()
+    sym = unicode_symbols()
+    ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
 
+    ui.header()
     print()
-    print("┌─────────────────────────────────────────┐")
-    print("│       Project Customization Wizard      │")
-    print("└─────────────────────────────────────────┘")
-    print()
-    print("  This wizard replaces boilerplate placeholders with your")
-    print("  project's real values. Press Enter to accept [defaults].")
-    print()
-    print("  Tip: re-run with --dry-run first to preview changes.")
+    print(f"  {c.bold('Project Customization Wizard')}")
+    print(f"  {c.dim('Replace boilerplate placeholders with your project values.')}")
+    print(
+        f"  {c.dim('Press Enter to accept [defaults]. Re-run with --dry-run to preview.')}"
+    )
 
     # --- Project identity ---------------------------------------------------
-    print()
-    print("── Step 1/5: Project Identity ──────────────────────────")
-    print()
+    ui.section("Step 1/5 — Project Identity")
     while True:
         cfg.project_name = _prompt(
             "Project name (lowercase, hyphens OK, e.g. my-cool-app)"
@@ -759,7 +760,7 @@ def gather_config_interactive() -> Config:
         err = _validate_project_name(cfg.project_name)
         if err is None:
             break
-        print(f"    ✗ Invalid: '{cfg.project_name}' — {err}")
+        print(f"    {c.red(sym['cross'])} Invalid: '{cfg.project_name}' — {err}")
 
     default_pkg = cfg.project_name.replace("-", "_")
     while True:
@@ -770,7 +771,7 @@ def gather_config_interactive() -> Config:
         err = _validate_package_name(cfg.package_name)
         if err is None:
             break
-        print(f"    \u2717 Invalid: '{cfg.package_name}' \u2014 {err}")
+        print(f"    {c.red(sym['cross'])} Invalid: '{cfg.package_name}' — {err}")
 
     cfg.author = _prompt("Author / maintainer name")
     cfg.github_user = _prompt("GitHub username or organization")
@@ -790,33 +791,31 @@ def gather_config_interactive() -> Config:
     )
 
     # --- License ------------------------------------------------------------
-    print()
-    print("── Step 2/5: License ──────────────────────────────────")
+    ui.section("Step 2/5 — License")
     print()
     license_options = {k: str(v["name"]) for k, v in LICENSE_CHOICES.items()}
     cfg.license_id = _prompt_choice("Choose a license:", license_options, "apache-2.0")
 
     # --- Strip optional directories -----------------------------------------
+    ui.section("Step 3/5 — Optional Directories")
     print()
-    print("── Step 3/5: Optional Directories ─────────────────────")
-    print()
-    print("  These directories ship with the template but are optional.")
-    print("  Select any you don't need — they'll be deleted.")
+    print(f"  {c.dim('These directories ship with the template but are optional.')}")
+    print(f"  {c.dim('Select any you do not need — they will be deleted.')}")
     print()
     strip_options = {k: str(v["label"]) for k, v in STRIPPABLE.items()}
     cfg.strip_dirs = _prompt_multi("Remove any of these?", strip_options)
 
     # --- Template cleanup ---------------------------------------------------
+    ui.section("Step 4/5 — Template Cleanup")
     print()
-    print("── Step 4/5: Template Cleanup ─────────────────────────")
+    print(f"  {c.dim('The items below exist to support the template repository.')}")
+    print(f"  {c.dim('Most template users will not need them.')}")
     print()
-    print("  The items below exist to support the template repository's")
-    print("  own development. Most template users won't need them.")
-    print()
-    print("  ⚠  Each item has trade-offs — after you make your selection,")
-    print("     a disclaimer for each chosen item will be shown and you")
-    print("     will be asked to confirm before anything is removed.")
-    print("     You can always recover files from git history.")
+    print(
+        f"  {c.yellow(sym['warn'])} {c.yellow('Each item has trade-offs')} — after you make your selection,"
+    )
+    print("     a disclaimer will be shown and you will be asked to confirm.")
+    print(f"     {c.dim('You can always recover files from git history.')}")
     print()
     cleanup_options: dict[str, str] = {}
     for key, entry in TEMPLATE_CLEANUP.items():
@@ -828,22 +827,22 @@ def gather_config_interactive() -> Config:
     # Show disclaimers for selected items and confirm
     if selected_cleanup:
         print()
-        print("  Disclaimers for selected items:")
+        print(f"  {c.bold('Disclaimers for selected items:')}")
         for key in selected_cleanup:
             entry = TEMPLATE_CLEANUP[key]
-            print(f"\n    [{key}]")
+            print(f"\n    {c.cyan(f'[{key}]')}")
             disclaimer = str(entry.get("disclaimer", ""))
             # Word-wrap disclaimer to ~60 chars with indent
             words = disclaimer.split()
             line = "      "
             for word in words:
                 if len(line) + len(word) + 1 > 72:
-                    print(line)
+                    print(c.dim(line))
                     line = "      " + word
                 else:
                     line += (" " if line.strip() else "") + word
             if line.strip():
-                print(line)
+                print(c.dim(line))
         print()
         if not _prompt_yn("Proceed with these cleanup selections?"):
             print("  (skipping template cleanup)")
@@ -852,8 +851,7 @@ def gather_config_interactive() -> Config:
     cfg.template_cleanup = selected_cleanup
 
     # --- Summary / confirm --------------------------------------------------
-    print()
-    print("── Step 5/5: Review ───────────────────────────────────")
+    ui.section("Step 5/5 — Review")
 
     return cfg
 
@@ -1101,6 +1099,9 @@ def strip_directories(
 ) -> list[str]:
     """Remove optional directories and files from the project.
 
+    Separates files and directories, showing what will be removed
+    with color-coded output and per-group labels.
+
     Args:
         keys: Keys from :data:`STRIPPABLE` identifying what to remove.
         dry_run: If ``True``, report without deleting.
@@ -1108,31 +1109,63 @@ def strip_directories(
     Returns:
         Relative paths that were removed (or would be removed).
     """
+    c = Colors()
+    sym = unicode_symbols()
     removed: list[str] = []
 
     for key in keys:
         entry = STRIPPABLE.get(key)
         if entry is None:
             continue
+        label = str(entry.get("label", key))
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
+
+        # Partition into existing dirs and files
+        dirs: list[tuple[str, Path]] = []
+        files: list[tuple[str, Path]] = []
         for rel_path in paths:
             target = ROOT / rel_path
             if not target.exists():
                 continue
+            if target.is_dir():
+                dirs.append((rel_path, target))
+            else:
+                files.append((rel_path, target))
+
+        if not dirs and not files:
+            continue
+
+        print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}")
+
+        for rel_path, target in dirs:
             removed.append(rel_path)
             if dry_run:
-                kind = "directory" if target.is_dir() else "file"
-                print(f"  Would remove {kind}: {rel_path}")
+                print(
+                    f"    {c.yellow(sym['arrow'])} Would remove directory: {c.yellow(rel_path)}"
+                )
             else:
                 try:
-                    if target.is_dir():
-                        shutil.rmtree(target)
-                        print(f"  Removed directory: {rel_path}")
-                    else:
-                        target.unlink()
-                        print(f"  Removed file: {rel_path}")
+                    shutil.rmtree(target)
+                    print(f"    {c.green(sym['check'])} Removed directory: {rel_path}")
                 except (OSError, PermissionError) as exc:
-                    log.warning("  Failed to remove %s: %s", rel_path, exc)
+                    log.warning(
+                        "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
+                    )
+
+        for rel_path, target in files:
+            removed.append(rel_path)
+            if dry_run:
+                print(
+                    f"    {c.yellow(sym['arrow'])} Would remove file: {c.dim(rel_path)}"
+                )
+            else:
+                try:
+                    target.unlink()
+                    print(f"    {c.green(sym['check'])} Removed file: {rel_path}")
+                except (OSError, PermissionError) as exc:
+                    log.warning(
+                        "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
+                    )
 
     return removed
 
@@ -1297,6 +1330,8 @@ def apply_template_cleanup(
         List of descriptions of actions taken.
     """
     actions: list[str] = []
+    c = Colors()
+    sym = unicode_symbols()
 
     for key in keys:
         entry = TEMPLATE_CLEANUP.get(key)
@@ -1314,24 +1349,33 @@ def apply_template_cleanup(
             continue
 
         # Standard path-based deletion
+        label = str(entry.get("label", key))
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
-        for rel_path in paths:
-            target = ROOT / rel_path
-            if not target.exists():
-                continue
+
+        existing = [(p, ROOT / p) for p in paths if (ROOT / p).exists()]
+        if existing:
+            print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}")
+
+        for rel_path, target in existing:
             if dry_run:
                 kind = "directory" if target.is_dir() else "file"
-                print(f"  Would remove {kind}: {rel_path}")
+                print(
+                    f"    {c.yellow(sym['arrow'])} Would remove {kind}: {c.yellow(rel_path)}"
+                )
             else:
                 try:
                     if target.is_dir():
                         shutil.rmtree(target)
-                        print(f"  Removed directory: {rel_path}")
+                        print(
+                            f"    {c.green(sym['check'])} Removed directory: {rel_path}"
+                        )
                     else:
                         target.unlink()
-                        print(f"  Removed file: {rel_path}")
+                        print(f"    {c.green(sym['check'])} Removed file: {rel_path}")
                 except (OSError, PermissionError) as exc:
-                    log.warning("  Failed to remove %s: %s", rel_path, exc)
+                    log.warning(
+                        "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
+                    )
             actions.append(f"Removed: {rel_path}")
 
     return actions
@@ -1524,61 +1568,67 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
         cfg: Customization config.
         replacements: Planned text substitutions.
     """
-    print()
-    print("┌─────────────────────────────────────────┐")
-    print("│          Customization Plan             │")
-    print("└─────────────────────────────────────────┘")
+    c = Colors()
+    sym = unicode_symbols()
+    ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
+
+    ui.section("Customization Plan")
 
     # Count eligible files upfront for context
     eligible_count = len(_collect_eligible_files())
 
     print(
-        f"\n  Text replacements ({len(replacements)} rules, ~{eligible_count} files to scan):"
+        f"\n  {c.bold('Text replacements')} "
+        f"{c.dim(f'({len(replacements)} rules, ~{eligible_count} files to scan)')}"
     )
     for r in replacements:
-        print(f"    • {r.description}")
+        print(f"    {c.cyan(sym['bullet'])} {r.description}")
 
     if cfg.package_name != TEMPLATE_PACKAGE_NAME:
-        print("\n  Directory rename:")
-        print(f"    • src/{TEMPLATE_PACKAGE_NAME}/ → src/{cfg.package_name}/")
+        print(f"\n  {c.bold('Directory rename:')}")
+        print(
+            f"    {c.cyan(sym['arrow'])} src/{TEMPLATE_PACKAGE_NAME}/ {sym['arrow']} src/{cfg.package_name}/"
+        )
 
     if cfg.license_id != "apache-2.0":
         name = LICENSE_CHOICES[cfg.license_id]["name"]
-        print(f"\n  License: switch to {name}")
+        print(f"\n  {c.bold('License:')} switch to {c.cyan(str(name))}")
     else:
-        print("\n  License: keeping Apache-2.0 (no change)")
+        print(f"\n  {c.bold('License:')} {c.dim('keeping Apache-2.0 (no change)')}")
 
     if cfg.strip_dirs:
-        print("\n  Directories to remove:")
+        print(f"\n  {c.bold('Directories to remove:')}")
         for key in cfg.strip_dirs:
             entry = STRIPPABLE[key]
-            print(f"    • {entry['label']}")
+            print(f"    {c.cyan(sym['bullet'])} {entry['label']}")
             paths: list[str] = entry["paths"]  # type: ignore[assignment]
             for p in paths:
                 exists = (ROOT / p).exists()
-                marker = "" if exists else " (not found — skipped)"
+                marker = "" if exists else c.dim(" (not found — skipped)")
                 print(f"        {p}{marker}")
     else:
-        print("\n  Directories to remove: none")
+        print(f"\n  {c.bold('Directories to remove:')} {c.dim('none')}")
 
     if cfg.template_cleanup:
-        print("\n  Template cleanup:")
+        print(f"\n  {c.bold('Template cleanup:')}")
         for key in cfg.template_cleanup:
             entry = TEMPLATE_CLEANUP[key]
-            print(f"    • {entry['label']}")
+            print(f"    {c.cyan(sym['bullet'])} {entry['label']}")
             if key == "placeholder-code":
-                print("        (Replace src/ and test placeholders with stubs)")
+                print(
+                    f"        {c.dim('(Replace src/ and test placeholders with stubs)')}"
+                )
             elif key == "advanced-workflows":
                 kept = ", ".join(sorted(ESSENTIAL_WORKFLOWS))
-                print(f"        (Keep only: {kept})")
+                print(f"        {c.dim(f'(Keep only: {kept})')}")
             else:
                 cleanup_paths: list[str] = entry["paths"]  # type: ignore[assignment]
                 for p in cleanup_paths:
                     exists = (ROOT / p).exists()
-                    marker = "" if exists else " (not found — skipped)"
+                    marker = "" if exists else c.dim(" (not found — skipped)")
                     print(f"        {p}{marker}")
     else:
-        print("\n  Template cleanup: none")
+        print(f"\n  {c.bold('Template cleanup:')} {c.dim('none')}")
 
     print()
 
@@ -1790,8 +1840,13 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
 
     modified = apply_replacements(replacements, dry_run=dry_run, show_progress=True)
 
+    c = Colors()
+    sym = unicode_symbols()
+
     if not modified:
-        print("✓ No files needed updating (placeholder may already be replaced).")
+        print(
+            f"{c.green(sym['check'])} No files needed updating (placeholder may already be replaced)."
+        )
         return 0
 
     # Show individual file results
@@ -1807,11 +1862,13 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
     )
 
     if dry_run:
-        print("\nDry run complete — no files were modified.")
-        print("Re-run without --dry-run to apply.")
+        print(f"\n{c.yellow('Dry run complete')} — no files were modified.")
+        print(f"{c.dim('Re-run without --dry-run to apply.')}")
     else:
-        print("\n✓ Workflows enabled! They will now run on your repository.")
-        print("\nNext step: push to GitHub and check the Actions tab.")
+        print(
+            f"\n{c.green(sym['check'])} {c.bold('Workflows enabled!')} They will now run on your repository."
+        )
+        print(f"\nNext step: push to GitHub and check the {c.cyan('Actions')} tab.")
 
     return 0
 
@@ -1865,14 +1922,20 @@ def main() -> int:
 
     # Confirm (interactive only, skip for dry-run since it's non-destructive)
     if not args.non_interactive and not cfg.dry_run:
-        print("  ⚠  This will modify files in-place. Make sure you have a")
+        c = Colors()
+        sym = unicode_symbols()
+        print(
+            f"  {c.yellow(sym['warn'])} {c.yellow('This will modify files in-place.')} Make sure you have a"
+        )
         print("     clean git state or a backup before proceeding.")
         print()
         if not _prompt_yn("Proceed with these changes?"):
             print("Aborted.")
             return 0
 
-    tag = "DRY RUN — " if cfg.dry_run else ""
+    c = Colors()
+    sym = unicode_symbols()
+    tag = f"{c.yellow('DRY RUN')} — " if cfg.dry_run else ""
 
     # Step 1: Strip optional directories (before rename so paths still match)
     if cfg.strip_dirs:
@@ -1917,22 +1980,26 @@ def main() -> int:
 
     # Done
     if cfg.dry_run:
-        print("\n" + "─" * 50)
-        print("Dry run complete — no files were modified.")
-        print("Re-run without --dry-run to apply changes.")
+        print()
+        print(f"  {c.dim('─' * 50)}")
+        print(f"  {c.yellow('Dry run complete')} — no files were modified.")
+        print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
     else:
-        print("\n" + "─" * 50)
-        print("✓ Customization complete!")
+        print()
+        print(f"  {c.dim('─' * 50)}")
+        print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
         ws_file = ROOT / f"{TEMPLATE_PROJECT_NAME}.code-workspace"
-        print("\nNext steps:")
-        print("  1. Review the changes:  git diff")
-        print("  2. Reinstall:           pip install -e '.[dev]'")
-        print("  3. Run tests:           task test  (or pytest)")
-        print(f'  4. Verify import:       python -c "import {cfg.package_name}"')
+        print(f"\n  {c.bold('Next steps:')}")
+        print(f"  1. Review the changes:  {c.cyan('git diff')}")
+        reinstall_cmd = "pip install -e '.[dev]'"
+        print(f"  2. Reinstall:           {c.cyan(reinstall_cmd)}")
+        print(f"  3. Run tests:           {c.cyan('task test')}  (or pytest)")
+        verify_cmd = f'python -c "import {cfg.package_name}"'
+        print(f"  4. Verify import:       {c.cyan(verify_cmd)}")
         if ws_file.exists():
             print(
                 f"  5. Rename workspace:    {TEMPLATE_PROJECT_NAME}.code-workspace"
-                f" → {cfg.project_name}.code-workspace"
+                f" {sym['arrow']} {c.cyan(f'{cfg.project_name}.code-workspace')}"
             )
         # TODO (template users): Add any project-specific post-customization
         #   steps here (e.g., "6. Configure your database connection",

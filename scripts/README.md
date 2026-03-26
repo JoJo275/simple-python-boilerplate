@@ -18,6 +18,7 @@ Utility scripts for development and maintenance.
 | [apply_labels.py](apply_labels.py)                             | Apply GitHub labels from JSON                                            |
 | [apply-labels.sh](apply-labels.sh)                             | Shell wrapper for label application                                      |
 | [archive_todos.py](archive_todos.py)                           | Archive completed TODO items from todo.md                                |
+| [auto_chmod_scripts.py](precommit/auto_chmod_scripts.py)      | Auto-fix executable bit on staged shebang scripts                        |
 | [bootstrap.py](bootstrap.py)                                   | One-command setup for fresh clones                                       |
 | [changelog_check.py](changelog_check.py)                       | Validate CHANGELOG.md has an entry for the current PR                    |
 | [check_known_issues.py](check_known_issues.py)                 | Flag stale Resolved entries in docs/known-issues.md                      |

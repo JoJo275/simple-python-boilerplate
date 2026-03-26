@@ -40,6 +40,7 @@ from __future__ import annotations
 import logging
 import shutil
 import sys
+import threading
 
 from _colors import supports_unicode as _supports_unicode
 
@@ -227,6 +228,11 @@ class ProgressBar:
 class Spinner:
     """Indeterminate spinner for operations without a known total.
 
+    The spinner runs in a background thread so it keeps animating even
+    while the main thread is blocked on I/O (subprocess calls, network
+    requests, etc.).  Call ``update(item_name)`` to change the status
+    text displayed alongside the spinner.
+
     Supports context-manager usage::
 
         with Spinner("Querying PyPI") as spin:
@@ -237,6 +243,7 @@ class Spinner:
     Or manual usage::
 
         spin = Spinner("Scanning")
+        spin.start()
         spin.update("file1.yml")
         spin.update("file2.yml")
         spin.finish()
@@ -247,47 +254,79 @@ class Spinner:
         label: str = "Working",
         log_interval: int = 0,
         color: str | None = None,
+        interval: float = 0.08,
     ) -> None:
         self.label = label
         self.count = 0
         self._interactive = _is_interactive()
         self._frames = _pick_spinner_frames()
         self._color_code = _SPINNER_COLORS.get(color, "") if color else ""
-        # CI logging interval — see ProgressBar.__init__ for explanation.
-        # Default is 0 (off).  Set to a positive int for CI visibility.
         self._log_interval = log_interval
+        self._interval = interval
+        self._current_item: str = ""
+        self._lock = threading.Lock()
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._frame_idx = 0
+
+    def _spin_loop(self) -> None:
+        """Background loop that redraws the spinner at a fixed interval."""
+        while not self._stop_event.is_set():
+            with self._lock:
+                self._frame_idx += 1
+                item = self._current_item
+                count = self.count
+            self._draw_frame(item, count)
+            self._stop_event.wait(self._interval)
+
+    def _draw_frame(self, item_name: str, count: int) -> None:
+        width = _terminal_width()
+        frame = self._frames[self._frame_idx % len(self._frames)]
+        if self._color_code:
+            frame = f"\033[{self._color_code}m{frame}\033[0m"
+        display_name = _truncate(item_name, 40)
+        line = f"\r  {frame} {self.label}  [{count}]  {display_name}"
+        sys.stdout.write(line.ljust(width))
+        sys.stdout.flush()
+
+    def start(self) -> None:
+        """Start the background spinner thread."""
+        if self._interactive and self._thread is None:
+            self._stop_event.clear()
+            self._thread = threading.Thread(target=self._spin_loop, daemon=True)
+            self._thread.start()
 
     def __enter__(self) -> Spinner:
+        self.start()
         return self
 
     def __exit__(self, *_: object) -> None:
         self.finish()
 
     def update(self, item_name: str = "") -> None:
-        """Tick the spinner forward and redraw."""
-        self.count += 1
-        if not self._interactive:
-            if self._log_interval > 0 and self.count % self._log_interval == 0:
-                logger.info("%s: %d items", self.label, self.count)
-            return
-        self._draw(item_name)
+        """Tick the spinner forward and update the displayed item."""
+        with self._lock:
+            self.count += 1
+            self._current_item = item_name
+        if (
+            not self._interactive
+            and self._log_interval > 0
+            and self.count % self._log_interval == 0
+        ):
+            logger.info("%s: %d items", self.label, self.count)
 
     def reset(self) -> None:
         """Reset the counter to zero for reuse."""
-        self.count = 0
-
-    def _draw(self, item_name: str = "") -> None:
-        width = _terminal_width()
-        frame = self._frames[self.count % len(self._frames)]
-        if self._color_code:
-            frame = f"\033[{self._color_code}m{frame}\033[0m"
-        display_name = _truncate(item_name, 40)
-        line = f"\r  {frame} {self.label}  [{self.count}]  {display_name}"
-        sys.stdout.write(line.ljust(width))
-        sys.stdout.flush()
+        with self._lock:
+            self.count = 0
+            self._current_item = ""
 
     def finish(self, message: str = "") -> None:
-        """Clear the spinner line and optionally print a final message."""
+        """Stop the background thread and clear the spinner line."""
+        self._stop_event.set()
+        if self._thread is not None:
+            self._thread.join(timeout=1.0)
+            self._thread = None
         if self._interactive:
             if message:
                 sys.stdout.write(f"\r{message}".ljust(_terminal_width()) + "\n")

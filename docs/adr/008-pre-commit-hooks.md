@@ -61,6 +61,7 @@ Use the `pre-commit` framework to run checks automatically at three git stages: 
 | `no-nul-bytes`                         | local (python)     | Blocks NUL bytes in text files                                                                                                   |
 | `deptry`                               | local (system)     | Detects unused, missing, and transitive dependencies                                                                             |
 | `check-python-support`                 | local (system)     | Verifies Python version support config is consistent across `pyproject.toml` and CI workflows                                    |
+| `auto-chmod-scripts`                   | local (python)     | Auto-runs `git add --chmod=+x` on staged shebang scripts missing the executable bit                                             |
 | `check-local-imports`                  | local (python)     | Enforces `# -- Local script modules` comment before local `_`-prefixed imports in scripts                                        |
 
 ### Stage: commit-msg (validates the commit message)
