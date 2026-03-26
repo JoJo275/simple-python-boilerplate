@@ -42,13 +42,17 @@ import time
 from _colors import unicode_symbols
 from _imports import find_repo_root
 from _progress import Spinner
+from _ui import UI
 
 log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+# Theme color for this script's dashboard output.
+THEME = "green"
 
 # TODO (template users): Update MIN_PYTHON if your project supports
 #   a different minimum Python version. Update TOTAL_STEPS if you
@@ -308,17 +312,13 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         return False
 
 
-def print_next_steps() -> None:
+def print_next_steps(ui: UI) -> None:
     """Print helpful next steps."""
     # TODO (template users): Update the package name and URLs below
     #   after running customize.py, or remove this function if your
     #   bootstrap has different post-setup instructions.
-    log.info("\n" + "=" * 60)
-    log.info("SETUP COMPLETE")
-    log.info("=" * 60)
+    ui.section("Setup Complete — Next Steps")
     log.info("""
-Next steps:
-
   1. Enter the dev environment:
      $ hatch shell
 
@@ -378,16 +378,14 @@ def main() -> int:
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)
 
+    ui = UI(title="Bootstrap", version=SCRIPT_VERSION, theme=THEME)
+
     start_time = time.monotonic()
 
-    log.info("=" * 60)
-    label = (
-        "BOOTSTRAP: Dry run"
-        if args.dry_run
-        else "BOOTSTRAP: Setting up development environment"
-    )
-    log.info("%s", label)
-    log.info("=" * 60)
+    if not args.quiet:
+        ui.header()
+        if args.dry_run:
+            ui.info_line("Dry run mode — no changes will be made")
 
     # Run prerequisite checks
     all_ok = True
@@ -413,7 +411,7 @@ def main() -> int:
     elapsed = time.monotonic() - start_time
 
     if all_ok:
-        print_next_steps()
+        print_next_steps(ui)
         log.info("Completed in %.1fs", elapsed)
         return 0
     else:

@@ -12,13 +12,16 @@ Utility scripts for development and maintenance.
 | [\_imports.py](_imports.py)                                    | Shared import helper for loading sibling modules safely                  |
 | [\_progress.py](_progress.py)                                  | Shared progress-indicator utilities (ProgressBar, Spinner)               |
 | [\_colors.py](_colors.py)                                      | Shared ANSI color utilities (color detection, Colors class)              |
+| [\_container_common.py](_container_common.py)                  | Shared container-test utilities (Docker/Podman detection, cleanup)        |
 | [\_doctor_common.py](_doctor_common.py)                        | Shared doctor-family utilities (version lookup, path/hook checks)        |
+| [\_ui.py](_ui.py)                                              | Shared dashboard UI module (themed headers, sections, tables, footers)   |
 | [apply_labels.py](apply_labels.py)                             | Apply GitHub labels from JSON                                            |
 | [apply-labels.sh](apply-labels.sh)                             | Shell wrapper for label application                                      |
 | [archive_todos.py](archive_todos.py)                           | Archive completed TODO items from todo.md                                |
 | [bootstrap.py](bootstrap.py)                                   | One-command setup for fresh clones                                       |
 | [changelog_check.py](changelog_check.py)                       | Validate CHANGELOG.md has an entry for the current PR                    |
 | [check_known_issues.py](check_known_issues.py)                 | Flag stale Resolved entries in docs/known-issues.md                      |
+| [check_local_imports.py](precommit/check_local_imports.py)     | Enforce local-module section comment in scripts                          |
 | [check_nul_bytes.py](precommit/check_nul_bytes.py)             | Detect NUL (0x00) bytes in staged files                                  |
 | [check_python_support.py](check_python_support.py)             | Validate Python version support is consistent across config files        |
 | [check_todos.py](check_todos.py)                               | Scan for `TODO (template users)` comments                                |

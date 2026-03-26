@@ -36,7 +36,10 @@ from _imports import find_repo_root, import_sibling
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
+
+# Theme color for this script's dashboard output.
+THEME = "magenta"
 
 logger = logging.getLogger(__name__)
 

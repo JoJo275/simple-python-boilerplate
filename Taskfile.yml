@@ -492,3 +492,8 @@ tasks:
     desc: Flag stale Resolved entries in docs/known-issues.md
     cmds:
       - hatch run python scripts/check_known_issues.py {{.CLI_ARGS}}
+
+  python:check:
+    desc: Verify Python version support config is consistent
+    cmds:
+      - python scripts/check_python_support.py {{.CLI_ARGS}}

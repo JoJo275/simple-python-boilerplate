@@ -56,6 +56,7 @@ except ModuleNotFoundError:  # pragma: no cover
 from _colors import colorize as _colorize
 from _colors import supports_color as _supports_color
 from _imports import import_sibling
+from _ui import UI
 
 Spinner = import_sibling("_progress").Spinner
 
@@ -116,7 +117,10 @@ class DoctorConfig:
 
 _LEVEL_ORDER: dict[str, int] = {"info": 0, "warn": 1}
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
+
+# Theme color for this script's dashboard output.
+THEME = "yellow"
 
 logger = logging.getLogger(__name__)
 
@@ -544,6 +548,25 @@ _SHARED_MODULE_DEPENDENTS: dict[str, list[str]] = {
         "test_containerfile.py",
         "test_docker_compose.py",
     ],
+    "_ui.py": [
+        "check_python_support.py",
+        "check_todos.py",
+        "check_known_issues.py",
+        "clean.py",
+        "changelog_check.py",
+        "archive_todos.py",
+        "env_doctor.py",
+        "doctor.py",
+        "repo_doctor.py",
+        "bootstrap.py",
+        "dep_versions.py",
+        "workflow_versions.py",
+        "apply_labels.py",
+        "customize.py",
+        "test_containerfile.py",
+        "test_docker_compose.py",
+        "generate_command_reference.py",
+    ],
 }
 
 
@@ -747,29 +770,23 @@ def main() -> int:
     shared_warnings = _check_shared_modules(root, deleted=deleted, use_color=use_color)
     warnings.extend(shared_warnings)
 
+    ui = UI(
+        title="Repo Doctor",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+        no_color=not use_color,
+    )
+    ui.header()
+
     if args.show_passed and passed:
-        print(
-            _colorize(
-                "Passed checks:",
-                "32",
-                use_color=use_color,
-            )
-        )
+        ui.section("Passed Checks")
         for p in passed:
             cat = f" ({p.rule.category})" if p.rule.category else ""
-            print(
-                f"  {_colorize('[pass]', '32', use_color=use_color)}{cat} {p.message}"
-            )
+            ui.status_line("check", f"{cat} {p.message}", "green")
         print()
 
     if warnings:
-        print(
-            _colorize(
-                "Repo doctor warnings (non-blocking):",
-                "33",
-                use_color=use_color,
-            )
-        )
+        ui.section("Warnings (non-blocking)")
         print()
         for w in warnings:
             print(
@@ -783,22 +800,14 @@ def main() -> int:
             )
             print()
     elif not args.show_passed:
-        print(
-            _colorize(
-                "Repo doctor: all checks passed.",
-                "32",
-                use_color=use_color,
-            )
-        )
+        ui.status_line("check", "All checks passed", "green")
 
-    # Summary line
-    total = len(passed) + len(warnings)
-    summary = (
-        f"Summary: {len(passed)} passed, {len(warnings)} warning(s)"
-        f" out of {total} checks"
+    # Summary
+    ui.footer(
+        passed=len(passed),
+        failed=0,
+        warned=len(warnings),
     )
-    color = "32" if not warnings else "33"
-    print(_colorize(summary, color, use_color=use_color))
 
     if args.strict and warnings:
         return 1

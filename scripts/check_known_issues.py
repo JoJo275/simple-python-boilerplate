@@ -42,13 +42,17 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
+from _ui import UI
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+# Theme color for this script's dashboard output.
+THEME = "red"
 # TODO (template users): If you move or rename docs/known-issues.md, update
 #   this default path and the --issues-path help text below.
 DEFAULT_ISSUES_PATH = ROOT / "docs" / "known-issues.md"
@@ -288,39 +292,36 @@ def main(argv: list[str] | None = None) -> int:
     elif not args.quiet:
         c = Colors()
         sym = unicode_symbols()
-        separator = c.dim(sym["sep"] * 50)
+        ui = UI(title="Known Issues Check", version=SCRIPT_VERSION, theme=THEME)
+        ui.header()
         # All human-readable output goes to stdout so that callers
         # (e.g. Taskfile, PowerShell) don't treat it as an error.
         if stale:
             noun = "entry" if len(stale) == 1 else "entries"
-            print(separator)
-            print(
-                "  "
-                + c.bold(
-                    c.yellow(
-                        f"Found {len(stale)} stale resolved {noun} "
-                        f"(older than {args.days} days):"
-                    )
-                ),
+            ui.section(
+                f"Found {len(stale)} stale resolved {noun} "
+                f"(older than {args.days} days)"
             )
-            print(separator)
             for entry in stale:
                 print(
-                    f"  {c.red(sym['cross'])} [{c.cyan(str(entry['area']))}] "
+                    f"    {c.red(sym['cross'])} [{c.cyan(str(entry['area']))}] "
                     f"{entry['issue']} {sym['dash']} resolved "
                     f"{c.dim(str(entry['parsed_date']))} "
                     f"({c.yellow(str(entry['age_days']))} days ago)"
                 )
-        else:
-            print(separator)
-            print(
-                f"  {c.green(sym['check'])} "
-                + c.green(
-                    f"All {len(entries)} resolved entries are within "
-                    f"the {args.days}-day window."
-                )
+            ui.footer(
+                passed=len(entries) - len(stale),
+                failed=len(stale),
             )
-            print(separator)
+        else:
+            ui.section("Results")
+            ui.status_line(
+                "check",
+                f"All {len(entries)} resolved entries are within "
+                f"the {args.days}-day window.",
+                "green",
+            )
+            ui.footer(passed=len(entries), failed=0)
 
     return 1 if stale else 0
 

@@ -133,6 +133,7 @@ from typing import Any
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 _progress = import_sibling("_progress")
 ProgressBar = _progress.ProgressBar
@@ -142,7 +143,10 @@ Spinner = _progress.Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
+
+# Theme color for this script's dashboard output.
+THEME = "magenta"
 
 logger = logging.getLogger(__name__)
 
@@ -726,6 +730,7 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         print("  No SHA-pinned actions found.")
         return
 
+    ui = UI(title="Workflow Action Versions", version=SCRIPT_VERSION, theme=THEME)
     has_latest = any(r.get("latest_tag") for r in rows)
 
     w_file = max(len(r["file"] or "") for r in rows)
@@ -733,24 +738,34 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     w_ctag = max((len(r["comment_tag"] or "-") for r in rows), default=7)
     w_rtag = max((len(r["resolved_tag"] or "-") for r in rows), default=8)
 
+    ui.section("Actions")
+
     if has_latest:
         w_ltag = max(
             (len(r["latest_tag"] or "-") for r in rows),
             default=6,
         )
-        hdr = (
-            f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
-            f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  "
-            f"{'Latest':<{w_ltag}}  Upgrade?"
+        ui.table_header(
+            [
+                ("File", w_file),
+                ("Action", w_action),
+                ("Comment", w_ctag),
+                ("Resolved", w_rtag),
+                ("Latest", w_ltag),
+                ("Upgrade?", 8),
+            ]
         )
     else:
         w_ltag = 0
-        hdr = (
-            f"  {'File':<{w_file}}  {'Action':<{w_action}}  "
-            f"{'Comment':<{w_ctag}}  {'Resolved':<{w_rtag}}  Stale?"
+        ui.table_header(
+            [
+                ("File", w_file),
+                ("Action", w_action),
+                ("Comment", w_ctag),
+                ("Resolved", w_rtag),
+                ("Stale?", 6),
+            ]
         )
-    print(_colors.bold(hdr))
-    print(_colors.dim("  " + "-" * (len(hdr) - 2)))
 
     for r in rows:
         ctag = r["comment_tag"] or "-"
@@ -770,11 +785,15 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 _colors.yellow(ltag) if is_upgradable else _colors.green(ltag)
             )
 
-            print(
-                f"  {file_col:<{w_file + _ansi_pad(file_col, file_raw)}}  "
-                f"{action_col:<{w_action + _ansi_pad(action_col, action_raw)}}  "
-                f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  "
-                f"{ltag_display:<{w_ltag + _ansi_pad(ltag_display, ltag)}}  {uflag}"
+            ui.table_row(
+                [
+                    (file_col, w_file),
+                    (action_col, w_action),
+                    (ctag, w_ctag),
+                    (rtag, w_rtag),
+                    (ltag_display, w_ltag),
+                    (uflag, 8),
+                ]
             )
         else:
             stale_val = r["stale"] or ""
@@ -789,10 +808,14 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             else:
                 flag = ""
 
-            print(
-                f"  {file_col:<{w_file + _ansi_pad(file_col, file_raw)}}  "
-                f"{action_col:<{w_action + _ansi_pad(action_col, action_raw)}}  "
-                f"{ctag:<{w_ctag}}  {rtag:<{w_rtag}}  {flag}"
+            ui.table_row(
+                [
+                    (file_col, w_file),
+                    (action_col, w_action),
+                    (ctag, w_ctag),
+                    (rtag, w_rtag),
+                    (flag, 6),
+                ]
             )
 
 
@@ -1196,11 +1219,14 @@ def main() -> int:
     # Initialize color support based on CLI flags
     _colors = Colors(enabled=args.color)
 
-    logger.info(
-        "%s for %s",
-        _colors.bold("Workflow action versions"),
-        _colors.cyan(ROOT.name),
+    ui = UI(
+        title="Workflow Action Versions",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+        no_color=not args.color,
     )
+    if not quiet:
+        ui.header()
 
     if not WORKFLOWS_DIR.is_dir():
         logger.error("No workflows directory found at %s", WORKFLOWS_DIR)

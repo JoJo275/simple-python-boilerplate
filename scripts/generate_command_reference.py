@@ -64,7 +64,10 @@ from _imports import find_repo_root
 # TODO (template users): Consider adding a Spinner from _progress.py for
 #   the generation phase when running --help on each script. See
 #   git_doctor.py for an example of spinner integration.
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
+
+# Theme color for this script's dashboard output.
+THEME = "white"
 
 logger = logging.getLogger(__name__)
 

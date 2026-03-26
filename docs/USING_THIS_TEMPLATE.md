@@ -355,11 +355,11 @@ Not every project needs all 36 workflows:
 ## Pre-commit Hooks
 
 [Pre-commit hooks](https://pre-commit.com/) catch problems before code leaves
-your machine. This template includes **43 hooks** across four Git stages:
+your machine. This template includes **45 hooks** across four Git stages:
 
 | Stage          | When it runs       | Examples                                                             | Count |
 | :------------- | :----------------- | :------------------------------------------------------------------- | ----: |
-| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |    35 |
+| **pre-commit** | Every `git commit` | Ruff lint/format, mypy, bandit, typos, deptry, YAML/TOML/JSON checks |    37 |
 | **commit-msg** | Every `git commit` | Commitizen — validates Conventional Commits format                   |     1 |
 | **pre-push**   | Every `git push`   | pytest, pip-audit, gitleaks                                          |     3 |
 | **manual**     | On demand          | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules      |     4 |

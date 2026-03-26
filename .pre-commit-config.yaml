@@ -257,6 +257,32 @@ repos:
         always_run: true
         files: pyproject\.toml$
 
+      # -----------------------------------------------------------------------
+      # check-python-support — Python version consistency
+      # -----------------------------------------------------------------------
+      # Verifies that requires-python, Hatch test matrix, classifier
+      # list, and CI matrix all agree on supported Python versions.
+      # Runs only when pyproject.toml or workflow files change.
+      - id: check-python-support
+        name: check-python-support (version consistency)
+        entry: python scripts/check_python_support.py --quiet
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: (pyproject\.toml|\.github/workflows/.*\.yml)$
+
+      # -----------------------------------------------------------------------
+      # check-local-imports — Local module comment enforcement
+      # -----------------------------------------------------------------------
+      # Ensures scripts that import underscore-prefixed siblings
+      # include the standard section comment for readability.
+      - id: check-local-imports
+        name: check-local-imports (module comment)
+        entry: python scripts/precommit/check_local_imports.py
+        language: python
+        files: ^scripts/[^/]+\.py$
+        exclude: ^scripts/_
+
 
   # ===========================================================================
   # STAGE: commit-msg  (validates the commit message)

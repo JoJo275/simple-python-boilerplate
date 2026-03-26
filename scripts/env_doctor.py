@@ -60,6 +60,7 @@ from _doctor_common import (
     read_pyproject,
 )
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
@@ -67,7 +68,10 @@ ProgressBar = import_sibling("_progress").ProgressBar
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.6.0"
+
+# Theme color for this script's dashboard output.
+THEME = "blue"
 
 logger = logging.getLogger(__name__)
 
@@ -1225,12 +1229,17 @@ def run_checks(
 
     use_color = color if color is not None else _supports_color(sys.stdout)
     c = Colors(enabled=use_color)
+    ui = UI(
+        title="Environment Health Check",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+        no_color=not use_color,
+    )
 
-    print()
-    print(c.bold("Environment Health Check"))
-    print(c.dim("=" * 50))
+    ui.header()
 
     # Core checks
+    ui.section("Core")
     for r in results:
         if r["group"] == "core":
             print(
@@ -1239,9 +1248,7 @@ def run_checks(
             )
 
     # Dev tool checks
-    print()
-    print(c.bold("Development Tools"))
-    print(c.dim("-" * 50))
+    ui.section("Development Tools")
     for r in results:
         if r["group"] in ("tools", "optional"):
             print(f"  [{_icon(r['status'], use_color=use_color)}] {r['message']}")
@@ -1249,9 +1256,7 @@ def run_checks(
     # Extended checks
     extended = [r for r in results if r["group"] == "extended"]
     if extended:
-        print()
-        print(c.bold("Extended Checks"))
-        print(c.dim("-" * 50))
+        ui.section("Extended Checks")
         for r in extended:
             print(
                 f"  [{_icon(r['status'], use_color=use_color)}]"
@@ -1260,17 +1265,10 @@ def run_checks(
 
     # Summary
     elapsed = time.monotonic() - elapsed_start
-    print()
     total = len(results)
     passed_count = total - failures
-    if failures == 0:
-        summary = f"All {total} checks passed!"
-        print(c.green(summary))
-    else:
-        summary = f"{passed_count}/{total} checks passed, {failures} failed"
-        print(c.red(summary))
-    print(c.dim(f"Completed in {elapsed:.1f}s"))
-    print()
+    warned = 0
+    ui.footer(passed=passed_count, failed=failures, warned=warned, elapsed=elapsed)
 
     return 1 if failures else 0
 
