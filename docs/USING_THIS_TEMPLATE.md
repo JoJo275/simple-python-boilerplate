@@ -54,6 +54,36 @@ fit your project.
 
 ---
 
+## Public vs Private Repositories
+
+This template works with both public and private repositories, but some
+features behave differently depending on visibility:
+
+| Feature                          | Public repo                                                          | Private repo                                                                                            |
+| :------------------------------- | :------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
+| **GitHub Actions**               | Free unlimited minutes                                               | Uses your account's included minutes (2,000/mo for Free, more on paid plans). Monitor usage in Settings. |
+| **Dependabot alerts**            | Always available                                                     | Always available                                                                                        |
+| **Dependabot security updates**  | Always available                                                     | Always available                                                                                        |
+| **Code scanning (CodeQL)**       | Free                                                                 | Requires GitHub Advanced Security license (paid) or GHAS trial                                          |
+| **Secret scanning**              | Free (push protection included)                                      | Requires GitHub Advanced Security license (paid)                                                        |
+| **OpenSSF Scorecard**            | Works (public data accessible)                                       | Will fail — Scorecard requires public repo access. Remove `scorecard.yml` workflow.                     |
+| **Pages (docs deployment)**      | Free via GitHub Pages                                                | Requires GitHub Pro/Team/Enterprise, or use an alternative host                                         |
+| **Private vulnerability reports** | Available (enable in Settings)                                       | Available (enable in Settings)                                                                          |
+| **Container registry (GHCR)**    | Public images free                                                   | Private images count against storage quota                                                              |
+| **Codecov**                      | Free for public repos                                                | Free tier available; check Codecov pricing for private repos                                            |
+
+**If your repo is private**, consider:
+
+- Removing `scorecard.yml` workflow (it requires public access)
+- Removing `docs-deploy.yml` if you don't have a Pages-capable plan (keep
+  `docs-build.yml` for CI validation)
+- Removing CodeQL/`codeql.yml` if you don't have Advanced Security (keep
+  `bandit.yml` and `security-audit.yml` as alternatives)
+- Monitoring your Actions minutes usage, especially if running the full CI
+  matrix on every PR
+
+---
+
 ## Placeholders to Replace
 
 <!-- TODO (template users): After replacing these, delete this table or mark

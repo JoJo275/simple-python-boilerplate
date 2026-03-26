@@ -302,6 +302,14 @@ tasks:
     cmds:
       - python scripts/bootstrap.py {{.CLI_ARGS}}
 
+  scripts:chmod:
+    desc: "Mark scripts executable for Unix (usage: task scripts:chmod -- scripts/my_new_script.py)"
+    cmds:
+      - git add --chmod=+x {{.CLI_ARGS}}
+    preconditions:
+      - sh: test -n "{{.CLI_ARGS}}"
+        msg: "Provide file path(s), e.g.: task scripts:chmod -- scripts/my_script.py"
+
   version:
     desc: Show project version
     cmds:
