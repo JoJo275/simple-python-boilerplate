@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
 
 # Theme color for this script's dashboard output.
 THEME = "green"
@@ -337,7 +337,7 @@ def verify_setup(*, dry_run: bool = False) -> bool:
 
 
 def print_next_steps(ui: UI) -> None:
-    """Print helpful next steps."""
+    """Print helpful next steps and recommended scripts."""
     # TODO (template users): Update the package name and URLs below
     #   after running customize.py, or remove this function if your
     #   bootstrap has different post-setup instructions.
@@ -377,6 +377,11 @@ def print_next_steps(ui: UI) -> None:
         c.dim("Documentation: https://JoJo275.github.io/simple-python-boilerplate/"),
     )
     log.info("")
+
+    ui.recommended_scripts(
+        ["customize", "doctor", "repo_sauron", "dep_versions", "clean"],
+        preamble="Scripts that help after initial setup.",
+    )
 
 
 def main() -> int:

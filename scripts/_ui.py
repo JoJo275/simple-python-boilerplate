@@ -32,9 +32,67 @@ from typing import ClassVar
 
 from _colors import Colors, supports_unicode, unicode_symbols
 
-__all__ = ["UI"]
+__all__ = ["RECOMMENDED_SCRIPTS", "UI"]
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
+
+# ---------------------------------------------------------------------------
+# Shared recommended-scripts registry
+# ---------------------------------------------------------------------------
+# Each entry: (command, description).  Scripts select a subset by key
+# when calling ``UI.recommended_scripts()``.  The registry is the single
+# source of truth so descriptions stay consistent across all scripts.
+
+RECOMMENDED_SCRIPTS: dict[str, tuple[str, str]] = {
+    "repo_sauron": (
+        "python scripts/repo_sauron.py",
+        "Repository statistics Markdown report",
+    ),
+    "env_inspect": (
+        "python scripts/env_inspect.py",
+        "Environment, packages, PATH inspection",
+    ),
+    "check_python_support": (
+        "python scripts/check_python_support.py",
+        "Python version consistency across configs",
+    ),
+    "repo_doctor": (
+        "python scripts/repo_doctor.py",
+        "Repository structure health checks",
+    ),
+    "dep_versions": (
+        "python scripts/dep_versions.py show",
+        "Dependency versions and update status",
+    ),
+    "env_doctor": (
+        "python scripts/env_doctor.py",
+        "Development environment diagnostics",
+    ),
+    "doctor": (
+        "python scripts/doctor.py",
+        "Unified health check (runs all doctors)",
+    ),
+    "workflow_versions": (
+        "python scripts/workflow_versions.py",
+        "GitHub Actions SHA-pinned version status",
+    ),
+    "git_doctor": (
+        "python scripts/git_doctor.py",
+        "Git health dashboard, config, branch ops",
+    ),
+    "bootstrap": (
+        "python scripts/bootstrap.py",
+        "One-command project setup for fresh clones",
+    ),
+    "customize": (
+        "python scripts/customize.py",
+        "Interactive template customization wizard",
+    ),
+    "clean": (
+        "python scripts/clean.py",
+        "Remove build artifacts and caches",
+    ),
+}
 
 
 class UI:
@@ -273,3 +331,51 @@ class UI:
                 f"{self.c.dim(label.ljust(label_width))} "
                 f"{color_fn(status_text)}"
             )
+
+    # ── Recommended Scripts ────────────────────────────────────
+
+    def recommended_scripts(
+        self,
+        keys: list[str],
+        *,
+        heading: str = "Recommended Scripts",
+        preamble: str = "Scripts that expand on this tool's output.",
+    ) -> None:
+        """Print a standardised recommended-scripts section.
+
+        Pulls entries from the shared :data:`RECOMMENDED_SCRIPTS` registry
+        so descriptions stay consistent across all scripts.
+
+        Args:
+            keys: Registry keys to display (e.g. ``["repo_sauron", "doctor"]``).
+            heading: Section title.
+            preamble: Short description shown under the heading.
+        """
+        self.section(heading)
+        print(f"    {self.c.bold(preamble)}")
+        print()
+        print(
+            f"    {self.c.dim('Source:')} {self.c.cyan('simple-python-boilerplate')}"
+            f" by {self.c.bold('JoJo275')} on GitHub"
+        )
+        print(
+            f"    {self.c.dim('Repo:')}   "
+            f"{self.c.cyan('https://github.com/JoJo275/simple-python-boilerplate')}"
+        )
+        print(f"    {self.c.dim('Location:')} scripts/ directory")
+        print()
+        print(
+            f"    {self.c.dim('These scripts may already exist in this repo if it was')}"
+        )
+        print(f"    {self.c.dim('forked from or based on the source.')}")
+        print(
+            f"    {self.c.dim('If not, visit the source repo by JoJo275 to obtain them.')}"
+        )
+        print()
+        for key in keys:
+            entry = RECOMMENDED_SCRIPTS.get(key)
+            if entry is None:
+                continue
+            cmd, desc = entry
+            print(f"      {self.c.cyan(cmd)}")
+            print(f"        {self.c.dim(desc)}")

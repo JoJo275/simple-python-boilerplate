@@ -606,40 +606,15 @@ def print_env_info(
 
     # ── Recommended Scripts ──
     if show_all:
-        ui.section("Recommended Scripts")
-        ui.info_line(
-            "Scripts that expand on environment information and health checks."
-        )
-        ui.info_line("Source: simple-python-boilerplate by JoJo275 on GitHub")
-        ui.info_line("        https://github.com/JoJo275/simple-python-boilerplate")
-        ui.info_line("Scripts located in the scripts/ directory.")
-        ui.blank()
-        ui.info_line(
-            "These scripts may already exist in this repo if it was forked from"
-        )
-        ui.info_line(
-            "or based on the source. If not, visit the source repo by JoJo275."
-        )
-        ui.blank()
-        ui.info_line(
-            f"  {c.cyan('python scripts/check_python_support.py')}"
-            "  — Full Python version consistency analysis"
-        )
-        ui.info_line(
-            f"  {c.cyan('python scripts/dep_versions.py show')}"
-            "          — Project dependency versions and update status"
-        )
-        ui.info_line(
-            f"  {c.cyan('python scripts/env_doctor.py')}"
-            "               — Quick environment health check"
-        )
-        ui.info_line(
-            f"  {c.cyan('python scripts/doctor.py')}"
-            "                   — Full diagnostics bundle for bug reports"
-        )
-        ui.info_line(
-            f"  {c.cyan('python scripts/repo_sauron.py')}"
-            "             — Repository statistics Markdown report"
+        ui.recommended_scripts(
+            [
+                "check_python_support",
+                "dep_versions",
+                "env_doctor",
+                "doctor",
+                "repo_sauron",
+            ],
+            preamble="Scripts that expand on environment information and health checks.",
         )
 
     ui.blank()
