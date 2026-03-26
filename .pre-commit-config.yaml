@@ -272,6 +272,19 @@ repos:
         files: (pyproject\.toml|\.github/workflows/.*\.yml)$
 
       # -----------------------------------------------------------------------
+      # auto-chmod-scripts — Auto-fix executable bit on shebang scripts
+      # -----------------------------------------------------------------------
+      # When a new script with a shebang is staged but not marked
+      # executable, this hook auto-runs `git add --chmod=+x`.
+      # Eliminates the common mistake of forgetting the executable bit.
+      - id: auto-chmod-scripts
+        name: auto-chmod-scripts (auto +x for shebangs)
+        entry: python scripts/precommit/auto_chmod_scripts.py
+        language: python
+        types: [text]
+        files: \.(py|sh|bash|zsh|rb|pl)$
+
+      # -----------------------------------------------------------------------
       # check-local-imports — Local module comment enforcement
       # -----------------------------------------------------------------------
       # Ensures scripts that import underscore-prefixed siblings

@@ -1268,6 +1268,38 @@ def run_checks(
     total = len(results)
     passed_count = total - failures
     warned = 0
+
+    # ── Recommended Scripts ──
+    ui.section("Recommended Scripts")
+    ui.info_line("Scripts that expand on environment and health diagnostics.")
+    ui.info_line("Source: simple-python-boilerplate by JoJo275 on GitHub")
+    ui.info_line("        https://github.com/JoJo275/simple-python-boilerplate")
+    ui.info_line("Scripts located in the scripts/ directory.")
+    ui.blank()
+    ui.info_line("These scripts may already exist in this repo if it was forked from")
+    ui.info_line("or based on the source. If not, visit the source repo by JoJo275.")
+    ui.blank()
+    ui.info_line(
+        f"  {c.cyan('python scripts/repo_sauron.py')}"
+        "             — Repository statistics Markdown report"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/env_inspect.py')}"
+        "             — Environment, packages, PATH inspection"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/repo_doctor.py')}"
+        "             — Repository structure health checks"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/dep_versions.py show')}"
+        "       — Dependency versions and update status"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/doctor.py')}"
+        "                  — Unified health check (runs all doctors)"
+    )
+
     ui.footer(passed=passed_count, failed=failures, warned=warned, elapsed=elapsed)
 
     return 1 if failures else 0

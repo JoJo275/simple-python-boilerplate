@@ -6074,6 +6074,47 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
             f"{c.green(f'No conflicts detected with {default_branch}')}"
         )
 
+    # ── Recommended Scripts ──
+    _section("Recommended Scripts")
+    print(f"    {c.dim('Scripts that expand on repository health and diagnostics.')}")
+    print(f"    {c.dim('Source: simple-python-boilerplate by JoJo275 on GitHub')}")
+    print(
+        f"    {c.dim('        https://github.com/JoJo275/simple-python-boilerplate')}"
+    )
+    print(f"    {c.dim('Scripts located in the scripts/ directory.')}")
+    print()
+    print(
+        f"    {c.dim('These scripts may already exist in this repo if it was forked from')}"
+    )
+    print(
+        f"    {c.dim('or based on the source. If not, visit the source repo by JoJo275.')}"
+    )
+    print()
+    print(
+        f"      {c.cyan('python scripts/repo_sauron.py')}"
+        "             \u2014 Repository statistics Markdown report"
+    )
+    print(
+        f"      {c.cyan('python scripts/env_inspect.py')}"
+        "             \u2014 Environment, packages, PATH inspection"
+    )
+    print(
+        f"      {c.cyan('python scripts/repo_doctor.py')}"
+        "             \u2014 Repository structure health checks"
+    )
+    print(
+        f"      {c.cyan('python scripts/dep_versions.py show')}"
+        "       \u2014 Dependency versions and update status"
+    )
+    print(
+        f"      {c.cyan('python scripts/env_doctor.py')}"
+        "              \u2014 Quick environment health check"
+    )
+    print(
+        f"      {c.cyan('python scripts/doctor.py')}"
+        "                  \u2014 Unified health check (runs all doctors)"
+    )
+
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
     print()

@@ -369,6 +369,38 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         + (f", {upgradable_count} upgradable" if upgradable_count else "")
     )
 
+    # ── Recommended Scripts ──
+    c = ui.c
+    ui.section("Recommended Scripts")
+    ui.info_line("Scripts that expand on dependency and project information.")
+    ui.info_line("Source: simple-python-boilerplate by JoJo275 on GitHub")
+    ui.info_line("        https://github.com/JoJo275/simple-python-boilerplate")
+    ui.info_line("Scripts located in the scripts/ directory.")
+    ui.blank()
+    ui.info_line("These scripts may already exist in this repo if it was forked from")
+    ui.info_line("or based on the source. If not, visit the source repo by JoJo275.")
+    ui.blank()
+    ui.info_line(
+        f"  {c.cyan('python scripts/repo_sauron.py')}"
+        "             — Repository statistics Markdown report"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/env_inspect.py')}"
+        "             — Environment, packages, PATH inspection"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/repo_doctor.py')}"
+        "             — Repository structure health checks"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/env_doctor.py')}"
+        "              — Quick environment health check"
+    )
+    ui.info_line(
+        f"  {c.cyan('python scripts/doctor.py')}"
+        "                  — Unified health check (runs all doctors)"
+    )
+
 
 # ---------------------------------------------------------------------------
 # Comment updater

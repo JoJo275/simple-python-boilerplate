@@ -604,13 +604,22 @@ def print_env_info(
                 "yellow",
             )
 
-    # ── Related Scripts ──
+    # ── Recommended Scripts ──
     if show_all:
-        ui.section("Related Scripts")
+        ui.section("Recommended Scripts")
         ui.info_line(
-            "Other scripts in this repo that expand on environment information."
+            "Scripts that expand on environment information and health checks."
         )
-        ui.info_line("Source: simple-python-boilerplate template (scripts/ directory)")
+        ui.info_line("Source: simple-python-boilerplate by JoJo275 on GitHub")
+        ui.info_line("        https://github.com/JoJo275/simple-python-boilerplate")
+        ui.info_line("Scripts located in the scripts/ directory.")
+        ui.blank()
+        ui.info_line(
+            "These scripts may already exist in this repo if it was forked from"
+        )
+        ui.info_line(
+            "or based on the source. If not, visit the source repo by JoJo275."
+        )
         ui.blank()
         ui.info_line(
             f"  {c.cyan('python scripts/check_python_support.py')}"
@@ -627,6 +636,10 @@ def print_env_info(
         ui.info_line(
             f"  {c.cyan('python scripts/doctor.py')}"
             "                   — Full diagnostics bundle for bug reports"
+        )
+        ui.info_line(
+            f"  {c.cyan('python scripts/repo_sauron.py')}"
+            "             — Repository statistics Markdown report"
         )
 
     ui.blank()

@@ -1423,6 +1423,49 @@ def main() -> int:
     if _rate_limit["remaining"] is not None:
         logger.info("GitHub API rate limit remaining: %s", _rate_limit["remaining"])
 
+    # ── Recommended Scripts ──
+    if not quiet:
+        print()
+        print(f"  {_colors.dim('─' * 60)}")
+        print(f"  {_colors.bold('Recommended Scripts')}")
+        print(f"  {_colors.dim('─' * 60)}")
+        print(
+            f"    {_colors.dim('Source: simple-python-boilerplate by JoJo275 on GitHub')}"
+        )
+        print(
+            f"    {_colors.dim('        https://github.com/JoJo275/simple-python-boilerplate')}"
+        )
+        print(f"    {_colors.dim('Scripts located in the scripts/ directory.')}")
+        print()
+        print(
+            f"    {_colors.dim('These scripts may already exist in this repo if it was forked from')}"
+        )
+        print(
+            f"    {_colors.dim('or based on the source. If not, visit the source repo by JoJo275.')}"
+        )
+        print()
+        print(
+            f"      {_colors.cyan('python scripts/repo_sauron.py')}"
+            "             \u2014 Repository statistics Markdown report"
+        )
+        print(
+            f"      {_colors.cyan('python scripts/git_doctor.py')}"
+            "              \u2014 Git health dashboard, config, branch ops"
+        )
+        print(
+            f"      {_colors.cyan('python scripts/repo_doctor.py')}"
+            "             \u2014 Repository structure health checks"
+        )
+        print(
+            f"      {_colors.cyan('python scripts/dep_versions.py show')}"
+            "       \u2014 Dependency versions and update status"
+        )
+        print(
+            f"      {_colors.cyan('python scripts/env_doctor.py')}"
+            "              \u2014 Quick environment health check"
+        )
+        print()
+
     return 0
 
 
