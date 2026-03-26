@@ -60,11 +60,11 @@ pre-commit install --hook-type pre-push          # pre-push stage
 
 | Stage          | Key hooks                                                               |  Count |
 | :------------- | :---------------------------------------------------------------------- | -----: |
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite |     37 |
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite |     38 |
 | **commit-msg** | commitizen (Conventional Commits)                                       |      1 |
 | **pre-push**   | pytest, pip-audit, gitleaks                                             |      3 |
 | **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules         |      4 |
-| **Total**      |                                                                         | **45** |
+| **Total**      |                                                                         | **46** |
 
 Full hook inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md)
 Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
@@ -414,7 +414,7 @@ Key ADRs that most affect day-to-day work:
 | ADR | Decision                                             |
 | --- | ---------------------------------------------------- |
 | 001 | src/ layout for package structure                    |
-| 008 | Pre-commit hooks (full inventory, 45 hooks)          |
+| 008 | Pre-commit hooks (full inventory, 46 hooks)          |
 | 024 | CI gate pattern (single required check)              |
 | 031 | Script conventions (argparse, logging, shebang, etc) |
 | 040 | v1.0 release readiness checklist                     |

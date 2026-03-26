@@ -39,7 +39,7 @@ import sys
 import time
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
-from _colors import unicode_symbols
+from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
 from _progress import Spinner
 from _ui import UI
@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
 TOTAL_STEPS = 7
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 # Theme color for this script's dashboard output.
 THEME = "green"
@@ -98,59 +98,71 @@ def run_cmd(
 
 def check_python() -> bool:
     """Verify Python version."""
-    log.info("\n[1/%d] Checking Python version...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[1/{TOTAL_STEPS}] Checking Python version..."))
     current = sys.version_info[:2]
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
 
     sym = unicode_symbols()
     if current >= MIN_PYTHON:
-        log.info("  %s Python %s (>= %s)", sym["check"], cur_str, min_str)
+        log.info(
+            "  %s Python %s (>= %s)", c.green(sym["check"]), c.green(cur_str), min_str
+        )
         return True
     else:
         log.error(
             "  %s Python %s %s requires >= %s",
-            sym["cross"],
+            c.red(sym["cross"]),
             cur_str,
             sym["dash"],
             min_str,
         )
-        log.error("  Install Python %s+: https://www.python.org/downloads/", min_str)
+        log.error(
+            "  Install Python %s+: %s",
+            min_str,
+            c.cyan("https://www.python.org/downloads/"),
+        )
         return False
 
 
 def check_git() -> bool:
     """Verify Git is installed and we're inside a Git repository."""
-    log.info("\n[2/%d] Checking Git...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[2/{TOTAL_STEPS}] Checking Git..."))
     sym = unicode_symbols()
     git = shutil.which("git")
     if not git:
-        log.error("  %s Git not found", sym["cross"])
-        log.error("  Install from: https://git-scm.com/downloads")
+        log.error("  %s Git not found", c.red(sym["cross"]))
+        log.error("  Install from: %s", c.cyan("https://git-scm.com/downloads"))
         return False
 
     git_dir = ROOT / ".git"
     if not git_dir.is_dir():
-        log.error("  %s Not a Git repository (no .git/ directory)", sym["cross"])
-        log.error("  Run: git init")
+        log.error("  %s Not a Git repository (no .git/ directory)", c.red(sym["cross"]))
+        log.error("  Run: %s", c.cyan("git init"))
         return False
 
-    log.info("  %s Git repository detected", sym["check"])
+    log.info("  %s Git repository detected", c.green(sym["check"]))
     return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
-    log.info("\n[3/%d] Checking Hatch...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[3/{TOTAL_STEPS}] Checking Hatch..."))
     sym = unicode_symbols()
     hatch = shutil.which("hatch")
     if not hatch:
-        log.error("  %s Hatch not found", sym["cross"])
+        log.error("  %s Hatch not found", c.red(sym["cross"]))
         if shutil.which("pipx"):
-            log.error("  Install with: pipx install hatch")
+            log.error("  Install with: %s", c.cyan("pipx install hatch"))
         else:
-            log.error("  Install with: pip install --user hatch")
-            log.error("  (Recommended: install pipx first, then: pipx install hatch)")
+            log.error("  Install with: %s", c.cyan("pip install --user hatch"))
+            log.error(
+                "  (Recommended: install pipx first, then: %s)",
+                c.cyan("pipx install hatch"),
+            )
             log.error(
                 "  Why pipx? It installs Hatch in an isolated environment, avoiding"
             )
@@ -165,9 +177,9 @@ def check_hatch() -> bool:
 
     result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
-        log.info("  %s %s", sym["check"], result.stdout.strip())
+        log.info("  %s %s", c.green(sym["check"]), result.stdout.strip())
         return True
-    log.error("  %s Hatch found but failed to run", sym["cross"])
+    log.error("  %s Hatch found but failed to run", c.red(sym["cross"]))
     return False
 
 
@@ -181,7 +193,8 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     Returns:
         True if all environments were created successfully.
     """
-    log.info("\n[4/%d] Creating Hatch environments...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[4/{TOTAL_STEPS}] Creating Hatch environments..."))
 
     # Environments to create
     envs = ["default", "docs"]
@@ -201,15 +214,21 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
     for env in envs:
         try:
             if not dry_run and env in existing_env_names:
-                log.info("  %s %s environment already exists", sym["check"], env)
+                log.info(
+                    "  %s %s environment already exists",
+                    c.green(sym["check"]),
+                    c.cyan(env),
+                )
             else:
                 with Spinner(f"Creating {env} environment") as spin:
                     spin.update(env)
                     run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
                 label = "Would create" if dry_run else "Created"
-                log.info("  %s %s %s environment", sym["check"], label, env)
+                log.info(
+                    "  %s %s %s environment", c.green(sym["check"]), label, c.cyan(env)
+                )
         except subprocess.CalledProcessError as e:
-            log.error("  %s Failed to create %s: %s", sym["cross"], env, e)
+            log.error("  %s Failed to create %s: %s", c.red(sym["cross"]), env, e)
             all_ok = False
 
     return all_ok
@@ -225,10 +244,11 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
     Returns:
         True if hooks were installed (or skipped) successfully.
     """
-    log.info("\n[5/%d] Installing pre-commit hooks...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[5/{TOTAL_STEPS}] Installing pre-commit hooks..."))
     sym = unicode_symbols()
     if skip:
-        log.info("  %s Skipped (--skip-hooks)", sym["arrow"])
+        log.info("  %s Skipped (--skip-hooks)", c.dim(sym["arrow"]))
         return True
 
     # Build base command: direct pre-commit or via hatch
@@ -249,10 +269,10 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
                     cmd.extend(["--hook-type", stage])
                 run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
-        log.info("  %s %s all hook stages", sym["check"], label)
+        log.info("  %s %s all hook stages", c.green(sym["check"]), label)
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  %s Failed: %s", sym["cross"], e)
+        log.error("  %s Failed: %s", c.red(sym["cross"]), e)
         return False
 
 
@@ -262,14 +282,17 @@ def check_task_runner() -> bool:
     Returns:
         True always — Task is optional so this never blocks setup.
     """
-    log.info("\n[6/%d] Checking Task runner...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[6/{TOTAL_STEPS}] Checking Task runner..."))
     sym = unicode_symbols()
     task = shutil.which("task")
     if task:
-        log.info("  %s Task runner available", sym["check"])
+        log.info("  %s Task runner available", c.green(sym["check"]))
     else:
-        log.warning("  %s Task not found (optional but recommended)", sym["warn"])
-        log.warning("  Install from: https://taskfile.dev/installation/")
+        log.warning(
+            "  %s Task not found (optional but recommended)", c.yellow(sym["warn"])
+        )
+        log.warning("  Install from: %s", c.cyan("https://taskfile.dev/installation/"))
     return True
 
 
@@ -282,10 +305,11 @@ def verify_setup(*, dry_run: bool = False) -> bool:
     Returns:
         True if the setup is verified (or dry-run mode).
     """
-    log.info("\n[7/%d] Verifying setup...", TOTAL_STEPS)
+    c = Colors()
+    log.info("\n%s", c.bold(f"[7/{TOTAL_STEPS}] Verifying setup..."))
     sym = unicode_symbols()
     if dry_run:
-        log.info("  %s Would verify package version", sym["arrow"])
+        log.info("  %s Would verify package version", c.dim(sym["arrow"]))
         return True
     try:
         with Spinner("Verifying package install") as spin:
@@ -305,10 +329,10 @@ def verify_setup(*, dry_run: bool = False) -> bool:
             )
             spin.update("checking version")
         version = result.stdout.strip()
-        log.info("  %s Package version: %s", sym["check"], version)
+        log.info("  %s Package version: %s", c.green(sym["check"]), c.cyan(version))
         return True
     except subprocess.CalledProcessError as e:
-        log.error("  %s Verification failed: %s", sym["cross"], e)
+        log.error("  %s Verification failed: %s", c.red(sym["cross"]), e)
         return False
 
 
@@ -317,28 +341,42 @@ def print_next_steps(ui: UI) -> None:
     # TODO (template users): Update the package name and URLs below
     #   after running customize.py, or remove this function if your
     #   bootstrap has different post-setup instructions.
+    c = Colors()
     ui.section("Setup Complete — Next Steps")
-    log.info("""
-  1. Enter the dev environment:
-     $ hatch shell
-
-  2. Verify the package is importable:
-     $ hatch run python -c "import simple_python_boilerplate"
-
-  3. Verify tools work:
-     $ task check        # Run all quality gates
-     $ task test         # Run tests
-     $ task --list       # See all available tasks
-
-  4. Customize the template:
-     $ python scripts/customize.py
-
-  5. (Optional) Enable GitHub workflows:
-     $ python scripts/customize.py --enable-workflows OWNER/REPO
-     - Or set repository variable: vars.ENABLE_WORKFLOWS = 'true'
-
-Documentation: https://JoJo275.github.io/simple-python-boilerplate/
-""")
+    log.info("")
+    log.info("  1. Enter the dev environment:")
+    log.info("     $ %s", c.cyan("hatch shell"))
+    log.info("")
+    log.info("  2. Verify the package is importable:")
+    log.info(
+        "     $ %s", c.cyan('hatch run python -c "import simple_python_boilerplate"')
+    )
+    log.info("")
+    log.info("  3. Verify tools work:")
+    log.info(
+        "     $ %s        %s", c.cyan("task check"), c.dim("# Run all quality gates")
+    )
+    log.info("     $ %s         %s", c.cyan("task test"), c.dim("# Run tests"))
+    log.info(
+        "     $ %s       %s", c.cyan("task --list"), c.dim("# See all available tasks")
+    )
+    log.info("")
+    log.info("  4. Customize the template:")
+    log.info("     $ %s", c.cyan("python scripts/customize.py"))
+    log.info("")
+    log.info("  5. (Optional) Enable GitHub workflows:")
+    log.info(
+        "     $ %s", c.cyan("python scripts/customize.py --enable-workflows OWNER/REPO")
+    )
+    log.info(
+        "     %s", c.dim("Or set repository variable: vars.ENABLE_WORKFLOWS = 'true'")
+    )
+    log.info("")
+    log.info(
+        "  %s",
+        c.dim("Documentation: https://JoJo275.github.io/simple-python-boilerplate/"),
+    )
+    log.info("")
 
 
 def main() -> int:
@@ -394,9 +432,12 @@ def main() -> int:
     all_ok &= check_hatch()
 
     sym = unicode_symbols()
+    c = Colors()
     if not all_ok:
         log.error(
-            "\n%s Prerequisites not met. Fix the issues above and re-run.", sym["cross"]
+            "\n%s %s",
+            c.red(sym["cross"]),
+            c.red("Prerequisites not met. Fix the issues above and re-run."),
         )
         return 1
 
@@ -412,13 +453,15 @@ def main() -> int:
 
     if all_ok:
         print_next_steps(ui)
-        log.info("Completed in %.1fs", elapsed)
+        log.info("%s", c.dim(f"Completed in {elapsed:.1f}s"))
         return 0
     else:
         log.warning(
-            "\n%s Setup completed with warnings. Review the output above.", sym["warn"]
+            "\n%s %s",
+            c.yellow(sym["warn"]),
+            c.yellow("Setup completed with warnings. Review the output above."),
         )
-        log.info("Completed in %.1fs", elapsed)
+        log.info("%s", c.dim(f"Completed in {elapsed:.1f}s"))
         return 1
 
 

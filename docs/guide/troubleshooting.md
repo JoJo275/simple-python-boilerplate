@@ -1074,7 +1074,7 @@ on first run. Subsequent runs reuse the cached environment.
 
 ### `pre-commit` is slow
 
-**Cause:** Running 37 hooks takes time, especially on first run (downloads
+**Cause:** Running 38 hooks takes time, especially on first run (downloads
 environments) or on large changesets.
 
 **Fix:**

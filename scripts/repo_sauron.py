@@ -144,6 +144,61 @@ _SCRIPT_EXTENSIONS = {".py", ".sh", ".bash", ".zsh", ".ps1", ".rb", ".pl"}
 
 
 # ---------------------------------------------------------------------------
+# Markdown table helper
+# ---------------------------------------------------------------------------
+
+
+def _aligned_table(
+    headers: list[str],
+    rows: list[list[str]],
+    aligns: str = "",
+) -> list[str]:
+    """Build a Markdown table with padded columns for clean raw formatting.
+
+    Args:
+        headers: Column header strings.
+        rows: List of rows, each a list of cell strings.
+        aligns: One char per column — ``'l'`` left, ``'r'`` right.
+                Missing positions default to ``'l'``.
+
+    Returns:
+        List of Markdown lines (header, separator, data rows).
+    """
+    ncols = len(headers)
+    widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row[:ncols]):
+            widths[i] = max(widths[i], len(cell))
+
+    def _align(col: int) -> str:
+        a = aligns[col] if col < len(aligns) else "l"
+        return a
+
+    # Header
+    hdr = "| " + " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers)) + " |"
+    # Separator
+    seps: list[str] = []
+    for i in range(ncols):
+        if _align(i) == "r":
+            seps.append("-" * (widths[i] - 1) + ":")
+        else:
+            seps.append("-" * widths[i])
+    sep = "| " + " | ".join(seps) + " |"
+    # Rows
+    lines = [hdr, sep]
+    for row in rows:
+        cells: list[str] = []
+        for i in range(ncols):
+            val = row[i] if i < len(row) else ""
+            if _align(i) == "r":
+                cells.append(val.rjust(widths[i]))
+            else:
+                cells.append(val.ljust(widths[i]))
+        lines.append("| " + " | ".join(cells) + " |")
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # Git helpers
 # ---------------------------------------------------------------------------
 
@@ -330,29 +385,44 @@ def _collect_git_stats() -> dict:
 
 
 def _collect_file_git_stats() -> dict[str, dict]:
-    """Collect per-file git commit counts and last commit dates."""
+    """Collect per-file git commit counts and last commit dates.
+
+    Uses a single ``git log`` pass with ``--name-only`` to extract
+    commit counts and last-commit dates for all tracked files,
+    instead of spawning two subprocess calls per file.
+    """
     file_stats: dict[str, dict] = {}
 
     if _GIT_CMD is None:
         return file_stats
 
-    code, out = _run_git(["ls-files"], timeout=30)
+    # Single pass: get every commit's date and the files it touched.
+    # Format: date on one line, then file names, separated by blank lines.
+    code, out = _run_git(
+        ["log", "--format=%aI", "--name-only", "HEAD"],
+        timeout=120,
+    )
     if code != 0 or not out:
         return file_stats
 
-    tracked_files = [f for f in out.splitlines() if f.strip()]
-
-    for filepath in tracked_files:
-        code, count_out = _run_git(["rev-list", "--count", "HEAD", "--", filepath])
-        commit_count = int(count_out) if code == 0 and count_out.isdigit() else 0
-
-        code, date_out = _run_git(["log", "-1", "--format=%aI", "--", filepath])
-        last_commit = date_out if code == 0 and date_out else None
-
-        file_stats[filepath] = {
-            "commits": commit_count,
-            "last_commit": last_commit,
-        }
+    current_date: str | None = None
+    for line in out.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # ISO dates start with a digit; filenames don't start with a 4-digit year
+        # pattern reliably, but ISO 8601 always matches YYYY-MM-DD
+        if len(stripped) >= 10 and stripped[4] == "-" and stripped[7] == "-":
+            current_date = stripped
+        elif current_date:
+            # It's a filename
+            if stripped not in file_stats:
+                file_stats[stripped] = {
+                    "commits": 1,
+                    "last_commit": current_date,
+                }
+            else:
+                file_stats[stripped]["commits"] += 1
 
     return file_stats
 
@@ -684,13 +754,13 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     ext_counts = file_stats["extension_counts"]
     if ext_counts:
-        lines.append("| Extension | Files | Lines |")
-        lines.append("|-----------|------:|------:|")
         lines_by_ext = file_stats["extension_lines"]
+        ft_rows: list[list[str]] = []
         for ext, count in list(ext_counts.items())[:15]:
             line_count = lines_by_ext.get(ext)
             line_str = f"{line_count:,}" if line_count else "\u2014"
-            lines.append(f"| `{ext}` | {count} | {line_str} |")
+            ft_rows.append([f"`{ext}`", str(count), line_str])
+        lines.extend(_aligned_table(["Extension", "Files", "Lines"], ft_rows, "lrr"))
         lines.append("")
 
     # ── Languages ──
@@ -704,15 +774,16 @@ def generate_markdown(stats: dict) -> str:
             "> Language breakdown by file count (percentage of recognized files)."
         )
         lines.append("")
-        lines.append("| Language | Files | Lines | % |")
-        lines.append("|----------|------:|------:|---:|")
+        lang_rows: list[list[str]] = []
         for lang in languages:
             pct_str = f"{lang['percentage']:.1f}%"
             lang_lines = f"{lang['lines']:,}" if lang["lines"] else "\u2014"
-            lines.append(
-                f"| **{lang['language']}** | {lang['files']}"
-                f" | {lang_lines} | {pct_str} |"
+            lang_rows.append(
+                [f"**{lang['language']}**", str(lang["files"]), lang_lines, pct_str]
             )
+        lines.extend(
+            _aligned_table(["Language", "Files", "Lines", "%"], lang_rows, "lrrr")
+        )
         lines.append("")
 
         # Language bar chart using diff code block for color
@@ -745,21 +816,23 @@ def generate_markdown(stats: dict) -> str:
     if code_files:
         lines.append("### Code Files (by commit activity)")
         lines.append("")
-        lines.append("| File | Commits | Last Commit |")
-        lines.append("|------|--------:|-------------|")
+        cf_rows: list[list[str]] = []
         for filepath, commits, last_commit in code_files[:20]:
             last_date = last_commit[:10] if last_commit else "\u2014"
-            lines.append(f"| `{filepath}` | {commits} | {last_date} |")
+            cf_rows.append([f"`{filepath}`", str(commits), last_date])
+        lines.extend(_aligned_table(["File", "Commits", "Last Commit"], cf_rows, "lrl"))
         lines.append("")
 
     if script_files:
         lines.append("### Script Files (by commit activity)")
         lines.append("")
-        lines.append("| Script | Commits | Last Commit |")
-        lines.append("|--------|--------:|-------------|")
+        sf_rows: list[list[str]] = []
         for filepath, commits, last_commit in script_files[:20]:
             last_date = last_commit[:10] if last_commit else "\u2014"
-            lines.append(f"| `{filepath}` | {commits} | {last_date} |")
+            sf_rows.append([f"`{filepath}`", str(commits), last_date])
+        lines.extend(
+            _aligned_table(["Script", "Commits", "Last Commit"], sf_rows, "lrl")
+        )
         lines.append("")
 
     # ── Directory Sizes ──
@@ -777,12 +850,11 @@ def generate_markdown(stats: dict) -> str:
             "<summary><strong>Click to expand directory sizes</strong></summary>"
         )
         lines.append("")
-        lines.append("| Directory | Size | Files |")
-        lines.append("|-----------|-----:|------:|")
-        lines.extend(
-            f"| `{d['name']}/` | {_format_size(d['size_bytes'])} | {d['file_count']} |"
+        ds_rows: list[list[str]] = [
+            [f"`{d['name']}/`", _format_size(d["size_bytes"]), str(d["file_count"])]
             for d in dir_stats
-        )
+        ]
+        lines.extend(_aligned_table(["Directory", "Size", "Files"], ds_rows, "lrr"))
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -796,10 +868,10 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("> Individual files sorted by size (top 15).")
         lines.append("")
-        lines.append("| File | Size |")
-        lines.append("|------|-----:|")
+        lf_rows: list[list[str]] = []
         for path, size in largest:
-            lines.append(f"| `{path}` | {_format_size(size)} |")
+            lf_rows.append([f"`{path}`", _format_size(size)])
+        lines.extend(_aligned_table(["File", "Size"], lf_rows, "lr"))
         lines.append("")
 
     # ── File Access Statistics ──
@@ -827,12 +899,12 @@ def generate_markdown(stats: dict) -> str:
             "<summary><strong>Click to expand file access stats</strong></summary>"
         )
         lines.append("")
-        lines.append("| File | Last Accessed |")
-        lines.append("|------|---------------|")
+        fa_rows: list[list[str]] = []
         for filepath, access_info in sorted_access[:50]:
-            lines.append(f"| `{filepath}` | {access_info['last_accessed']} |")
+            fa_rows.append([f"`{filepath}`", access_info["last_accessed"]])
         if len(sorted_access) > 50:
-            lines.append(f"| *... and {len(sorted_access) - 50} more files* | |")
+            fa_rows.append([f"*... and {len(sorted_access) - 50} more files*", ""])
+        lines.extend(_aligned_table(["File", "Last Accessed"], fa_rows, "ll"))
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -843,24 +915,23 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f4dc Git History")
         lines.append("")
-        lines.append("| Metric | Value |")
-        lines.append("|--------|-------|")
-        lines.append(f"| **Total commits** | {git_stats.get('total_commits', 0)} |")
-        lines.append(f"| **Contributors** | {git_stats.get('author_count', 0)} |")
-        lines.append(f"| **Branches** | {git_stats.get('branch_count', 0)} |")
-        lines.append(f"| **Tags** | {git_stats.get('tag_count', 0)} |")
+        gh_rows: list[list[str]] = [
+            ["**Total commits**", str(git_stats.get("total_commits", 0))],
+            ["**Contributors**", str(git_stats.get("author_count", 0))],
+            ["**Branches**", str(git_stats.get("branch_count", 0))],
+            ["**Tags**", str(git_stats.get("tag_count", 0))],
+        ]
         if git_stats.get("current_branch"):
-            lines.append(f"| **Current branch** | `{git_stats['current_branch']}` |")
+            gh_rows.append(["**Current branch**", f"`{git_stats['current_branch']}`"])
         if git_stats.get("latest_tag"):
-            lines.append(f"| **Latest tag** | `{git_stats['latest_tag']}` |")
+            gh_rows.append(["**Latest tag**", f"`{git_stats['latest_tag']}`"])
         if git_stats.get("first_commit_date"):
-            lines.append(
-                f"| **First commit** | {git_stats['first_commit_date'][:10]} |"
-            )
+            gh_rows.append(["**First commit**", git_stats["first_commit_date"][:10]])
         if git_stats.get("last_commit_date"):
-            lines.append(f"| **Last commit** | {git_stats['last_commit_date'][:10]} |")
+            gh_rows.append(["**Last commit**", git_stats["last_commit_date"][:10]])
         if git_stats.get("remote_url"):
-            lines.append(f"| **Remote** | `{git_stats['remote_url']}` |")
+            gh_rows.append(["**Remote**", f"`{git_stats['remote_url']}`"])
+        lines.extend(_aligned_table(["Metric", "Value"], gh_rows, "ll"))
         lines.append("")
 
     # ── Per-File Git Statistics ──
@@ -883,13 +954,15 @@ def generate_markdown(stats: dict) -> str:
             "<summary><strong>Click to expand per-file git stats</strong></summary>"
         )
         lines.append("")
-        lines.append("| File | Commits | Last Commit |")
-        lines.append("|------|--------:|-------------|")
+        pfg_rows: list[list[str]] = []
         for filepath, fstats in sorted_files:
             last_date = (
                 fstats["last_commit"][:10] if fstats.get("last_commit") else "\u2014"
             )
-            lines.append(f"| `{filepath}` | {fstats['commits']} | {last_date} |")
+            pfg_rows.append([f"`{filepath}`", str(fstats["commits"]), last_date])
+        lines.extend(
+            _aligned_table(["File", "Commits", "Last Commit"], pfg_rows, "lrl")
+        )
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -905,11 +978,12 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append(f"> Top {shown} of {total_count} contributors, ranked by commits.")
         lines.append("")
-        lines.append("| Contributor | Commits |")
-        lines.append("|-------------|--------:|")
-        lines.extend(f"| **{a['name']}** | {a['commits']} |" for a in authors[:10])
+        ct_rows: list[list[str]] = [
+            [f"**{a['name']}**", str(a["commits"])] for a in authors[:10]
+        ]
         if total_count > 10:
-            lines.append(f"| *... and {total_count - 10} more* | |")
+            ct_rows.append([f"*... and {total_count - 10} more*", ""])
+        lines.extend(_aligned_table(["Contributor", "Commits"], ct_rows, "lr"))
         lines.append("")
 
     # ── Recommended Scripts ──
@@ -938,36 +1012,29 @@ def generate_markdown(stats: dict) -> str:
         "by JoJo275 to obtain them.*"
     )
     lines.append("")
-    lines.append("| Script | Description |")
-    lines.append("|--------|-------------|")
-    lines.append(
-        "| `python scripts/git_doctor.py` "
-        "| Git health dashboard \u2014 config, branch ops, integrity |"
-    )
-    lines.append(
-        "| `python scripts/env_inspect.py` | Environment, packages, PATH inspection |"
-    )
-    lines.append(
-        "| `python scripts/check_python_support.py` "
-        "| Python version consistency across configs |"
-    )
-    lines.append(
-        "| `python scripts/repo_doctor.py` | Repository structure health checks |"
-    )
-    lines.append(
-        "| `python scripts/dep_versions.py show` "
-        "| Dependency versions and update status |"
-    )
-    lines.append(
-        "| `python scripts/env_doctor.py` | Development environment diagnostics |"
-    )
-    lines.append(
-        "| `python scripts/doctor.py` | Unified health check (runs all doctors) |"
-    )
-    lines.append(
-        "| `python scripts/workflow_versions.py` "
-        "| GitHub Actions SHA-pinned version status |"
-    )
+    rs_rows: list[list[str]] = [
+        [
+            "`python scripts/git_doctor.py`",
+            "Git health dashboard \u2014 config, branch ops, integrity",
+        ],
+        ["`python scripts/env_inspect.py`", "Environment, packages, PATH inspection"],
+        [
+            "`python scripts/check_python_support.py`",
+            "Python version consistency across configs",
+        ],
+        ["`python scripts/repo_doctor.py`", "Repository structure health checks"],
+        [
+            "`python scripts/dep_versions.py show`",
+            "Dependency versions and update status",
+        ],
+        ["`python scripts/env_doctor.py`", "Development environment diagnostics"],
+        ["`python scripts/doctor.py`", "Unified health check (runs all doctors)"],
+        [
+            "`python scripts/workflow_versions.py`",
+            "GitHub Actions SHA-pinned version status",
+        ],
+    ]
+    lines.extend(_aligned_table(["Script", "Description"], rs_rows, "ll"))
     lines.append("")
 
     # ── Footer ──

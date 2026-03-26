@@ -3266,6 +3266,33 @@ def run(
         print(f"    {c.cyan(cmd_info['cmd'])}")
         print(f"      {c.dim(cmd_info['desc'])}")
 
+    # ── Recommended Scripts ──
+    _section("Recommended Scripts")
+    print(f"    {c.dim('Scripts that expand on repository health and diagnostics.')}")
+    print()
+    rec_scripts = [
+        ("python scripts/repo_sauron.py", "Repository statistics Markdown report"),
+        ("python scripts/env_inspect.py", "Environment, packages, PATH inspection"),
+        (
+            "python scripts/check_python_support.py",
+            "Python version consistency across configs",
+        ),
+        ("python scripts/repo_doctor.py", "Repository structure health checks"),
+        (
+            "python scripts/dep_versions.py show",
+            "Dependency versions and update status",
+        ),
+        ("python scripts/env_doctor.py", "Development environment diagnostics"),
+        ("python scripts/doctor.py", "Unified health check (runs all doctors)"),
+        (
+            "python scripts/workflow_versions.py",
+            "GitHub Actions SHA-pinned version status",
+        ),
+    ]
+    for cmd, desc in rec_scripts:
+        print(f"      {c.cyan(cmd)}")
+        print(f"        {c.dim(desc)}")
+
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
     total = len(health_results)
@@ -6076,44 +6103,38 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
 
     # ── Recommended Scripts ──
     _section("Recommended Scripts")
-    print(f"    {c.dim('Scripts that expand on repository health and diagnostics.')}")
-    print(f"    {c.dim('Source: simple-python-boilerplate by JoJo275 on GitHub')}")
-    print(
-        f"    {c.dim('        https://github.com/JoJo275/simple-python-boilerplate')}"
-    )
-    print(f"    {c.dim('Scripts located in the scripts/ directory.')}")
+    print(f"    {c.bold('Scripts that expand on repository health and diagnostics.')}")
     print()
     print(
-        f"    {c.dim('These scripts may already exist in this repo if it was forked from')}"
+        f"    {c.dim('Source:')} {c.cyan('simple-python-boilerplate')} by {c.bold('JoJo275')} on GitHub"
     )
     print(
-        f"    {c.dim('or based on the source. If not, visit the source repo by JoJo275.')}"
+        f"    {c.dim('Repo:')}   {c.cyan('https://github.com/JoJo275/simple-python-boilerplate')}"
     )
+    print(f"    {c.dim('Location:')} scripts/ directory")
     print()
-    print(
-        f"      {c.cyan('python scripts/repo_sauron.py')}"
-        "             \u2014 Repository statistics Markdown report"
-    )
-    print(
-        f"      {c.cyan('python scripts/env_inspect.py')}"
-        "             \u2014 Environment, packages, PATH inspection"
-    )
-    print(
-        f"      {c.cyan('python scripts/repo_doctor.py')}"
-        "             \u2014 Repository structure health checks"
-    )
-    print(
-        f"      {c.cyan('python scripts/dep_versions.py show')}"
-        "       \u2014 Dependency versions and update status"
-    )
-    print(
-        f"      {c.cyan('python scripts/env_doctor.py')}"
-        "              \u2014 Quick environment health check"
-    )
-    print(
-        f"      {c.cyan('python scripts/doctor.py')}"
-        "                  \u2014 Unified health check (runs all doctors)"
-    )
+    print(f"    {c.dim('These scripts may already exist in this repo if it was')}")
+    print(f"    {c.dim('forked from or based on the source.')}")
+    print(f"    {c.dim('If not, visit the source repo by JoJo275 to obtain them.')}")
+    print()
+    vc_scripts = [
+        ("python scripts/repo_sauron.py", "Repository statistics Markdown report"),
+        ("python scripts/env_inspect.py", "Environment, packages, PATH inspection"),
+        (
+            "python scripts/check_python_support.py",
+            "Python version consistency across configs",
+        ),
+        ("python scripts/repo_doctor.py", "Repository structure health checks"),
+        (
+            "python scripts/dep_versions.py show",
+            "Dependency versions and update status",
+        ),
+        ("python scripts/env_doctor.py", "Development environment diagnostics"),
+        ("python scripts/doctor.py", "Unified health check (runs all doctors)"),
+    ]
+    for cmd, desc in vc_scripts:
+        print(f"      {c.cyan(cmd)}")
+        print(f"        {c.dim(desc)}")
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start

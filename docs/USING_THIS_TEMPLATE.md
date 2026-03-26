@@ -385,7 +385,7 @@ Not every project needs all 36 workflows:
 ## Pre-commit Hooks
 
 [Pre-commit hooks](https://pre-commit.com/) catch problems before code leaves
-your machine. This template includes **45 hooks** across four Git stages:
+your machine. This template includes **46 hooks** across four Git stages:
 
 | Stage          | When it runs       | Examples                                                             | Count |
 | :------------- | :----------------- | :------------------------------------------------------------------- | ----: |

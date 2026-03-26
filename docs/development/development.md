@@ -245,7 +245,7 @@ Tools I found helpful during development:
 <!-- TODO (template users): If you add or remove hooks from
      .pre-commit-config.yaml, update the hook table below and ADR 008. -->
 
-This project ships with a comprehensive `.pre-commit-config.yaml` (45 hooks
+This project ships with a comprehensive `.pre-commit-config.yaml` (46 hooks
 across 4 stages — see [ADR 008](../adr/008-pre-commit-hooks.md) for the full
 inventory). To activate them:
 
@@ -302,7 +302,7 @@ Key hooks by stage:
 | `bandit`                  | bandit           | Security linting (excludes `tests/`)     |
 
 See [ADR 008](../adr/008-pre-commit-hooks.md) for the complete hook inventory
-(37 pre-commit, 1 commit-msg, 3 pre-push, 4 manual — 45 total).
+(38 pre-commit, 1 commit-msg, 3 pre-push, 4 manual — 46 total).
 
 #### Without pre-commit (raw Git hooks)
 
