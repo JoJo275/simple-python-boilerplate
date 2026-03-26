@@ -272,6 +272,16 @@ tasks:
         silent: true
       - cmd: python scripts/doctor.py --quiet
 
+  stats:
+    desc: Repository statistics dashboard (file counts, git history, sizes)
+    cmds:
+      - python scripts/repo_sauron.py {{.CLI_ARGS}}
+
+  env:inspect:
+    desc: Environment and dependency inspector (packages, versions, PATH)
+    cmds:
+      - python scripts/env_inspect.py {{.CLI_ARGS}}
+
   customize:
     desc: Interactive project customization
     cmds:

@@ -360,6 +360,15 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             ]
         )
 
+    # Summary counts
+    groups = {r["group"] for r in rows if r.get("group")}
+    upgradable_count = sum(1 for r in rows if r["upgradable"] == "yes")
+    ui.blank()
+    ui.info_line(
+        f"{len(rows)} package(s) across {len(groups)} group(s)"
+        + (f", {upgradable_count} upgradable" if upgradable_count else "")
+    )
+
 
 # ---------------------------------------------------------------------------
 # Comment updater

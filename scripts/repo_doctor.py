@@ -5,6 +5,16 @@ Reads rules from ``.repo-doctor.toml`` and reports missing files,
 directories, TOML config sections, and content patterns.  Never blocks;
 always exits 0.
 
+.. note::
+    This tool validates structure based on rules defined in
+    ``.repo-doctor.toml`` and profiles under ``repo_doctor.d/``.
+    The rules shipped with this template are specific to the
+    simple-python-boilerplate project structure, but the engine
+    itself is generic — any repository can define its own rules
+    in ``.repo-doctor.toml``.  For general repository statistics
+    (file counts, line counts, git history), use ``repo_sauron.py``
+    instead.
+
 Flags::
 
     --missing            Report missing files/dirs in working tree

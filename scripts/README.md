@@ -33,6 +33,8 @@ Utility scripts for development and maintenance.
 | [env_doctor.py](env_doctor.py)                                 | Environment health check + extended project consistency checks           |
 | [git_doctor.py](git_doctor.py)                                 | Git-focused health check and information dashboard                       |
 | [repo_doctor.py](repo_doctor.py)                               | Warn-only repo health checker driven by `.repo-doctor.toml` rules        |
+| [repo_sauron.py](repo_sauron.py)                               | Repository statistics dashboard — file counts, git history, sizes        |
+| [env_inspect.py](env_inspect.py)                               | Environment and dependency inspector — packages, versions, PATH          |
 | [test_containerfile.py](test_containerfile.py)                 | Test the Containerfile: build image, validate, clean up                  |
 | [test_containerfile.sh](test_containerfile.sh)                 | Bash equivalent of test_containerfile.py                                 |
 | [test_docker_compose.py](test_docker_compose.py)               | Test docker compose stack: build, run, validate, clean up                |
@@ -105,6 +107,17 @@ bash scripts/test_docker_compose.sh             # Bash equivalent
 
 # Run SQL against database
 sqlite3 var/app.sqlite3 < scripts/sql/reset.sql
+
+# Repository statistics dashboard
+python scripts/repo_sauron.py
+python scripts/repo_sauron.py --json
+
+# Environment and dependency inspector
+python scripts/env_inspect.py
+python scripts/env_inspect.py --section packages
+python scripts/env_inspect.py --section entrypoints
+python scripts/env_inspect.py --section path
+python scripts/env_inspect.py --json
 ```
 
 ## Conventions
