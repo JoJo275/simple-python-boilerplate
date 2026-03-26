@@ -30,6 +30,7 @@ import os
 import subprocess  # nosec B404
 import sys
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _container_common import (
     check_docker_available as _check_docker_available,
 )

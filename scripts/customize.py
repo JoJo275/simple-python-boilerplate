@@ -69,6 +69,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _imports import find_repo_root, import_sibling
 
 _progress = import_sibling("_progress")

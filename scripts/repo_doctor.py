@@ -52,6 +52,7 @@ except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore[assignment]
 
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import colorize as _colorize
 from _colors import supports_color as _supports_color
 from _imports import import_sibling

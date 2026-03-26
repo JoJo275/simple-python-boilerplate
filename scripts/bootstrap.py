@@ -38,12 +38,10 @@ import subprocess  # nosec B404
 import sys
 import time
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import unicode_symbols
 from _imports import find_repo_root
-
-# TODO: Add Spinner from _progress.py around long-running subprocess
-#   calls (hatch env create, pre-commit install) for visual feedback.
-#   See git_doctor.py or doctor.py for Spinner integration examples.
+from _progress import Spinner
 
 log = logging.getLogger(__name__)
 
@@ -201,7 +199,9 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
             if not dry_run and env in existing_env_names:
                 log.info("  %s %s environment already exists", sym["check"], env)
             else:
-                run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
+                with Spinner(f"Creating {env} environment") as spin:
+                    spin.update(env)
+                    run_cmd(["hatch", "env", "create", env], dry_run=dry_run)
                 label = "Would create" if dry_run else "Created"
                 log.info("  %s %s %s environment", sym["check"], label, env)
         except subprocess.CalledProcessError as e:
@@ -237,11 +237,13 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
 
     stages = ["pre-commit", "commit-msg", "pre-push"]
     try:
-        for stage in stages:
-            cmd = [*base, "install"]
-            if stage != "pre-commit":
-                cmd.extend(["--hook-type", stage])
-            run_cmd(cmd, dry_run=dry_run)
+        with Spinner("Installing hook stages") as spin:
+            for stage in stages:
+                spin.update(stage)
+                cmd = [*base, "install"]
+                if stage != "pre-commit":
+                    cmd.extend(["--hook-type", stage])
+                run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
         log.info("  %s %s all hook stages", sym["check"], label)
         return True
@@ -282,19 +284,22 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         log.info("  %s Would verify package version", sym["arrow"])
         return True
     try:
-        # Quick test run
-        # TODO (template users): Replace 'simple_python_boilerplate' with
-        #   your package name after running customize.py.
-        result = run_cmd(
-            [
-                "hatch",
-                "run",
-                "python",
-                "-c",
-                "from simple_python_boilerplate import __version__; print(__version__)",
-            ],
-            capture=True,
-        )
+        with Spinner("Verifying package install") as spin:
+            spin.update("importing package")
+            # Quick test run
+            # TODO (template users): Replace 'simple_python_boilerplate' with
+            #   your package name after running customize.py.
+            result = run_cmd(
+                [
+                    "hatch",
+                    "run",
+                    "python",
+                    "-c",
+                    "from simple_python_boilerplate import __version__; print(__version__)",
+                ],
+                capture=True,
+            )
+            spin.update("checking version")
         version = result.stdout.strip()
         log.info("  %s Package version: %s", sym["check"], version)
         return True

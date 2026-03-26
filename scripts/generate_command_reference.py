@@ -58,6 +58,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _imports import find_repo_root
 
 # TODO (template users): Consider adding a Spinner from _progress.py for

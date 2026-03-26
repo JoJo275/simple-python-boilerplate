@@ -44,6 +44,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     tomllib = None  # type: ignore[assignment]
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, supports_color, unicode_symbols
 from _doctor_common import (
     check_hook_installed,

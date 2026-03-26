@@ -257,6 +257,14 @@ check items off as you go.
 - [ ] Run `task docs:build` — docs build without warnings
 - [ ] Verify imports: `python -c "import your_package"`
 - [ ] Run `python scripts/check_todos.py` — find remaining template placeholders
+- [ ] Run `python scripts/check_python_support.py` — verify Python version consistency
+
+### Pre-1.0 Release Readiness
+
+When you're ready to cut your first stable release, see the
+[Pre-1.0 Release Readiness Checklist](releasing.md#pre-10-release-readiness-checklist)
+in the releasing guide. It covers code quality, security, documentation,
+CI/CD, packaging, and release configuration gates.
 
 ---
 
@@ -427,6 +435,7 @@ the top of each file).
 | [`changelog_check.py`](../scripts/changelog_check.py)         | Verify CHANGELOG entries match git tags                        | `--verbose`, `--quiet`                                            |
 | [`check_known_issues.py`](../scripts/check_known_issues.py)   | Flag stale Resolved entries in known-issues.md                 | `--days N`, `--json`, `--quiet`                                   |
 | [`apply_labels.py`](../scripts/apply_labels.py)               | Apply GitHub labels from JSON definitions                      | `--set {baseline,extended}`, `--dry-run`                          |
+| [`check_python_support.py`](../scripts/check_python_support.py) | Verify Python version consistency across all config sources    | `--json`, `--quiet`, `--version`                                  |
 | [`test_containerfile.py`](../scripts/test_containerfile.py)   | Test the Containerfile image: build, validate, clean up        | `--dry-run`, `--keep`                                             |
 | [`test_docker_compose.py`](../scripts/test_docker_compose.py) | Test docker compose stack: build, run, validate, clean up      | `--dry-run`                                                       |
 
@@ -1439,6 +1448,54 @@ template but listed here so you see how they compare to alternatives.
 | [Nuitka](https://nuitka.net/)           | Compile Python to C for performance / distribution        |
 | [pipx](https://pipx.pypa.io/)           | Install and run Python CLI tools in isolated environments |
 | [uv](https://github.com/astral-sh/uv)   | Ultra-fast pip/venv replacement (from the Ruff team)      |
+
+---
+
+## Known Gotchas
+
+Things that aren't obvious and will save you time if you know about them upfront.
+
+### Bot PRs Don't Trigger the CI Gate
+
+PRs created by automated workflows (pre-commit autoupdate, Dependabot) use
+`GITHUB_TOKEN`, which **by design** doesn't trigger `pull_request` events
+for other workflows. This means the CI gate status check stays stuck at
+"Waiting for status to be reported."
+
+**Workarounds:**
+
+1. Close and reopen the PR manually (quickest)
+2. Push an empty commit: `git commit --allow-empty -m "ci: trigger gate"`
+3. Use a Personal Access Token (PAT) instead of `GITHUB_TOKEN` in the bot
+   workflow (most automated, but requires repo secret setup)
+
+See [known-issues.md](known-issues.md) for details.
+
+### Python Version Drift
+
+The minimum Python version is declared in multiple places: `pyproject.toml`
+(`requires-python`, classifiers, Hatch test matrix), CI test matrix
+(`test.yml`), and `bootstrap.py` (`MIN_PYTHON`). These can drift apart
+silently. Run `python scripts/check_python_support.py` periodically to catch
+mismatches.
+
+### Hatch Doesn't Auto-Uninstall Removed Dependencies
+
+After removing a dependency from `pyproject.toml`, the old package remains in
+the Hatch environment. You must manually clean up:
+
+```bash
+hatch env remove default
+hatch env create default
+```
+
+### Security Scan False Positives
+
+The nightly security scan (`nightly-security.yml`) may flag CVEs in
+transitive dependencies that have no fix available yet. Use the `ignore-vulns`
+parameter in the pip-audit step to suppress known false positives, and
+document each suppression in [known-issues.md](known-issues.md) with a TODO
+to remove it when a fix ships.
 
 ---
 

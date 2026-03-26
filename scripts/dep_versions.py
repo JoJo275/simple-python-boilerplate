@@ -57,6 +57,7 @@ from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root, import_sibling
 
