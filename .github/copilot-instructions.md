@@ -343,6 +343,48 @@ and move on.
 Script-specific conventions (argparse, logging, shared modules) are in
 `scripts/.instructions.md`.
 
+### Script Coding Patterns
+
+When implementing or modifying scripts in `scripts/`, follow these established
+patterns to keep output consistent and reduce code duplication:
+
+- **Progress indicators**: Use `ProgressBar` or `Spinner` from `_progress.py`.
+  Use `pulse=True` on `ProgressBar` when a step may block without calling
+  `update()`.  Use `DEFAULT_BAR_COLOR` / `DEFAULT_SPINNER_COLOR` for
+  project-wide color defaults.
+- **Recommended scripts section**: Use `UI.recommended_scripts(keys)` from
+  `_ui.py` instead of inline script lists.  The `RECOMMENDED_SCRIPTS` dict
+  is the single source of truth for script descriptions.  Add new scripts
+  to that registry when creating them.
+- **Dashboard output**: Use the `UI` class from `_ui.py` for headers,
+  sections, footers, key-value pairs, and tables.  Set `THEME` as a
+  module-level constant.
+- **Colors**: Import `Colors` from `_colors.py`.  Never use raw ANSI codes.
+  `Colors` respects `NO_COLOR`/`FORCE_COLOR` automatically.
+
+### Ruff and Formatting Rules
+
+This project uses **ruff** for both linting and formatting. When writing or
+modifying Python code, follow these rules to avoid pre-commit failures:
+
+- **Line length**: No hard limit (E501 is disabled). Don't rewrap lines
+  unless readability requires it.
+- **Import sorting**: ruff enforces `isort`-compatible import order.
+  Group order: stdlib → third-party → local. Local script modules
+  (prefixed with `_`) go in a separate block with a comment.
+- **Trailing commas**: ruff adds trailing commas in multi-line structures.
+  Don't fight it — include them.
+- **String quotes**: ruff enforces double quotes.
+- **Unused imports/variables**: ruff catches these. Remove them proactively.
+- **Type annotations**: mypy runs in strict mode. Use `from __future__
+  import annotations` at the top of every file for PEP 604 union syntax
+  (`X | Y` instead of `Union[X, Y]`).
+- **f-string formatting**: Prefer f-strings over `.format()` or `%`.
+- **Boolean traps**: Use keyword arguments for boolean parameters
+  (`func(dry_run=True)` not `func(True)`).
+- Check ruff config in `pyproject.toml` under `[tool.ruff]` for the
+  full rule set.
+
 ### Project Structure
 
 - Source code in `src/simple_python_boilerplate/`

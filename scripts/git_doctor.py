@@ -149,6 +149,7 @@ from _colors import unicode_symbols as _unicode_symbols
 from _doctor_common import extract_repo_slug, read_pyproject
 from _imports import find_repo_root
 from _progress import ProgressBar, Spinner
+from _ui import UI
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -3267,31 +3268,20 @@ def run(
         print(f"      {c.dim(cmd_info['desc'])}")
 
     # ── Recommended Scripts ──
-    _section("Recommended Scripts")
-    print(f"    {c.dim('Scripts that expand on repository health and diagnostics.')}")
-    print()
-    rec_scripts = [
-        ("python scripts/repo_sauron.py", "Repository statistics Markdown report"),
-        ("python scripts/env_inspect.py", "Environment, packages, PATH inspection"),
-        (
-            "python scripts/check_python_support.py",
-            "Python version consistency across configs",
-        ),
-        ("python scripts/repo_doctor.py", "Repository structure health checks"),
-        (
-            "python scripts/dep_versions.py show",
-            "Dependency versions and update status",
-        ),
-        ("python scripts/env_doctor.py", "Development environment diagnostics"),
-        ("python scripts/doctor.py", "Unified health check (runs all doctors)"),
-        (
-            "python scripts/workflow_versions.py",
-            "GitHub Actions SHA-pinned version status",
-        ),
-    ]
-    for cmd, desc in rec_scripts:
-        print(f"      {c.cyan(cmd)}")
-        print(f"        {c.dim(desc)}")
+    _ui = UI(title="Git Doctor", version=SCRIPT_VERSION, theme=THEME)
+    _ui.recommended_scripts(
+        [
+            "repo_sauron",
+            "env_inspect",
+            "check_python_support",
+            "repo_doctor",
+            "dep_versions",
+            "env_doctor",
+            "doctor",
+            "workflow_versions",
+        ],
+        preamble="Scripts that expand on repository health and diagnostics.",
+    )
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
@@ -6102,39 +6092,19 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
         )
 
     # ── Recommended Scripts ──
-    _section("Recommended Scripts")
-    print(f"    {c.bold('Scripts that expand on repository health and diagnostics.')}")
-    print()
-    print(
-        f"    {c.dim('Source:')} {c.cyan('simple-python-boilerplate')} by {c.bold('JoJo275')} on GitHub"
+    _vc_ui = UI(title="Git Doctor", version=SCRIPT_VERSION, theme=THEME)
+    _vc_ui.recommended_scripts(
+        [
+            "repo_sauron",
+            "env_inspect",
+            "check_python_support",
+            "repo_doctor",
+            "dep_versions",
+            "env_doctor",
+            "doctor",
+        ],
+        preamble="Scripts that expand on repository health and diagnostics.",
     )
-    print(
-        f"    {c.dim('Repo:')}   {c.cyan('https://github.com/JoJo275/simple-python-boilerplate')}"
-    )
-    print(f"    {c.dim('Location:')} scripts/ directory")
-    print()
-    print(f"    {c.dim('These scripts may already exist in this repo if it was')}")
-    print(f"    {c.dim('forked from or based on the source.')}")
-    print(f"    {c.dim('If not, visit the source repo by JoJo275 to obtain them.')}")
-    print()
-    vc_scripts = [
-        ("python scripts/repo_sauron.py", "Repository statistics Markdown report"),
-        ("python scripts/env_inspect.py", "Environment, packages, PATH inspection"),
-        (
-            "python scripts/check_python_support.py",
-            "Python version consistency across configs",
-        ),
-        ("python scripts/repo_doctor.py", "Repository structure health checks"),
-        (
-            "python scripts/dep_versions.py show",
-            "Dependency versions and update status",
-        ),
-        ("python scripts/env_doctor.py", "Development environment diagnostics"),
-        ("python scripts/doctor.py", "Unified health check (runs all doctors)"),
-    ]
-    for cmd, desc in vc_scripts:
-        print(f"      {c.cyan(cmd)}")
-        print(f"        {c.dim(desc)}")
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start

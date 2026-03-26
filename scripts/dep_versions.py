@@ -370,32 +370,16 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     )
 
     # ── Recommended Scripts ──
-    c = ui.c
-    ui.section("Recommended Scripts")
-    print(f"    {c.bold('Scripts that expand on dependency and project information.')}")
-    print()
-    print(
-        f"    {c.dim('Source:')} {c.cyan('simple-python-boilerplate')} by {c.bold('JoJo275')} on GitHub"
+    ui.recommended_scripts(
+        [
+            "repo_sauron",
+            "env_inspect",
+            "repo_doctor",
+            "env_doctor",
+            "doctor",
+        ],
+        preamble="Scripts that expand on dependency and project information.",
     )
-    print(
-        f"    {c.dim('Repo:')}   {c.cyan('https://github.com/JoJo275/simple-python-boilerplate')}"
-    )
-    print(f"    {c.dim('Location:')} scripts/ directory")
-    print()
-    print(f"    {c.dim('These scripts may already exist in this repo if it was')}")
-    print(f"    {c.dim('forked from or based on the source.')}")
-    print(f"    {c.dim('If not, visit the source repo by JoJo275 to obtain them.')}")
-    print()
-    rec_scripts = [
-        ("python scripts/repo_sauron.py", "Repository statistics Markdown report"),
-        ("python scripts/env_inspect.py", "Environment, packages, PATH inspection"),
-        ("python scripts/repo_doctor.py", "Repository structure health checks"),
-        ("python scripts/env_doctor.py", "Quick environment health check"),
-        ("python scripts/doctor.py", "Unified health check (runs all doctors)"),
-    ]
-    for cmd, desc in rec_scripts:
-        print(f"      {c.cyan(cmd)}")
-        print(f"        {c.dim(desc)}")
 
 
 # ---------------------------------------------------------------------------

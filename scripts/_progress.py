@@ -44,9 +44,14 @@ import threading
 
 from _colors import supports_unicode as _supports_unicode
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.6.0"
 
-__all__ = ["ProgressBar", "Spinner"]
+__all__ = [
+    "DEFAULT_BAR_COLOR",
+    "DEFAULT_SPINNER_COLOR",
+    "ProgressBar",
+    "Spinner",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +70,15 @@ _BAR_COLORS: dict[str, str] = {
 }
 
 _SPINNER_COLORS: dict[str, str] = _BAR_COLORS.copy()
+
+# ---------------------------------------------------------------------------
+# Default colors — set these to a color name ("cyan", "green", etc.) to
+# apply a default color to all ProgressBar / Spinner instances that don't
+# pass an explicit ``color=`` argument.  Set to ``None`` for no default.
+# ---------------------------------------------------------------------------
+
+DEFAULT_BAR_COLOR: str | None = None
+DEFAULT_SPINNER_COLOR: str | None = None
 
 
 def _terminal_width() -> int:
@@ -133,13 +147,22 @@ class ProgressBar:
         label: str = "Progress",
         log_interval: int = 0,
         color: str | None = None,
+        *,
+        pulse: bool = False,
     ) -> None:
         self.total = total
         self.label = label
         self.current = 0
         self._interactive = _is_interactive()
         self._fill, self._empty, self._lb, self._rb = _pick_bar_style()
-        self._color_code = _BAR_COLORS.get(color, "") if color else ""
+        resolved_color = color or DEFAULT_BAR_COLOR
+        self._color_code = _BAR_COLORS.get(resolved_color, "") if resolved_color else ""
+        # Pulse mode: keep a subtle animation running between update()
+        # calls so the bar looks alive even during long-running steps.
+        self._pulse = pulse and self._interactive
+        self._pulse_thread: threading.Thread | None = None
+        self._pulse_stop = threading.Event()
+        self._pulse_offset = 0
         # CI logging: In non-interactive environments (CI pipelines like
         # GitHub Actions, Jenkins, etc.) there is no TTY, so progress bars
         # are invisible — the runner just captures text logs.  Setting
@@ -157,10 +180,27 @@ class ProgressBar:
 
     def __enter__(self) -> ProgressBar:
         """Support context-manager usage."""
+        if self._pulse:
+            self._start_pulse()
         return self
 
     def __exit__(self, *_: object) -> None:
         self.finish()
+
+    def _start_pulse(self) -> None:
+        """Start the background pulse animation thread."""
+        if self._pulse_thread is not None:
+            return
+        self._pulse_stop.clear()
+        self._pulse_thread = threading.Thread(target=self._pulse_loop, daemon=True)
+        self._pulse_thread.start()
+
+    def _pulse_loop(self) -> None:
+        """Background loop that redraws with a shimmer effect."""
+        while not self._pulse_stop.is_set():
+            self._pulse_offset = (self._pulse_offset + 1) % 4
+            self._draw("")
+            self._pulse_stop.wait(0.15)
 
     def update(self, item_name: str = "") -> None:
         """Advance by one step and redraw.
@@ -216,6 +256,10 @@ class ProgressBar:
         Args:
             message: Optional final message to display (replaces the bar line).
         """
+        self._pulse_stop.set()
+        if self._pulse_thread is not None:
+            self._pulse_thread.join(timeout=1.0)
+            self._pulse_thread = None
         if self._interactive:
             if message:
                 width = _terminal_width()
@@ -255,12 +299,24 @@ class Spinner:
         log_interval: int = 0,
         color: str | None = None,
         interval: float = 0.08,
+        *,
+        keep_alive: bool = False,
     ) -> None:
         self.label = label
         self.count = 0
         self._interactive = _is_interactive()
         self._frames = _pick_spinner_frames()
-        self._color_code = _SPINNER_COLORS.get(color, "") if color else ""
+        resolved_color = color or DEFAULT_SPINNER_COLOR
+        self._color_code = (
+            _SPINNER_COLORS.get(resolved_color, "") if resolved_color else ""
+        )
+        # keep_alive: when True, the spinner thread keeps animating
+        # even when no update() calls are made, so the user sees
+        # continuous activity during long-running blocking operations.
+        # This is the default behaviour (the background thread always
+        # spins).  When False the spinner still spins but the label
+        # says "Working" until update() is called.
+        self._keep_alive = keep_alive
         self._log_interval = log_interval
         self._interval = interval
         self._current_item: str = ""

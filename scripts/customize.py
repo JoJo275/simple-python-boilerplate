@@ -29,6 +29,9 @@ Flags::
                             docs-notes, docs-design, docs-reference,
                             docs-development, docs-guide, placeholder-code,
                             utility-scripts, advanced-workflows
+    --private-repo          Strip open-source community files not needed for
+                            private repos (CODE_OF_CONDUCT, CONTRIBUTING,
+                            SECURITY, scorecard workflow, etc.)
     --force                 Skip the already-customized safety check
     --enable-workflows SLUG Replace YOURNAME/YOURREPO in all workflow files with
                             your repo slug (runs only this operation)
@@ -82,7 +85,7 @@ ProgressBar = _progress.ProgressBar
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
 
 # Theme color for this script's dashboard output.
 THEME = "cyan"
@@ -224,6 +227,43 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/env_doctor.py",
             "scripts/git_doctor.py",
             "scripts/_doctor_common.py",
+        ],
+        # NOTE: _ui.py and _colors.py are intentionally NOT listed here.
+        # They are shared modules used by many scripts (bootstrap.py,
+        # customize.py, dep_versions.py, etc.), not just the doctor
+        # scripts.  Stripping repo-doctor leaves them in place, which
+        # is correct.
+    },
+}
+
+# Files that are private-repo-specific and should be removed when
+# --private-repo is passed (these are only useful for public/open-source
+# repos).
+PRIVATE_REPO_STRIP: dict[str, dict[str, object]] = {
+    "community-files": {
+        "label": "Open-source community files (not needed for private repos)",
+        "paths": [
+            "CODE_OF_CONDUCT.md",
+            "CONTRIBUTING.md",
+            "SECURITY.md",
+            "pgp-key.asc",
+        ],
+    },
+    "public-workflows": {
+        "label": "Public-repo workflows (Scorecard, welcome bot, stale issues)",
+        "paths": [
+            ".github/workflows/scorecard.yml",
+            ".github/workflows/welcome.yml",
+            ".github/workflows/stale.yml",
+            ".github/workflows/sbom.yml",
+        ],
+    },
+    "label-management": {
+        "label": "GitHub label management (labels/, apply scripts)",
+        "paths": [
+            "labels/",
+            "scripts/apply_labels.py",
+            "scripts/apply-labels.sh",
         ],
     },
 }
@@ -526,6 +566,7 @@ class Config:
     license_id: str = "apache-2.0"
     strip_dirs: list[str] = field(default_factory=list)
     template_cleanup: list[str] = field(default_factory=list)
+    private_repo: bool = False
     dry_run: bool = False
 
 
@@ -744,7 +785,7 @@ def gather_config_interactive() -> Config:
     ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
 
     ui.header()
-    print()
+    ui.blank()
     print(f"  {c.bold('Project Customization Wizard')}")
     print(f"  {c.dim('Replace boilerplate placeholders with your project values.')}")
     print(
@@ -752,7 +793,7 @@ def gather_config_interactive() -> Config:
     )
 
     # --- Project identity ---------------------------------------------------
-    ui.section("Step 1/5 — Project Identity")
+    ui.section("Step 1/6 — Project Identity")
     while True:
         cfg.project_name = _prompt(
             "Project name (lowercase, hyphens OK, e.g. my-cool-app)"
@@ -790,23 +831,37 @@ def gather_config_interactive() -> Config:
         default_cli,
     )
 
+    # --- Private repo -------------------------------------------------------
+    ui.section("Step 2/6 — Repository Visibility")
+    ui.blank()
+    print(f"  {c.dim('Private repos do not need open-source community files')}")
+    print(f"  {c.dim('(CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, scorecard, etc.).')}")
+    print(f"  {c.dim('Selecting this removes them automatically.')}")
+    ui.blank()
+    cfg.private_repo = _prompt_yn("Is this a private repository?", default=False)
+
     # --- License ------------------------------------------------------------
-    ui.section("Step 2/5 — License")
+    ui.section("Step 3/6 — License")
     print()
     license_options = {k: str(v["name"]) for k, v in LICENSE_CHOICES.items()}
     cfg.license_id = _prompt_choice("Choose a license:", license_options, "apache-2.0")
 
     # --- Strip optional directories -----------------------------------------
-    ui.section("Step 3/5 — Optional Directories")
+    ui.section("Step 4/6 — Optional Directories")
     print()
     print(f"  {c.dim('These directories ship with the template but are optional.')}")
-    print(f"  {c.dim('Select any you do not need — they will be deleted.')}")
+    print(
+        f"  {c.dim('Select any you do not need — the files inside will be deleted.')}"
+    )
+    print(
+        f"  {c.dim('You will be asked about removing now-empty parent directories.')}"
+    )
     print()
     strip_options = {k: str(v["label"]) for k, v in STRIPPABLE.items()}
     cfg.strip_dirs = _prompt_multi("Remove any of these?", strip_options)
 
     # --- Template cleanup ---------------------------------------------------
-    ui.section("Step 4/5 — Template Cleanup")
+    ui.section("Step 5/6 — Template Cleanup")
     print()
     print(f"  {c.dim('The items below exist to support the template repository.')}")
     print(f"  {c.dim('Most template users will not need them.')}")
@@ -851,7 +906,7 @@ def gather_config_interactive() -> Config:
     cfg.template_cleanup = selected_cleanup
 
     # --- Summary / confirm --------------------------------------------------
-    ui.section("Step 5/5 — Review")
+    ui.section("Step 6/6 — Review")
 
     return cfg
 
@@ -1096,25 +1151,34 @@ def strip_directories(
     keys: list[str],
     *,
     dry_run: bool = False,
+    strippable: dict[str, dict[str, object]] | None = None,
 ) -> list[str]:
     """Remove optional directories and files from the project.
 
     Separates files and directories, showing what will be removed
-    with color-coded output and per-group labels.
+    with color-coded output and per-group labels.  After all removals,
+    checks for newly-empty parent directories and offers to remove them.
 
     Args:
-        keys: Keys from :data:`STRIPPABLE` identifying what to remove.
+        keys: Keys from *strippable* identifying what to remove.
         dry_run: If ``True``, report without deleting.
+        strippable: Registry to look up keys.  Defaults to :data:`STRIPPABLE`.
 
     Returns:
         Relative paths that were removed (or would be removed).
     """
+    if strippable is None:
+        strippable = STRIPPABLE
+
     c = Colors()
     sym = unicode_symbols()
     removed: list[str] = []
+    # Track parent directories whose children were deleted so we can
+    # offer to remove them if they become empty.
+    affected_parents: set[Path] = set()
 
     for key in keys:
-        entry = STRIPPABLE.get(key)
+        entry = strippable.get(key)
         if entry is None:
             continue
         label = str(entry.get("label", key))
@@ -1147,6 +1211,7 @@ def strip_directories(
                 try:
                     shutil.rmtree(target)
                     print(f"    {c.green(sym['check'])} Removed directory: {rel_path}")
+                    affected_parents.add(target.parent)
                 except (OSError, PermissionError) as exc:
                     log.warning(
                         "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
@@ -1162,12 +1227,60 @@ def strip_directories(
                 try:
                     target.unlink()
                     print(f"    {c.green(sym['check'])} Removed file: {rel_path}")
+                    affected_parents.add(target.parent)
                 except (OSError, PermissionError) as exc:
                     log.warning(
                         "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
                     )
 
+    # Offer to clean up empty parent directories
+    _cleanup_empty_parents(affected_parents, dry_run=dry_run)
+
     return removed
+
+
+def _cleanup_empty_parents(
+    parents: set[Path],
+    *,
+    dry_run: bool = False,
+) -> None:
+    """Check affected parent directories and remove them if empty.
+
+    Walks up toward ROOT (but never beyond it), removing directories
+    that are now empty after file/subdirectory stripping.
+
+    Args:
+        parents: Set of parent directory paths to check.
+        dry_run: If ``True``, report without deleting.
+    """
+    c = Colors()
+    sym = unicode_symbols()
+    cleaned: set[Path] = set()
+
+    for parent in sorted(parents):
+        current = parent
+        while current != ROOT and current not in cleaned:
+            if not current.is_dir():
+                break
+            # A directory is "empty" if it has no children at all
+            children = list(current.iterdir())
+            if children:
+                break
+            rel = current.relative_to(ROOT)
+            if dry_run:
+                print(
+                    f"    {c.yellow(sym['arrow'])} Would remove empty directory: {c.dim(str(rel) + '/')}"
+                )
+            else:
+                try:
+                    current.rmdir()
+                    print(
+                        f"    {c.green(sym['check'])} Removed empty directory: {rel!s}/"
+                    )
+                except OSError:
+                    break
+            cleaned.add(current)
+            current = current.parent
 
 
 # ---------------------------------------------------------------------------
@@ -1606,8 +1719,23 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
                 exists = (ROOT / p).exists()
                 marker = "" if exists else c.dim(" (not found — skipped)")
                 print(f"        {p}{marker}")
+        print(
+            f"    {c.dim('Empty parent directories will be cleaned up automatically.')}"
+        )
     else:
         print(f"\n  {c.bold('Directories to remove:')} {c.dim('none')}")
+
+    if cfg.private_repo:
+        print(f"\n  {c.bold('Private repo cleanup:')}")
+        for entry in PRIVATE_REPO_STRIP.values():
+            print(f"    {c.cyan(sym['bullet'])} {entry['label']}")
+            priv_paths: list[str] = entry["paths"]  # type: ignore[assignment]
+            for p in priv_paths:
+                exists = (ROOT / p).exists()
+                marker = "" if exists else c.dim(" (not found — skipped)")
+                print(f"        {p}{marker}")
+    else:
+        print(f"\n  {c.bold('Private repo cleanup:')} {c.dim('no (public repo)')}")
 
     if cfg.template_cleanup:
         print(f"\n  {c.bold('Template cleanup:')}")
@@ -1729,6 +1857,14 @@ examples:
         help="Skip the already-customized safety check",
     )
     parser.add_argument(
+        "--private-repo",
+        action="store_true",
+        help=(
+            "Strip open-source community files not needed for private repos "
+            "(CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, scorecard workflow, etc.)"
+        ),
+    )
+    parser.add_argument(
         "--enable-workflows",
         metavar="OWNER/REPO",
         help=(
@@ -1793,6 +1929,7 @@ def config_from_args(args: argparse.Namespace) -> Config:
         license_id=args.license_id,
         strip_dirs=args.strip or [],
         template_cleanup=args.template_cleanup or [],
+        private_repo=args.private_repo,
         dry_run=args.dry_run,
     )
 
@@ -1942,6 +2079,15 @@ def main() -> int:
         print(f"\n{tag}Stripping optional directories...")
         strip_directories(cfg.strip_dirs, dry_run=cfg.dry_run)
 
+    # Step 1b: Private repo cleanup
+    if cfg.private_repo:
+        print(f"\n{tag}Stripping open-source community files (private repo)...")
+        strip_directories(
+            list(PRIVATE_REPO_STRIP.keys()),
+            dry_run=cfg.dry_run,
+            strippable=PRIVATE_REPO_STRIP,
+        )
+
     # Step 2: Text replacements across all files
     print(f"\n{tag}Applying text replacements...")
     modified = apply_replacements(
@@ -2004,6 +2150,15 @@ def main() -> int:
         # TODO (template users): Add any project-specific post-customization
         #   steps here (e.g., "6. Configure your database connection",
         #   "7. Set up your .env file").
+
+    # Recommended scripts
+    if not args.quiet:
+        ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
+        ui.recommended_scripts(
+            ["bootstrap", "doctor", "repo_sauron", "clean"],
+            preamble="Scripts that help after customization.",
+        )
+        ui.blank()
 
     return 0
 
