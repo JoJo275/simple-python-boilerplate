@@ -15,6 +15,7 @@ Flags::
 
     --json          Output as JSON (for CI integration)
     -q, --quiet     Suppress output; exit code only
+    --no-color      Disable colored output
     --version       Print version and exit
 
 Usage::
@@ -34,13 +35,17 @@ import sys
 import tomllib
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
-from _colors import Colors, unicode_symbols
+from _colors import Colors
 from _imports import find_repo_root
+from _ui import UI
 
 log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
+
+# Theme color for this script's dashboard output.
+THEME = "green"
 
 # TODO (template users): Update these paths if your project structure
 #   differs (e.g., monorepo with multiple pyproject.toml files).
@@ -125,13 +130,12 @@ def _fmt_versions(versions: list[tuple[int, int]]) -> str:
     return ", ".join(_fmt_version(v) for v in versions)
 
 
-def check_python_support(*, quiet: bool = False) -> dict:
+def check_python_support(*, quiet: bool = False, no_color: bool = False) -> dict:
     """Check all sources of Python version info and report mismatches.
 
     Returns:
         Dictionary with results: sources, mismatches, and overall status.
     """
-    sym = unicode_symbols()
     data = _read_pyproject()
 
     # Gather all sources
@@ -210,54 +214,60 @@ def check_python_support(*, quiet: bool = False) -> dict:
     }
 
     if not quiet:
-        c = Colors()
-        log.info("%sPython Version Support Check%s", c.BOLD, c.RESET)
-        log.info("=" * 50)
-        log.info("")
-        log.info("  requires-python:  %s", requires_python or "(not set)")
-        log.info(
-            "  Classifiers:      %s",
-            _fmt_versions(classifier_versions) or "(none)",
+        c = Colors(enabled=not no_color)
+        ui = UI(
+            title="Python Version Support",
+            version=SCRIPT_VERSION,
+            theme=THEME,
+            no_color=no_color,
         )
-        log.info(
-            "  Hatch matrix:     %s",
-            _fmt_versions(hatch_versions) or "(none)",
-        )
-        log.info(
-            "  CI test matrix:   %s",
-            _fmt_versions(ci_versions) or "(not found)",
-        )
-        log.info(
-            "  bootstrap.py:     %s",
-            _fmt_version(bootstrap_min) if bootstrap_min else "(not found)",
-        )
-        log.info(
-            "  Current Python:   %s",
-            _fmt_version(current),
-        )
-        log.info("")
+        ui.header()
 
+        ui.section("Version Sources")
+        ui.kv("requires-python", requires_python or c.dim("(not set)"))
+        ui.kv(
+            "Classifiers",
+            _fmt_versions(classifier_versions) or c.dim("(none)"),
+        )
+        ui.kv(
+            "Hatch matrix",
+            _fmt_versions(hatch_versions) or c.dim("(none)"),
+        )
+        ui.kv(
+            "CI test matrix",
+            _fmt_versions(ci_versions) or c.dim("(not found)"),
+        )
+        ui.kv(
+            "bootstrap.py",
+            _fmt_version(bootstrap_min) if bootstrap_min else c.dim("(not found)"),
+        )
+        ui.kv("Current Python", _fmt_version(current))
+
+        ui.blank()
         if mismatches:
+            ui.section("Mismatches")
             for m in mismatches:
-                log.warning("  %s %s", sym["cross"], m)
-            log.info("")
-            log.error(
-                "%s Python version support is inconsistent across config files.",
-                sym["cross"],
+                ui.status_line("cross", m, "red")
+            ui.blank()
+            ui.status_line(
+                "cross",
+                "Python version support is inconsistent across config files.",
+                "red",
             )
         else:
-            log.info(
-                "  %s All version sources are consistent.",
-                sym["check"],
-            )
+            ui.status_line("check", "All version sources are consistent.", "green")
 
         if not current_ok:
-            log.warning(
-                "  %s Current Python %s does not meet minimum %s",
-                sym["warn"],
-                _fmt_version(current),
-                _fmt_version(min_version) if min_version else "?",
+            ui.status_line(
+                "warn",
+                f"Current Python {_fmt_version(current)} does not meet "
+                f"minimum {_fmt_version(min_version) if min_version else '?'}",
+                "yellow",
             )
+
+        passed = (0 if mismatches else 1) + (1 if current_ok else 0)
+        failed = (1 if mismatches else 0) + (0 if current_ok else 1)
+        ui.footer(passed=passed, failed=failed)
 
     return result
 
@@ -285,12 +295,20 @@ def main() -> int:
         action="store_true",
         help="Suppress output; exit code only",
     )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable colored output",
+    )
     args = parser.parse_args()
 
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)
 
-    result = check_python_support(quiet=args.json_output or args.quiet)
+    result = check_python_support(
+        quiet=args.json_output or args.quiet,
+        no_color=args.no_color,
+    )
 
     if args.json_output:
         print(json.dumps(result, indent=2))

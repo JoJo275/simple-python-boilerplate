@@ -34,6 +34,7 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 _progress = import_sibling("_progress")
 Spinner = _progress.Spinner
@@ -43,7 +44,10 @@ Spinner = _progress.Spinner
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+# Theme color for this script's dashboard output.
+THEME = "yellow"
 # TODO (template users): Change DEFAULT_PATTERN if your project uses a
 #   different convention for TODO markers (e.g., "FIXME", "HACK", or
 #   "TODO (fork users)").
@@ -251,40 +255,48 @@ def format_report(
         )
 
     sym = unicode_symbols()
-    separator = c.dim(sym["sep"] * 60)
+    ui = UI(title="TODO Scanner", version=SCRIPT_VERSION, theme=THEME)
     lines: list[str] = []
 
-    # Header
-    lines.append(separator)
-    lines.append(
-        c.bold(
-            f"  Found {c.yellow(str(total))} TODO(s) "
-            f"across {c.yellow(str(len(results)))} file(s)"
-        )
-    )
-    lines.append(separator)
+    # Header (double-border box)
     lines.append("")
+    lines.append(c.bold(ui._themed(f"  {ui.tl_d}{ui.h_double * 60}{ui.tr_d}")))
+    lines.append(
+        f"  {c.bold(ui._themed(ui.vl_d))} "
+        f"{c.bold(ui._themed('TODO Scanner'))}  "
+        f"{c.dim(f'v{SCRIPT_VERSION}')}"
+    )
+    lines.append(c.bold(ui._themed(f"  {ui.bl_d}{ui.h_double * 60}{ui.br_d}")))
+
+    # Section: results
+    lines.append("")
+    lines.append(ui._themed(f"  {ui.tl}{ui.h_line * 60}{ui.tr}"))
+    lines.append(
+        f"  {ui._themed(ui.vl)} {c.bold(f'Found {c.yellow(str(total))} TODO(s) across {c.yellow(str(len(results)))} file(s)')}"
+    )
+    lines.append(ui._themed(f"  {ui.bl}{ui.h_line * 60}{ui.br}"))
 
     for path, matches in results.items():
         rel = path.relative_to(root)
         match_count = len(matches)
         suffix = "es" if match_count != 1 else ""
-        lines.append(c.cyan(f"  {rel}") + c.dim(f"  ({match_count} match{suffix})"))
+        lines.append(
+            f"    {c.yellow(str(rel))}  {c.dim(f'({match_count} match{suffix})')}"
+        )
         for line_num, line_text in matches:
             display = line_text.strip()
             if len(display) > 100:
                 display = display[:97] + "..."
-            lines.append(f"    {c.dim('L' + str(line_num) + ':')} {display}")
+            lines.append(f"      {c.dim('L' + str(line_num) + ':')} {display}")
         lines.append("")
 
     # Footer
-    lines.append(separator)
+    lines.append(f"  {c.dim(ui.h_double * 60)}")
     lines.append(
-        c.yellow(
-            f"  {sym['flag']} {total} TODO(s) remaining {sym['dash']} run with --json for CI integration"
-        )
+        f"  {c.yellow(sym['flag'])} {total} TODO(s) remaining "
+        f"{sym['dash']} run with --json for CI integration"
     )
-    lines.append(separator)
+    lines.append("")
 
     return "\n".join(lines)
 

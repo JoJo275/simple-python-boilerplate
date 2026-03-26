@@ -21,7 +21,7 @@ A minimal Python boilerplate using the **src/ layout**, configured with
 - **mypy** — strict static type checking
   ([ADR 007](adr/007-mypy-for-type-checking.md)).
 - **MkDocs + Material** — documentation with auto-generated API reference.
-- **43 pre-commit hooks** — across 4 stages: pre-commit, commit-msg,
+- **45 pre-commit hooks** — across 4 stages: pre-commit, commit-msg,
   pre-push, manual ([ADR 008](adr/008-pre-commit-hooks.md)).
 - **36 GitHub Actions workflows** — all SHA-pinned, with repository
   guard pattern ([ADR 004](adr/004-pin-action-shas.md),

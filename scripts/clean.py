@@ -33,13 +33,17 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
+
+# Theme color for this script's dashboard output.
+THEME = "cyan"
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
@@ -156,12 +160,11 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
 
     action = "Scanning" if dry_run else "Removing"
     sym = unicode_symbols()
-    separator = c.dim(sym["sep"] * 50)
+    ui = UI(title="Clean", version=SCRIPT_VERSION, theme=THEME)
+    ui.header()
 
     # ── Section 1: Cache directories ─────────────────────────
-    log.info("\n%s", separator)
-    log.info("  %s", c.bold(f"{action} cache directories"))
-    log.info("%s", separator)
+    ui.section(f"{action} cache directories")
     section_start = removed
     bar = ProgressBar(
         total=len(CACHE_DIRS) + len(CACHE_FILES),
@@ -181,9 +184,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
         log.info("  %s", c.dim("No cache items found."))
 
     # ── Section 2: Build directories ─────────────────────────
-    log.info("\n%s", separator)
-    log.info("  %s", c.bold(f"{action} build directories"))
-    log.info("%s", separator)
+    ui.section(f"{action} build directories")
     section_start = removed
     bar = ProgressBar(total=len(BUILD_DIRS), label="Build", color="blue")
     for name in BUILD_DIRS:
@@ -196,9 +197,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
         log.info("  %s", c.dim("No build directories found."))
 
     # ── Section 3: Recursive directories ─────────────────────
-    log.info("\n%s", separator)
-    log.info("  %s", c.bold(f"{action} __pycache__ & *.egg-info (recursive)"))
-    log.info("%s", separator)
+    ui.section(f"{action} __pycache__ & *.egg-info (recursive)")
     section_start = removed
     # Collect all targets first for an accurate progress bar
     recursive_targets: list[Path] = []
@@ -220,9 +219,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
         log.info("  %s", c.dim("No __pycache__ or *.egg-info directories found."))
 
     # ── Section 4: Stale file patterns ───────────────────────
-    log.info("\n%s", separator)
-    log.info("  %s", c.bold(f"{action} stale files (*.pyc, *.pyo, .coverage.*)"))
-    log.info("%s", separator)
+    ui.section(f"{action} stale files (*.pyc, *.pyo, .coverage.*)")
     section_start = removed
     file_targets: list[Path] = []
     for pattern in FILE_PATTERNS:
@@ -244,9 +241,7 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
 
     # ── Section 5: Virtual environments (optional) ───────────
     if include_venv:
-        log.info("\n%s", separator)
-        log.info("  %s", c.bold(f"{action} virtual environments"))
-        log.info("%s", separator)
+        ui.section(f"{action} virtual environments")
         section_start = removed
         venv_targets = [d for d in sorted(ROOT.glob(".venv*")) if d.is_dir()]
         if venv_targets:
@@ -261,19 +256,16 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
 
     # ── Summary ──────────────────────────────────────────────
     verb = "Would remove" if dry_run else "Cleaned"
-    summary_char = sym["sep2"]
     ok = sym["check"]
     fail = sym["cross"]
-    log.info("\n%s", c.bold(summary_char * 50))
-    log.info("  %s", c.bold("Summary"))
-    log.info("%s", c.bold(summary_char * 50))
+    ui.section("Summary")
     for label, count in section_counts.items():
         if count > 0:
             log.info("  %s %s %d %s", c.green(ok), verb, count, label)
     if removed == 0:
         log.info("  %s", c.green(ok + " Nothing to clean — already tidy!"))
     else:
-        log.info("  %s", c.dim(sym["sep"] * 35))
+        ui.separator()
         log.info("  Total: %s %d item(s)", verb.lower(), removed)
     if errors:
         log.warning("  %s %d item(s) failed to remove", c.red(fail), errors)

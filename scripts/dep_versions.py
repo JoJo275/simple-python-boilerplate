@@ -60,6 +60,7 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 ProgressBar = import_sibling("_progress").ProgressBar
 
@@ -67,7 +68,10 @@ ProgressBar = import_sibling("_progress").ProgressBar
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
+
+# Theme color for this script's dashboard output.
+THEME = "blue"
 
 ROOT = find_repo_root()
 PYPROJECT = ROOT / "pyproject.toml"
@@ -314,19 +318,25 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
 def print_report(rows: list[dict[str, str | None]]) -> None:
     """Pretty-print the dependency report."""
     c = Colors()
+    ui = UI(title="Dependency Versions", version=SCRIPT_VERSION, theme=THEME)
+    ui.section("Packages")
+
     w_name = max((len(r["name"] or "") for r in rows), default=10)
     w_group = max((len(r["group"] or "") for r in rows), default=10)
     w_spec = max((len(r["specifier"] or "") for r in rows), default=10)
     w_inst = max((len(r["installed"] or "-") for r in rows), default=9)
     w_lat = max((len(r["latest"] or "-") for r in rows), default=6)
 
-    hdr = (
-        f"  {'Package':<{w_name}}  {'Group':<{w_group}}  "
-        f"{'Specifier':<{w_spec}}  {'Installed':<{w_inst}}  "
-        f"{'Latest':<{w_lat}}  Upgrade?"
+    ui.table_header(
+        [
+            ("Package", w_name),
+            ("Group", w_group),
+            ("Specifier", w_spec),
+            ("Installed", w_inst),
+            ("Latest", w_lat),
+            ("Upgrade?", 8),
+        ]
     )
-    print(c.bold(hdr))
-    print(c.dim("  " + "-" * (len(hdr) - 2)))
 
     for r in rows:
         upgradable = r["upgradable"] == "yes"
@@ -334,16 +344,21 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         inst = r["installed"] or "-"
         lat = r["latest"] or "-"
         name = r["name"] or ""
-        # Build the line with fixed-width columns first, then colorize
-        line = (
-            f"  {name:<{w_name}}  {r['group']:<{w_group}}  "
-            f"{r['specifier']:<{w_spec}}  {inst:<{w_inst}}  "
-            f"{lat:<{w_lat}}  {flag}"
-        )
+        # Colorize upgradable rows
         if upgradable:
-            print(c.yellow(line.rstrip()) if not flag else line)
-        else:
-            print(line)
+            name = c.yellow(name)
+            inst = c.yellow(inst)
+            lat = c.yellow(lat)
+        ui.table_row(
+            [
+                (name, w_name),
+                (r["group"] or "", w_group),
+                (r["specifier"] or "", w_spec),
+                (inst, w_inst),
+                (lat, w_lat),
+                (flag, 8),
+            ]
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -727,7 +742,12 @@ def main() -> int:
     # Default to "show" when no subcommand given
     command = args.command or "show"
 
-    print(f"\n{c.bold('Dependency versions')} for {c.cyan(PYPROJECT.parent.name)}\n")
+    ui = UI(
+        title="Dependency Versions",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+    )
+    ui.header()
 
     if command == "show":
         offline = getattr(args, "offline", False)

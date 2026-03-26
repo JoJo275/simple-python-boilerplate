@@ -1,19 +1,14 @@
 # Runs `pre-commit autoupdate` weekly and opens a PR with bumped hook versions.
 # This keeps .pre-commit-config.yaml up to date automatically.
 #
-# IMPORTANT: PRs created with GITHUB_TOKEN do NOT trigger pull_request
-# events for other workflows (GitHub's anti-recursion safeguard). This
-# means the CI gate will stay "pending" until you take action:
+# Uses a GitHub App token (same as release-please.yml) so the PR triggers
+# pull_request events and CI checks run automatically. PRs created with
+# GITHUB_TOKEN do NOT trigger other workflows (GitHub's anti-recursion
+# safeguard).
 #
-#   Option A — Close and reopen the PR (triggers pull_request events)
-#   Option B — Push an empty commit to the PR branch:
-#              git fetch origin chore/pre-commit-autoupdate
-#              git switch chore/pre-commit-autoupdate
-#              git commit --allow-empty -m "ci: trigger CI checks"
-#              git push
-#   Option C — Use a Personal Access Token (PAT) or GitHub App token
-#              instead of GITHUB_TOKEN in the create-pull-request step.
-#              This allows the PR to trigger other workflows automatically.
+# Required secrets:
+#   - RELEASE_APP_ID      — the App ID (numeric)
+#   - RELEASE_APP_PRIVATE_KEY — the PEM private key
 #
 # See: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
 
@@ -88,11 +83,25 @@ jobs:
         run: |
           git diff --exit-code .pre-commit-config.yaml && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
 
+      # ── Generate App token ──────────────────────────────────
+      # PRs created with GITHUB_TOKEN don't trigger pull_request
+      # events (GitHub's anti-recursion rule), so CI checks would
+      # never run on the PR and the CI gate would stay pending.
+      # A GitHub App installation token bypasses this limitation.
+      # Uses the same App as release-please.yml.
+      - name: Generate GitHub App token
+        if: steps.diff.outputs.changed == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # GitHub Action for creating a GitHub App Installation Access Token (v2.2.1)
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Create pull request
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # Creates a pull request for changes to your… (v8.1.0)
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           branch: chore/pre-commit-autoupdate
           commit-message: "chore: update pre-commit hooks"
           title: "chore: update pre-commit hooks"

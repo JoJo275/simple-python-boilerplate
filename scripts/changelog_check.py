@@ -31,6 +31,7 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root
+from _ui import UI
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,10 @@ log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 CHANGELOG = ROOT / "CHANGELOG.md"
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+# Theme color for this script's dashboard output.
+THEME = "magenta"
 
 # TODO (template users): If your project uses a different changelog
 #   format (e.g. Keep a Changelog without release-please), update
@@ -207,6 +211,7 @@ def compare_versions(
         Exit code: 0 if in sync, 1 if drift detected.
     """
     c = Colors()
+    ui = UI(title="Changelog Check", version=SCRIPT_VERSION, theme=THEME)
     changelog_set = set(changelog_versions)
     tag_set = set(tag_versions)
 
@@ -215,11 +220,11 @@ def compare_versions(
     in_sync = sorted(changelog_set & tag_set, key=_version_key)
 
     # Header first, before sub-checks that may also log
-    log.info("%s", c.bold("CHANGELOG vs Git Tags"))
-    log.info("%s", c.dim("=" * 50))
-    log.info("  CHANGELOG versions: %s", c.cyan(str(len(changelog_versions))))
-    log.info("  Git tag versions:   %s", c.cyan(str(len(tag_versions))))
-    log.info("  In sync:            %s", c.green(str(len(in_sync))))
+    ui.header()
+    ui.section("CHANGELOG vs Git Tags")
+    ui.kv("CHANGELOG versions", c.magenta(str(len(changelog_versions))))
+    ui.kv("Git tag versions", c.magenta(str(len(tag_versions))))
+    ui.kv("In sync", c.green(str(len(in_sync))))
 
     # Additional checks (logged under the header)
     duplicates = check_duplicates(changelog_versions)
@@ -253,14 +258,22 @@ def compare_versions(
         for v in in_sync:
             log.info("    - %s", c.dim(v))
 
+    ui.blank()
     if not has_drift:
-        log.info("\n%s %s", c.green("\u2713"), c.green("All versions are in sync."))
+        ui.status_line("check", "All versions are in sync.", "green")
     else:
-        log.info(
-            "\n%s %s",
-            c.red("\u2717"),
-            c.red("Drift detected between CHANGELOG.md and git tags."),
+        ui.status_line(
+            "cross",
+            "Drift detected between CHANGELOG.md and git tags.",
+            "red",
         )
+
+    ui.footer(
+        passed=len(in_sync),
+        failed=len(in_changelog_not_tagged)
+        + len(tagged_not_in_changelog)
+        + len(duplicates),
+    )
 
     return 1 if has_drift else 0
 

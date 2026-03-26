@@ -53,6 +53,7 @@ from _doctor_common import (
     get_version,
 )
 from _imports import find_repo_root, import_sibling
+from _ui import UI
 
 _progress = import_sibling("_progress")
 Spinner = _progress.Spinner
@@ -61,7 +62,10 @@ Spinner = _progress.Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "2.5.0"
+SCRIPT_VERSION = "2.6.0"
+
+# Theme color for this script's dashboard output.
+THEME = "magenta"
 
 ROOT = find_repo_root()
 
@@ -544,12 +548,14 @@ def format_plain(
 ) -> str:
     """Format diagnostics as plain text with optional color."""
     c = Colors(enabled=use_color)
-    lines = [
-        c.bold("=" * 60),
-        c.bold("DIAGNOSTICS REPORT"),
-        c.bold("=" * 60),
-        "",
-    ]
+    ui = UI(
+        title="Diagnostics Report",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+        no_color=not use_color,
+    )
+
+    lines: list[str] = []
 
     # Human-friendly section labels
     _section_labels = {
@@ -558,14 +564,25 @@ def format_plain(
 
     for section, data in info.items():
         display_name = _section_labels.get(section, section.upper())
-        header = f"[{display_name}]"
-        # Color the problems section differently
+        # Section header using UI box-drawing
+        border = ui.h_line * 60
+        header_text = f"  {ui.tl}{border}{ui.tr}"
         if section == "problems":
             has_issues = isinstance(data, dict) and "status" not in data
-            header = c.red(header) if has_issues else c.green(header)
+            header_text = c.red(header_text) if has_issues else c.green(header_text)
+            label_text = c.red(display_name) if has_issues else c.green(display_name)
         else:
-            header = c.cyan(header)
-        lines.append(header)
+            header_text = ui._themed(header_text)
+            label_text = c.bold(display_name)
+        lines.append(header_text)
+        lines.append(f"  {ui._themed(ui.vl)} {label_text}")
+        bottom = f"  {ui.bl}{border}{ui.br}"
+        if section == "problems":
+            bottom = c.red(bottom) if has_issues else c.green(bottom)
+        else:
+            bottom = ui._themed(bottom)
+        lines.append(bottom)
+
         if isinstance(data, dict):
             for key, value in data.items():
                 val_str = str(value)
@@ -581,9 +598,9 @@ def format_plain(
                     val_str = c.red(val_str)
                 elif key == "tools_optional":
                     val_str = c.yellow(val_str)
-                lines.append(f"  {c.dim(key + ':')} {val_str}")
+                lines.append(f"    {c.dim(key + ':'):22s} {val_str}")
         else:
-            lines.append(f"  {data}")
+            lines.append(f"    {data}")
         lines.append("")
 
     return "\n".join(lines)
@@ -693,6 +710,13 @@ def main() -> int:
     elif args.markdown:
         output = format_markdown(info)
     else:
+        ui = UI(
+            title="Diagnostics Report",
+            version=SCRIPT_VERSION,
+            theme=THEME,
+            no_color=not use_color,
+        )
+        ui.header()
         output = format_plain(info, use_color=use_color)
 
     print(output)

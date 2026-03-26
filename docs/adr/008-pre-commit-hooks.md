@@ -60,6 +60,8 @@ Use the `pre-commit` framework to run checks automatically at three git stages: 
 | `no-secrets-patterns`                  | local (pygrep)     | Blocks hardcoded credentials / token patterns (py, toml, yaml, json, env, ini, cfg, txt, md, sh, ps1, Containerfile, Dockerfile) |
 | `no-nul-bytes`                         | local (python)     | Blocks NUL bytes in text files                                                                                                   |
 | `deptry`                               | local (system)     | Detects unused, missing, and transitive dependencies                                                                             |
+| `check-python-support`                 | local (system)     | Verifies Python version support config is consistent across `pyproject.toml` and CI workflows                                    |
+| `check-local-imports`                  | local (python)     | Enforces `# -- Local script modules` comment before local `_`-prefixed imports in scripts                                        |
 
 ### Stage: commit-msg (validates the commit message)
 

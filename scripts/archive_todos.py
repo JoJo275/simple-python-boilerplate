@@ -38,13 +38,17 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root
+from _ui import UI
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
+
+# Theme color for this script's dashboard output.
+THEME = "magenta"
 
 DEFAULT_TODO = ROOT / "docs" / "notes" / "todo.md"
 DEFAULT_ARCHIVE = ROOT / "docs" / "notes" / "archive.md"
@@ -288,12 +292,24 @@ def main() -> int:
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)
 
+    ui = UI(title="Archive TODOs", version=SCRIPT_VERSION, theme=THEME)
+    if not args.quiet:
+        ui.header()
+
     result = archive_todos(
         todo_file=args.todo_file,
         archive_file=args.archive_file,
         dry_run=args.dry_run,
         backup=not args.no_backup,
     )
+
+    if not args.quiet:
+        if result < 0:
+            ui.status_line("cross", "Archive failed", "red")
+        elif result == 0:
+            ui.status_line("check", "No completed items to archive", "green")
+        else:
+            ui.status_line("check", f"Archived {result} item(s)", "green")
 
     return 1 if result < 0 else 0
 

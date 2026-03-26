@@ -154,7 +154,10 @@ from _progress import ProgressBar, Spinner
 # Constants
 # ---------------------------------------------------------------------------
 
-SCRIPT_VERSION = "3.0.0"
+SCRIPT_VERSION = "3.1.0"
+
+# Theme color for this script's dashboard output.
+THEME = "cyan"
 
 # When the GIT_CONFIG_CATALOG entries were last reviewed / updated.
 # Printed in git-config-reference.md so readers know the catalog's age.

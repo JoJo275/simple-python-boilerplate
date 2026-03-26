@@ -80,7 +80,10 @@ ProgressBar = _progress.ProgressBar
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
+
+# Theme color for this script's dashboard output.
+THEME = "cyan"
 
 # Original placeholders baked into the template.
 # customize.py searches files for these literal strings and replaces them
