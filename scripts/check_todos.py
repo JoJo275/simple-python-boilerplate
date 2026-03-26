@@ -155,7 +155,7 @@ def find_todos(
     exclude_suffixes: set[str] | None = None,
     *,
     show_progress: bool = False,
-) -> dict[Path, list[tuple[int, str]]]:
+) -> tuple[dict[Path, list[tuple[int, str]]], int]:
     """Find all lines matching the pattern, grouped by file.
 
     Args:
@@ -167,7 +167,7 @@ def find_todos(
         show_progress: Show a spinner while scanning.
 
     Returns:
-        Dict mapping file paths to list of (line_number, line_text) tuples.
+        Tuple of (results dict mapping file paths to matches, files_scanned count).
     """
     results: dict[Path, list[tuple[int, str]]] = {}
     pattern_lower = pattern.lower()
@@ -205,7 +205,7 @@ def find_todos(
     if spinner:
         spinner.finish()
     log.debug("Scanned %d file(s)", files_scanned)
-    return results
+    return results, files_scanned
 
 
 def format_report(
@@ -215,6 +215,7 @@ def format_report(
     count_only: bool = False,
     as_json: bool = False,
     colors: Colors | None = None,
+    files_scanned: int = 0,
 ) -> str:
     """Build a report string for the found TODOs.
 
@@ -224,6 +225,7 @@ def format_report(
         count_only: If True, only return summary counts.
         as_json: If True, return a JSON-encoded report.
         colors: Colors instance for styled output.
+        files_scanned: Total number of files scanned.
 
     Returns:
         Formatted report string.
@@ -235,6 +237,7 @@ def format_report(
         data = {
             "total": total,
             "file_count": len(results),
+            "files_scanned": files_scanned,
             "files": {
                 path.relative_to(root).as_posix(): [
                     {"line": num, "text": text.strip()} for num, text in matches
@@ -292,8 +295,9 @@ def format_report(
 
     # Footer
     lines.append(f"  {c.dim(ui.h_double * 60)}")
+    scanned_info = f" (scanned {files_scanned} files)" if files_scanned else ""
     lines.append(
-        f"  {c.yellow(sym['flag'])} {total} TODO(s) remaining "
+        f"  {c.yellow(sym['flag'])} {total} TODO(s) remaining{scanned_info} "
         f"{sym['dash']} run with --json for CI integration"
     )
     lines.append("")
@@ -378,7 +382,7 @@ def main() -> int:
     c = Colors()
     show_progress = not args.quiet and not args.json_output and not args.count
 
-    results = find_todos(
+    results, files_scanned = find_todos(
         root=ROOT,
         pattern=args.pattern,
         exclude_dirs=DEFAULT_EXCLUDE,
@@ -394,6 +398,7 @@ def main() -> int:
             count_only=args.count,
             as_json=args.json_output,
             colors=c,
+            files_scanned=files_scanned,
         )
         # All human-readable output goes to stdout so that callers
         # (e.g. Taskfile, PowerShell) don't treat it as an error.

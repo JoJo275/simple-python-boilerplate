@@ -819,16 +819,6 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             )
 
 
-def _ansi_pad(colored_text: str, raw_text: str) -> int:
-    """Return extra padding needed to compensate for ANSI escape codes.
-
-    When color is enabled, ANSI codes add invisible characters that
-    throw off ``:<width>`` format alignment.  This returns the number
-    of extra characters so callers can add it to the field width.
-    """
-    return len(colored_text) - len(raw_text)
-
-
 # ---------------------------------------------------------------------------
 # Comment updater
 # ---------------------------------------------------------------------------
@@ -1273,6 +1263,13 @@ def main() -> int:
 
         if quiet:
             return 1 if (stale or upgradable) else 0
+
+        # File count summary
+        scanned_files = {r["file"] for r in all_rows if r.get("file")}
+        print(
+            f"\n  Scanned {_colors.cyan(str(len(scanned_files)))} workflow file(s), "
+            f"found {_colors.cyan(str(len(all_rows)))} pinned action(s)."
+        )
 
         if stale or no_desc:
             parts: list[str] = []
