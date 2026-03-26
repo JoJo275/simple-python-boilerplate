@@ -31,6 +31,7 @@ import json
 import logging
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
 from _imports import find_repo_root, import_sibling
 

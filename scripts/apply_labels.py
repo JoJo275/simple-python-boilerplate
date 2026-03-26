@@ -31,6 +31,7 @@ import subprocess  # nosec B404
 import sys
 import urllib.parse
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _imports import find_repo_root, import_sibling
 
 ProgressBar = import_sibling("_progress").ProgressBar

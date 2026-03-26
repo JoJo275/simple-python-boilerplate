@@ -123,7 +123,7 @@
     "editor.rulers": [88, 120],
     "editor.bracketPairColorization.enabled": true,
     "editor.guides.bracketPairs": "active",
-    "editor.renderWhitespace": "trailing",
+    "editor.renderWhitespace": "all",
     "editor.stickyScroll.enabled": true,
 
     // ── Files ───────────────────────────────────────────────

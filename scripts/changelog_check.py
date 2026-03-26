@@ -28,6 +28,7 @@ import re
 import subprocess  # nosec B404
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root
 

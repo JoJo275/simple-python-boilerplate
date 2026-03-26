@@ -4544,6 +4544,86 @@ See [ADR 021](../adr/021-automated-release-pipeline.md) and [releasing.md](../re
 
 ---
 
+## Pre-1.0 Release Readiness
+
+### Why 1.0 Is Different
+
+Everything before `1.0.0` is understood to be unstable — APIs can change,
+features can disappear, and users expect rough edges. Once you tag `1.0.0`,
+you're making a social contract:
+
+- **Backward compatibility matters.** Breaking changes require a major version bump.
+- **Security responsiveness is expected.** Users assume you'll patch CVEs.
+- **The project is usable.** It's not a demo, sketch, or experiment anymore.
+
+A 1.0 that can't pass its own CI, has placeholder code, or ships with broken
+docs erodes trust fast. The checklist below is a systematic way to verify
+you're actually ready.
+
+### The Readiness Checklist
+
+The canonical checklist lives in [releasing.md — Pre-1.0 Release Readiness
+Checklist](../releasing.md#pre-10-release-readiness-checklist). Use it as
+a worksheet: copy it into a GitHub issue or PR description and check items
+off as you verify them.
+
+The checklist covers these areas:
+
+| Area                         | What to verify                                                                     |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| **Code quality**             | Placeholder code removed, type hints, docstrings, clean `task check`               |
+| **Test coverage**            | Core logic covered, edge cases tested, coverage threshold set, version consistency  |
+| **Security**                 | SECURITY.md finalized, pip-audit clean, no hardcoded secrets, Dependabot enabled    |
+| **Documentation**            | README accurate, API reference renders, CHANGELOG meaningful, docs build clean      |
+| **CI/CD & Infrastructure**   | All workflows pass, branch protection configured, repo guards set, release tested   |
+| **Packaging & Distribution** | Metadata complete, classifier updated, entry points work, clean install succeeds    |
+| **Release configuration**    | release-please config reviewed, manifest version correct, tag format verified       |
+
+### Common Pre-1.0 Mistakes
+
+Things that trip people up when going from 0.x to 1.0:
+
+1. **Forgetting `bump-minor-pre-major`** — release-please treats minor and
+   major differently pre-1.0. If you have `"bump-minor-pre-major": true` in
+   your config, a `feat!:` commit bumps minor (0.x → 0.y) instead of major.
+   After 1.0, you should remove this flag so breaking changes bump major.
+
+2. **Stale `Development Status` classifier** — `pyproject.toml` still says
+   `Development Status :: 3 - Alpha` when you ship 1.0. Update it to
+   `Development Status :: 5 - Production/Stable` (or `4 - Beta` if you're
+   not fully there yet).
+
+3. **Placeholder SECURITY.md** — The template ships with generic contact
+   info. Before 1.0, replace it with a real email or enable GitHub's
+   private vulnerability reporting.
+
+4. **No release dry-run** — Ship a 0.9.0 first. Verify the full pipeline
+   (tag → build → publish → docs deploy) works end-to-end before the
+   irreversible 1.0.0 tag.
+
+5. **Template TODOs still present** — Run `python scripts/check_todos.py`
+   to catch any `TODO (template users):` markers that should have been
+   resolved.
+
+6. **Python version drift** — The minimum Python version in `pyproject.toml`,
+   CI matrix, classifiers, and `bootstrap.py` can drift apart silently.
+   Run `python scripts/check_python_support.py` to catch mismatches.
+
+### After 1.0
+
+Once 1.0 is out:
+
+- SemVer is fully enforced: breaking changes bump **major** version
+- Remove `"bump-minor-pre-major": true` from `release-please-config.json`
+- Update `SECURITY.md` support window (e.g., "latest major version")
+- Consider setting up automated PyPI publishing if not already done
+- Enable GitHub's "Require status checks to pass before merging" on `main`
+
+See [releasing.md](../releasing.md) for the mechanical steps of cutting the
+1.0.0 release (Release-As trailer, manifest edit, etc.).
+
+---
+
 ## Breaking Changes & Version Bumping
 
 ### What Is a Breaking Change?

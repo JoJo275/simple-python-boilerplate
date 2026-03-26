@@ -1,5 +1,21 @@
 # Runs `pre-commit autoupdate` weekly and opens a PR with bumped hook versions.
 # This keeps .pre-commit-config.yaml up to date automatically.
+#
+# IMPORTANT: PRs created with GITHUB_TOKEN do NOT trigger pull_request
+# events for other workflows (GitHub's anti-recursion safeguard). This
+# means the CI gate will stay "pending" until you take action:
+#
+#   Option A — Close and reopen the PR (triggers pull_request events)
+#   Option B — Push an empty commit to the PR branch:
+#              git fetch origin chore/pre-commit-autoupdate
+#              git switch chore/pre-commit-autoupdate
+#              git commit --allow-empty -m "ci: trigger CI checks"
+#              git push
+#   Option C — Use a Personal Access Token (PAT) or GitHub App token
+#              instead of GITHUB_TOKEN in the create-pull-request step.
+#              This allows the PR to trigger other workflows automatically.
+#
+# See: https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs
 
 name: Update pre-commit hooks
 

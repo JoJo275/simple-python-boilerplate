@@ -48,6 +48,7 @@ import time
 from collections.abc import Callable
 from pathlib import Path
 
+# -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _colors import status_icon as _icon
 from _colors import supports_color as _supports_color

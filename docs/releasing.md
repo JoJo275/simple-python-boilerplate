@@ -409,6 +409,80 @@ After `1.0.0`, version bumps follow standard SemVer:
 | `feat:`           | Minor        | `1.2.0` → `1.3.0` |
 | `BREAKING CHANGE` | **Major**    | `1.2.0` → `2.0.0` |
 
+### Pre-1.0 Release Readiness Checklist
+
+<!-- TODO (template users): Review this checklist before your 1.0 release.
+     Delete items that don't apply to your project and add project-specific
+     gates. This is a guide, not a dogmatic requirement — skip items that
+     don't make sense for your situation. -->
+
+Before cutting a 1.0 release, walk through these areas to make sure nothing
+critical is missing. A 1.0 signals stability — users expect backward
+compatibility promises, security responsiveness, and baseline quality.
+
+#### Code Quality
+
+- [ ] All placeholder code in `src/` replaced with real implementation
+- [ ] Public API is type-annotated (all public functions have type hints)
+- [ ] Docstrings present on all public modules, classes, and functions
+- [ ] No `# type: ignore` without an inline justification comment
+- [ ] `task check` passes cleanly (lint, format, typecheck, tests)
+- [ ] No `TODO (template users)` markers remain — run `python scripts/check_todos.py`
+
+#### Test Coverage
+
+- [ ] Unit tests cover core business logic (not just happy paths)
+- [ ] Edge cases and error paths have tests
+- [ ] Coverage threshold set in `codecov.yml` (recommended: 80%+ for 1.0)
+- [ ] CI test matrix covers all supported Python versions (currently 3.11–3.13)
+- [ ] Python version support is consistent — run `python scripts/check_python_support.py`
+
+#### Security
+
+- [ ] `SECURITY.md` has real contact info (not placeholders)
+- [ ] Private vulnerability reporting is enabled in repo settings
+- [ ] `pip-audit` and `bandit` pass in CI with no ignored vulnerabilities
+  (or all ignores are documented with rationale)
+- [ ] No hardcoded credentials, tokens, or secrets in source
+- [ ] Dependencies reviewed: no unnecessary packages, no known CVEs
+- [ ] Dependabot alerts enabled and current
+
+#### Documentation
+
+- [ ] `README.md` accurately describes the project, installation, and usage
+- [ ] API reference is generated (mkdocstrings) and renders correctly
+- [ ] `CHANGELOG.md` has meaningful entries (not just "initial release")
+- [ ] `CONTRIBUTING.md` reflects actual contribution workflow
+- [ ] Known issues documented in `docs/known-issues.md` — no hidden tech debt
+- [ ] Docs build without warnings: `task docs:build`
+
+#### CI/CD & Infrastructure
+
+- [ ] All required CI workflows pass (check the CI gate status on `main`)
+- [ ] Branch protection rules configured ([ADR 023](adr/023-branch-protection-rules.md))
+- [ ] Repository guards updated: `YOURNAME/YOURREPO` replaced or `vars.ENABLE_WORKFLOWS` set
+- [ ] Release workflow tested: trigger a pre-release (e.g., `0.9.0`) to verify the pipeline
+- [ ] GitHub labels applied: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+
+#### Packaging & Distribution
+
+- [ ] `pyproject.toml` metadata is complete: name, description, author, URLs, classifiers
+- [ ] `Development Status` classifier set to `Production/Stable`
+- [ ] `requires-python` matches actual minimum tested version
+- [ ] Entry points (`[project.scripts]`) work: `spb --version` (or your equivalent)
+- [ ] Package installs cleanly: `pip install .` in a fresh venv
+- [ ] `LICENSE` file has correct year and author
+
+#### Release Configuration
+
+- [ ] `release-please-config.json` reviewed: `bump-minor-pre-major` can be removed post-1.0
+- [ ] `.release-please-manifest.json` version is correct
+- [ ] `commitizen` `major_version_zero` set to `false` (if applicable)
+- [ ] Version tag format verified (e.g., `v1.0.0`)
+
+> **See also:** [ADR 040](adr/040-v1-release-readiness.md) for the architectural
+> decision record on release readiness criteria.
+
 **Will `feat:` bump you to 2.0?** No. A plain `feat:` commit only bumps the
 minor version (`1.2.0` → `1.3.0`). Only an explicit breaking change
 (`feat!:`, `fix!:`, or a `BREAKING CHANGE:` footer) triggers a major bump.
