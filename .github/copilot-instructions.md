@@ -222,26 +222,11 @@ assessment to be polite.
 
 ### Clean Up Dead Code When Encountered
 
-When you encounter dead code during any task — unused functions,
-unreachable branches, orphaned imports, commented-out blocks, or
-functions that were previously used but are no longer called after
-a refactor — clean it up as part of the current change. Don't leave
-it for a separate cleanup pass. Specifically:
-
-- **Unused functions/methods**: If a function has zero callers in the
-  codebase, remove it unless it is part of a public API or is
-  explicitly documented as a hook/extension point.
-- **Orphaned imports**: Remove imports that are no longer referenced.
-- **Stale helpers**: After refactoring shared logic into a module
-  (e.g., `_ui.py`), remove the old inline implementations from each
-  script that was migrated.
-- **Commented-out code**: Delete it. Git history preserves old code.
-- **Verification**: Before removing, grep the codebase to confirm the
-  symbol is truly unused. Check both direct calls and dynamic references
-  (e.g., `getattr`, dictionary lookups by name).
-
-This keeps the codebase lean and prevents confusion about which code
-is active. Flag removals in the session recap so the user is aware.
+Remove dead code (unused functions, orphaned imports, commented-out blocks,
+stale helpers) as part of any task where you encounter it. Grep the codebase
+first to confirm the symbol is truly unused (check direct calls and dynamic
+references like `getattr`). Preserve symbols that are public API or documented
+extension points. Flag removals in the session recap.
 
 ### Session Recap
 

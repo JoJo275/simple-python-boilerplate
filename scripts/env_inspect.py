@@ -7,8 +7,10 @@ Shows a comprehensive view of your development environment:
   - Virtual environment status (global vs local)
   - All installed packages with versions and update availability
   - Entry points registered by installed packages
-  - Key PATH directories and executables found there
-  - Hatch environment status (if available)
+  - Build and environment tools found on PATH (hatch, tox, nox, etc.)
+  - Python version support validation (cross-checks pyproject.toml sources)
+  - Key PATH directories with duplicate detection
+  - Related scripts for further investigation
 
 This complements ``dep_versions.py`` (which focuses on project deps
 declared in pyproject.toml) by showing the full picture including
@@ -18,7 +20,8 @@ Flags::
 
     --json              Output as JSON (for CI integration)
     --section SECTION   Only show a specific section
-                        (python, git, venv, packages, entrypoints, path)
+                        (python, git, venv, packages, entrypoints,
+                         build-tools, python-support, path)
     -q, --quiet         Suppress output; exit code only
     --no-color          Disable colored output
     --version           Print version and exit
@@ -28,7 +31,8 @@ Usage::
     python scripts/env_inspect.py
     python scripts/env_inspect.py --json
     python scripts/env_inspect.py --section packages
-    python scripts/env_inspect.py --section entrypoints
+    python scripts/env_inspect.py --section build-tools
+    python scripts/env_inspect.py --section python-support
     python scripts/env_inspect.py --section path
 """
 
@@ -52,11 +56,12 @@ from pathlib import Path
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors
 from _imports import find_repo_root
+from _progress import Spinner
 from _ui import UI
 
 log = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "1.0.0"
+SCRIPT_VERSION = "1.1.0"
 THEME = "cyan"
 
 ROOT = find_repo_root()
@@ -208,8 +213,14 @@ def _inspect_path() -> list[dict]:
     """Inspect PATH directories and count executables in each."""
     path_dirs = os.environ.get("PATH", "").split(os.pathsep)
     results = []
+    seen: set[str] = set()
 
     for dir_path in path_dirs:
+        # Normalize for duplicate detection (case-insensitive on Windows)
+        normalized = os.path.normcase(os.path.normpath(dir_path))
+        is_duplicate = normalized in seen
+        seen.add(normalized)
+
         p = Path(dir_path)
         if not p.is_dir():
             results.append(
@@ -217,6 +228,7 @@ def _inspect_path() -> list[dict]:
                     "path": dir_path,
                     "exists": False,
                     "executable_count": 0,
+                    "duplicate": is_duplicate,
                 }
             )
             continue
@@ -233,6 +245,7 @@ def _inspect_path() -> list[dict]:
                 "path": dir_path,
                 "exists": True,
                 "executable_count": executables,
+                "duplicate": is_duplicate,
             }
         )
 
@@ -305,6 +318,84 @@ def gather_env_info(*, check_updates: bool = True) -> dict:
         info["hatch"] = hatch
 
     return info
+
+
+# ---------------------------------------------------------------------------
+# Build tools detection
+# ---------------------------------------------------------------------------
+
+_BUILD_TOOLS: list[tuple[str, str, list[str]]] = [
+    # (display_name, executable, version_args)
+    ("Hatch", "hatch", ["--version"]),
+    ("tox", "tox", ["--version"]),
+    ("nox", "nox", ["--version"]),
+    ("Poetry", "poetry", ["--version"]),
+    ("PDM", "pdm", ["--version"]),
+    ("Flit", "flit", ["--version"]),
+    ("pip", "pip", ["--version"]),
+    ("pipx", "pipx", ["--version"]),
+    ("uv", "uv", ["--version"]),
+    ("conda", "conda", ["--version"]),
+    ("mamba", "mamba", ["--version"]),
+    ("virtualenv", "virtualenv", ["--version"]),
+]
+
+
+def _detect_build_tools() -> list[dict]:
+    """Detect installed build/environment tools."""
+    tools = []
+    for name, exe, ver_args in _BUILD_TOOLS:
+        path = shutil.which(exe)
+        if not path:
+            continue
+        version = "unknown"
+        try:
+            result = subprocess.run(  # nosec B603
+                [path, *ver_args],
+                capture_output=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=10,
+            )
+            if result.returncode == 0:
+                # Extract version from output (first line, strip tool name)
+                out = (result.stdout + result.stderr).strip().splitlines()[0]
+                # Try to find a version-like pattern
+                m = re.search(r"(\d+\.\d+[\w.+-]*)", out)
+                version = m.group(1) if m else out.strip()
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+        tools.append(
+            {"name": name, "executable": exe, "path": path, "version": version}
+        )
+    return tools
+
+
+# ---------------------------------------------------------------------------
+# Python support validation
+# ---------------------------------------------------------------------------
+
+
+def _check_python_support_summary() -> dict | None:
+    """Run a lightweight python-support check and return a summary.
+
+    Imports from check_python_support.py to get version consistency data.
+    Returns None if the check is unavailable.
+    """
+    try:
+        # Import inline to avoid hard dependency
+        from check_python_support import check_python_support
+
+        result = check_python_support(quiet=True, no_color=True)
+        return {
+            "ok": result["ok"],
+            "sources": result.get("sources", {}),
+            "mismatches": result.get("mismatches", []),
+            "current_meets_minimum": result.get("current_meets_minimum", True),
+            "code_min_version": result.get("code_analysis", {}).get("code_min_version"),
+        }
+    except Exception:
+        return None
 
 
 def print_env_info(
@@ -435,25 +526,108 @@ def print_env_info(
         else:
             ui.info_line("No console_scripts or gui_scripts entry points found.")
 
+    # ── Build Tools ──
+    if show_all or section == "build-tools":
+        build_tools = info.get("build_tools", [])
+        ui.section(f"Build & Environment Tools ({len(build_tools)})")
+        ui.info_line(
+            "Build tools, environment managers, and package installers on PATH"
+        )
+        if build_tools:
+            ui.table_header([("Tool", 14), ("Version", 18), ("Path", 45)])
+            for t in build_tools:
+                path_display = t["path"]
+                if len(path_display) > 45:
+                    path_display = "..." + path_display[-42:]
+                ui.table_row([(t["name"], 14), (t["version"], 18), (path_display, 45)])
+        else:
+            ui.info_line("No build/environment tools found on PATH.")
+
+    # ── Python Support Validation ──
+    if show_all or section == "python-support":
+        py_support = info.get("python_support")
+        if py_support is not None:
+            ui.section("Python Version Support")
+            ui.info_line(
+                "Cross-checks pyproject.toml, classifiers, Hatch matrix, and CI matrix"
+            )
+            sources = py_support.get("sources", {})
+            if sources.get("requires-python"):
+                ui.kv("requires-python", sources["requires-python"])
+            if sources.get("classifiers"):
+                ui.kv("Classifiers", sources["classifiers"])
+            if py_support.get("code_min_version"):
+                ui.kv("Code min version", py_support["code_min_version"])
+            if py_support["ok"]:
+                ui.status_line("check", "All version sources consistent", "green")
+            else:
+                for m in py_support.get("mismatches", []):
+                    ui.status_line("cross", m, "red")
+            if not py_support.get("current_meets_minimum", True):
+                ui.status_line("warn", "Current Python does not meet minimum", "yellow")
+            ui.info_line(
+                "Run 'python scripts/check_python_support.py' for full analysis"
+            )
+
     # ── PATH ──
     if show_all or section == "path":
         path_dirs = info["path"]
-        ui.section(f"PATH Directories ({len(path_dirs)})")
-        ui.table_header([("Directory", 55), ("Exists", 8), ("Executables", 12)])
+        dup_count = sum(1 for d in path_dirs if d.get("duplicate"))
+        label = f"PATH Directories ({len(path_dirs)}"
+        if dup_count:
+            label += f", {dup_count} duplicate{'s' if dup_count != 1 else ''}"
+        label += ")"
+        ui.section(label)
+        ui.table_header([("Directory", 50), ("Exists", 8), ("Execs", 7), ("Note", 12)])
         for d in path_dirs:
             exists_str = c.green("Yes") if d["exists"] else c.red("No")
             exe_count = str(d["executable_count"]) if d["exists"] else c.dim("-")
+            note = c.yellow("(duplicate)") if d.get("duplicate") else ""
             # Truncate long paths
             path_display = d["path"]
-            if len(path_display) > 55:
-                path_display = "..." + path_display[-52:]
+            if len(path_display) > 50:
+                path_display = "..." + path_display[-47:]
             ui.table_row(
                 [
-                    (path_display, 55),
+                    (path_display, 50),
                     (exists_str, 8),
-                    (exe_count, 12),
+                    (exe_count, 7),
+                    (note, 12),
                 ]
             )
+        if dup_count:
+            ui.blank()
+            ui.status_line(
+                "warn",
+                f"{dup_count} duplicate PATH entr{'ies' if dup_count != 1 else 'y'} "
+                "found — consider cleaning up your PATH",
+                "yellow",
+            )
+
+    # ── Related Scripts ──
+    if show_all:
+        ui.section("Related Scripts")
+        ui.info_line(
+            "Other scripts in this repo that expand on environment information."
+        )
+        ui.info_line("Source: simple-python-boilerplate template (scripts/ directory)")
+        ui.blank()
+        ui.info_line(
+            f"  {c.cyan('python scripts/check_python_support.py')}"
+            "  — Full Python version consistency analysis"
+        )
+        ui.info_line(
+            f"  {c.cyan('python scripts/dep_versions.py show')}"
+            "          — Project dependency versions and update status"
+        )
+        ui.info_line(
+            f"  {c.cyan('python scripts/env_doctor.py')}"
+            "               — Quick environment health check"
+        )
+        ui.info_line(
+            f"  {c.cyan('python scripts/doctor.py')}"
+            "                   — Full diagnostics bundle for bug reports"
+        )
 
     ui.blank()
     ui.separator(double=True)
@@ -479,7 +653,16 @@ def main() -> int:
     )
     parser.add_argument(
         "--section",
-        choices=["python", "git", "venv", "packages", "entrypoints", "path"],
+        choices=[
+            "python",
+            "git",
+            "venv",
+            "packages",
+            "entrypoints",
+            "build-tools",
+            "python-support",
+            "path",
+        ],
         help="Only show a specific section",
     )
     parser.add_argument(
@@ -503,7 +686,15 @@ def main() -> int:
     check_updates = not args.quiet and (
         args.section is None or args.section == "packages"
     )
-    info = gather_env_info(check_updates=check_updates)
+
+    with Spinner("Gathering environment info", color="cyan") as spin:
+        spin.update("Python info")
+        info = gather_env_info(check_updates=check_updates)
+        spin.update("Build tools")
+        info["build_tools"] = _detect_build_tools()
+        spin.update("Python support")
+        info["python_support"] = _check_python_support_summary()
+
     elapsed = time.monotonic() - start
 
     if args.json_output:

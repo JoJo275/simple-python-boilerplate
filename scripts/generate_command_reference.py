@@ -124,12 +124,13 @@ def _run(cmd: list[str], *, timeout: int = 30) -> str | None:
         result = subprocess.run(  # nosec B603
             cmd,
             capture_output=True,
-            text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             cwd=str(ROOT),
         )
         return result.stdout.strip() if result.returncode == 0 else None
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, UnicodeDecodeError):
         return None
 
 
@@ -139,7 +140,8 @@ def _run_combined(cmd: list[str], *, timeout: int = 30) -> str | None:
         result = subprocess.run(  # nosec B603
             cmd,
             capture_output=True,
-            text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
             cwd=str(ROOT),
         )
@@ -147,7 +149,7 @@ def _run_combined(cmd: list[str], *, timeout: int = 30) -> str | None:
         # and some print to stdout. Combine both.
         combined = (result.stdout + "\n" + result.stderr).strip()
         return combined if combined else None
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError, UnicodeDecodeError):
         return None
 
 
@@ -507,6 +509,10 @@ def main() -> int:
     content = _generate()
 
     if args.dry_run:
+        # Reconfigure stdout for UTF-8 on Windows to handle hatch's
+        # box-drawing characters and other non-ASCII content.
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         print(content)
         return 0
 
