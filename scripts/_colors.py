@@ -83,7 +83,7 @@ def _enable_windows_ansi() -> bool:
         STD_OUTPUT_HANDLE = -11
         ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
 
-        kernel32 = ctypes.windll.kernel32  # type: ignore[union-attr]
+        kernel32 = ctypes.windll.kernel32
         handle = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
         if handle == -1:
             _win_vt_enabled = False

@@ -28,6 +28,7 @@ Usage::
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import ClassVar
 
 from _colors import Colors, supports_unicode, unicode_symbols
@@ -156,7 +157,8 @@ class UI:
 
     def _themed(self, text: str) -> str:
         """Apply the theme color to *text*."""
-        return getattr(self.c, self._accent)(text)
+        fn: Callable[[str], str] = getattr(self.c, self._accent)
+        return fn(text)
 
     # ── Layout elements ────────────────────────────────────────
 
@@ -352,7 +354,7 @@ class UI:
             preamble: Short description shown under the heading.
         """
         self.section(heading)
-        print(f"    {self.c.bold(preamble)}")
+        print(f"    {self.c.green(self.c.bold(preamble))}")
         print()
         print(
             f"    {self.c.dim('Source:')} {self.c.cyan('simple-python-boilerplate')}"
@@ -365,11 +367,12 @@ class UI:
         print(f"    {self.c.dim('Location:')} scripts/ directory")
         print()
         print(
-            f"    {self.c.dim('These scripts may already exist in this repo if it was')}"
+            f"    {self.c.yellow('These scripts may already exist in this repo if it was')}"
         )
-        print(f"    {self.c.dim('forked from or based on the source.')}")
+        print(f"    {self.c.yellow('forked from or based on the source.')}")
+        print()
         print(
-            f"    {self.c.dim('If not, visit the source repo by JoJo275 to obtain them.')}"
+            f"    {self.c.yellow('If not, visit the source repo by JoJo275 to obtain them.')}"
         )
         print()
         for key in keys:
@@ -377,5 +380,5 @@ class UI:
             if entry is None:
                 continue
             cmd, desc = entry
-            print(f"      {self.c.cyan(cmd)}")
-            print(f"        {self.c.dim(desc)}")
+            print(f"      {self.c.yellow(desc)}")
+            print(f"        {self.c.cyan(cmd)}")

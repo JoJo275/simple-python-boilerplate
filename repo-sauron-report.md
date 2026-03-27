@@ -2,16 +2,16 @@
 
 > *The all-seeing eye peers into every corner of your repository.*
 >
-> **Generated:** 2026-03-26 21:26:14 UTC
+> **Generated:** 2026-03-27 14:19:32 UTC
 > **Version:** 2.0.0
 > **Branch:** `wip/2026-03-26-scratch`
 
-![files](https://img.shields.io/badge/files-321-blue)
+![files](https://img.shields.io/badge/files-322-blue)
 ![size](https://img.shields.io/badge/size-3.3%20MB-green)
-![commits](https://img.shields.io/badge/commits-826-orange)
+![commits](https://img.shields.io/badge/commits-828-orange)
 ![contributors](https://img.shields.io/badge/contributors-5-purple)
-![code files](https://img.shields.io/badge/code%20files-83-brightgreen)
-![script files](https://img.shields.io/badge/script%20files-83-yellow)
+![code files](https://img.shields.io/badge/code%20files-84-brightgreen)
+![script files](https://img.shields.io/badge/script%20files-84-yellow)
 
 ---
 
@@ -39,15 +39,15 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total files** | 321 |
+| **Total files** | 322 |
 | **Total directories** | 39 |
 | **Total size** | 3.3 MB |
-| **Avg file size** | 10.5 KB |
-| **Code files** | 83 |
-| **Script files** | 83 |
-| **Avg directory size** | 80.0 KB (32 dirs) |
-| **Total lines (text)** | 79,385 |
-| **Total commits** | 826 |
+| **Avg file size** | 10.6 KB |
+| **Code files** | 84 |
+| **Script files** | 84 |
+| **Avg directory size** | 81.1 KB (32 dirs) |
+| **Total lines (text)** | 80,364 |
+| **Total commits** | 828 |
 
 ---
 
@@ -313,6 +313,7 @@ simple-python-boilerplate/
 │   │   ├── test_repo_links.py
 │   │   ├── test_test_containerfile.py
 │   │   ├── test_test_docker_compose.py
+│   │   ├── test_ui.py
 │   │   ├── test_version.py
 │   │   └── test_workflow_versions.py
 │   ├── .instructions.md
@@ -371,8 +372,8 @@ simple-python-boilerplate/
 
 | Extension         | Files | Lines  |
 | ----------------- | ----: | -----: |
-| `.md`             |   133 | 33,824 |
-| `.py`             |    80 | 32,882 |
+| `.md`             |   133 | 33,872 |
+| `.py`             |    81 | 33,813 |
 | `.yml`            |    56 |  8,489 |
 | `(no ext)`        |    11 |      — |
 | `.toml`           |     9 |  2,143 |
@@ -395,8 +396,8 @@ simple-python-boilerplate/
 
 | Language       | Files | Lines  | %     |
 | -------------- | ----: | -----: | ----: |
-| **Markdown**   |   133 | 33,824 | 43.9% |
-| **Python**     |    80 | 32,882 | 26.4% |
+| **Markdown**   |   133 | 33,872 | 43.8% |
+| **Python**     |    81 | 33,813 | 26.6% |
 | **YAML**       |    58 |  8,959 | 19.1% |
 | **TOML**       |     9 |  2,143 |  3.0% |
 | **SQL**        |     9 |    333 |  3.0% |
@@ -406,8 +407,8 @@ simple-python-boilerplate/
 | **Dockerfile** |     1 |      — |  0.3% |
 
 ```diff
-+ Markdown             █████████████████████ 43.9%
-+ Python               █████████████ 26.4%
++ Markdown             █████████████████████ 43.8%
++ Python               █████████████ 26.6%
 + YAML                 █████████ 19.1%
 + TOML                 █ 3.0%
 + SQL                  █ 3.0%
@@ -429,23 +430,23 @@ simple-python-boilerplate/
 
 | File                                        | Commits | Last Commit |
 | ------------------------------------------- | ------: | ----------- |
-| `scripts/git_doctor.py`                     |      39 | 2026-03-26  |
-| `scripts/workflow_versions.py`              |      26 | 2026-03-26  |
+| `scripts/git_doctor.py`                     |      41 | 2026-03-26  |
+| `scripts/workflow_versions.py`              |      27 | 2026-03-26  |
 | `scripts/apply_labels.py`                   |      22 | 2026-03-26  |
-| `scripts/dep_versions.py`                   |      19 | 2026-03-26  |
-| `scripts/bootstrap.py`                      |      19 | 2026-03-26  |
-| `scripts/env_doctor.py`                     |      18 | 2026-03-26  |
-| `scripts/customize.py`                      |      18 | 2026-03-26  |
-| `scripts/repo_doctor.py`                    |      17 | 2026-03-26  |
+| `scripts/bootstrap.py`                      |      21 | 2026-03-26  |
+| `scripts/dep_versions.py`                   |      21 | 2026-03-26  |
+| `scripts/customize.py`                      |      20 | 2026-03-26  |
+| `scripts/env_doctor.py`                     |      19 | 2026-03-26  |
+| `scripts/repo_doctor.py`                    |      18 | 2026-03-26  |
 | `scripts/clean.py`                          |      17 | 2026-03-26  |
 | `scripts/generate_command_reference.py`     |      15 | 2026-03-26  |
 | `scripts/doctor.py`                         |      15 | 2026-03-26  |
 | `scripts/check_todos.py`                    |      13 | 2026-03-26  |
 | `src/simple_python_boilerplate/__init__.py` |      12 | 2026-03-19  |
+| `scripts/_progress.py`                      |      11 | 2026-03-26  |
 | `scripts/changelog_check.py`                |      11 | 2026-03-26  |
 | `scripts/check_known_issues.py`             |      11 | 2026-03-26  |
 | `scripts/archive_todos.py`                  |      10 | 2026-03-26  |
-| `scripts/_progress.py`                      |       9 | 2026-03-09  |
 | `scripts/test_containerfile.py`             |       8 | 2026-03-26  |
 | `scripts/test_docker_compose.py`            |       8 | 2026-03-26  |
 | `tests/unit/test_workflow_versions.py`      |       8 | 2026-03-19  |
@@ -454,23 +455,23 @@ simple-python-boilerplate/
 
 | Script                                      | Commits | Last Commit |
 | ------------------------------------------- | ------: | ----------- |
-| `scripts/git_doctor.py`                     |      39 | 2026-03-26  |
-| `scripts/workflow_versions.py`              |      26 | 2026-03-26  |
+| `scripts/git_doctor.py`                     |      41 | 2026-03-26  |
+| `scripts/workflow_versions.py`              |      27 | 2026-03-26  |
 | `scripts/apply_labels.py`                   |      22 | 2026-03-26  |
-| `scripts/dep_versions.py`                   |      19 | 2026-03-26  |
-| `scripts/bootstrap.py`                      |      19 | 2026-03-26  |
-| `scripts/env_doctor.py`                     |      18 | 2026-03-26  |
-| `scripts/customize.py`                      |      18 | 2026-03-26  |
-| `scripts/repo_doctor.py`                    |      17 | 2026-03-26  |
+| `scripts/bootstrap.py`                      |      21 | 2026-03-26  |
+| `scripts/dep_versions.py`                   |      21 | 2026-03-26  |
+| `scripts/customize.py`                      |      20 | 2026-03-26  |
+| `scripts/env_doctor.py`                     |      19 | 2026-03-26  |
+| `scripts/repo_doctor.py`                    |      18 | 2026-03-26  |
 | `scripts/clean.py`                          |      17 | 2026-03-26  |
 | `scripts/generate_command_reference.py`     |      15 | 2026-03-26  |
 | `scripts/doctor.py`                         |      15 | 2026-03-26  |
 | `scripts/check_todos.py`                    |      13 | 2026-03-26  |
 | `src/simple_python_boilerplate/__init__.py` |      12 | 2026-03-19  |
+| `scripts/_progress.py`                      |      11 | 2026-03-26  |
 | `scripts/changelog_check.py`                |      11 | 2026-03-26  |
 | `scripts/check_known_issues.py`             |      11 | 2026-03-26  |
 | `scripts/archive_todos.py`                  |      10 | 2026-03-26  |
-| `scripts/_progress.py`                      |       9 | 2026-03-09  |
 | `scripts/test_containerfile.py`             |       8 | 2026-03-26  |
 | `scripts/test_docker_compose.py`            |       8 | 2026-03-26  |
 | `tests/unit/test_workflow_versions.py`      |       8 | 2026-03-19  |
@@ -486,9 +487,9 @@ simple-python-boilerplate/
 
 | Directory                                         | Size     | Files |
 | ------------------------------------------------- | -------: | ----: |
-| `scripts/`                                        | 729.6 KB |    31 |
+| `scripts/`                                        | 754.8 KB |    31 |
 | `docs\notes/`                                     | 433.0 KB |     9 |
-| `tests\unit/`                                     | 332.6 KB |    33 |
+| `tests\unit/`                                     | 339.9 KB |    34 |
 | `docs/`                                           | 246.1 KB |    12 |
 | `docs\adr/`                                       | 205.6 KB |    43 |
 | `docs\development/`                               |  99.7 KB |     7 |
@@ -530,17 +531,17 @@ simple-python-boilerplate/
 | File                                   | Size     |
 | -------------------------------------- | -------: |
 | `docs\notes\learning.md`               | 322.5 KB |
-| `scripts\git_doctor.py`                | 238.4 KB |
+| `scripts\git_doctor.py`                | 236.9 KB |
+| `scripts\customize.py`                 |  90.2 KB |
 | `git-config-reference.md`              |  87.1 KB |
 | `docs\USING_THIS_TEMPLATE.md`          |  85.4 KB |
 | `repo-sauron-report.md`                |  69.9 KB |
-| `scripts\customize.py`                 |  67.8 KB |
 | `.coverage`                            |  52.0 KB |
 | `CHANGELOG.md`                         |  51.7 KB |
-| `scripts\workflow_versions.py`         |  49.7 KB |
+| `scripts\workflow_versions.py`         |  48.5 KB |
 | `docs\development\branch-workflows.md` |  47.4 KB |
 | `docs\releasing.md`                    |  46.0 KB |
-| `scripts\env_doctor.py`                |  43.7 KB |
+| `scripts\env_doctor.py`                |  42.8 KB |
 | `tests\unit\test_workflow_versions.py` |  42.8 KB |
 | `docs\reference\commands.md`           |  41.5 KB |
 | `docs\design\tool-decisions.md`        |  37.9 KB |
@@ -558,57 +559,57 @@ simple-python-boilerplate/
 
 | File                                                  | Last Accessed           |
 | ----------------------------------------------------- | ----------------------- |
-| `.gitattributes`                                      | 2026-03-26 21:26:13 UTC |
-| `var\README.md`                                       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\__init__.py`                              | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_test_docker_compose.py`              | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_version.py`                          | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_workflow_versions.py`                | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_repo_links.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_test_containerfile.py`               | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_progress.py`                         | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_repo_doctor.py`                      | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_include_templates.py`                | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_init_fallback.py`                    | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_main_entry.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_git_doctor.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_imports.py`                          | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_generate_commands.py`                | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_generate_command_reference.py`       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_doctor_common.py`                    | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_env_doctor.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_example.py`                          | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_dep_versions.py`                     | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_doctor.py`                           | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_customize.py`                        | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_customize_interactive.py`            | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_clean.py`                            | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_colors.py`                           | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_check_known_issues.py`               | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_check_nul_bytes.py`                  | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_check_todos.py`                      | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_bootstrap.py`                        | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_changelog_check.py`                  | 2026-03-26 21:26:13 UTC |
-| `tests\unit\conftest.py`                              | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_api.py`                              | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_apply_labels.py`                     | 2026-03-26 21:26:13 UTC |
-| `tests\unit\test_archive_todos.py`                    | 2026-03-26 21:26:13 UTC |
-| `tests\integration\sql\README.md`                     | 2026-03-26 21:26:13 UTC |
-| `tests\integration\sql\setup_test_db.sql`             | 2026-03-26 21:26:13 UTC |
-| `tests\integration\sql\teardown_test_db.sql`          | 2026-03-26 21:26:13 UTC |
-| `tests\integration\test_db_example.py`                | 2026-03-26 21:26:13 UTC |
-| `tests\integration\__init__.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\integration\conftest.py`                       | 2026-03-26 21:26:13 UTC |
-| `tests\integration\test_cli_smoke.py`                 | 2026-03-26 21:26:13 UTC |
-| `tests\README.md`                                     | 2026-03-26 21:26:13 UTC |
-| `tests\conftest.py`                                   | 2026-03-26 21:26:13 UTC |
-| `src\simple_python_boilerplate\sql\__init__.py`       | 2026-03-26 21:26:13 UTC |
-| `tests\.instructions.md`                              | 2026-03-26 21:26:13 UTC |
-| `src\simple_python_boilerplate\sql\example_query.sql` | 2026-03-26 21:26:13 UTC |
-| `src\simple_python_boilerplate\sql\README.md`         | 2026-03-26 21:26:13 UTC |
-| `src\simple_python_boilerplate\dev_tools\__init__.py` | 2026-03-26 21:26:13 UTC |
-| `src\simple_python_boilerplate\_version.py`           | 2026-03-26 21:26:13 UTC |
-| *... and 271 more files*                              |                         |
+| `.gitattributes`                                      | 2026-03-27 14:19:31 UTC |
+| `var\README.md`                                       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\__init__.py`                              | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_workflow_versions.py`                | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_version.py`                          | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_ui.py`                               | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_test_docker_compose.py`              | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_test_containerfile.py`               | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_repo_links.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_repo_doctor.py`                      | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_progress.py`                         | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_main_entry.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_init_fallback.py`                    | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_include_templates.py`                | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_imports.py`                          | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_git_doctor.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_generate_command_reference.py`       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_generate_commands.py`                | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_example.py`                          | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_env_doctor.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_doctor_common.py`                    | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_doctor.py`                           | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_dep_versions.py`                     | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_customize_interactive.py`            | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_customize.py`                        | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_colors.py`                           | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_clean.py`                            | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_check_todos.py`                      | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_check_nul_bytes.py`                  | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_check_known_issues.py`               | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_changelog_check.py`                  | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_bootstrap.py`                        | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_archive_todos.py`                    | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_apply_labels.py`                     | 2026-03-27 14:19:31 UTC |
+| `tests\unit\test_api.py`                              | 2026-03-27 14:19:31 UTC |
+| `tests\unit\conftest.py`                              | 2026-03-27 14:19:31 UTC |
+| `tests\integration\sql\teardown_test_db.sql`          | 2026-03-27 14:19:31 UTC |
+| `tests\integration\sql\setup_test_db.sql`             | 2026-03-27 14:19:31 UTC |
+| `tests\integration\sql\README.md`                     | 2026-03-27 14:19:31 UTC |
+| `tests\integration\__init__.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\integration\test_db_example.py`                | 2026-03-27 14:19:31 UTC |
+| `tests\integration\test_cli_smoke.py`                 | 2026-03-27 14:19:31 UTC |
+| `tests\integration\conftest.py`                       | 2026-03-27 14:19:31 UTC |
+| `tests\README.md`                                     | 2026-03-27 14:19:31 UTC |
+| `tests\conftest.py`                                   | 2026-03-27 14:19:31 UTC |
+| `tests\.instructions.md`                              | 2026-03-27 14:19:31 UTC |
+| `src\simple_python_boilerplate\sql\__init__.py`       | 2026-03-27 14:19:31 UTC |
+| `src\simple_python_boilerplate\sql\README.md`         | 2026-03-27 14:19:31 UTC |
+| `src\simple_python_boilerplate\sql\example_query.sql` | 2026-03-27 14:19:31 UTC |
+| `src\simple_python_boilerplate\dev_tools\__init__.py` | 2026-03-27 14:19:31 UTC |
+| *... and 272 more files*                              |                         |
 
 </details>
 
@@ -618,7 +619,7 @@ simple-python-boilerplate/
 
 | Metric             | Value                                                      |
 | ------------------ | ---------------------------------------------------------- |
-| **Total commits**  | 826                                                        |
+| **Total commits**  | 828                                                        |
 | **Contributors**   | 5                                                          |
 | **Branches**       | 3                                                          |
 | **Tags**           | 6                                                          |
@@ -640,17 +641,17 @@ simple-python-boilerplate/
 | File                                                                 | Commits | Last Commit |
 | -------------------------------------------------------------------- | ------: | ----------- |
 | `docs/notes/todo.md`                                                 |     121 | 2026-03-19  |
-| `README.md`                                                          |      80 | 2026-03-26  |
+| `README.md`                                                          |      81 | 2026-03-26  |
+| `.github/copilot-instructions.md`                                    |      61 | 2026-03-26  |
 | `docs/notes/learning.md`                                             |      60 | 2026-03-26  |
-| `.github/copilot-instructions.md`                                    |      59 | 2026-03-26  |
 | `pyproject.toml`                                                     |      57 | 2026-03-18  |
-| `docs/USING_THIS_TEMPLATE.md`                                        |      55 | 2026-03-26  |
+| `docs/USING_THIS_TEMPLATE.md`                                        |      56 | 2026-03-26  |
 | `.github/ISSUE_TEMPLATE/bug_report.yml`                              |      49 | 2026-03-03  |
-| `scripts/git_doctor.py`                                              |      39 | 2026-03-26  |
+| `scripts/git_doctor.py`                                              |      41 | 2026-03-26  |
 | `.pre-commit-config.yaml`                                            |      37 | 2026-03-26  |
 | `Taskfile.yml`                                                       |      31 | 2026-03-26  |
-| `scripts/README.md`                                                  |      27 | 2026-03-26  |
-| `scripts/workflow_versions.py`                                       |      26 | 2026-03-26  |
+| `scripts/README.md`                                                  |      28 | 2026-03-26  |
+| `scripts/workflow_versions.py`                                       |      27 | 2026-03-26  |
 | `docs/workflows.md`                                                  |      25 | 2026-03-18  |
 | `.github/ISSUE_TEMPLATE/bug_report.md`                               |      25 | 2026-02-17  |
 | `.github/workflows/release.yml`                                      |      24 | 2026-03-18  |
@@ -658,17 +659,17 @@ simple-python-boilerplate/
 | `scripts/apply_labels.py`                                            |      22 | 2026-03-26  |
 | `SECURITY.md`                                                        |      22 | 2026-03-18  |
 | `.gitignore`                                                         |      22 | 2026-03-11  |
+| `scripts/bootstrap.py`                                               |      21 | 2026-03-26  |
+| `scripts/dep_versions.py`                                            |      21 | 2026-03-26  |
 | `docs/adr/README.md`                                                 |      21 | 2026-03-18  |
+| `scripts/customize.py`                                               |      20 | 2026-03-26  |
 | `docs/design/architecture.md`                                        |      20 | 2026-03-26  |
 | `docs/templates/pull-request-draft.md`                               |      20 | 2026-03-18  |
-| `scripts/dep_versions.py`                                            |      19 | 2026-03-26  |
-| `scripts/bootstrap.py`                                               |      19 | 2026-03-26  |
+| `scripts/env_doctor.py`                                              |      19 | 2026-03-26  |
 | `mkdocs.yml`                                                         |      19 | 2026-03-13  |
-| `scripts/env_doctor.py`                                              |      18 | 2026-03-26  |
-| `scripts/customize.py`                                               |      18 | 2026-03-26  |
+| `scripts/repo_doctor.py`                                             |      18 | 2026-03-26  |
 | `docs/labels.md`                                                     |      18 | 2026-03-18  |
 | `CONTRIBUTING.md`                                                    |      18 | 2026-03-02  |
-| `scripts/repo_doctor.py`                                             |      17 | 2026-03-26  |
 | `.github/workflows/pre-commit-update.yml`                            |      17 | 2026-03-26  |
 | `scripts/clean.py`                                                   |      17 | 2026-03-26  |
 | `.github/workflows/security-audit.yml`                               |      16 | 2026-03-02  |
@@ -678,6 +679,7 @@ simple-python-boilerplate/
 | `.github/ISSUE_TEMPLATE/feature_request.yml`                         |      15 | 2026-03-03  |
 | `.github/workflows/spellcheck.yml`                                   |      15 | 2026-03-02  |
 | `.github/workflows/codeql.yml`                                       |      15 | 2026-02-24  |
+| `docs/development/development.md`                                    |      14 | 2026-03-26  |
 | `.github/workflows/stale.yml`                                        |      14 | 2026-03-18  |
 | `docs/development/developer-commands.md`                             |      14 | 2026-03-18  |
 | `simple-python-boilerplate.code-workspace`                           |      14 | 2026-03-18  |
@@ -686,7 +688,6 @@ simple-python-boilerplate/
 | `.github/workflows/spellcheck-autofix.yml`                           |      14 | 2026-03-02  |
 | `.github/ISSUE_TEMPLATE/config.yml`                                  |      14 | 2026-01-29  |
 | `scripts/check_todos.py`                                             |      13 | 2026-03-26  |
-| `docs/development/development.md`                                    |      13 | 2026-03-26  |
 | `docs/index.md`                                                      |      13 | 2026-03-26  |
 | `.github/workflows/container-build.yml`                              |      13 | 2026-03-18  |
 | `.github/workflows/container-scan.yml`                               |      13 | 2026-03-18  |
@@ -700,6 +701,7 @@ simple-python-boilerplate/
 | `docs/development/pull-requests.md`                                  |      12 | 2026-03-18  |
 | `git-config-reference.md`                                            |      12 | 2026-03-18  |
 | `.github/workflows/bandit.yml`                                       |      12 | 2026-02-24  |
+| `scripts/_progress.py`                                               |      11 | 2026-03-26  |
 | `scripts/changelog_check.py`                                         |      11 | 2026-03-26  |
 | `scripts/check_known_issues.py`                                      |      11 | 2026-03-26  |
 | `CHANGELOG.md`                                                       |      11 | 2026-03-19  |
@@ -716,13 +718,13 @@ simple-python-boilerplate/
 | `.github/ISSUE_TEMPLATE/documentation.yml`                           |      10 | 2026-03-03  |
 | `.github/workflows/labeler.yml`                                      |      10 | 2026-02-24  |
 | `.github/ISSUE_TEMPLATE/question.yml`                                |      10 | 2026-01-29  |
+| `docs/guide/troubleshooting.md`                                      |       9 | 2026-03-26  |
 | `docs/development/command-workflows.md`                              |       9 | 2026-03-18  |
 | `Containerfile`                                                      |       9 | 2026-03-17  |
-| `scripts/_progress.py`                                               |       9 | 2026-03-09  |
 | `.github/workflows/ci-gate.yml`                                      |       9 | 2026-03-02  |
 | `docs/design/tool-decisions.md`                                      |       9 | 2026-02-28  |
 | `.github/ISSUE_TEMPLATE/design_proposal.yml`                         |       9 | 2026-02-17  |
-| `docs/guide/troubleshooting.md`                                      |       8 | 2026-03-26  |
+| `docs/adr/008-pre-commit-hooks.md`                                   |       8 | 2026-03-26  |
 | `scripts/test_containerfile.py`                                      |       8 | 2026-03-26  |
 | `scripts/test_docker_compose.py`                                     |       8 | 2026-03-26  |
 | `tests/unit/test_workflow_versions.py`                               |       8 | 2026-03-19  |
@@ -733,7 +735,6 @@ simple-python-boilerplate/
 | `.repo-doctor.toml`                                                  |       8 | 2026-03-02  |
 | `.github/ISSUE_TEMPLATE/question.md`                                 |       8 | 2026-02-17  |
 | `docs/reference/commands.md`                                         |       7 | 2026-03-26  |
-| `docs/adr/008-pre-commit-hooks.md`                                   |       7 | 2026-03-26  |
 | `.release-please-manifest.json`                                      |       7 | 2026-03-19  |
 | `.github/workflows/pr-title.yml`                                     |       7 | 2026-03-19  |
 | `.github/workflows/docs-deploy.yml`                                  |       7 | 2026-03-18  |
@@ -750,6 +751,7 @@ simple-python-boilerplate/
 | `docs/examples/SECURITY_with_bounty.md`                              |       7 | 2026-02-03  |
 | `.github/workflows/ci.yml`                                           |       7 | 2026-01-30  |
 | `docs/development.md`                                                |       7 | 2026-01-27  |
+| `scripts/.instructions.md`                                           |       6 | 2026-03-26  |
 | `docs/adr/011-repository-guard-pattern.md`                           |       6 | 2026-03-18  |
 | `docs/development/README.md`                                         |       6 | 2026-03-18  |
 | `docs/development/branch-workflows.md`                               |       6 | 2026-03-18  |
@@ -771,7 +773,6 @@ simple-python-boilerplate/
 | `tests/unit_test.py`                                                 |       6 | 2026-02-22  |
 | `.github/workflows/_release.yml`                                     |       6 | 2026-02-10  |
 | `docs/examples/BUG_BOUNTY.md`                                        |       6 | 2026-01-28  |
-| `scripts/.instructions.md`                                           |       5 | 2026-03-26  |
 | `.github/workflows/release-please.yml`                               |       5 | 2026-03-18  |
 | `.github/workflows/auto-merge-dependabot.yml`                        |       5 | 2026-03-18  |
 | `.github/workflows/commit-lint.yml`                                  |       5 | 2026-03-18  |
@@ -808,6 +809,8 @@ simple-python-boilerplate/
 | `.github/ISSUE_TEMPLATE/refactor_request.yml`                        |       5 | 2026-01-29  |
 | `.github/ISSUE_TEMPLATE/test_failure.yml`                            |       5 | 2026-01-29  |
 | `LICENSE`                                                            |       5 | 2026-01-16  |
+| `scripts/env_inspect.py`                                             |       4 | 2026-03-26  |
+| `scripts/repo_sauron.py`                                             |       4 | 2026-03-26  |
 | `scripts/test_docker_compose.sh`                                     |       4 | 2026-03-19  |
 | `scripts/test_containerfile.sh`                                      |       4 | 2026-03-19  |
 | `.github/workflows/regenerate-files.yml`                             |       4 | 2026-03-18  |
@@ -837,8 +840,6 @@ simple-python-boilerplate/
 | `docs/adoption-checklist.md`                                         |       4 | 2026-02-05  |
 | `docs/examples/SECURITY_no_bounty.md`                                |       4 | 2026-02-03  |
 | `docs/dev-setup.md`                                                  |       4 | 2026-01-27  |
-| `scripts/env_inspect.py`                                             |       3 | 2026-03-26  |
-| `scripts/repo_sauron.py`                                             |       3 | 2026-03-26  |
 | `scripts/check_python_support.py`                                    |       3 | 2026-03-26  |
 | `.github/workflows/docs-build.yml`                                   |       3 | 2026-03-18  |
 | `.github/workflows/security-codeql.yml`                              |       3 | 2026-03-18  |
@@ -899,6 +900,8 @@ simple-python-boilerplate/
 | `.github/ISSUE_TEMPLATE/test_failure.md`                             |       3 | 2026-01-29  |
 | `.github/ISSUE_TEMPLATE/bug_report.yml.disabled`                     |       3 | 2026-01-29  |
 | `.github/ISSUE_TEMPLATE/general.yml`                                 |       3 | 2026-01-28  |
+| `scripts/_ui.py`                                                     |       2 | 2026-03-26  |
+| `repo-sauron-report.md`                                              |       2 | 2026-03-26  |
 | `tests/unit/test_test_containerfile.py`                              |       2 | 2026-03-19  |
 | `tests/unit/test_test_docker_compose.py`                             |       2 | 2026-03-19  |
 | `scripts/_container_common.py`                                       |       2 | 2026-03-19  |
@@ -1008,9 +1011,7 @@ simple-python-boilerplate/
 | `scripts/sql/scratch.sql`                                            |       2 | 2026-02-04  |
 | `.github/ISSUE_TEMPLATE/general.md`                                  |       2 | 2026-01-28  |
 | `src/project_name/__init__.py`                                       |       2 | 2026-01-15  |
-| `repo-sauron-report.md`                                              |       1 | 2026-03-26  |
 | `scripts/precommit/auto_chmod_scripts.py`                            |       1 | 2026-03-26  |
-| `scripts/_ui.py`                                                     |       1 | 2026-03-26  |
 | `scripts/precommit/check_local_imports.py`                           |       1 | 2026-03-26  |
 | `docs/adr/040-v1-release-readiness.md`                               |       1 | 2026-03-18  |
 | `docs/adr/036-diagnostic-tooling-strategy.md`                        |       1 | 2026-03-16  |
@@ -1070,7 +1071,7 @@ simple-python-boilerplate/
 
 | Contributor              | Commits |
 | ------------------------ | ------: |
-| **Joseph**               |     808 |
+| **Joseph**               |     810 |
 | **dependabot[bot]**      |      11 |
 | **github-actions[bot]**  |       3 |
 | **spb-release-bot[bot]** |       3 |
@@ -1102,4 +1103,4 @@ simple-python-boilerplate/
 
 ---
 
-<sub>Generated by <strong>repo_sauron.py</strong> v2.0.0 — the all-seeing eye &bull; 2026-03-26 21:26:14 UTC</sub>
+<sub>Generated by <strong>repo_sauron.py</strong> v2.0.0 — the all-seeing eye &bull; 2026-03-27 14:19:32 UTC</sub>
