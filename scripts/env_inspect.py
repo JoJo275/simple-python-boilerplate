@@ -430,6 +430,9 @@ def print_env_info(
         no_color=no_color,
     )
     ui.header()
+    ui.blank()
+    ui.info_line("Comprehensive snapshot of your development environment.")
+    ui.info_line("Use --section <name> to focus on a single area, or --json for CI.")
 
     show_all = section is None
 
@@ -437,6 +440,7 @@ def print_env_info(
     if show_all or section == "python":
         py = info["python"]
         ui.section("Python")
+        ui.blank()
         ui.info_line(
             "Core Python runtime info. Verify the version matches your project's"
         )
@@ -470,6 +474,7 @@ def print_env_info(
     if show_all or section == "git":
         git = info["git"]
         ui.section("Git")
+        ui.blank()
         ui.info_line("Git is required for version control and hatch-vcs versioning.")
         ui.blank()
         if git["available"]:
@@ -482,10 +487,10 @@ def print_env_info(
     if show_all or section == "venv":
         py = info["python"]
         ui.section("Virtual Environment")
-        ui.info_line(
-            "Shows whether you're inside a virtual environment. "
-            "Working inside a venv prevents polluting the global Python."
-        )
+        ui.blank()
+        ui.info_line("Shows whether you're inside a virtual environment.")
+        ui.info_line("Working inside a venv prevents polluting the global Python.")
+        ui.blank()
         # Detect workflow tool dynamically
         hatch_info = info.get("hatch")
         env_cmd = "hatch shell" if hatch_info else "your env manager's shell command"
@@ -495,18 +500,24 @@ def print_env_info(
             ui.kv("Base prefix", py["base_prefix"])
         else:
             ui.kv("Status", c.yellow("Not in a virtualenv"))
+            ui.blank()
             ui.info_line(f"Run '{env_cmd}' to enter the dev environment.")
 
     # ── Hatch / Build System ──
     if show_all and info.get("hatch"):
         hatch = info["hatch"]
         ui.section("Hatch")
-        ui.info_line(
-            "Hatch manages environments and builds. "
-            "Use 'hatch shell' to enter the dev environment."
+        ui.blank()
+        ui.info_line("Hatch manages environments and builds.")
+        print(
+            f"    {c.dim('Use')}"
+            f" {ui._command_styled('hatch shell')}"
+            f" {c.dim('to enter the dev environment.')}"
         )
+        ui.blank()
         ui.kv("Version", hatch.get("version", "unknown"))
         ui.kv("Path", hatch.get("path", "unknown"))
+        ui.blank()
         # Show build backend dynamically
         build_backend = info.get("build_backend", "")
         if build_backend:
@@ -520,18 +531,23 @@ def print_env_info(
         packages = info["packages"]
         outdated = info.get("outdated", {})
         ui.section(f"Installed Packages ({len(packages)})")
+        ui.blank()
+        ui.info_line("All packages in the current environment. Outdated packages")
         ui.info_line(
-            "All packages in the current environment. Outdated packages "
-            "may need upgrading — run 'python scripts/dep_versions.py' for details."
+            "may need upgrading. Run "
+            + ui._command_styled("python scripts/dep_versions.py")
+            + c.dim(" for details.")
         )
+        ui.blank()
 
         ui.table_header(
             [
                 ("Package", 30),
-                ("Version", 12),
-                ("Latest", 12),
+                ("Version", 16),
+                ("Latest", 14),
                 ("Status", 10),
-            ]
+            ],
+            themed=True,
         )
 
         for pkg in packages:
@@ -547,11 +563,15 @@ def print_env_info(
                 status = c.green("ok") if ver else c.dim("-")
                 name_col = name
 
+            # Truncate long version strings to prevent overlap
+            ver_display = ver if len(ver) <= 15 else ver[:12] + "..."
+            latest_display = latest if len(latest) <= 13 else latest[:10] + "..."
+
             ui.table_row(
                 [
                     (name_col, 30),
-                    (ver, 12),
-                    (latest or c.dim("-"), 12),
+                    (ver_display, 16),
+                    (latest_display or c.dim("-"), 14),
                     (status, 10),
                 ]
             )
@@ -567,18 +587,28 @@ def print_env_info(
     if show_all or section == "entrypoints":
         eps = info["entry_points"]
         ui.section(f"Entry Points ({len(eps)})")
+        ui.blank()
         ui.info_line("Console commands registered by installed packages. These are")
         ui.info_line("the CLI tools available in your environment. If your package")
         ui.info_line("defines [project.scripts] in pyproject.toml, its commands")
         ui.info_line("appear here after installation.")
         ui.blank()
         if eps:
-            ui.table_header([("Command", 25), ("Target", 50)])
+            ui.table_header(
+                [("Command", 28), ("Target", 46)],
+                themed=True,
+            )
             for ep in eps:
+                name_display = ep["name"]
+                if len(name_display) > 27:
+                    name_display = name_display[:24] + "..."
+                target_display = ep["value"]
+                if len(target_display) > 45:
+                    target_display = target_display[:42] + "..."
                 ui.table_row(
                     [
-                        (c.cyan(ep["name"]), 25),
-                        (c.dim(ep["value"]), 50),
+                        (c.cyan(name_display), 28),
+                        (c.magenta(target_display), 46),
                     ]
                 )
         else:
@@ -588,15 +618,26 @@ def print_env_info(
     if show_all or section == "build-tools":
         build_tools = info.get("build_tools", [])
         ui.section(f"Build & Environment Tools ({len(build_tools)})")
+        ui.blank()
         ui.info_line("Build tools, environment managers, and package installers found")
         ui.info_line("on PATH. Verify the expected tool is available and up to date.")
+        ui.blank()
         if build_tools:
-            ui.table_header([("Tool", 16), ("Version", 16), ("Path", 40)])
+            ui.table_header(
+                [("Tool", 14), ("Version", 14), ("Path", 42)],
+                themed=True,
+            )
             for t in build_tools:
                 path_display = t["path"]
-                if len(path_display) > 40:
-                    path_display = "..." + path_display[-37:]
-                ui.table_row([(t["name"], 16), (t["version"], 16), (path_display, 40)])
+                if len(path_display) > 42:
+                    path_display = "..." + path_display[-39:]
+                ui.table_row(
+                    [
+                        (c.bold(t["name"]), 14),
+                        (t["version"], 14),
+                        (c.dim(path_display), 42),
+                    ]
+                )
         else:
             ui.info_line("No build/environment tools found on PATH.")
 
@@ -605,29 +646,51 @@ def print_env_info(
         py_support = info.get("python_support")
         if py_support is not None:
             ui.section("Python Version Support")
+            ui.blank()
             ui.info_line(
-                "Cross-checks pyproject.toml, classifiers, Hatch matrix, and CI matrix."
+                "Cross-checks pyproject.toml, classifiers, env manager matrix,"
             )
-            ui.info_line(
-                "Mismatches here can cause CI failures or user-facing compatibility issues."
-            )
+            ui.info_line("and CI matrix for version consistency.")
+            ui.blank()
+            ui.info_line("Mismatches here can cause CI failures or user-facing")
+            ui.info_line("compatibility issues.")
             ui.blank()
             sources = py_support.get("sources", {})
             if sources.get("requires-python"):
                 ui.kv("requires-python", sources["requires-python"])
+                ui.blank()
             if sources.get("classifiers"):
                 ui.kv("Classifiers", sources["classifiers"])
+                ui.blank()
+            # Show env manager matrix dynamically
+            if sources.get("hatch_matrix"):
+                ui.kv("Hatch matrix", sources["hatch_matrix"])
+                ui.blank()
+            if sources.get("tox_matrix"):
+                ui.kv("Tox matrix", sources["tox_matrix"])
+                ui.blank()
+            if sources.get("nox_matrix"):
+                ui.kv("Nox matrix", sources["nox_matrix"])
+                ui.blank()
+            if sources.get("ci_matrix"):
+                ui.kv("CI matrix", sources["ci_matrix"])
+                ui.blank()
             if py_support.get("code_min_version"):
                 ui.kv("Code min version", py_support["code_min_version"])
+                ui.blank()
             if py_support["ok"]:
                 ui.status_line("check", "All version sources consistent", "green")
             else:
                 for m in py_support.get("mismatches", []):
                     ui.status_line("cross", m, "red")
+            ui.blank()
             if not py_support.get("current_meets_minimum", True):
                 ui.status_line("warn", "Current Python does not meet minimum", "yellow")
-            ui.info_line(
-                "Run 'python scripts/check_python_support.py' for full analysis"
+                ui.blank()
+            print(
+                f"    {c.dim('Run')}"
+                f" {ui._command_styled('python scripts/check_python_support.py')}"
+                f" {c.dim('for full analysis')}"
             )
 
     # ── PATH ──
@@ -639,27 +702,44 @@ def print_env_info(
             label += f", {dup_count} duplicate{'s' if dup_count != 1 else ''}"
         label += ")"
         ui.section(label)
-        ui.info_line("Directories on your system PATH. Duplicates waste lookup time.")
-        ui.info_line("Directory: the path entry.  Exists: whether it's on disk.")
-        ui.info_line(
-            "Execs: number of executable files found.  Note: flags duplicates."
-        )
         ui.blank()
-        ui.table_header([("Directory", 45), ("Exists", 8), ("Execs", 7), ("Note", 14)])
+        ui.info_line("Directories on your system PATH. Duplicates waste lookup time.")
+        ui.blank()
+        print(f"    {ui._themed(c.bold('Directory:'))}")
+        ui.info_line("  the path entry")
+        ui.blank()
+        print(f"    {ui._themed(c.bold('Exists:'))}")
+        ui.info_line("  whether it's on disk")
+        ui.blank()
+        print(f"    {ui._themed(c.bold('Execs:'))}")
+        ui.info_line("  number of executable files found")
+        ui.blank()
+        print(f"    {ui._themed(c.bold('Note:'))}")
+        ui.info_line("  flags duplicates")
+        ui.blank()
+        ui.table_header(
+            [
+                ("Directory", 42),
+                ("Exists", 8),
+                ("Execs", 7),
+                ("Note", 12),
+            ],
+            themed=True,
+        )
         for d in path_dirs:
             exists_str = c.green("Yes") if d["exists"] else c.red("No")
             exe_count = str(d["executable_count"]) if d["exists"] else c.dim("-")
             note = c.yellow("(duplicate)") if d.get("duplicate") else ""
             # Truncate long paths
             path_display = d["path"]
-            if len(path_display) > 45:
-                path_display = "..." + path_display[-42:]
+            if len(path_display) > 42:
+                path_display = "..." + path_display[-39:]
             ui.table_row(
                 [
-                    (path_display, 45),
+                    (path_display, 42),
                     (exists_str, 8),
                     (exe_count, 7),
-                    (note, 14),
+                    (note, 12),
                 ]
             )
         if dup_count:
@@ -667,7 +747,7 @@ def print_env_info(
             ui.status_line(
                 "warn",
                 f"{dup_count} duplicate PATH entr{'ies' if dup_count != 1 else 'y'} "
-                "found — consider cleaning up your PATH",
+                "found -- consider cleaning up your PATH",
                 "yellow",
             )
 
