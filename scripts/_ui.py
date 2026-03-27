@@ -233,7 +233,7 @@ class UI:
         border = self.h_line * width
         print()
         print(self._themed(f"  {self.tl}{border}{self.tr}"))
-        print(f"  {self._themed(self.vl)} {self.c.bold(title)}")
+        print(f"  {self._themed(self.vl)} {self.c.bold(self._themed(title))}")
         print(self._themed(f"  {self.bl}{border}{self.br}"))
 
     def kv(
@@ -293,21 +293,28 @@ class UI:
     def table_header(
         self,
         columns: list[tuple[str, int]],
+        *,
+        themed: bool = False,
     ) -> None:
         """Print a table header row with underlines.
 
         Args:
             columns: List of ``(header_text, column_width)`` tuples.
+            themed: If True, apply the theme accent color to header text.
         """
         hdr_parts = []
         line_parts = []
         for i, (text, w) in enumerate(columns):
+            styled = self._themed(text) if themed else self.c.dim(text)
+            from _colors import strip_ansi
+
+            visible_len = len(strip_ansi(styled))
             if i < len(columns) - 1:
-                hdr_parts.append(self.c.dim(text.ljust(w)))
+                padding = max(w - visible_len, 0)
+                hdr_parts.append(styled + " " * padding)
                 line_parts.append(self.c.dim(self.h_line * w))
             else:
-                # Last column: no right-padding to avoid line wrapping
-                hdr_parts.append(self.c.dim(text))
+                hdr_parts.append(styled)
                 line_parts.append(self.c.dim(self.h_line * w))
         print(f"    {' '.join(hdr_parts)}")
         print(f"    {' '.join(line_parts)}")
