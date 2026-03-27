@@ -48,7 +48,7 @@ from _progress import Spinner
 
 log = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "2.0.0"
+SCRIPT_VERSION = "3.0.0"
 
 ROOT = find_repo_root()
 
@@ -141,6 +141,99 @@ _CODE_EXTENSIONS = {
 
 # Extensions considered "script" files specifically
 _SCRIPT_EXTENSIONS = {".py", ".sh", ".bash", ".zsh", ".ps1", ".rb", ".pl"}
+
+# Patterns for test files
+_TEST_DIRS = {"tests", "test", "spec"}
+_TEST_PREFIXES = ("test_", "conftest")
+_TEST_SUFFIXES = ("_test.py",)
+
+# Extensions considered "documentation" files
+_DOC_EXTENSIONS = {".md", ".rst", ".txt"}
+
+# Extensions considered "configuration" files
+_CONFIG_EXTENSIONS = {".toml", ".yml", ".yaml", ".json", ".cfg", ".ini", ".xml"}
+
+# Emoji icons for file extensions
+_EXT_TO_ICON: dict[str, str] = {
+    ".py": "\U0001f40d",
+    ".pyi": "\U0001f40d",
+    ".js": "\U0001f7e1",
+    ".ts": "\U0001f535",
+    ".jsx": "\U0001f7e1",
+    ".tsx": "\U0001f535",
+    ".html": "\U0001f310",
+    ".htm": "\U0001f310",
+    ".css": "\U0001f3a8",
+    ".scss": "\U0001f3a8",
+    ".less": "\U0001f3a8",
+    ".java": "\u2615",
+    ".kt": "\U0001f7e3",
+    ".go": "\U0001f535",
+    ".rs": "\U0001f980",
+    ".rb": "\U0001f48e",
+    ".php": "\U0001f418",
+    ".c": "\u2699\ufe0f",
+    ".h": "\u2699\ufe0f",
+    ".cpp": "\u2699\ufe0f",
+    ".cs": "\U0001f7e2",
+    ".swift": "\U0001f34e",
+    ".sh": "\U0001f41a",
+    ".bash": "\U0001f41a",
+    ".zsh": "\U0001f41a",
+    ".ps1": "\U0001f5a5\ufe0f",
+    ".sql": "\U0001f5c4\ufe0f",
+    ".r": "\U0001f4ca",
+    ".lua": "\U0001f319",
+    ".yml": "\u2699\ufe0f",
+    ".yaml": "\u2699\ufe0f",
+    ".toml": "\U0001f527",
+    ".json": "\U0001f4cb",
+    ".xml": "\U0001f4f0",
+    ".md": "\U0001f4dd",
+    ".rst": "\U0001f4dd",
+    ".txt": "\U0001f4c4",
+    ".cfg": "\U0001f527",
+    ".ini": "\U0001f527",
+    ".dockerfile": "\U0001f433",
+}
+
+# Emoji icons for languages
+_LANG_TO_ICON: dict[str, str] = {
+    "Python": "\U0001f40d",
+    "JavaScript": "\U0001f7e1",
+    "TypeScript": "\U0001f535",
+    "JavaScript (JSX)": "\U0001f7e1",
+    "TypeScript (TSX)": "\U0001f535",
+    "HTML": "\U0001f310",
+    "CSS": "\U0001f3a8",
+    "SCSS": "\U0001f3a8",
+    "Less": "\U0001f3a8",
+    "Java": "\u2615",
+    "Kotlin": "\U0001f7e3",
+    "Go": "\U0001f535",
+    "Rust": "\U0001f980",
+    "Ruby": "\U0001f48e",
+    "PHP": "\U0001f418",
+    "C": "\u2699\ufe0f",
+    "C/C++ Header": "\u2699\ufe0f",
+    "C++": "\u2699\ufe0f",
+    "C#": "\U0001f7e2",
+    "Swift": "\U0001f34e",
+    "Shell": "\U0001f41a",
+    "PowerShell": "\U0001f5a5\ufe0f",
+    "SQL": "\U0001f5c4\ufe0f",
+    "R": "\U0001f4ca",
+    "Lua": "\U0001f319",
+    "YAML": "\u2699\ufe0f",
+    "TOML": "\U0001f527",
+    "JSON": "\U0001f4cb",
+    "XML": "\U0001f4f0",
+    "Markdown": "\U0001f4dd",
+    "reStructuredText": "\U0001f4dd",
+    "Plain Text": "\U0001f4c4",
+    "Config": "\U0001f527",
+    "Dockerfile": "\U0001f433",
+}
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +330,11 @@ def _collect_file_stats() -> dict:
     largest_files: list[tuple[str, int]] = []
     code_file_count = 0
     script_file_count = 0
+    test_file_count = 0
+    doc_file_count = 0
+    config_file_count = 0
+    empty_file_count = 0
+    binary_file_count = 0
 
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [
@@ -266,6 +364,39 @@ def _collect_file_stats() -> dict:
                 code_file_count += 1
             if ext in _SCRIPT_EXTENSIONS:
                 script_file_count += 1
+            if ext in _DOC_EXTENSIONS:
+                doc_file_count += 1
+            if ext in _CONFIG_EXTENSIONS:
+                config_file_count += 1
+            if size == 0:
+                empty_file_count += 1
+
+            # Test file detection: in test dirs or matching test patterns
+            rel_parts = filepath.relative_to(ROOT).parts
+            fname_lower = fname.lower()
+            is_test = any(part in _TEST_DIRS for part in rel_parts)
+            is_test = is_test or any(fname_lower.startswith(p) for p in _TEST_PREFIXES)
+            is_test = is_test or any(fname_lower.endswith(s) for s in _TEST_SUFFIXES)
+            if is_test and ext == ".py":
+                test_file_count += 1
+
+            # Simple binary detection: non-text extensions
+            text_exts = {
+                *_CODE_EXTENSIONS,
+                *_DOC_EXTENSIONS,
+                *_CONFIG_EXTENSIONS,
+                ".sql",
+                ".html",
+                ".htm",
+                ".css",
+                ".scss",
+                ".less",
+                ".xml",
+                ".csv",
+                ".dockerfile",
+            }
+            if ext and ext not in text_exts:
+                binary_file_count += 1
 
             if ext in (
                 ".py",
@@ -319,6 +450,11 @@ def _collect_file_stats() -> dict:
         "largest_files": [(f, s) for f, s in largest_files[:15]],
         "code_file_count": code_file_count,
         "script_file_count": script_file_count,
+        "test_file_count": test_file_count,
+        "doc_file_count": doc_file_count,
+        "config_file_count": config_file_count,
+        "empty_file_count": empty_file_count,
+        "binary_file_count": binary_file_count,
     }
 
 
@@ -442,9 +578,12 @@ def _collect_file_access_stats() -> dict[str, dict]:
                 stat = filepath.stat()
                 rel = str(filepath.relative_to(ROOT))
                 atime = datetime.fromtimestamp(stat.st_atime, tz=UTC)
+                mtime = datetime.fromtimestamp(stat.st_mtime, tz=UTC)
                 access_stats[rel] = {
                     "last_accessed": atime.strftime("%Y-%m-%d %H:%M:%S UTC"),
                     "last_accessed_iso": atime.isoformat(),
+                    "last_modified": mtime.strftime("%Y-%m-%d %H:%M:%S UTC"),
+                    "last_modified_iso": mtime.isoformat(),
                 }
             except OSError:
                 continue
@@ -452,9 +591,150 @@ def _collect_file_access_stats() -> dict[str, dict]:
     return access_stats
 
 
+def _detect_atime_policy() -> str:
+    """Detect the filesystem access time (atime) policy for the repo's filesystem."""
+    import platform
+
+    system = platform.system()
+
+    if system == "Linux":
+        try:
+            mounts_text = Path("/proc/mounts").read_text(encoding="utf-8")
+            best_mount = ""
+            best_opts = ""
+            repo_str = str(ROOT)
+            for line in mounts_text.splitlines():
+                parts = line.split()
+                if len(parts) >= 4:
+                    mount_point = parts[1]
+                    options = parts[3]
+                    if repo_str.startswith(mount_point) and len(mount_point) > len(
+                        best_mount
+                    ):
+                        best_mount = mount_point
+                        best_opts = options
+            if best_opts:
+                if "noatime" in best_opts:
+                    return "noatime \u2014 access times are NOT updated on file reads"
+                if "relatime" in best_opts:
+                    return (
+                        "relatime \u2014 access times updated ~once per day "
+                        "or on modification"
+                    )
+                if "strictatime" in best_opts:
+                    return "strictatime \u2014 access times updated on every file read"
+                return f"mount options: {best_opts}"
+        except OSError:
+            pass
+        return "unknown (could not read /proc/mounts)"
+
+    if system == "Windows":
+        return (
+            "NTFS \u2014 last access updates are typically disabled by default "
+            "since Windows Vista/Server 2008. "
+            "Check with: `fsutil behavior query disablelastaccess`"
+        )
+
+    if system == "Darwin":
+        return "APFS/HFS+ \u2014 access times are generally tracked by the filesystem"
+
+    return "unknown"
+
+
+def _collect_health_checks() -> list[tuple[str, bool, str]]:
+    """Check for standard repository health indicators.
+
+    Returns a list of (check_name, passed, description) tuples.
+    """
+    checks: list[tuple[str, bool, str]] = []
+
+    checks.append(
+        (
+            "README",
+            (ROOT / "README.md").exists() or (ROOT / "README.rst").exists(),
+            "Has a README file",
+        )
+    )
+    checks.append(
+        (
+            "LICENSE",
+            (ROOT / "LICENSE").exists() or (ROOT / "LICENSE.md").exists(),
+            "Has a LICENSE file",
+        )
+    )
+    checks.append(
+        (
+            "Tests",
+            (ROOT / "tests").is_dir() or (ROOT / "test").is_dir(),
+            "Has a test directory",
+        )
+    )
+    checks.append(
+        (
+            ".gitignore",
+            (ROOT / ".gitignore").exists(),
+            "Has a .gitignore file",
+        )
+    )
+    checks.append(
+        (
+            "CI config",
+            (ROOT / ".github" / "workflows").is_dir()
+            or (ROOT / ".gitlab-ci.yml").exists()
+            or (ROOT / ".circleci").is_dir(),
+            "Has CI/CD configuration",
+        )
+    )
+    checks.append(
+        (
+            "pyproject.toml",
+            (ROOT / "pyproject.toml").exists()
+            or (ROOT / "setup.py").exists()
+            or (ROOT / "setup.cfg").exists()
+            or (ROOT / "package.json").exists(),
+            "Has a project configuration file",
+        )
+    )
+    checks.append(
+        (
+            "CONTRIBUTING",
+            (ROOT / "CONTRIBUTING.md").exists(),
+            "Has contributing guidelines",
+        )
+    )
+    checks.append(
+        (
+            "SECURITY",
+            (ROOT / "SECURITY.md").exists(),
+            "Has a security policy",
+        )
+    )
+    checks.append(
+        (
+            "CHANGELOG",
+            (ROOT / "CHANGELOG.md").exists() or (ROOT / "CHANGES.md").exists(),
+            "Has a changelog",
+        )
+    )
+    checks.append(
+        (
+            "Docs",
+            (ROOT / "docs").is_dir(),
+            "Has a documentation directory",
+        )
+    )
+
+    return checks
+
+
 def _collect_directory_sizes() -> list[tuple[str, int, int]]:
-    """Get all directory sizes sorted largest-first."""
-    dirs: list[tuple[str, int, int]] = []
+    """Get all directory sizes including all subdirectory contents, sorted largest-first.
+
+    Each directory's reported size and file count includes files in all
+    nested subdirectories, not just immediate children.
+    """
+    # Collect immediate file sizes per directory
+    immediate: dict[str, tuple[int, int]] = {}
 
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [
@@ -478,10 +758,23 @@ def _collect_directory_sizes() -> list[tuple[str, int, int]]:
                 continue
             file_count += 1
 
-        dirs.append((str(rel_path), total_size, file_count))
+        immediate[str(rel_path)] = (total_size, file_count)
 
-    dirs.sort(key=lambda x: x[1], reverse=True)
-    return dirs
+    # Aggregate: each directory includes its own files plus all descendant files
+    aggregated: dict[str, list[int]] = {}
+    for dir_path, (size, count) in immediate.items():
+        current = Path(dir_path)
+        while str(current) != ".":
+            key = str(current)
+            if key not in aggregated:
+                aggregated[key] = [0, 0]
+            aggregated[key][0] += size
+            aggregated[key][1] += count
+            current = current.parent
+
+    result = [(name, vals[0], vals[1]) for name, vals in aggregated.items()]
+    result.sort(key=lambda x: x[1], reverse=True)
+    return result
 
 
 def _build_repo_tree() -> str:
@@ -612,6 +905,14 @@ def gather_stats(*, spinner: Spinner | None = None) -> dict:
         spinner.update("Analyzing code activity patterns")
     execution_stats = _collect_code_execution_stats(file_git_stats)
 
+    if spinner:
+        spinner.update("Checking repository health")
+    health_checks = _collect_health_checks()
+
+    if spinner:
+        spinner.update("Detecting filesystem atime policy")
+    atime_policy = _detect_atime_policy()
+
     return {
         "files": file_stats,
         "git": git_stats,
@@ -620,6 +921,8 @@ def gather_stats(*, spinner: Spinner | None = None) -> dict:
         "file_access_stats": file_access_stats,
         "repo_tree": repo_tree,
         "execution_stats": execution_stats,
+        "health_checks": health_checks,
+        "atime_policy": atime_policy,
     }
 
 
@@ -632,17 +935,19 @@ def generate_markdown(stats: dict) -> str:
     file_git = stats.get("file_git_stats", {})
     file_access = stats.get("file_access_stats", {})
     execution = stats.get("execution_stats", {})
+    health_checks = stats.get("health_checks", [])
+    atime_policy = stats.get("atime_policy", "unknown")
     repo_name = ROOT.name
 
     # ── Title ──
     lines.append(f"# \U0001f534 Repository Sauron Report \u2014 {repo_name}")
     lines.append("")
     lines.append("> *The all-seeing eye peers into every corner of your repository.*")
-    lines.append(">")
-    lines.append(f"> **Generated:** {now}")
-    lines.append(f"> **Version:** {SCRIPT_VERSION}")
+    lines.append("")
+    lines.append(f"\U0001f552 **Generated:** {now}  ")
+    lines.append(f"\U0001f4e6 **Version:** {SCRIPT_VERSION}  ")
     if git_stats.get("current_branch"):
-        lines.append(f"> **Branch:** `{git_stats['current_branch']}`")
+        lines.append(f"\U0001f33f **Branch:** `{git_stats['current_branch']}`")
     lines.append("")
 
     # ── Badges ──
@@ -667,6 +972,9 @@ def generate_markdown(stats: dict) -> str:
     lines.append(
         _md_badge("script files", str(file_stats.get("script_file_count", 0)), "yellow")
     )
+    lines.append(
+        _md_badge("test files", str(file_stats.get("test_file_count", 0)), "red")
+    )
     lines.append("")
 
     # ── Table of Contents ──
@@ -675,6 +983,7 @@ def generate_markdown(stats: dict) -> str:
     lines.append("## \U0001f4d1 Table of Contents")
     lines.append("")
     lines.append("- [Overview](#-overview)")
+    lines.append("- [Repository Health](#-repository-health)")
     lines.append("- [Repository Structure](#-repository-structure)")
     lines.append("- [File Types](#-file-types)")
     lines.append("- [Languages](#-languages)")
@@ -683,6 +992,7 @@ def generate_markdown(stats: dict) -> str:
     lines.append("- [Largest Files](#-largest-files)")
     lines.append("- [File Access Statistics](#-file-access-statistics)")
     lines.append("- [Git History](#-git-history)")
+    lines.append("- [Recently Modified Files](#-recently-modified-files)")
     lines.append("- [Per-File Git Statistics](#-per-file-git-statistics)")
     lines.append("- [Contributors](#-contributors)")
     lines.append("- [Recommended Scripts](#-recommended-scripts)")
@@ -693,8 +1003,22 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("## \U0001f4ca Overview")
     lines.append("")
-    lines.append("> [!NOTE]")
-    lines.append("> High-level repository metrics at a glance.")
+    lines.append("> **\u2139\ufe0f Note:** High-level repository metrics at a glance.")
+    lines.append("")
+    lines.append(
+        "> **Code files** count extensions: "
+        + ", ".join(f"`{e}`" for e in sorted(_CODE_EXTENSIONS))
+        + ".  "
+    )
+    lines.append(
+        "> **Script files** count extensions: "
+        + ", ".join(f"`{e}`" for e in sorted(_SCRIPT_EXTENSIONS))
+        + ".  "
+    )
+    lines.append(
+        "> **Test files** are `.py` files inside `tests/`/`test/` dirs, "
+        "or matching `test_*`/`*_test.py`/`conftest.py` patterns."
+    )
     lines.append("")
     lines.append("| Metric | Value |")
     lines.append("|--------|-------|")
@@ -712,6 +1036,21 @@ def generate_markdown(stats: dict) -> str:
     lines.append(
         f"| \U0001f4dc **Script files** | {file_stats.get('script_file_count', 0)} |"
     )
+    lines.append(
+        f"| \U0001f9ea **Test files** | {file_stats.get('test_file_count', 0)} |"
+    )
+    lines.append(
+        f"| \U0001f4dd **Documentation files** | {file_stats.get('doc_file_count', 0)} |"
+    )
+    lines.append(
+        f"| \u2699\ufe0f **Configuration files** | {file_stats.get('config_file_count', 0)} |"
+    )
+    lines.append(
+        f"| \U0001f4e6 **Estimated binary files** | {file_stats.get('binary_file_count', 0)} |"
+    )
+    empty = file_stats.get("empty_file_count", 0)
+    if empty:
+        lines.append(f"| \u26a0\ufe0f **Empty files (0 bytes)** | {empty} |")
 
     dir_stats = stats["directories"]
     if dir_stats:
@@ -724,23 +1063,49 @@ def generate_markdown(stats: dict) -> str:
 
     total_lines = sum(file_stats["extension_lines"].values())
     if total_lines:
-        lines.append(f"| \U0001f4d6 **Total lines (text)** | {total_lines:,} |")
+        lines.append(
+            f"| \U0001f4d6 **Total lines (code + text + blanks)** | {total_lines:,} |"
+        )
 
     if git_stats.get("available"):
         lines.append(
-            f"| \U0001f4e6 **Total commits** | {git_stats.get('total_commits', 0)} |"
+            f"| \U0001f4e6 **Total git commits** | {git_stats.get('total_commits', 0)} |"
         )
     lines.append("")
+
+    # ── Repository Health ──
+    if health_checks:
+        lines.append("---")
+        lines.append("")
+        lines.append("## \U0001fa7a Repository Health")
+        lines.append("")
+        lines.append(
+            "> **\u2139\ufe0f Note:** Quick pass/fail checks for standard "
+            "repository health indicators."
+        )
+        lines.append("")
+        hc_rows: list[list[str]] = []
+        for name, passed, description in health_checks:
+            status = "\u2705" if passed else "\u274c"
+            hc_rows.append([f"{status} **{name}**", description])
+        lines.extend(_aligned_table(["Check", "Description"], hc_rows, "ll"))
+        lines.append("")
 
     # ── Repository Structure ──
     lines.append("---")
     lines.append("")
     lines.append("## \U0001f333 Repository Structure")
     lines.append("")
-    lines.append("> [!TIP]")
     lines.append(
-        "> Complete directory and file tree of the repository "
-        "(excluding build artifacts and caches)."
+        "> **\U0001f4a1 Tip:** This tree is **dynamically generated** by scanning "
+        "the repository at runtime. It reflects the actual state of whichever "
+        "git repository this script is run in \u2014 not a hard-coded snapshot."
+    )
+    lines.append(">")
+    lines.append(
+        "> Build artifacts and caches "
+        f"({', '.join(f'`{d}`' for d in sorted(list(SKIP_DIRS)[:8]))}, \u2026) "
+        "are excluded."
     )
     lines.append("")
     lines.append("<details>")
@@ -760,8 +1125,13 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("## \U0001f4c1 File Types")
     lines.append("")
-    lines.append("> [!TIP]")
-    lines.append("> Most common file extensions in the repository.")
+    lines.append("> **\U0001f4a1 Tip:** Most common file extensions in the repository.")
+    lines.append(">")
+    lines.append(
+        "> **Lines** = raw newline-separated line count including code, "
+        "comments, blank lines, and whitespace-only lines. "
+        "Counted for text-based file types only."
+    )
     lines.append("")
     ext_counts = file_stats["extension_counts"]
     if ext_counts:
@@ -770,7 +1140,8 @@ def generate_markdown(stats: dict) -> str:
         for ext, count in list(ext_counts.items())[:15]:
             line_count = lines_by_ext.get(ext)
             line_str = f"{line_count:,}" if line_count else "\u2014"
-            ft_rows.append([f"`{ext}`", str(count), line_str])
+            icon = _EXT_TO_ICON.get(ext, "\U0001f4c4")
+            ft_rows.append([f"{icon} `{ext}`", str(count), line_str])
         lines.extend(_aligned_table(["Extension", "Files", "Lines"], ft_rows, "lrr"))
         lines.append("")
 
@@ -781,17 +1152,28 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f5e3\ufe0f Languages")
         lines.append("")
-        lines.append("> [!NOTE]")
         lines.append(
-            "> Language breakdown by file count (percentage of recognized files)."
+            "> **\u2139\ufe0f Note:** Language breakdown by file count "
+            "(percentage of recognized files)."
+        )
+        lines.append(">")
+        lines.append(
+            "> **Lines** = total newline-separated lines (code + comments + blanks). "
+            "Languages are identified by file extension."
         )
         lines.append("")
         lang_rows: list[list[str]] = []
         for lang in languages:
             pct_str = f"{lang['percentage']:.1f}%"
             lang_lines = f"{lang['lines']:,}" if lang["lines"] else "\u2014"
+            icon = _LANG_TO_ICON.get(lang["language"], "\U0001f4c4")
             lang_rows.append(
-                [f"**{lang['language']}**", str(lang["files"]), lang_lines, pct_str]
+                [
+                    f"{icon} **{lang['language']}**",
+                    str(lang["files"]),
+                    lang_lines,
+                    pct_str,
+                ]
             )
         lines.extend(
             _aligned_table(["Language", "Files", "Lines", "%"], lang_rows, "lrrr")
@@ -812,11 +1194,10 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("## \u26a1 Code & Script Activity")
     lines.append("")
-    lines.append("> [!NOTE]")
     lines.append(
-        "> Commit frequency per file as a proxy for how actively code "
-        "and scripts are used/developed."
+        "> **\u2139\ufe0f Note:** Commit frequency per file as a proxy for how actively code "
     )
+    lines.append("> and scripts are used/developed.")
     lines.append(
         "> Files with more commits are being changed (and likely run) more frequently."
     )
@@ -854,7 +1235,9 @@ def generate_markdown(stats: dict) -> str:
         lines.append("## \U0001f4e6 Directory Sizes")
         lines.append("")
         lines.append(
-            f"> All {len(dir_stats)} directories sorted by size (largest first)."
+            f"> **\u2139\ufe0f Note:** All {len(dir_stats)} directories sorted by "
+            "size (largest first). Each directory's size includes all files in "
+            "all nested subdirectories, not just immediate children."
         )
         lines.append("")
         lines.append("<details>")
@@ -878,8 +1261,9 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f418 Largest Files")
         lines.append("")
-        lines.append("> [!IMPORTANT]")
-        lines.append("> Individual files sorted by size (top 15).")
+        lines.append(
+            "> **\u2757 Important:** Individual files sorted by size (top 15)."
+        )
         lines.append("")
         lf_rows: list[list[str]] = []
         for path, size in largest:
@@ -892,12 +1276,25 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("## \U0001f550 File Access Statistics")
     lines.append("")
-    lines.append("> [!WARNING]")
-    lines.append("> File access times (`atime`) depend on OS/filesystem configuration.")
     lines.append(
-        "> Many systems use `relatime` or `noatime` mount options "
-        "which may not reflect actual access."
+        "> **\u26a0\ufe0f Warning:** File access times (`atime`) depend on "
+        "OS/filesystem configuration."
     )
+    lines.append(">")
+    lines.append(
+        "> **`relatime`** \u2014 access times updated approximately once per day "
+        "or when file is modified (common Linux default).  "
+    )
+    lines.append(
+        "> **`noatime`** \u2014 access times are never updated on read "
+        "(performance optimization, timestamps may be stale).  "
+    )
+    lines.append(
+        "> **`strictatime`** \u2014 access times updated on every read "
+        "(most accurate but slowest).  "
+    )
+    lines.append(">")
+    lines.append(f"> **Detected policy:** {atime_policy}")
     lines.append("")
 
     if file_access:
@@ -909,15 +1306,26 @@ def generate_markdown(stats: dict) -> str:
 
         lines.append("<details>")
         lines.append(
-            "<summary><strong>Click to expand file access stats</strong></summary>"
+            "<summary><strong>Click to expand file access stats "
+            f"({len(sorted_access)} files)</strong></summary>"
         )
         lines.append("")
         fa_rows: list[list[str]] = []
-        for filepath, access_info in sorted_access[:50]:
-            fa_rows.append([f"`{filepath}`", access_info["last_accessed"]])
-        if len(sorted_access) > 50:
-            fa_rows.append([f"*... and {len(sorted_access) - 50} more files*", ""])
-        lines.extend(_aligned_table(["File", "Last Accessed"], fa_rows, "ll"))
+        for filepath, access_info in sorted_access:
+            fa_rows.append(
+                [
+                    f"`{filepath}`",
+                    access_info["last_accessed"],
+                    access_info.get("last_modified", "\u2014"),
+                ]
+            )
+        lines.extend(
+            _aligned_table(
+                ["File", "Last Accessed (atime)", "Last Modified (mtime)"],
+                fa_rows,
+                "lll",
+            )
+        )
         lines.append("")
         lines.append("</details>")
         lines.append("")
@@ -928,11 +1336,13 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f4dc Git History")
         lines.append("")
-        lines.append("> [!NOTE]")
-        lines.append("> Repository version control summary.")
+        lines.append("> **\u2139\ufe0f Note:** Repository version control summary.")
         lines.append("")
         gh_rows: list[list[str]] = [
-            ["\U0001f4e6 **Total commits**", str(git_stats.get("total_commits", 0))],
+            [
+                "\U0001f4e6 **Total git commits**",
+                str(git_stats.get("total_commits", 0)),
+            ],
             ["\U0001f465 **Contributors**", str(git_stats.get("author_count", 0))],
             ["\U0001f33f **Branches**", str(git_stats.get("branch_count", 0))],
             ["\U0001f3f7\ufe0f **Tags**", str(git_stats.get("tag_count", 0))],
@@ -950,14 +1360,48 @@ def generate_markdown(stats: dict) -> str:
         lines.extend(_aligned_table(["Metric", "Value"], gh_rows, "ll"))
         lines.append("")
 
+    # ── Recently Modified Files ──
+    if file_git:
+        lines.append("---")
+        lines.append("")
+        lines.append("## \U0001f525 Recently Modified Files")
+        lines.append("")
+        lines.append(
+            "> **\u2139\ufe0f Note:** Files with the most recent git commit dates, "
+            "showing what parts of the codebase are actively being worked on."
+        )
+        lines.append("")
+        recent_files = sorted(
+            file_git.items(),
+            key=lambda x: x[1].get("last_commit", ""),
+            reverse=True,
+        )
+        rf_rows: list[list[str]] = []
+        for filepath, fstats in recent_files[:20]:
+            last_date = (
+                fstats["last_commit"][:10] if fstats.get("last_commit") else "\u2014"
+            )
+            rf_rows.append([f"`{filepath}`", last_date, str(fstats["commits"])])
+        lines.extend(
+            _aligned_table(
+                ["File", "Last Commit Date", "Total Commits"],
+                rf_rows,
+                "llr",
+            )
+        )
+        lines.append("")
+
     # ── Per-File Git Statistics ──
     if file_git:
         lines.append("---")
         lines.append("")
         lines.append("## \U0001f4dd Per-File Git Statistics")
         lines.append("")
-        lines.append("> [!TIP]")
-        lines.append("> Commit count and last commit date for every tracked file.")
+        lines.append(
+            "> **\U0001f4a1 Tip:** Every tracked file with its total git commit count "
+            "(number of commits that touched this file) and last known commit date "
+            "(date of the most recent commit that modified this file)."
+        )
         lines.append("")
 
         sorted_files = sorted(
@@ -968,7 +1412,8 @@ def generate_markdown(stats: dict) -> str:
 
         lines.append("<details>")
         lines.append(
-            "<summary><strong>Click to expand per-file git stats</strong></summary>"
+            "<summary><strong>Click to expand per-file git stats "
+            f"({len(sorted_files)} files)</strong></summary>"
         )
         lines.append("")
         pfg_rows: list[list[str]] = []
@@ -978,7 +1423,11 @@ def generate_markdown(stats: dict) -> str:
             )
             pfg_rows.append([f"`{filepath}`", str(fstats["commits"]), last_date])
         lines.extend(
-            _aligned_table(["File", "Commits", "Last Commit"], pfg_rows, "lrl")
+            _aligned_table(
+                ["File", "Total Git Commits", "Last Known Commit Date"],
+                pfg_rows,
+                "lrl",
+            )
         )
         lines.append("")
         lines.append("</details>")
