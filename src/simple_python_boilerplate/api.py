@@ -24,6 +24,8 @@ Note:
     and implement accordingly.
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 # Uncomment and install your preferred framework:

@@ -21,6 +21,8 @@ See Also:
     - api.py: HTTP/REST interface
 """
 
+from __future__ import annotations
+
 import sys
 
 

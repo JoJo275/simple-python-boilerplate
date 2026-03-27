@@ -87,6 +87,7 @@ from _imports import import_sibling
 from _ui import UI
 
 Spinner = import_sibling("_progress").Spinner
+ProgressBar = import_sibling("_progress").ProgressBar
 
 # ---------------------------------------------------------------------------
 # Models
@@ -846,6 +847,17 @@ def _run_programmatic_checks(
     return all_warnings, all_passed
 
 
+# Succinct one-line descriptions for each repo_doctor.d profile.
+_PROFILE_DESCRIPTORS: dict[str, str] = {
+    "ci.toml": "CI/CD workflow hardening & pinning",
+    "python.toml": "Packaging, typing, linting & coverage",
+    "docs.toml": "MkDocs structure & documentation hygiene",
+    "db.toml": "Schema, migrations & seed consistency",
+    "container.toml": "Containerfile hygiene & build context",
+    "security.toml": "Security policy, scanning & secret guards",
+}
+
+
 # ---------------------------------------------------------------------------
 # Profile summary helpers
 # ---------------------------------------------------------------------------
@@ -1024,20 +1036,32 @@ def main() -> int:
 
     deleted = set(_list_deleted_paths(root, staged=args.staged, diff_range=args.diff))
 
-    with Spinner("Evaluating rules", log_interval=10) as spin:
-        spin.update(f"{len(rules)} rules")
+    # Count total work items for progress: TOML rules + 4 programmatic checks
+    total_steps = len(rules) + 4
+    with ProgressBar(
+        total=total_steps, label="Evaluating rules", color="yellow", log_interval=10
+    ) as bar:
+        bar.update("TOML rules")
         warnings, passed = _evaluate_rules(
             root, rules, check_missing=args.missing, deleted=deleted
         )
+        # Tick for each TOML rule evaluated
+        for _ in range(len(rules) - 1):
+            bar.update()
 
-    # Built-in check: shared internal modules that other scripts depend on
-    shared_warnings = _check_shared_modules(root, deleted=deleted, use_color=use_color)
-    warnings.extend(shared_warnings)
+        bar.update("shared modules")
+        shared_warnings = _check_shared_modules(
+            root, deleted=deleted, use_color=use_color
+        )
+        warnings.extend(shared_warnings)
 
-    # Built-in programmatic checks
-    prog_warnings, prog_passed = _run_programmatic_checks(root, min_level=min_level)
-    warnings.extend(prog_warnings)
-    passed.extend(prog_passed)
+        bar.update("programmatic checks")
+        prog_warnings, prog_passed = _run_programmatic_checks(root, min_level=min_level)
+        warnings.extend(prog_warnings)
+        passed.extend(prog_passed)
+        # Tick remaining programmatic check slots
+        bar.update()
+        bar.update()
 
     # --smoke: inject a synthetic failure for testing dashboard appearance
     if args.smoke is not None:
@@ -1079,6 +1103,11 @@ def main() -> int:
     )
     ui.header()
 
+    # ── Rules Upheld bar ──
+    total_evaluated = len(passed) + len(warnings)
+    ui.blank()
+    ui.rules_summary(len(passed), total_evaluated)
+
     # ── Rule Sources (repo_doctor.d profile breakdown) ──
     profile_counts = _count_profile_rules(root)
     base_rule_count = len(_load_rules(root)[0])
@@ -1087,10 +1116,17 @@ def main() -> int:
         if base_rule_count:
             ui.kv(".repo-doctor.toml", f"{base_rule_count} rules")
         if profile_counts:
+            print()
             ui.info_line("repo_doctor.d/ profiles:")
+            print()
             for fname, count in profile_counts:
-                check_sym = ui.sym.get("check", "+")
-                ui.kv(f"  {fname}", f"{count} rules")
+                name_label = fname.removesuffix(".toml")
+                desc = _PROFILE_DESCRIPTORS.get(fname, "")
+                colored_name = ui._themed(ui.c.bold(name_label))
+                print(f"      {colored_name}  {ui.c.dim(f'{count} rules')}")
+                if desc:
+                    print(f"      {ui.c.dim(desc)}")
+                print(f"      {ui.c.dim(ui.h_line * 40)}")
         print()
 
     # ── Passed Checks ──

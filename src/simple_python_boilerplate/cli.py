@@ -24,6 +24,8 @@ Note:
     consider click, typer, or rich-click.
 """
 
+from __future__ import annotations
+
 import argparse
 from collections.abc import Sequence
 

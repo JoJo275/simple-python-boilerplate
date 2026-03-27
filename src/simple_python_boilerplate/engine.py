@@ -19,6 +19,8 @@ Example:
     >>> result = process_data(input_data)
 """
 
+from __future__ import annotations
+
 import platform
 import shutil
 import sys
