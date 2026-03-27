@@ -17,8 +17,17 @@ always exits 0.
 
 Flags::
 
-    --missing            Report missing files/dirs in working tree
-    --staged             Report staged deletions (index)
+    --missing            Scan the working tree for files/dirs that are
+                         expected by the rules but don't exist on disk.
+                         This is the primary "are my repo files intact?"
+                         check.  Useful after branch switches, merges, or
+                         partial clones where files may be unexpectedly
+                         absent.
+    --staged             Inspect the git index (staging area) for files
+                         that have been ``git rm``'d but not yet committed.
+                         Catches accidental deletions before they land in
+                         history.  Complements --missing by focusing on
+                         *pending* changes rather than the working tree.
     --diff RANGE         Report deletions in a git diff range
                          (e.g. "origin/main...HEAD")
     --category NAME      Only show rules matching this category
@@ -32,6 +41,10 @@ Flags::
     --no-color           Disable colored output
     --strict             Exit non-zero when warnings are found (CI gating)
     --show-passed        Show checks that passed (in addition to warnings)
+    --smoke [NAME]       Inject a synthetic failure for testing the dashboard.
+                         Optionally specify a profile name whose first check
+                         will be forced to fail; if omitted, a random check
+                         from the loaded rules is chosen.
     --version            Print version and exit
 
 Usage::
@@ -42,16 +55,21 @@ Usage::
     python scripts/repo_doctor.py --include-info
     python scripts/repo_doctor.py --profile python --profile docs
     python scripts/repo_doctor.py --fix
+    python scripts/repo_doctor.py --smoke
+    python scripts/repo_doctor.py --smoke ci
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import logging
+import random
 import re
 import shutil
 import subprocess  # nosec B404
 import sys
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -127,7 +145,7 @@ class DoctorConfig:
 
 _LEVEL_ORDER: dict[str, int] = {"info": 0, "warn": 1}
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "2.0.0"
 
 # Theme color for this script's dashboard output.
 THEME = "yellow"
@@ -627,6 +645,229 @@ def _check_shared_modules(
 
 
 # ---------------------------------------------------------------------------
+# Built-in programmatic checks (beyond TOML rules)
+# ---------------------------------------------------------------------------
+
+_SKIP_DIRS = {
+    ".git",
+    "__pycache__",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".pytest_cache",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".tox",
+    ".nox",
+    "site",
+    "dist",
+    "build",
+    ".eggs",
+    ".cache",
+    "htmlcov",
+}
+
+_CONFLICT_RE = re.compile(r"^(<{7}|={7}|>{7})\s", re.MULTILINE)
+
+
+def _iter_py_files(root: Path) -> list[Path]:
+    """Yield all ``.py`` files under *root*, skipping common artifact dirs."""
+    results: list[Path] = []
+    for dirpath, dirnames, filenames in root.walk():
+        dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
+        results.extend(dirpath / f for f in filenames if f.endswith(".py"))
+    return results
+
+
+def _check_python_syntax(root: Path) -> list[Warning]:
+    """Check all ``.py`` files for syntax errors using :func:`ast.parse`."""
+    warnings: list[Warning] = []
+    for py_file in _iter_py_files(root):
+        try:
+            source = py_file.read_text(encoding="utf-8", errors="ignore")
+            ast.parse(source, filename=str(py_file))
+        except SyntaxError as exc:
+            rel = py_file.relative_to(root).as_posix()
+            line_info = f" (line {exc.lineno})" if exc.lineno else ""
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type="syntax",
+                        path=rel,
+                        level="warn",
+                        category="python",
+                        impact=f"Python syntax error{line_info}: {exc.msg}",
+                        hint="Fix the syntax error before committing.",
+                    ),
+                    message=f"Syntax error: {rel}{line_info}",
+                )
+            )
+    return warnings
+
+
+def _check_merge_conflict_markers(root: Path) -> list[Warning]:
+    """Scan tracked text files for leftover merge conflict markers."""
+    warnings: list[Warning] = []
+    # Use git to list tracked files to avoid scanning generated/ignored dirs
+    if _GIT_CMD is None:
+        return warnings
+    code, out, _ = _run_git(root, ["ls-files", "-z"])
+    if code != 0:
+        return warnings
+    for entry in out.split("\0"):
+        entry = entry.strip()
+        if not entry:
+            continue
+        fpath = root / entry
+        if not fpath.is_file():
+            continue
+        # Only check text-like files by trying to read as utf-8
+        try:
+            text = fpath.read_text(encoding="utf-8", errors="strict")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if _CONFLICT_RE.search(text):
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type="conflict_markers",
+                        path=entry,
+                        level="warn",
+                        category="git",
+                        impact="Leftover merge conflict markers will break code or produce invalid output.",
+                        hint="Resolve the merge conflict and remove the markers.",
+                    ),
+                    message=f"Merge conflict markers found: {entry}",
+                )
+            )
+    return warnings
+
+
+def _check_future_annotations(root: Path) -> list[Warning]:
+    """Flag ``.py`` files under ``src/`` missing ``from __future__ import annotations``."""
+    warnings: list[Warning] = []
+    src_dir = root / "src"
+    if not src_dir.is_dir():
+        return warnings
+    for py_file in _iter_py_files(src_dir):
+        try:
+            text = py_file.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        # Skip empty or near-empty files (e.g. __init__.py stubs, one-liners)
+        if len(text.strip()) < 50:
+            continue
+        if "from __future__ import annotations" not in text:
+            rel = py_file.relative_to(root).as_posix()
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type="future_annotations",
+                        path=rel,
+                        level="info",
+                        category="python",
+                        impact="Missing 'from __future__ import annotations' — PEP 604 union syntax (X | Y) won't work at runtime on older Python.",
+                        hint="Add 'from __future__ import annotations' at the top of the file.",
+                    ),
+                    message=f"Missing future annotations: {rel}",
+                )
+            )
+    return warnings
+
+
+def _check_large_tracked_files(root: Path, threshold_kb: int = 512) -> list[Warning]:
+    """Warn about tracked files larger than *threshold_kb* kilobytes."""
+    warnings: list[Warning] = []
+    if _GIT_CMD is None:
+        return warnings
+    code, out, _ = _run_git(root, ["ls-files", "-z"])
+    if code != 0:
+        return warnings
+    for entry in out.split("\0"):
+        entry = entry.strip()
+        if not entry:
+            continue
+        fpath = root / entry
+        if not fpath.is_file():
+            continue
+        try:
+            size = fpath.stat().st_size
+        except OSError:
+            continue
+        if size > threshold_kb * 1024:
+            size_kb = size / 1024
+            size_str = (
+                f"{size_kb:.0f} KB" if size_kb < 1024 else f"{size_kb / 1024:.1f} MB"
+            )
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type="large_file",
+                        path=entry,
+                        level="info",
+                        category="git",
+                        impact=f"Large tracked file ({size_str}) increases clone size and slows git operations.",
+                        hint="Consider using .gitignore, git-lfs, or removing from tracking.",
+                    ),
+                    message=f"Large tracked file ({size_str}): {entry}",
+                )
+            )
+    return warnings
+
+
+def _run_programmatic_checks(
+    root: Path, *, min_level: str = "warn"
+) -> tuple[list[Warning], list[PassedCheck]]:
+    """Run all built-in programmatic checks and return warnings + passed."""
+    all_warnings: list[Warning] = []
+    all_passed: list[PassedCheck] = []
+    min_order = _LEVEL_ORDER.get(min_level, 0)
+
+    checks: list[tuple[str, list[Warning]]] = [
+        ("Python syntax", _check_python_syntax(root)),
+        ("Merge conflict markers", _check_merge_conflict_markers(root)),
+        ("Future annotations", _check_future_annotations(root)),
+        ("Large tracked files", _check_large_tracked_files(root)),
+    ]
+
+    for name, ws in checks:
+        # Filter by severity level
+        ws = [w for w in ws if _LEVEL_ORDER.get(w.rule.level, 0) >= min_order]
+        if ws:
+            all_warnings.extend(ws)
+        else:
+            all_passed.append(
+                PassedCheck(
+                    rule=Rule(type="programmatic", path="", category="builtin"),
+                    message=f"OK: {name}",
+                )
+            )
+
+    return all_warnings, all_passed
+
+
+# ---------------------------------------------------------------------------
+# Profile summary helpers
+# ---------------------------------------------------------------------------
+
+
+def _count_profile_rules(root: Path) -> list[tuple[str, int]]:
+    """Return a list of ``(filename, rule_count)`` for each profile in ``repo_doctor.d/``."""
+    profile_dir = root / "repo_doctor.d"
+    results: list[tuple[str, int]] = []
+    if not profile_dir.is_dir() or tomllib is None:
+        return results
+    for fpath in sorted(profile_dir.glob("*.toml")):
+        try:
+            data = tomllib.loads(fpath.read_text(encoding="utf-8"))
+            count = len(data.get("rule", []))
+            results.append((fpath.name, count))
+        except (OSError, ValueError, TypeError):
+            results.append((fpath.name, 0))
+    return results
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -715,6 +956,18 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Exit non-zero when warnings are found (for CI gating).",
     )
+    parser.add_argument(
+        "--smoke",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="NAME",
+        help=(
+            "Inject a synthetic failure to test dashboard appearance. "
+            "Optionally specify a profile name (e.g. 'ci') to fail its "
+            "first check; if omitted, a random loaded rule is chosen."
+        ),
+    )
     return parser
 
 
@@ -724,6 +977,7 @@ def main() -> int:
     Returns 0 by default (warn-only). With ``--strict``, returns 1
     when any warnings are found.
     """
+    elapsed_start = time.monotonic()
     parser = _build_parser()
     args = parser.parse_args()
 
@@ -780,6 +1034,43 @@ def main() -> int:
     shared_warnings = _check_shared_modules(root, deleted=deleted, use_color=use_color)
     warnings.extend(shared_warnings)
 
+    # Built-in programmatic checks
+    prog_warnings, prog_passed = _run_programmatic_checks(root, min_level=min_level)
+    warnings.extend(prog_warnings)
+    passed.extend(prog_passed)
+
+    # --smoke: inject a synthetic failure for testing dashboard appearance
+    if args.smoke is not None:
+        smoke_target = args.smoke.strip() if args.smoke else ""
+        smoke_rule: Rule | None = None
+        if smoke_target:
+            # Find first rule from the named profile category
+            for r in rules:
+                if r.category == smoke_target:
+                    smoke_rule = r
+                    break
+            if smoke_rule is None:
+                # Try matching profile file name
+                profile_rules = _load_profile_rules(root, [smoke_target])
+                if profile_rules:
+                    smoke_rule = profile_rules[0]
+        if smoke_rule is None and rules:
+            smoke_rule = random.choice(rules)  # nosec B311
+        if smoke_rule is not None:
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type=smoke_rule.type,
+                        path=smoke_rule.path,
+                        level="warn",
+                        category=smoke_rule.category or "smoke-test",
+                        impact="[SMOKE TEST] This is a synthetic failure injected by --smoke to preview dashboard failure output.",
+                        hint="This warning is fake. Remove --smoke to see real results.",
+                    ),
+                    message=f"[SMOKE TEST] Simulated failure: {smoke_rule.path}",
+                )
+            )
+
     ui = UI(
         title="Repo Doctor",
         version=SCRIPT_VERSION,
@@ -788,6 +1079,21 @@ def main() -> int:
     )
     ui.header()
 
+    # ── Rule Sources (repo_doctor.d profile breakdown) ──
+    profile_counts = _count_profile_rules(root)
+    base_rule_count = len(_load_rules(root)[0])
+    if profile_counts or base_rule_count:
+        ui.section("Rule Sources")
+        if base_rule_count:
+            ui.kv(".repo-doctor.toml", f"{base_rule_count} rules")
+        if profile_counts:
+            ui.info_line("repo_doctor.d/ profiles:")
+            for fname, count in profile_counts:
+                check_sym = ui.sym.get("check", "+")
+                ui.kv(f"  {fname}", f"{count} rules")
+        print()
+
+    # ── Passed Checks ──
     if args.show_passed and passed:
         ui.section("Passed Checks")
         for p in passed:
@@ -795,6 +1101,7 @@ def main() -> int:
             ui.status_line("check", f"{cat} {p.message}", "green")
         print()
 
+    # ── Warnings ──
     if warnings:
         ui.section("Warnings (non-blocking)")
         print()
@@ -809,8 +1116,20 @@ def main() -> int:
                 )
             )
             print()
-    elif not args.show_passed:
-        ui.status_line("check", "All checks passed", "green")
+    else:
+        # Enhanced "all passed" output instead of a single line
+        ui.section("Results")
+        total = len(passed)
+        check_sym = ui.sym.get("check", "+")
+        ui.status_line("check", f"All {total} checks passed", "green")
+        # Group by category for a quick breakdown
+        cat_counts: dict[str, int] = {}
+        for p in passed:
+            cat = p.rule.category or "general"
+            cat_counts[cat] = cat_counts.get(cat, 0) + 1
+        if cat_counts:
+            for cat, cnt in sorted(cat_counts.items()):
+                ui.info_line(f"  {ui.c.green(check_sym)} {cat}: {cnt} passed")
 
     # ── Recommended Scripts ──
     ui.recommended_scripts(
@@ -825,10 +1144,12 @@ def main() -> int:
     )
 
     # Summary
+    elapsed = time.monotonic() - elapsed_start
     ui.footer(
         passed=len(passed),
         failed=0,
         warned=len(warnings),
+        elapsed=elapsed,
     )
 
     if args.strict and warnings:

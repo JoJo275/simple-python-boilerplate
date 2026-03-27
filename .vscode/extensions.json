@@ -22,6 +22,9 @@
         "ms-python.vscode-python-envs",
         "inferrinizzard.prettier-sql-vscode",
         "mechatroner.rainbow-csv",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "shd101wyy.markdown-preview-enhanced",
+        "kamikillerto.vscode-colorize",
+        "yzhang.markdown-all-in-one"
     ]
 }
