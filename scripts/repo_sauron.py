@@ -3,11 +3,33 @@
 
 Generates a comprehensive Markdown report about the current repository:
 file counts by type, lines of code, language breakdown, full directory tree,
-file access statistics, per-file git commit history, contributor list,
-code/script activity tracking, and more. Works on any git repository,
-not just this template.
+file access statistics, per-file git commit history, test coverage analysis,
+contributor list, code/script activity tracking, and more.
+
+Works on **any git repository** — file extension detection and language
+classification are fully dynamic.  The report adapts to whatever languages
+and file types are present in the target repo.
 
 Named after Sauron's all-seeing eye from The Lord of the Rings.
+
+Script compatibility (from this template's ``scripts/`` directory)::
+
+    ✅ Any git repo (language-agnostic):
+        repo_sauron.py      — full repo statistics dashboard
+        git_doctor.py       — git config, branch ops, integrity
+        env_inspect.py      — system environment, PATH, packages
+        workflow_versions.py — GitHub Actions SHA-pinned versions
+        repo_doctor.py      — repository structure health checks
+
+    🐍 Python projects only:
+        check_python_support.py — Python version consistency
+        dep_versions.py         — dependency versions / updates
+        env_doctor.py           — dev environment diagnostics
+        doctor.py               — unified health check (all doctors)
+        bootstrap.py            — initial Hatch environment setup
+
+    📦 This template only:
+        customize.py — interactive template customisation wizard
 
 Flags::
 
@@ -24,7 +46,8 @@ Usage::
 
 Output:
     Generates a Markdown file with colored sections, table of contents,
-    repo structure tree, file access stats, and per-file git history.
+    repo structure tree, file access stats, per-file git history, test
+    coverage analysis, and Mermaid charts.
 """
 
 from __future__ import annotations
@@ -33,6 +56,7 @@ import argparse
 import json
 import logging
 import os
+import platform
 import shutil
 import subprocess  # nosec B404
 import sys
@@ -48,7 +72,7 @@ from _progress import Spinner
 
 log = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "3.0.0"
+SCRIPT_VERSION = "4.0.0"
 
 ROOT = find_repo_root()
 
@@ -235,6 +259,78 @@ _LANG_TO_ICON: dict[str, str] = {
     "Dockerfile": "\U0001f433",
 }
 
+# Shields.io badge info for VS Code-style file type badges.
+# Maps language name -> (logo_slug | None, hex_color, logo_color).
+_LANG_BADGE_INFO: dict[str, tuple[str | None, str, str]] = {
+    "Python": ("python", "3776AB", "white"),
+    "JavaScript": ("javascript", "F7DF1E", "black"),
+    "TypeScript": ("typescript", "3178C6", "white"),
+    "JavaScript (JSX)": ("react", "61DAFB", "black"),
+    "TypeScript (TSX)": ("react", "61DAFB", "black"),
+    "HTML": ("html5", "E34F26", "white"),
+    "CSS": ("css3", "1572B6", "white"),
+    "SCSS": ("sass", "CC6699", "white"),
+    "Less": ("less", "1D365D", "white"),
+    "Java": ("openjdk", "437291", "white"),
+    "Kotlin": ("kotlin", "7F52FF", "white"),
+    "Go": ("go", "00ADD8", "white"),
+    "Rust": ("rust", "000000", "white"),
+    "Ruby": ("ruby", "CC342D", "white"),
+    "PHP": ("php", "777BB4", "white"),
+    "C": ("c", "A8B9CC", "black"),
+    "C/C++ Header": ("c", "A8B9CC", "black"),
+    "C++": ("cplusplus", "00599C", "white"),
+    "C#": ("csharp", "512BD4", "white"),
+    "Swift": ("swift", "F05138", "white"),
+    "Shell": ("gnubash", "4EAA25", "white"),
+    "PowerShell": ("powershell", "5391FE", "white"),
+    "SQL": (None, "4169E1", "white"),
+    "R": ("r", "276DC3", "white"),
+    "Lua": ("lua", "2C2D72", "white"),
+    "YAML": (None, "CB171E", "white"),
+    "TOML": (None, "9C4121", "white"),
+    "JSON": (None, "000000", "white"),
+    "XML": (None, "005FAD", "white"),
+    "Markdown": ("markdown", "000000", "white"),
+    "reStructuredText": ("readthedocs", "8CA1AF", "white"),
+    "Plain Text": (None, "778899", "white"),
+    "Config": (None, "778899", "white"),
+    "Dockerfile": ("docker", "2496ED", "white"),
+}
+
+
+def _ext_badge(ext: str) -> str:
+    """Return a shields.io badge markdown image for a file extension."""
+    lang = _EXT_TO_LANGUAGE.get(ext, "")
+    info = _LANG_BADGE_INFO.get(lang) if lang else None
+    if info:
+        logo, color, lc = info
+        safe = ext.replace("-", "--")
+        url = f"https://img.shields.io/badge/{safe}-{color}?style=flat-square"
+        if logo:
+            url += f"&logo={logo}&logoColor={lc}"
+        return f"![{ext}]({url})"
+    return _EXT_TO_ICON.get(ext, "\U0001f4c4")
+
+
+def _lang_badge(lang: str) -> str:
+    """Return a shields.io badge markdown image for a language name."""
+    info = _LANG_BADGE_INFO.get(lang)
+    if info:
+        logo, color, lc = info
+        safe = (
+            lang.replace("-", "--")
+            .replace(" ", "%20")
+            .replace("+", "%2B")
+            .replace("#", "%23")
+            .replace("/", "%2F")
+        )
+        url = f"https://img.shields.io/badge/{safe}-{color}?style=flat-square"
+        if logo:
+            url += f"&logo={logo}&logoColor={lc}"
+        return f"![{lang}]({url})"
+    return _LANG_TO_ICON.get(lang, "\U0001f4c4")
+
 
 # ---------------------------------------------------------------------------
 # Markdown table helper
@@ -335,6 +431,9 @@ def _collect_file_stats() -> dict:
     config_file_count = 0
     empty_file_count = 0
     binary_file_count = 0
+    found_code_extensions: set[str] = set()
+    found_script_extensions: set[str] = set()
+    all_file_paths: set[str] = set()
 
     for dirpath, dirnames, filenames in os.walk(ROOT):
         dirnames[:] = [
@@ -362,8 +461,10 @@ def _collect_file_stats() -> dict:
 
             if ext in _CODE_EXTENSIONS:
                 code_file_count += 1
+                found_code_extensions.add(ext)
             if ext in _SCRIPT_EXTENSIONS:
                 script_file_count += 1
+                found_script_extensions.add(ext)
             if ext in _DOC_EXTENSIONS:
                 doc_file_count += 1
             if ext in _CONFIG_EXTENSIONS:
@@ -422,6 +523,7 @@ def _collect_file_stats() -> dict:
                     pass
 
             rel = str(filepath.relative_to(ROOT))
+            all_file_paths.add(rel)
             largest_files.append((rel, size))
 
     largest_files.sort(key=lambda x: x[1], reverse=True)
@@ -455,6 +557,9 @@ def _collect_file_stats() -> dict:
         "config_file_count": config_file_count,
         "empty_file_count": empty_file_count,
         "binary_file_count": binary_file_count,
+        "found_code_extensions": sorted(found_code_extensions),
+        "found_script_extensions": sorted(found_script_extensions),
+        "all_file_paths": all_file_paths,
     }
 
 
@@ -593,8 +698,6 @@ def _collect_file_access_stats() -> dict[str, dict]:
 
 def _detect_atime_policy() -> str:
     """Detect the filesystem access time (atime) policy for the repo's filesystem."""
-    import platform
-
     system = platform.system()
 
     if system == "Linux":
@@ -845,6 +948,144 @@ def _collect_code_execution_stats(
     }
 
 
+def _collect_test_coverage() -> dict:
+    """Analyse which source code files have corresponding test files.
+
+    Heuristic: for each code file ``foo.ext`` outside test directories,
+    look for ``test_foo.ext`` or ``foo_test.ext`` anywhere under the
+    test directories.
+    """
+    test_dir_files: dict[str, set[str]] = {}  # basename -> set of full paths
+    source_files: list[str] = []
+
+    for dirpath, dirnames, filenames in os.walk(ROOT):
+        dirnames[:] = [
+            d for d in dirnames if d not in SKIP_DIRS and not d.endswith(".egg-info")
+        ]
+        rel_parts = Path(dirpath).relative_to(ROOT).parts
+        in_test_dir = any(part in _TEST_DIRS for part in rel_parts)
+
+        for fname in filenames:
+            ext = Path(fname).suffix.lower()
+            if ext not in _CODE_EXTENSIONS:
+                continue
+            rel = str(Path(dirpath, fname).relative_to(ROOT))
+            fname_lower = fname.lower()
+
+            if (
+                in_test_dir
+                or any(fname_lower.startswith(p) for p in _TEST_PREFIXES)
+                or any(fname_lower.endswith(s) for s in _TEST_SUFFIXES)
+            ):
+                stem = Path(fname).stem.lower()
+                test_dir_files.setdefault(stem, set()).add(rel)
+            else:
+                source_files.append(rel)
+
+    tested: list[str] = []
+    untested: list[str] = []
+    for src_path in sorted(source_files):
+        stem = Path(src_path).stem.lower()
+        # Check if any test file matches test_<stem> or <stem>_test
+        has_test = f"test_{stem}" in test_dir_files or f"{stem}_test" in test_dir_files
+        if has_test:
+            tested.append(src_path)
+        else:
+            untested.append(src_path)
+
+    return {
+        "tested": tested,
+        "untested": untested,
+        "tested_count": len(tested),
+        "untested_count": len(untested),
+        "total_source": len(source_files),
+    }
+
+
+def _parse_coverage_data() -> dict | None:
+    """Parse pytest/coverage.py data from ``coverage.json`` or ``coverage.xml``.
+
+    Returns a dict with overall and per-file line/branch coverage, or
+    *None* if no coverage data file is found.
+    """
+    # --- Try coverage.json first (simplest, most data) ---
+    cov_json = ROOT / "coverage.json"
+    if cov_json.is_file():
+        try:
+            data = json.loads(cov_json.read_text(encoding="utf-8"))
+            totals = data.get("totals", {})
+            meta = data.get("meta", {})
+            files_data = data.get("files", {})
+
+            result: dict = {
+                "source": "coverage.json",
+                "line_pct": totals.get("percent_covered", 0.0),
+                "covered_lines": totals.get("covered_lines", 0),
+                "num_statements": totals.get("num_statements", 0),
+                "missing_lines": totals.get("missing_lines", 0),
+                "has_branch": bool(meta.get("branch_coverage")),
+                "per_file": {},
+            }
+            if result["has_branch"]:
+                nb = totals.get("num_branches", 0)
+                cb = totals.get("covered_branches", 0)
+                result["covered_branches"] = cb
+                result["num_branches"] = nb
+                result["branch_pct"] = (cb / nb * 100) if nb > 0 else 0.0
+
+            for fpath, fdata in files_data.items():
+                summary = fdata.get("summary", {})
+                result["per_file"][fpath] = {
+                    "line_pct": summary.get("percent_covered", 0.0),
+                    "covered": summary.get("covered_lines", 0),
+                    "statements": summary.get("num_statements", 0),
+                }
+            return result
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+            log.debug("Failed to parse coverage.json", exc_info=True)
+
+    # --- Try coverage.xml (Cobertura format) ---
+    cov_xml = ROOT / "coverage.xml"
+    if cov_xml.is_file():
+        try:
+            import xml.etree.ElementTree as ET  # nosec B405
+
+            tree = ET.parse(cov_xml)  # nosec B314
+            root_el = tree.getroot()
+
+            line_rate = float(root_el.get("line-rate", "0"))
+            branch_rate_str = root_el.get("branch-rate")
+            lines_valid = int(root_el.get("lines-valid", "0"))
+            lines_covered = int(root_el.get("lines-covered", "0"))
+
+            result = {
+                "source": "coverage.xml",
+                "line_pct": line_rate * 100,
+                "covered_lines": lines_covered,
+                "num_statements": lines_valid,
+                "missing_lines": lines_valid - lines_covered,
+                "has_branch": branch_rate_str is not None,
+                "per_file": {},
+            }
+            if result["has_branch"] and branch_rate_str:
+                bv = int(root_el.get("branches-valid", "0"))
+                bc = int(root_el.get("branches-covered", "0"))
+                result["branch_pct"] = float(branch_rate_str) * 100
+                result["covered_branches"] = bc
+                result["num_branches"] = bv
+
+            for cls in root_el.iter("class"):
+                fname = cls.get("filename", "")
+                lr = float(cls.get("line-rate", "0"))
+                if fname:
+                    result["per_file"][fname] = {"line_pct": lr * 100}
+            return result
+        except (ValueError, KeyError, TypeError):
+            log.debug("Failed to parse coverage.xml", exc_info=True)
+
+    return None
+
+
 def _format_size(size_bytes: int) -> str:
     """Format byte size to human-readable string."""
     if size_bytes < 1024:
@@ -913,6 +1154,14 @@ def gather_stats(*, spinner: Spinner | None = None) -> dict:
         spinner.update("Detecting filesystem atime policy")
     atime_policy = _detect_atime_policy()
 
+    if spinner:
+        spinner.update("Analyzing test coverage")
+    test_coverage = _collect_test_coverage()
+
+    if spinner:
+        spinner.update("Checking for pytest coverage data")
+    pytest_coverage = _parse_coverage_data()
+
     return {
         "files": file_stats,
         "git": git_stats,
@@ -923,6 +1172,8 @@ def gather_stats(*, spinner: Spinner | None = None) -> dict:
         "execution_stats": execution_stats,
         "health_checks": health_checks,
         "atime_policy": atime_policy,
+        "test_coverage": test_coverage,
+        "pytest_coverage": pytest_coverage,
     }
 
 
@@ -937,7 +1188,10 @@ def generate_markdown(stats: dict) -> str:
     execution = stats.get("execution_stats", {})
     health_checks = stats.get("health_checks", [])
     atime_policy = stats.get("atime_policy", "unknown")
+    test_coverage = stats.get("test_coverage", {})
+    pytest_cov = stats.get("pytest_coverage")
     repo_name = ROOT.name
+    current_files = file_stats.get("all_file_paths", set())
 
     # ── Title ──
     lines.append(f"# \U0001f534 Repository Sauron Report \u2014 {repo_name}")
@@ -990,12 +1244,14 @@ def generate_markdown(stats: dict) -> str:
     lines.append("- [Code & Script Activity](#-code--script-activity)")
     lines.append("- [Directory Sizes](#-directory-sizes)")
     lines.append("- [Largest Files](#-largest-files)")
+    lines.append("- [Test Coverage](#-test-coverage)")
     lines.append("- [File Access Statistics](#-file-access-statistics)")
     lines.append("- [Git History](#-git-history)")
     lines.append("- [Recently Modified Files](#-recently-modified-files)")
     lines.append("- [Per-File Git Statistics](#-per-file-git-statistics)")
     lines.append("- [Contributors](#-contributors)")
     lines.append("- [Recommended Scripts](#-recommended-scripts)")
+    lines.append("- [Recommended VS Code Extensions](#-recommended-vs-code-extensions)")
     lines.append("")
 
     # ── Overview ──
@@ -1007,12 +1263,20 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append(
         "> **Code files** count extensions: "
-        + ", ".join(f"`{e}`" for e in sorted(_CODE_EXTENSIONS))
+        + ", ".join(
+            f"`{e}`"
+            for e in file_stats.get("found_code_extensions", sorted(_CODE_EXTENSIONS))
+        )
         + ".  "
     )
     lines.append(
         "> **Script files** count extensions: "
-        + ", ".join(f"`{e}`" for e in sorted(_SCRIPT_EXTENSIONS))
+        + ", ".join(
+            f"`{e}`"
+            for e in file_stats.get(
+                "found_script_extensions", sorted(_SCRIPT_EXTENSIONS)
+            )
+        )
         + ".  "
     )
     lines.append(
@@ -1140,8 +1404,8 @@ def generate_markdown(stats: dict) -> str:
         for ext, count in list(ext_counts.items())[:15]:
             line_count = lines_by_ext.get(ext)
             line_str = f"{line_count:,}" if line_count else "\u2014"
-            icon = _EXT_TO_ICON.get(ext, "\U0001f4c4")
-            ft_rows.append([f"{icon} `{ext}`", str(count), line_str])
+            badge = _ext_badge(ext)
+            ft_rows.append([f"{badge} `{ext}`", str(count), line_str])
         lines.extend(_aligned_table(["Extension", "Files", "Lines"], ft_rows, "lrr"))
         lines.append("")
 
@@ -1166,10 +1430,10 @@ def generate_markdown(stats: dict) -> str:
         for lang in languages:
             pct_str = f"{lang['percentage']:.1f}%"
             lang_lines = f"{lang['lines']:,}" if lang["lines"] else "\u2014"
-            icon = _LANG_TO_ICON.get(lang["language"], "\U0001f4c4")
+            badge = _lang_badge(lang["language"])
             lang_rows.append(
                 [
-                    f"{icon} **{lang['language']}**",
+                    f"{badge} **{lang['language']}**",
                     str(lang["files"]),
                     lang_lines,
                     pct_str,
@@ -1271,6 +1535,132 @@ def generate_markdown(stats: dict) -> str:
         lines.extend(_aligned_table(["File", "Size"], lf_rows, "lr"))
         lines.append("")
 
+    # ── Test Coverage ──
+    if test_coverage and test_coverage.get("total_source", 0) > 0:
+        tc = test_coverage
+        tested = tc["tested_count"]
+        untested = tc["untested_count"]
+        total_src = tc["total_source"]
+        pct = round(tested / total_src * 100, 1) if total_src else 0
+
+        lines.append("---")
+        lines.append("")
+        lines.append("## \U0001f9ea Test Coverage")
+        lines.append("")
+        lines.append(
+            "> **\u2139\ufe0f Note:** Heuristic coverage analysis \u2014 each source code "
+            "file is checked for a corresponding `test_<name>` or "
+            "`<name>_test` file in the test directories.  "
+        )
+        if pytest_cov:
+            lines.append("> Line/branch coverage from `pytest --cov` is shown below.")
+        else:
+            lines.append(
+                "> This does **not** measure line/branch coverage. "
+                "Run `pytest --cov --cov-report=json` to generate "
+                "`coverage.json`, then re-run this script."
+            )
+        lines.append("")
+
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
+        lines.append(f"| \U0001f4c1 **Source code files** | {total_src} |")
+        lines.append(f"| \u2705 **Files with tests** | {tested} |")
+        lines.append(f"| \u274c **Files without tests** | {untested} |")
+        lines.append(f"| \U0001f4ca **Coverage (by file)** | {pct}% |")
+        lines.append("")
+
+        # Mermaid pie chart
+        lines.append("```mermaid")
+        lines.append("pie title Test Coverage (by file)")
+        if tested:
+            lines.append(f'    "Tested" : {tested}')
+        if untested:
+            lines.append(f'    "Untested" : {untested}')
+        lines.append("```")
+        lines.append("")
+
+        if tc.get("untested"):
+            lines.append("<details>")
+            lines.append(
+                "<summary><strong>Click to expand untested source files "
+                f"({untested} files)</strong></summary>"
+            )
+            lines.append("")
+            lines.extend(f"- `{f}`" for f in tc["untested"])
+            lines.append("")
+            lines.append("</details>")
+            lines.append("")
+
+    # ── Pytest / coverage.py data (line & branch coverage) ──
+    if pytest_cov:
+        lines.append("### \U0001f4ca Line & Branch Coverage (pytest --cov)")
+        lines.append("")
+        lines.append(
+            f"> **Source:** `{pytest_cov['source']}` found in repository root."
+        )
+        lines.append("")
+
+        line_pct = pytest_cov.get("line_pct", 0.0)
+        covered = pytest_cov.get("covered_lines", 0)
+        statements = pytest_cov.get("num_statements", 0)
+        missing = pytest_cov.get("missing_lines", 0)
+
+        lines.append("| Metric | Value |")
+        lines.append("|--------|-------|")
+        lines.append(f"| \U0001f4cf **Statements** | {statements:,} |")
+        lines.append(f"| \u2705 **Covered lines** | {covered:,} |")
+        lines.append(f"| \u274c **Missing lines** | {missing:,} |")
+        lines.append(f"| \U0001f4ca **Line coverage** | {line_pct:.1f}% |")
+
+        if pytest_cov.get("has_branch"):
+            nb = pytest_cov.get("num_branches", 0)
+            cb = pytest_cov.get("covered_branches", 0)
+            bp = pytest_cov.get("branch_pct", 0.0)
+            lines.append(f"| \U0001f500 **Branches** | {nb:,} |")
+            lines.append(f"| \u2705 **Covered branches** | {cb:,} |")
+            lines.append(f"| \U0001f500 **Branch coverage** | {bp:.1f}% |")
+        lines.append("")
+
+        # Mermaid pie chart for line coverage
+        lines.append("```mermaid")
+        lines.append("pie title Line Coverage (pytest --cov)")
+        if covered:
+            lines.append(f'    "Covered" : {covered}')
+        if missing:
+            lines.append(f'    "Missing" : {missing}')
+        lines.append("```")
+        lines.append("")
+
+        # Per-file table: show lowest-covered files
+        per_file = pytest_cov.get("per_file", {})
+        if per_file:
+            sorted_files = sorted(
+                per_file.items(), key=lambda x: x[1].get("line_pct", 0)
+            )
+            low_cov = [
+                (fp, fd) for fp, fd in sorted_files if fd.get("line_pct", 0) < 100
+            ]
+            if low_cov:
+                show = low_cov[:20]
+                lines.append("<details>")
+                lines.append(
+                    "<summary><strong>Click to expand files below 100% coverage "
+                    f"(showing {len(show)} of {len(low_cov)})</strong></summary>"
+                )
+                lines.append("")
+                lines.append("| File | Coverage | Lines |")
+                lines.append("|------|----------|-------|")
+                for fp, fd in show:
+                    pct = fd.get("line_pct", 0.0)
+                    stmts = fd.get("statements", "")
+                    cov = fd.get("covered", "")
+                    detail = f"{cov}/{stmts}" if stmts else ""
+                    lines.append(f"| `{fp}` | {pct:.1f}% | {detail} |")
+                lines.append("")
+                lines.append("</details>")
+                lines.append("")
+
     # ── File Access Statistics ──
     lines.append("---")
     lines.append("")
@@ -1295,6 +1685,28 @@ def generate_markdown(stats: dict) -> str:
     )
     lines.append(">")
     lines.append(f"> **Detected policy:** {atime_policy}")
+    lines.append(">")
+    lines.append(
+        "> **Detection method:** `atime`/`mtime` gathered via Python "
+        "`pathlib.Path.stat()` (OS-level `stat(2)` syscall).  "
+    )
+    _sys_name = platform.system()
+    if _sys_name == "Linux":
+        _atime_how = (
+            "atime policy auto-detected by parsing `/proc/mounts` for the "
+            "mount point containing this repository (dynamic, Linux-specific)."
+        )
+    elif _sys_name == "Windows":
+        _atime_how = (
+            "atime policy based on known NTFS defaults "
+            "(typically disabled since Vista/Server 2008; "
+            "verify with `fsutil behavior query disablelastaccess`)."
+        )
+    elif _sys_name == "Darwin":
+        _atime_how = "atime policy based on known APFS/HFS+ behaviour (macOS)."
+    else:
+        _atime_how = "atime policy could not be auto-detected on this OS."
+    lines.append(f"> **Policy detection:** {_atime_how}")
     lines.append("")
 
     if file_access:
@@ -1372,7 +1784,11 @@ def generate_markdown(stats: dict) -> str:
         )
         lines.append("")
         recent_files = sorted(
-            file_git.items(),
+            (
+                (fp, fs)
+                for fp, fs in file_git.items()
+                if not current_files or fp in current_files
+            ),
             key=lambda x: x[1].get("last_commit", ""),
             reverse=True,
         )
@@ -1402,18 +1818,38 @@ def generate_markdown(stats: dict) -> str:
             "(number of commits that touched this file) and last known commit date "
             "(date of the most recent commit that modified this file)."
         )
+        lines.append(">")
+        lines.append(
+            "> **Detection method:** `git log --name-only HEAD` "
+            "(single-pass extraction of commit counts and dates)."
+        )
         lines.append("")
 
+        # Filter to only currently existing files so count matches badge
+        filtered_git = {
+            fp: fs
+            for fp, fs in file_git.items()
+            if not current_files or fp in current_files
+        }
+        historical_count = len(file_git) - len(filtered_git)
+
         sorted_files = sorted(
-            file_git.items(),
+            filtered_git.items(),
             key=lambda x: x[1]["commits"],
             reverse=True,
         )
 
+        summary = f"({len(sorted_files)} files)"
+        if historical_count > 0:
+            summary = (
+                f"({len(sorted_files)} current files; "
+                f"{historical_count} deleted/renamed files omitted)"
+            )
+
         lines.append("<details>")
         lines.append(
-            "<summary><strong>Click to expand per-file git stats "
-            f"({len(sorted_files)} files)</strong></summary>"
+            f"<summary><strong>Click to expand per-file git stats "
+            f"{summary}</strong></summary>"
         )
         lines.append("")
         pfg_rows: list[list[str]] = []
@@ -1455,53 +1891,167 @@ def generate_markdown(stats: dict) -> str:
     # ── Recommended Scripts ──
     lines.append("---")
     lines.append("")
-    lines.append("## \U0001f527 Recommended Scripts")
+    lines.append("## \U0001f9f0 Recommended Scripts")
     lines.append("")
     lines.append("> Scripts that expand on repository information and health checks.")
     lines.append(">")
-    lines.append(
-        "> **Source:** "
-        "[simple-python-boilerplate]"
-        "(https://github.com/JoJo275/simple-python-boilerplate) "
-        "by [JoJo275](https://github.com/JoJo275) on GitHub"
-    )
+    remote_url = git_stats.get("remote_url", "") if git_stats.get("available") else ""
+    if remote_url:
+        lines.append(f"> **Source:** `{remote_url}`")
+    else:
+        lines.append(
+            "> **Source:** "
+            "[simple-python-boilerplate]"
+            "(https://github.com/JoJo275/simple-python-boilerplate) "
+            "by [JoJo275](https://github.com/JoJo275) on GitHub"
+        )
     lines.append(">")
     lines.append("> Scripts are located in the `scripts/` directory.")
-    lines.append(">")
-    lines.append(
-        "> *These scripts may already exist in this repository if it was "
-        "forked from or based on the source.*"
-    )
-    lines.append(
-        "> *If not, visit the "
-        "[source repo](https://github.com/JoJo275/simple-python-boilerplate) "
-        "by JoJo275 to obtain them.*"
-    )
     lines.append("")
-    rs_rows: list[list[str]] = [
-        [
-            "`python scripts/git_doctor.py`",
+    # Use a spaced list instead of a dense table for readability
+    _scripts = [
+        (
+            "\u2705",
+            "python scripts/git_doctor.py",
             "Git health dashboard \u2014 config, branch ops, integrity",
-        ],
-        ["`python scripts/env_inspect.py`", "Environment, packages, PATH inspection"],
-        [
-            "`python scripts/check_python_support.py`",
-            "Python version consistency across configs",
-        ],
-        ["`python scripts/repo_doctor.py`", "Repository structure health checks"],
-        [
-            "`python scripts/dep_versions.py show`",
-            "Dependency versions and update status",
-        ],
-        ["`python scripts/env_doctor.py`", "Development environment diagnostics"],
-        ["`python scripts/doctor.py`", "Unified health check (runs all doctors)"],
-        [
-            "`python scripts/workflow_versions.py`",
+            "Any git repo",
+        ),
+        (
+            "\u2705",
+            "python scripts/repo_sauron.py",
+            "Full repository statistics dashboard (this script)",
+            "Any git repo",
+        ),
+        (
+            "\u2705",
+            "python scripts/env_inspect.py",
+            "Environment, packages, PATH inspection",
+            "Any project",
+        ),
+        (
+            "\u2705",
+            "python scripts/workflow_versions.py",
             "GitHub Actions SHA-pinned version status",
-        ],
+            "Any GitHub repo",
+        ),
+        (
+            "\u2705",
+            "python scripts/repo_doctor.py",
+            "Repository structure health checks",
+            "Any git repo",
+        ),
+        (
+            "\U0001f40d",
+            "python scripts/check_python_support.py",
+            "Python version consistency across configs",
+            "Python only",
+        ),
+        (
+            "\U0001f40d",
+            "python scripts/dep_versions.py show",
+            "Dependency versions and update status",
+            "Python only",
+        ),
+        (
+            "\U0001f40d",
+            "python scripts/env_doctor.py",
+            "Development environment diagnostics",
+            "Python only",
+        ),
+        (
+            "\U0001f40d",
+            "python scripts/doctor.py",
+            "Unified health check (runs all doctors)",
+            "Python only",
+        ),
     ]
-    lines.extend(_aligned_table(["Script", "Description"], rs_rows, "ll"))
+    for icon, cmd, desc, compat in _scripts:
+        lines.append(f"- {icon} **`{cmd}`**")
+        lines.append(
+            f"  {desc} &nbsp; "
+            f"![{compat}](https://img.shields.io/badge/{compat.replace(' ', '%20')}-0969DA?style=flat-square)"
+        )
+        lines.append("")
+
+    # ── Recommended VS Code Extensions ──
+    lines.append("---")
     lines.append("")
+    lines.append("## \U0001f4e6 Recommended VS Code Extensions")
+    lines.append("")
+    lines.append(
+        "> Install these extensions for the best experience when "
+        "viewing this report in VS Code."
+    )
+    lines.append("")
+    _extensions = [
+        (
+            "bierner.markdown-mermaid",
+            "Markdown Preview Mermaid Support",
+            "Renders Mermaid charts (pie, flowchart) in markdown preview",
+        ),
+        (
+            "shd101wyy.markdown-preview-enhanced",
+            "Markdown Preview Enhanced",
+            "Rich preview with colour blocks, badges, code charts, and more",
+        ),
+        (
+            "kamikillerto.vscode-colorize",
+            "Colorize",
+            "Visualises colour codes (hex, rgb) inline in any file",
+        ),
+        (
+            "yzhang.markdown-all-in-one",
+            "Markdown All in One",
+            "TOC generation, auto-formatting, list editing, math",
+        ),
+        (
+            "bierner.markdown-checkbox",
+            "Markdown Checkboxes",
+            "Clickable task list checkboxes in preview",
+        ),
+        (
+            "bierner.github-markdown-preview",
+            "GitHub Markdown Preview",
+            "GitHub-flavored markdown rendering including alerts and badges",
+        ),
+    ]
+    for ext_id, name, desc in _extensions:
+        lines.append(f"- **{name}** (`{ext_id}`)")
+        lines.append(f"  {desc}")
+        lines.append("")
+
+    # ── Repository Velocity ──
+    if git_stats.get("available"):
+        first_date = git_stats.get("first_commit_date", "")[:10]
+        last_date = git_stats.get("last_commit_date", "")[:10]
+        total_commits = git_stats.get("total_commits", 0)
+        if first_date and last_date and total_commits > 1:
+            try:
+                d1 = datetime.fromisoformat(first_date + "T00:00:00+00:00").date()
+                d2 = datetime.fromisoformat(last_date + "T00:00:00+00:00").date()
+                days = max((d2 - d1).days, 1)
+                weeks = max(days / 7, 1)
+                commits_per_week = round(total_commits / weeks, 1)
+
+                lines.append("---")
+                lines.append("")
+                lines.append("## \U0001f680 Repository Velocity")
+                lines.append("")
+                lines.append(
+                    "> **\u2139\ufe0f Note:** Commit activity over the "
+                    "lifetime of the repository."
+                )
+                lines.append("")
+                lines.append("| Metric | Value |")
+                lines.append("|--------|-------|")
+                lines.append(f"| \U0001f4c5 **First commit** | {first_date} |")
+                lines.append(f"| \U0001f4c5 **Latest commit** | {last_date} |")
+                lines.append(f"| \U0001f4c6 **Repository age** | {days} days |")
+                lines.append(f"| \u26a1 **Commits per week** | {commits_per_week} |")
+                lines.append(f"| \U0001f4e6 **Total commits** | {total_commits} |")
+                lines.append("")
+            except (ValueError, TypeError):
+                pass
 
     # ── Footer ──
     lines.append("---")

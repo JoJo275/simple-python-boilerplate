@@ -1143,13 +1143,14 @@ def _run_git(args: list[str], *, timeout: int = 15) -> tuple[int, str, str]:
             [_GIT, *args],
             cwd=str(ROOT),
             capture_output=True,
-            text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
         )
         return result.returncode, result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
         return 1, "", "git command timed out"
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         return 1, "", str(exc)
 
 
