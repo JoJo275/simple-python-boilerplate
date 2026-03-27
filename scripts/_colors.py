@@ -370,6 +370,15 @@ class Colors:
         """Explicit white text."""
         return self._wrap(self.WHITE, text)
 
+    def link(self, text: str, url: str) -> str:
+        """Wrap *text* in an OSC 8 terminal hyperlink to *url*.
+
+        Falls back to plain *text* when color/escape output is disabled.
+        """
+        if not self.enabled:
+            return text
+        return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
+
     def icon(self, status: str) -> str:
         """Colored PASS / FAIL / WARN label.
 

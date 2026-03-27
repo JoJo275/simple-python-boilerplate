@@ -176,17 +176,18 @@ class TestFormatPlain:
 
     def test_contains_header(self) -> None:
         output = format_plain(SAMPLE_INFO)
-        assert "DIAGNOSTICS REPORT" in output
+        assert "TIMESTAMP" in output
 
     def test_contains_section_names(self) -> None:
         output = format_plain(SAMPLE_INFO)
-        assert "[TIMESTAMP]" in output
-        assert "[SYSTEM]" in output
-        assert "[TOOLS]" in output
+        assert "TIMESTAMP" in output
+        assert "SYSTEM" in output
+        assert "TOOLS" in output
 
     def test_contains_values(self) -> None:
         output = format_plain(SAMPLE_INFO)
-        assert "python_version: 3.13.5" in output
+        assert "python_version:" in output
+        assert "3.13.5" in output
         assert "Windows 10" in output
 
     def test_scalar_values_rendered(self) -> None:

@@ -3268,7 +3268,9 @@ def run(
         print(f"      {c.dim(cmd_info['desc'])}")
 
     # ── Recommended Scripts ──
-    _ui = UI(title="Git Doctor", version=SCRIPT_VERSION, theme=THEME)
+    _ui = UI(
+        title="Git Doctor", version=SCRIPT_VERSION, theme=THEME, no_color=not use_color
+    )
     _ui.recommended_scripts(
         [
             "repo_sauron",
@@ -6092,7 +6094,9 @@ def _show_commits_terminal(*, color: bool | None = None) -> int:
         )
 
     # ── Recommended Scripts ──
-    _vc_ui = UI(title="Git Doctor", version=SCRIPT_VERSION, theme=THEME)
+    _vc_ui = UI(
+        title="Git Doctor", version=SCRIPT_VERSION, theme=THEME, no_color=not use_color
+    )
     _vc_ui.recommended_scripts(
         [
             "repo_sauron",

@@ -356,13 +356,15 @@ class UI:
         self.section(heading)
         print(f"    {self.c.green(self.c.bold(preamble))}")
         print()
+
+        repo_url = "https://github.com/JoJo275/simple-python-boilerplate"
         print(
-            f"    {self.c.dim('Source:')} {self.c.cyan('simple-python-boilerplate')}"
+            f"    {self.c.dim('Source:')} {self._themed('simple-python-boilerplate')}"
             f" by {self.c.bold('JoJo275')} on GitHub"
         )
         print(
             f"    {self.c.dim('Repo:')}   "
-            f"{self.c.cyan('https://github.com/JoJo275/simple-python-boilerplate')}"
+            f"{self._themed(self.c.link(repo_url, repo_url))}"
         )
         print(f"    {self.c.dim('Location:')} scripts/ directory")
         print()
@@ -371,8 +373,10 @@ class UI:
         )
         print(f"    {self.c.yellow('forked from or based on the source.')}")
         print()
+        repo_link = self._themed(self.c.link("repo", repo_url))
         print(
-            f"    {self.c.yellow('If not, visit the source repo by JoJo275 to obtain them.')}"
+            f"    {self.c.yellow('If not, visit the source')} {repo_link} "
+            f"{self.c.yellow('by JoJo275 to obtain them.')}"
         )
         print()
         for key in keys:
@@ -380,5 +384,6 @@ class UI:
             if entry is None:
                 continue
             cmd, desc = entry
-            print(f"      {self.c.yellow(desc)}")
-            print(f"        {self.c.cyan(cmd)}")
+            print(f"      {self._themed(desc)}")
+            print(f"      {self.c.dim(self.h_line * len(desc))}")
+            print(f"        {self.c.magenta(cmd)}")

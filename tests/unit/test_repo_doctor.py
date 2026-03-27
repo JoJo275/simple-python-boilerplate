@@ -799,7 +799,7 @@ class TestMain:
         ):
             ret = main()
         assert ret == 0
-        assert "all checks passed" in capsys.readouterr().out
+        assert "All checks passed" in capsys.readouterr().out
 
     def test_missing_file_shows_warning(
         self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
