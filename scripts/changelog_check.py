@@ -18,6 +18,11 @@ Usage::
     python scripts/changelog_check.py --verbose
     python scripts/changelog_check.py --quiet       # Exit code only (for CI)
     python scripts/changelog_check.py --changelog-path docs/CHANGES.md
+
+Portability:
+    Can be used in any repo with a Keep a Changelog-style CHANGELOG.md
+    and semver git tags.  Requires shared modules: ``_colors.py``,
+    ``_imports.py``, ``_ui.py``.
 """
 
 from __future__ import annotations
@@ -316,7 +321,16 @@ def main() -> int:
         default=CHANGELOG,
         help="Path to CHANGELOG.md (default: %(default)s)",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"changelog_check {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)

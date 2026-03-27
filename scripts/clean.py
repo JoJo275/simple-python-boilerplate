@@ -20,6 +20,11 @@ Usage::
     python scripts/clean.py --include-venv          # Also removes .venv directories
     python scripts/clean.py --include-venv --yes    # Skip confirmation prompt
     task clean:all
+
+Portability:
+    Can be used in any Python repo — cleans standard build artifacts.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -319,7 +324,16 @@ def main() -> int:
         action="store_true",
         help="Skip confirmation prompt for --include-venv",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"clean {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     # Configure logging
     level = logging.WARNING if args.quiet else logging.INFO

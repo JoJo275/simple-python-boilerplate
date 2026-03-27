@@ -20,6 +20,11 @@ Usage::
     python scripts/test_docker_compose.py --dry-run
     python scripts/test_docker_compose.py --keep --verbose
     python scripts/test_docker_compose.py --timeout 600
+
+Portability:
+    Can be used in any repo with a ``docker-compose.yml`` and
+    ``Containerfile``.  Requires shared modules: ``_imports.py``,
+    ``_progress.py``, ``_container_common.py``.
 """
 
 from __future__ import annotations

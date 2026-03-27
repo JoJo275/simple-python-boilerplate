@@ -21,6 +21,11 @@ Usage::
     python scripts/doctor.py --markdown   # For GitHub issues
     python scripts/doctor.py --json       # Machine-readable output
     python scripts/doctor.py --quiet      # One-line summary
+
+Portability:
+    Repo-specific — aggregates project-specific health checks.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -680,7 +685,16 @@ def main() -> int:
         action="store_true",
         help="Disable colored output",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"doctor {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     logging.basicConfig(
         level=logging.INFO,

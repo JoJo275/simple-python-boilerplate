@@ -122,6 +122,10 @@ Customisation notes:
 - **Auto-fetch**: The script runs ``git fetch --all --prune`` at startup
   to ensure remote-tracking refs are current and deleted remote branches
   are cleaned up.
+
+Portability:
+    Can be used in any Git repository.  Requires shared modules:
+    ``_colors.py``, ``_imports.py``, ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -6246,7 +6250,16 @@ def main() -> int:
         "commit-report.md (in the repo root) instead of terminal output. "
         "Includes quick stats, a clickable table of contents, and GitHub links.",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"git_doctor {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     logging.basicConfig(
         level=logging.INFO,

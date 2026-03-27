@@ -31,6 +31,7 @@ Subcommands and flags::
       [version]              Target version (omit to upgrade to latest)
       --dry-run              Show what would be upgraded without installing
     --version                Print version and exit
+    --smoke                  Quick health check; exit 0 immediately
 
 Usage::
 
@@ -41,6 +42,11 @@ Usage::
     python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades
     python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
     python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
+
+Portability:
+    Can be used in any Python repo with a ``pyproject.toml`` that
+    declares dependencies.  Requires shared modules: ``_colors.py``,
+    ``_imports.py``, ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -701,6 +707,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="version",
         version=f"%(prog)s {SCRIPT_VERSION}",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately "
+        "(aliases --offline for consistency with other scripts)",
+    )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     # -- show (default) --
@@ -758,6 +770,11 @@ def main() -> int:
     """
     parser = build_parser()
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"dep_versions {SCRIPT_VERSION}: smoke ok")
+        return 0
+
     c = Colors()
 
     # Default to "show" when no subcommand given

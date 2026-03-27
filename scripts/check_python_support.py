@@ -32,6 +32,11 @@ Usage::
     python scripts/check_python_support.py
     python scripts/check_python_support.py --json
     python scripts/check_python_support.py --quiet   # Exit code only (for CI)
+
+Portability:
+    Can be used in other repos that have a ``pyproject.toml`` with
+    classifiers and ``requires-python``.  Requires shared modules:
+    ``_colors.py``, ``_imports.py``, ``_ui.py``.
 """
 
 from __future__ import annotations
@@ -557,7 +562,16 @@ def main() -> int:
         action="store_true",
         help="Disable colored output",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"check_python_support {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)

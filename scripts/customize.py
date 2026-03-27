@@ -68,6 +68,11 @@ Usage::
     python scripts/customize.py --export-config
     python scripts/customize.py --apply-from customize-config.md --dry-run
     python scripts/customize.py --apply-from customize-config.md
+
+Portability:
+    Template-specific — customises this template's placeholders and
+    structure.  Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations

@@ -44,6 +44,10 @@ Flags::
     --check      Compare generated output with existing file; exit 1 if stale
     --dry-run    Print generated Markdown to stdout instead of writing to disk
     --version    Print script version and exit
+
+Portability:
+    Repo-specific — generates docs from this project's scripts.
+    Requires shared module: ``_imports.py``.
 """
 
 from __future__ import annotations
