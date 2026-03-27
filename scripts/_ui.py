@@ -28,10 +28,13 @@ Usage::
 
 from __future__ import annotations
 
+import re
+import tomllib
 from collections.abc import Callable
 from typing import ClassVar
 
 from _colors import Colors, supports_unicode, unicode_symbols
+from _imports import find_repo_root
 
 __all__ = ["RECOMMENDED_SCRIPTS", "UI"]
 
@@ -94,6 +97,40 @@ RECOMMENDED_SCRIPTS: dict[str, tuple[str, str]] = {
         "Remove build artifacts and caches",
     ),
 }
+
+# ---------------------------------------------------------------------------
+# Repo metadata helpers
+# ---------------------------------------------------------------------------
+
+_DEFAULT_REPO_URL = "https://github.com/JoJo275/simple-python-boilerplate"
+
+
+def _resolve_repo_info() -> tuple[str, str, str]:
+    """Read repo URL, name, and owner from pyproject.toml.
+
+    Falls back to hardcoded defaults if parsing fails.
+
+    Returns:
+        ``(repo_url, repo_name, owner)``
+    """
+    try:
+        root = find_repo_root()
+        pyproject = root / "pyproject.toml"
+        if pyproject.is_file():
+            data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+            urls = data.get("project", {}).get("urls", {})
+            url = urls.get("Repository") or urls.get("Homepage") or ""
+            if url:
+                m = re.search(r"github\.com/([^/]+)/([^/]+?)(?:\.git)?$", url)
+                if m:
+                    return url.rstrip("/"), m.group(2), m.group(1)
+            # Fallback: project name from metadata
+            name = data.get("project", {}).get("name", "")
+            if name:
+                return _DEFAULT_REPO_URL, name, "unknown"
+    except (OSError, KeyError, ValueError, tomllib.TOMLDecodeError):
+        pass
+    return _DEFAULT_REPO_URL, "simple-python-boilerplate", "JoJo275"
 
 
 class UI:
@@ -241,10 +278,13 @@ class UI:
         """Print a dimmed informational line (indented)."""
         print(f"    {self.c.dim(message)}")
 
-    def separator(self, *, width: int = 60, double: bool = False) -> None:
+    def separator(
+        self, *, width: int = 60, double: bool = False, themed: bool = False
+    ) -> None:
         """Print a horizontal separator line."""
         char = self.h_double if double else self.h_line
-        print(f"  {self.c.dim(char * width)}")
+        line = char * width
+        print(f"  {self._themed(line) if themed else self.c.dim(line)}")
 
     def blank(self) -> None:
         """Print a blank line."""
@@ -261,9 +301,14 @@ class UI:
         """
         hdr_parts = []
         line_parts = []
-        for text, w in columns:
-            hdr_parts.append(self.c.dim(text.ljust(w)))
-            line_parts.append(self.c.dim(self.h_line * w))
+        for i, (text, w) in enumerate(columns):
+            if i < len(columns) - 1:
+                hdr_parts.append(self.c.dim(text.ljust(w)))
+                line_parts.append(self.c.dim(self.h_line * w))
+            else:
+                # Last column: no right-padding to avoid line wrapping
+                hdr_parts.append(self.c.dim(text))
+                line_parts.append(self.c.dim(self.h_line * w))
         print(f"    {' '.join(hdr_parts)}")
         print(f"    {' '.join(line_parts)}")
 
@@ -279,13 +324,17 @@ class UI:
                 the raw width.
         """
         parts = []
-        for text, w in cells:
+        for i, (text, w) in enumerate(cells):
             # Pad based on visible length (strip ANSI for measurement)
             from _colors import strip_ansi
 
             visible_len = len(strip_ansi(text))
-            padding = max(w - visible_len, 0)
-            parts.append(text + " " * padding)
+            # Skip right-padding on the last column to avoid line wrapping
+            if i < len(cells) - 1:
+                padding = max(w - visible_len, 0)
+                parts.append(text + " " * padding)
+            else:
+                parts.append(text)
         print(f"    {' '.join(parts)}")
 
     def footer(
@@ -406,6 +455,10 @@ class UI:
         Pulls entries from the shared :data:`RECOMMENDED_SCRIPTS` registry
         so descriptions stay consistent across all scripts.
 
+        The repo URL and owner are read dynamically from pyproject.toml
+        ``[project.urls].Repository`` so they stay correct after template
+        customisation.
+
         Args:
             keys: Registry keys to display (e.g. ``["repo_sauron", "doctor"]``).
             heading: Section title.
@@ -415,16 +468,20 @@ class UI:
         print(f"    {self.c.green(self.c.bold(preamble))}")
         print()
 
-        repo_url = "https://github.com/JoJo275/simple-python-boilerplate"
+        # Dynamically resolve repo metadata from pyproject.toml
+        repo_url, repo_name, repo_owner = _resolve_repo_info()
+
         print(
-            f"    {self.c.dim('Source:')} {self._themed('simple-python-boilerplate')}"
-            f" by {self.c.bold('JoJo275')} on GitHub"
+            f"    {self.c.dim('Source:')}    {self._themed(repo_name)}"
+            f" by {self.c.bold(repo_owner)} on GitHub"
         )
+        print()
         print(
-            f"    {self.c.dim('Repo:')}   "
+            f"    {self.c.dim('Repo:')}      "
             f"{self._themed(self.c.link(repo_url, repo_url))}"
         )
-        print(f"    {self.c.dim('Location:')} scripts/ directory")
+        print()
+        print(f"    {self.c.dim('Location:')}  scripts/ directory")
         print()
         print(
             f"    {self.c.white('These scripts may already exist in this')}"
@@ -435,7 +492,7 @@ class UI:
         repo_link = self._themed(self.c.link("repo", repo_url))
         print(
             f"    {self.c.white('If not, visit the source')} {repo_link} "
-            f"{self.c.white('by JoJo275 to obtain them.')}"
+            f"{self.c.white(f'by {repo_owner} to obtain them.')}"
         )
         print()
         for i, key in enumerate(keys):

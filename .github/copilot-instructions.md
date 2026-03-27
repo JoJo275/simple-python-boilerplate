@@ -147,6 +147,13 @@ why it matters, suggested next step.
 - **Hooks** — `pre-commit run <hook-id> --all-files`
 - **SHA-pinned actions** — verify the commit SHA exists upstream
 
+### Don't Churn
+
+Avoid unnecessary rewrites, renames, or restructurings that don't fix a
+bug or deliver a requested feature. Churn creates merge conflicts, pollutes
+blame history, and wastes CI minutes. If existing code works and isn't
+blocking a change, leave it alone.
+
 ### Tone
 
 Direct and factual. No filler praise or diplomatic hedging. If something

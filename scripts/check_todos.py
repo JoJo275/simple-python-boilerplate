@@ -22,6 +22,11 @@ Usage::
     python scripts/check_todos.py --pattern "TODO"
     python scripts/check_todos.py --exclude docs/notes
     python scripts/check_todos.py --quiet
+
+Portability:
+    Can be used in any repo — scans for a configurable text pattern.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -364,6 +369,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=[],
         help="Additional path prefixes to exclude (relative to project root)",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     return parser.parse_args(argv)
 
 
@@ -374,6 +384,10 @@ def main() -> int:
         Exit code: 0 if no TODOs found, 1 if TODOs remain.
     """
     args = parse_args()
+
+    if args.smoke:
+        print(f"check_todos {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     # Configure logging: --quiet suppresses INFO, errors always shown
     level = logging.WARNING if args.quiet else logging.INFO

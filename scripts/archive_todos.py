@@ -24,6 +24,11 @@ Usage::
     python scripts/archive_todos.py --quiet
     python scripts/archive_todos.py --no-backup
     task clean:todo
+
+Portability:
+    Can be used in any repo — archives TODO items from Markdown notes.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``.
 """
 
 from __future__ import annotations

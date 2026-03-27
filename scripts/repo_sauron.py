@@ -48,6 +48,11 @@ Output:
     Generates a Markdown file with colored sections, table of contents,
     repo structure tree, file access stats, per-file git history, test
     coverage analysis, and Mermaid charts.
+
+Portability:
+    Can be used in any Python repo with a ``pyproject.toml``.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -2167,7 +2172,16 @@ def main() -> int:
         action="store_true",
         help="Suppress output; exit code only",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"repo_sauron {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     level = logging.WARNING if args.quiet else logging.INFO
     logging.basicConfig(format="%(message)s", level=level)

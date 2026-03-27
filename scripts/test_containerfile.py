@@ -20,6 +20,10 @@ Usage::
     python scripts/test_containerfile.py --dry-run
     python scripts/test_containerfile.py --keep --verbose
     python scripts/test_containerfile.py --timeout 600
+
+Portability:
+    Can be used in any repo with a ``Containerfile``.  Requires shared
+    modules: ``_imports.py``, ``_progress.py``, ``_container_common.py``.
 """
 
 from __future__ import annotations

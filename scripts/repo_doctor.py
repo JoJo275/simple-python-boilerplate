@@ -57,6 +57,11 @@ Usage::
     python scripts/repo_doctor.py --fix
     python scripts/repo_doctor.py --smoke
     python scripts/repo_doctor.py --smoke ci
+
+Portability:
+    Can be used in any repo with ``repo_doctor.d/`` rule profiles.
+    Requires shared modules: ``_colors.py``, ``_imports.py``,
+    ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations

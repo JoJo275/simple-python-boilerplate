@@ -52,6 +52,14 @@ fit your project.
 > navigating the repo structure. Point it at this file and ask it to walk
 > you through the setup.
 
+> **Install recommended extensions.** Some features — Markdown rendering,
+> TOML/YAML highlighting, linting overlays, and inline error display — may
+> look broken or unstyled without the VS Code extensions this project
+> expects. Install them from
+> [`.vscode/extensions.json`](../.vscode/extensions.json) (VS Code will
+> prompt you automatically, or run **Extensions: Show Recommended
+> Extensions** from the command palette).
+
 ---
 
 ## Public vs Private Repositories

@@ -113,6 +113,11 @@ Caching:
     with a 1-hour TTL (3600 seconds) to avoid unnecessary API calls
     during repeated runs.  Override with ``WV_CACHE_TTL`` env var
     (seconds).  Set ``WV_CACHE_TTL=0`` to disable caching entirely.
+
+Portability:
+    Can be used in any repo with SHA-pinned GitHub Actions in
+    ``.github/workflows/``.  Requires shared modules: ``_colors.py``,
+    ``_imports.py``, ``_ui.py``, ``_progress.py``.
 """
 
 from __future__ import annotations
@@ -1129,6 +1134,11 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Suppress table output. Exit non-zero if issues are found (CI mode).",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
 
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -1198,6 +1208,11 @@ def main() -> int:
 
     parser = _build_parser()
     args = parser.parse_args()
+
+    if getattr(args, "smoke", False):
+        print(f"workflow_versions {SCRIPT_VERSION}: smoke ok")
+        return 0
+
     command = args.command or "show"
     quiet = getattr(args, "quiet", False)
 

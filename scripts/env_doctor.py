@@ -28,6 +28,12 @@ Usage::
     python scripts/env_doctor.py
     python scripts/env_doctor.py --strict
     python scripts/env_doctor.py --json
+
+Portability:
+    Repo-specific — checks are tailored to this project's tooling
+    (Hatch, pre-commit, Taskfile). Requires shared modules:
+    ``_colors.py``, ``_imports.py``, ``_ui.py``, ``_progress.py``,
+    ``_doctor_common.py``.
 """
 
 from __future__ import annotations
@@ -1323,7 +1329,16 @@ def main() -> int:
         action="store_true",
         help="Output results as JSON (for CI integration)",
     )
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     args = parser.parse_args()
+
+    if args.smoke:
+        print(f"env_doctor {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     logging.basicConfig(
         level=logging.INFO,

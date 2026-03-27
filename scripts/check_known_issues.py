@@ -28,6 +28,11 @@ Usage::
     python scripts/check_known_issues.py --days 60
     python scripts/check_known_issues.py --quiet
     python scripts/check_known_issues.py --json
+
+Portability:
+    Can be used in any repo with a ``docs/known-issues.md`` that follows
+    the same Resolved table format.  Requires shared modules:
+    ``_colors.py``, ``_imports.py``, ``_ui.py``.
 """
 
 from __future__ import annotations
@@ -241,6 +246,11 @@ def build_parser() -> argparse.ArgumentParser:
     # TODO: Consider adding a --warn flag that exits 0 but prints
     #   warnings instead of failing.  Useful for advisory CI checks
     #   that shouldn't block merges.
+    parser.add_argument(
+        "--smoke",
+        action="store_true",
+        help="Quick import and arg-parse health check; exit 0 immediately",
+    )
     return parser
 
 
@@ -255,6 +265,10 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.smoke:
+        print(f"check_known_issues {SCRIPT_VERSION}: smoke ok")
+        return 0
 
     logging.basicConfig(
         level=logging.WARNING if args.quiet else logging.INFO,
