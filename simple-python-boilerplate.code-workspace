@@ -148,7 +148,16 @@
 			// Docker — Dockerfile/Containerfile syntax, build/run commands,
 			// image explorer, and container logs. This project includes a
 			// Containerfile and docker-compose.yml.
-			"ms-azuretools.vscode-docker"
+			"ms-azuretools.vscode-docker",
+			// Markdown Preview Enhanced — advanced Markdown preview with
+			// extended syntax, diagrams, and export options.
+			"shd101wyy.markdown-preview-enhanced",
+			// Color Highlight — visualizes CSS/web colors inline in the
+			// editor by highlighting color codes with their actual color.
+			"kamikillerto.vscode-colorize",
+			// Markdown All in One — keyboard shortcuts, TOC generation,
+			// auto-preview, and list editing for Markdown files.
+			"yzhang.markdown-all-in-one"
 		]
 
 		// ── Unwanted Recommendations (optional) ─────────────────

@@ -1405,7 +1405,7 @@ def generate_markdown(stats: dict) -> str:
             line_count = lines_by_ext.get(ext)
             line_str = f"{line_count:,}" if line_count else "\u2014"
             badge = _ext_badge(ext)
-            ft_rows.append([f"{badge} `{ext}`", str(count), line_str])
+            ft_rows.append([badge, str(count), line_str])
         lines.extend(_aligned_table(["Extension", "Files", "Lines"], ft_rows, "lrr"))
         lines.append("")
 
@@ -1433,7 +1433,7 @@ def generate_markdown(stats: dict) -> str:
             badge = _lang_badge(lang["language"])
             lang_rows.append(
                 [
-                    f"{badge} **{lang['language']}**",
+                    badge,
                     str(lang["files"]),
                     lang_lines,
                     pct_str,

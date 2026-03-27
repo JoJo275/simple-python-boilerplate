@@ -352,26 +352,91 @@ multi-step procedures (adding new scripts, shared modules, etc.).
 
 ### Ruff and Formatting Rules
 
-This project uses **ruff** for both linting and formatting. When writing or
-modifying Python code, follow these rules to avoid pre-commit failures:
+This project uses **ruff** for both linting and formatting. Both run as
+pre-commit hooks — code that violates any enabled rule will block commits.
+**Write code that passes ruff on the first try.** When in doubt, check
+`pyproject.toml` under `[tool.ruff]` for the full config.
 
-- **Line length**: No hard limit (E501 is disabled). Don't rewrap lines
-  unless readability requires it.
+#### Formatting (ruff format)
+
+- **Line length**: Target 88 chars (E501 is disabled, but ruff format
+  still wraps). Don't rewrap lines unless readability requires it.
+- **String quotes**: ruff enforces double quotes.
+- **Trailing commas**: ruff adds trailing commas in multi-line structures.
+  Don't fight it — include them.
 - **Import sorting**: ruff enforces `isort`-compatible import order.
   Group order: stdlib → third-party → local. Local script modules
   (prefixed with `_`) go in a separate block with a comment.
-- **Trailing commas**: ruff adds trailing commas in multi-line structures.
-  Don't fight it — include them.
-- **String quotes**: ruff enforces double quotes.
-- **Unused imports/variables**: ruff catches these. Remove them proactively.
+
+#### Lint rules — enabled categories and common violations
+
+The full selected rule set: `E`, `W`, `F`, `I`, `UP`, `D`, `T20`, `B`,
+`C4`, `SIM`, `PTH`, `PERF`, `RUF`. Write code that satisfies all of these.
+Key rules Copilot must follow:
+
+- **PERF401**: Use `list.extend(generator)` instead of a for-loop that
+  appends one item at a time. **Do not** write
+  `for x in items: results.append(transform(x))` — use
+  `results.extend(transform(x) for x in items)` or a list comprehension.
+- **PERF203**: Don't use `try`/`except` inside a loop body when it can
+  be restructured.
+- **C4 (flake8-comprehensions)**: Use list/dict/set comprehensions
+  instead of calling `list()`, `dict()`, `set()` with a generator.
+  Use `[x for x in items]` not `list(x for x in items)`.
+- **SIM (flake8-simplify)**: Simplify boolean expressions, use ternary
+  operators where clear, avoid redundant `if`/`else` branches.
+- **B (flake8-bugbear)**: No mutable default arguments, no bare `except`,
+  no redundant `isinstance` calls, use `contextlib.suppress()` instead
+  of bare `except: pass`.
+- **PTH (flake8-use-pathlib)**: Use `pathlib.Path` over `os.path`.
+  `Path.open()` not `open()`, `Path.exists()` not `os.path.exists()`.
+- **UP (pyupgrade)**: Use modern Python 3.11+ syntax. `X | Y` not
+  `Union[X, Y]`, `dict` not `typing.Dict`, f-strings over `.format()`.
+- **T20 (flake8-print)**: No `print()` in `src/` code. In scripts and
+  tests `T20` is disabled via per-file-ignores.
+- **F (Pyflakes)**: No unused imports, no undefined names, no unused
+  variables.
+- **I (isort)**: Imports sorted correctly per the isort config.
+- **D (pydocstyle)**: Google-style docstrings required on public
+  functions in `src/`. Disabled for tests, scripts, and experiments
+  via per-file-ignores.
+- **RUF**: Ruff-specific rules — unused `noqa` directives, ambiguous
+  unicode, etc.
+
+#### Other style rules
+
+- **Unused imports/variables**: Remove them proactively.
 - **Type annotations**: mypy runs in strict mode. Use `from __future__
   import annotations` at the top of every file for PEP 604 union syntax
   (`X | Y` instead of `Union[X, Y]`).
 - **f-string formatting**: Prefer f-strings over `.format()` or `%`.
 - **Boolean traps**: Use keyword arguments for boolean parameters
   (`func(dry_run=True)` not `func(True)`).
-- Check ruff config in `pyproject.toml` under `[tool.ruff]` for the
-  full rule set.
+
+### Bandit — Security Linting
+
+**Bandit** runs as a pre-commit hook on every commit. Write code that
+passes bandit without needing `# nosec` suppression. Config is in
+`pyproject.toml` under `[tool.bandit]`.
+
+Common violations to avoid:
+
+- **B101 (assert)**: Suppressed globally — asserts are allowed.
+- **B108 (hardcoded tmp)**: Don't hardcode `/tmp` paths. Use
+  `tempfile.mkdtemp()` or `tempfile.NamedTemporaryFile()`.
+- **B301/B302 (pickle)**: Don't use `pickle.loads()` or `marshal` on
+  untrusted data.
+- **B307 (eval)**: Never use `eval()` or `exec()` on user input.
+- **B602 (subprocess shell)**: Never use `subprocess.run(shell=True)`.
+  Always pass argument lists.
+- **B603 (subprocess no shell)**: Use `subprocess.run()` with explicit
+  arg lists.
+- **B608 (SQL injection)**: Don't build SQL with string concatenation or
+  f-strings — use parameterized queries.
+- **B324 (insecure hash)**: Don't use `md5` or `sha1` for security
+  purposes. Use `hashlib.sha256()` or stronger.
+- **B506 (yaml load)**: Use `yaml.safe_load()`, never `yaml.load()`
+  without `Loader=SafeLoader`.
 
 ### Project Structure
 

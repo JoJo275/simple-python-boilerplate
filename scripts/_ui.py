@@ -379,11 +379,13 @@ class UI:
             f"{self.c.yellow('by JoJo275 to obtain them.')}"
         )
         print()
-        for key in keys:
+        for i, key in enumerate(keys):
             entry = RECOMMENDED_SCRIPTS.get(key)
             if entry is None:
                 continue
             cmd, desc = entry
+            if i > 0:
+                print()
             print(f"      {self._themed(desc)}")
             print(f"      {self.c.dim(self.h_line * len(desc))}")
-            print(f"        {self.c.magenta(cmd)}")
+            print(f"        {self.c.bold(self.c.white(cmd))}")
