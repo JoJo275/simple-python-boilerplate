@@ -78,6 +78,7 @@ import keyword
 import logging
 import re
 import shutil
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -2401,10 +2402,22 @@ def apply_from_config(
 
     tag = f"{c.yellow('DRY RUN')} — " if dry_run else ""
 
+    # Count total steps for progress bar
+    total_steps = 1  # text replacements always happens
+    total_steps += bool(cfg.strip_dirs)
+    total_steps += bool(cfg.private_repo)
+    total_steps += 1  # package directory
+    total_steps += 1  # license
+    total_steps += bool(cfg.template_cleanup)
+
+    start_time = time.monotonic()
+    bar = ProgressBar(total=total_steps, label="Applying", color="cyan")
+
     # Execute the same steps as the interactive path
     if cfg.strip_dirs:
         print(f"\n{tag}Stripping optional directories...")
         strip_directories(cfg.strip_dirs, dry_run=dry_run)
+        bar.update("strip dirs")
 
     if cfg.private_repo:
         print(f"\n{tag}Stripping open-source community files (private repo)...")
@@ -2413,6 +2426,7 @@ def apply_from_config(
             dry_run=dry_run,
             strippable=PRIVATE_REPO_STRIP,
         )
+        bar.update("private repo")
 
     print(f"\n{tag}Applying text replacements...")
     modified = apply_replacements(replacements, dry_run=dry_run, show_progress=True)
@@ -2426,30 +2440,39 @@ def apply_from_config(
         f"  Total: {total} replacement{'s' if total != 1 else ''}"
         f" in {n_files} file{'s' if n_files != 1 else ''}"
     )
+    bar.update("replacements")
 
     print(f"\n{tag}Package directory...")
     if not rename_package_dir(cfg, dry_run=dry_run):
         print("  (no rename needed)")
+    bar.update("package dir")
 
     print(f"\n{tag}License...")
     if not apply_license(cfg, dry_run=dry_run):
         print("  (keeping Apache-2.0)")
+    bar.update("license")
 
     if cfg.template_cleanup:
         print(f"\n{tag}Template cleanup...")
         apply_template_cleanup(cfg.template_cleanup, cfg, dry_run=dry_run)
+        bar.update("cleanup")
     else:
         print(f"\n{tag}Template cleanup: none")
+
+    bar.finish()
+    elapsed = time.monotonic() - start_time
 
     if dry_run:
         print()
         print(f"  {c.dim('─' * 50)}")
         print(f"  {c.yellow('Dry run complete')} — no files were modified.")
+        print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
         print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
     else:
         print()
         print(f"  {c.dim('─' * 50)}")
         print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
+        print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
         print(f"\n  {c.bold('Next steps:')}")
         print(f"  1. Review the changes:  {c.cyan('git diff')}")
         reinstall_cmd = "pip install -e '.[dev]'"
@@ -2469,6 +2492,9 @@ def apply_from_config(
 def main() -> int:
     """Entry point for the customize script.
 
+    Default mode (no flags) generates a Markdown configuration file for
+    offline editing.  Use ``--apply-from`` to process the edited file.
+
     Returns:
         Exit code: 0 on success, 1 on abort or error.
     """
@@ -2482,24 +2508,9 @@ def main() -> int:
     if args.enable_workflows:
         return enable_workflows_only(args.enable_workflows, dry_run=args.dry_run)
 
-    # Handle --export-config as a standalone operation
+    # Handle --export-config as a standalone operation (explicit flag)
     if args.export_config:
-        c = Colors()
-        sym = unicode_symbols()
-        out_path = export_customize_config(args.export_config)
-        print(
-            f"  {c.green(sym['check'])} Configuration exported to: {c.cyan(out_path)}"
-        )
-        print()
-        print(f"  {c.bold('Next steps:')}")
-        print("  1. Edit the file — fill in your project values")
-        print(
-            f"  2. Preview:  {c.cyan(f'python scripts/customize.py --apply-from {args.export_config} --dry-run')}"
-        )
-        print(
-            f"  3. Apply:    {c.cyan(f'python scripts/customize.py --apply-from {args.export_config}')}"
-        )
-        return 0
+        return _export_config_with_status(args.export_config)
 
     # Handle --apply-from as a standalone operation
     if args.apply_from:
@@ -2507,6 +2518,85 @@ def main() -> int:
             args.apply_from, dry_run=args.dry_run, force=args.force
         )
 
+    # Handle --non-interactive as before (direct application)
+    if args.non_interactive:
+        return _run_non_interactive(args)
+
+    # Default: generate the Markdown config file for offline editing.
+    # The interactive wizard is no longer the default — a markdown file
+    # is generated instead, which the user edits and then applies.
+    config_path = _CONFIG_DEFAULT_PATH
+    return _export_config_with_status(config_path)
+
+
+def _export_config_with_status(filepath: str) -> int:
+    """Generate the config markdown and print a themed status summary.
+
+    Args:
+        filepath: Output path for the Markdown config.
+
+    Returns:
+        Exit code: 0 on success, 1 on error.
+    """
+    c = Colors()
+    sym = unicode_symbols()
+    ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
+
+    start = time.monotonic()
+    try:
+        out_path = export_customize_config(filepath)
+    except OSError as exc:
+        log.error("Failed to write config: %s", exc)
+        return 1
+    elapsed = time.monotonic() - start
+
+    # ── Status ──
+    ui.header()
+    ui.section("Status")
+    file_link = c.link(out_path, f"file:///{out_path.replace(chr(92), '/')}")
+    print(
+        f"    {c.green(sym['check'])} "
+        f"{c.bold(c.green('Configuration file generated successfully'))}"
+    )
+    print(f"    {c.dim('File:')}     {ui._themed(file_link)}")
+    print(f"    {c.dim('Elapsed:')}  {elapsed:.2f}s")
+
+    # ── Instructions ──
+    ui.section("Instructions")
+    print(
+        f"    {ui._themed('1.')} Open the generated file and fill in your project values"
+    )
+    print(f"    {ui._themed('2.')} Check the boxes for options you want to enable")
+    print(f"    {ui._themed('3.')} Preview your changes before applying:")
+    print()
+    preview_cmd = f"python scripts/customize.py --apply-from {filepath} --dry-run"
+    print(f"         {c.magenta(preview_cmd)}")
+    print()
+    print(f"    {ui._themed('4.')} Apply your customization:")
+    print()
+    apply_cmd = f"python scripts/customize.py --apply-from {filepath}"
+    print(f"         {c.magenta(apply_cmd)}")
+    print()
+
+    # Recommended scripts
+    ui.recommended_scripts(
+        ["bootstrap", "doctor", "repo_sauron", "clean"],
+        preamble="Scripts that help after customization.",
+    )
+    ui.blank()
+
+    return 0
+
+
+def _run_non_interactive(args: argparse.Namespace) -> int:
+    """Run the non-interactive customization path (--non-interactive).
+
+    Args:
+        args: Parsed CLI arguments.
+
+    Returns:
+        Exit code: 0 on success, 1 on abort or error.
+    """
     # Safety check: warn if the template appears already customized
     if not args.force and _already_customized():
         log.warning(
@@ -2514,37 +2604,15 @@ def main() -> int:
             "(src/%s/ is missing or pyproject.toml has been modified).",
             TEMPLATE_PACKAGE_NAME,
         )
-        if args.non_interactive:
-            log.error("Use --force to run anyway.")
-            return 1
-        if not _prompt_yn("Run anyway?", default=False):
-            print("Aborted.")
-            return 0
+        log.error("Use --force to run anyway.")
+        return 1
 
-    # Gather configuration
-    if args.non_interactive:
-        cfg = config_from_args(args)
-    else:
-        cfg = gather_config_interactive()
-
+    cfg = config_from_args(args)
     cfg.dry_run = args.dry_run
 
     # Plan and show
     replacements = plan_replacements(cfg)
     print_plan(cfg, replacements)
-
-    # Confirm (interactive only, skip for dry-run since it's non-destructive)
-    if not args.non_interactive and not cfg.dry_run:
-        c = Colors()
-        sym = unicode_symbols()
-        print(
-            f"  {c.yellow(sym['warn'])} {c.yellow('This will modify files in-place.')} Make sure you have a"
-        )
-        print("     clean git state or a backup before proceeding.")
-        print()
-        if not _prompt_yn("Proceed with these changes?"):
-            print("Aborted.")
-            return 0
 
     c = Colors()
     sym = unicode_symbols()
@@ -2623,9 +2691,6 @@ def main() -> int:
                 f"  5. Rename workspace:    {TEMPLATE_PROJECT_NAME}.code-workspace"
                 f" {sym['arrow']} {c.cyan(f'{cfg.project_name}.code-workspace')}"
             )
-        # TODO (template users): Add any project-specific post-customization
-        #   steps here (e.g., "6. Configure your database connection",
-        #   "7. Set up your .env file").
 
     # Recommended scripts
     if not args.quiet:

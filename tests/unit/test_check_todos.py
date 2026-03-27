@@ -72,7 +72,7 @@ class TestFindTodos:
     def test_finds_todos_in_files(self, tmp_path: Path) -> None:
         py_file = tmp_path / "example.py"
         py_file.write_text("# TODO (template users): Fix this\ncode = 1\n")
-        results = find_todos(tmp_path, "TODO (template users)", set())
+        results, _scanned = find_todos(tmp_path, "TODO (template users)", set())
         assert len(results) == 1
         matches = next(iter(results.values()))
         assert len(matches) == 1
@@ -81,20 +81,20 @@ class TestFindTodos:
     def test_no_todos_returns_empty(self, tmp_path: Path) -> None:
         py_file = tmp_path / "clean.py"
         py_file.write_text("# No todos here\ncode = 1\n")
-        results = find_todos(tmp_path, "TODO (template users)", set())
+        results, _scanned = find_todos(tmp_path, "TODO (template users)", set())
         assert len(results) == 0
 
     def test_excludes_directories(self, tmp_path: Path) -> None:
         excluded = tmp_path / ".git"
         excluded.mkdir()
         (excluded / "config.py").write_text("# TODO (template users): test\n")
-        results = find_todos(tmp_path, "TODO (template users)", {".git"})
+        results, _scanned = find_todos(tmp_path, "TODO (template users)", {".git"})
         assert len(results) == 0
 
     def test_case_insensitive_search(self, tmp_path: Path) -> None:
         py_file = tmp_path / "example.py"
         py_file.write_text("# todo (TEMPLATE USERS): Fix this\n")
-        results = find_todos(tmp_path, "TODO (template users)", set())
+        results, _scanned = find_todos(tmp_path, "TODO (template users)", set())
         assert len(results) == 1
 
 

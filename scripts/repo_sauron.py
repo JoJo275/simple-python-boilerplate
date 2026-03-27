@@ -646,13 +646,15 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
 
     # ── Badges ──
-    lines.append(_md_badge("files", str(file_stats["total_files"]), "blue"))
+    lines.append(_md_badge("total files", str(file_stats["total_files"]), "blue"))
     lines.append(
         _md_badge("size", _format_size(file_stats["total_size_bytes"]), "green")
     )
     if git_stats.get("available"):
         lines.append(
-            _md_badge("commits", str(git_stats.get("total_commits", 0)), "orange")
+            _md_badge(
+                "total repo commits", str(git_stats.get("total_commits", 0)), "orange"
+            )
         )
         lines.append(
             _md_badge("contributors", str(git_stats.get("author_count", 0)), "purple")
@@ -696,14 +698,20 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("| Metric | Value |")
     lines.append("|--------|-------|")
-    lines.append(f"| **Total files** | {file_stats['total_files']} |")
-    lines.append(f"| **Total directories** | {file_stats['total_dirs']} |")
-    lines.append(f"| **Total size** | {_format_size(file_stats['total_size_bytes'])} |")
+    lines.append(f"| \U0001f4c4 **Total files** | {file_stats['total_files']} |")
+    lines.append(f"| \U0001f4c2 **Total directories** | {file_stats['total_dirs']} |")
+    lines.append(
+        f"| \U0001f4be **Total size** | {_format_size(file_stats['total_size_bytes'])} |"
+    )
     avg_file = file_stats.get("avg_file_size_bytes", 0)
     if avg_file:
-        lines.append(f"| **Avg file size** | {_format_size(avg_file)} |")
-    lines.append(f"| **Code files** | {file_stats.get('code_file_count', 0)} |")
-    lines.append(f"| **Script files** | {file_stats.get('script_file_count', 0)} |")
+        lines.append(f"| \U0001f4cf **Avg file size** | {_format_size(avg_file)} |")
+    lines.append(
+        f"| \U0001f4bb **Code files** | {file_stats.get('code_file_count', 0)} |"
+    )
+    lines.append(
+        f"| \U0001f4dc **Script files** | {file_stats.get('script_file_count', 0)} |"
+    )
 
     dir_stats = stats["directories"]
     if dir_stats:
@@ -716,10 +724,12 @@ def generate_markdown(stats: dict) -> str:
 
     total_lines = sum(file_stats["extension_lines"].values())
     if total_lines:
-        lines.append(f"| **Total lines (text)** | {total_lines:,} |")
+        lines.append(f"| \U0001f4d6 **Total lines (text)** | {total_lines:,} |")
 
     if git_stats.get("available"):
-        lines.append(f"| **Total commits** | {git_stats.get('total_commits', 0)} |")
+        lines.append(
+            f"| \U0001f4e6 **Total commits** | {git_stats.get('total_commits', 0)} |"
+        )
     lines.append("")
 
     # ── Repository Structure ──
@@ -750,6 +760,7 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
     lines.append("## \U0001f4c1 File Types")
     lines.append("")
+    lines.append("> [!TIP]")
     lines.append("> Most common file extensions in the repository.")
     lines.append("")
     ext_counts = file_stats["extension_counts"]
@@ -770,6 +781,7 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f5e3\ufe0f Languages")
         lines.append("")
+        lines.append("> [!NOTE]")
         lines.append(
             "> Language breakdown by file count (percentage of recognized files)."
         )
@@ -866,6 +878,7 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f418 Largest Files")
         lines.append("")
+        lines.append("> [!IMPORTANT]")
         lines.append("> Individual files sorted by size (top 15).")
         lines.append("")
         lf_rows: list[list[str]] = []
@@ -915,11 +928,14 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f4dc Git History")
         lines.append("")
+        lines.append("> [!NOTE]")
+        lines.append("> Repository version control summary.")
+        lines.append("")
         gh_rows: list[list[str]] = [
-            ["**Total commits**", str(git_stats.get("total_commits", 0))],
-            ["**Contributors**", str(git_stats.get("author_count", 0))],
-            ["**Branches**", str(git_stats.get("branch_count", 0))],
-            ["**Tags**", str(git_stats.get("tag_count", 0))],
+            ["\U0001f4e6 **Total commits**", str(git_stats.get("total_commits", 0))],
+            ["\U0001f465 **Contributors**", str(git_stats.get("author_count", 0))],
+            ["\U0001f33f **Branches**", str(git_stats.get("branch_count", 0))],
+            ["\U0001f3f7\ufe0f **Tags**", str(git_stats.get("tag_count", 0))],
         ]
         if git_stats.get("current_branch"):
             gh_rows.append(["**Current branch**", f"`{git_stats['current_branch']}`"])
@@ -940,6 +956,7 @@ def generate_markdown(stats: dict) -> str:
         lines.append("")
         lines.append("## \U0001f4dd Per-File Git Statistics")
         lines.append("")
+        lines.append("> [!TIP]")
         lines.append("> Commit count and last commit date for every tracked file.")
         lines.append("")
 
