@@ -345,22 +345,10 @@ Script-specific conventions (argparse, logging, shared modules) are in
 
 ### Script Coding Patterns
 
-When implementing or modifying scripts in `scripts/`, follow these established
-patterns to keep output consistent and reduce code duplication:
-
-- **Progress indicators**: Use `ProgressBar` or `Spinner` from `_progress.py`.
-  Use `pulse=True` on `ProgressBar` when a step may block without calling
-  `update()`.  Use `DEFAULT_BAR_COLOR` / `DEFAULT_SPINNER_COLOR` for
-  project-wide color defaults.
-- **Recommended scripts section**: Use `UI.recommended_scripts(keys)` from
-  `_ui.py` instead of inline script lists.  The `RECOMMENDED_SCRIPTS` dict
-  is the single source of truth for script descriptions.  Add new scripts
-  to that registry when creating them.
-- **Dashboard output**: Use the `UI` class from `_ui.py` for headers,
-  sections, footers, key-value pairs, and tables.  Set `THEME` as a
-  module-level constant.
-- **Colors**: Import `Colors` from `_colors.py`.  Never use raw ANSI codes.
-  `Colors` respects `NO_COLOR`/`FORCE_COLOR` automatically.
+Script-specific coding patterns (progress indicators, recommended scripts,
+dashboard output, colors) live in `scripts/.instructions.md`. That file is
+automatically loaded when editing scripts. See `.github/SKILL.md` for
+multi-step procedures (adding new scripts, shared modules, etc.).
 
 ### Ruff and Formatting Rules
 

@@ -222,6 +222,7 @@ class TestGatherConfigInteractive:
                 "janedoe",  # github user
                 "",  # description (accept default)
                 "",  # CLI prefix (accept default mp)
+                "n",  # private repo (no)
                 "",  # license (accept default apache-2.0)
                 "0",  # strip dirs (none)
                 "0",  # template cleanup (none)
@@ -234,6 +235,7 @@ class TestGatherConfigInteractive:
         assert cfg.package_name == "my_project"
         assert cfg.author == "Jane Doe"
         assert cfg.github_user == "janedoe"
+        assert cfg.private_repo is False
         assert cfg.license_id == "apache-2.0"
         assert cfg.strip_dirs == []
         assert cfg.template_cleanup == []
@@ -248,6 +250,7 @@ class TestGatherConfigInteractive:
                 "testuser",  # github user
                 "",  # description (default)
                 "",  # CLI prefix (default)
+                "n",  # private repo (no)
                 "",  # license (default)
                 "1,2",  # strip dirs (first two)
                 "0",  # template cleanup (none)
@@ -272,6 +275,7 @@ class TestGatherConfigInteractive:
                 "user",  # github user
                 "",  # description (default)
                 "",  # CLI prefix (default)
+                "n",  # private repo (no)
                 "",  # license (default)
                 all_idx,  # strip dirs — all of the above
                 "0",  # template cleanup (none)
@@ -295,6 +299,7 @@ class TestGatherConfigInteractive:
                 "user",  # github user
                 "",  # description (default)
                 "",  # CLI prefix (default)
+                "n",  # private repo (no)
                 "",  # license (default)
                 "0",  # strip dirs (none)
                 all_idx,  # template cleanup — all of the above
@@ -316,6 +321,7 @@ class TestGatherConfigInteractive:
                 "devuser",  # github user
                 "",  # description (default)
                 "",  # CLI prefix (default)
+                "n",  # private repo (no)
                 "",  # license (default)
                 "0",  # strip dirs (none)
                 "1",  # template cleanup (first item)
@@ -337,6 +343,7 @@ class TestGatherConfigInteractive:
                 "devuser",  # github user
                 "",  # description (default)
                 "",  # CLI prefix (default)
+                "n",  # private repo (no)
                 "",  # license (default)
                 "0",  # strip dirs (none)
                 "1",  # template cleanup (first item)
@@ -359,6 +366,7 @@ class TestGatherConfigInteractive:
                 "user",  # github user
                 "",  # description
                 "",  # CLI prefix
+                "n",  # private repo (no)
                 "",  # license
                 "0",  # strip dirs
                 "0",  # template cleanup
@@ -379,6 +387,7 @@ class TestGatherConfigInteractive:
                 "user",  # github user
                 "",  # description
                 "",  # CLI prefix
+                "n",  # private repo (no)
                 "2",  # license = MIT (second choice)
                 "0",  # strip dirs
                 "0",  # template cleanup

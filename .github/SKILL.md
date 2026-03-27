@@ -53,6 +53,8 @@ file directly: `#file:.github/SKILL.md` then describe what you need.
 5. If the script is useful as a Taskfile shortcut, add a task to `Taskfile.yml`.
 6. For shared utilities (not CLIs), name as `scripts/_<name>.py` (underscore prefix).
 7. If this introduces a new script pattern, update `scripts/.instructions.md`.
+8. Add an entry to `RECOMMENDED_SCRIPTS` in `scripts/_ui.py` so other scripts can recommend it.
+9. If the script is relevant to customization, add its paths to the appropriate dict in `scripts/customize.py` (`STRIPPABLE`, `TEMPLATE_CLEANUP`, or `PRIVATE_REPO_STRIP`).
 
 ## Add a New MkDocs Hook
 

@@ -62,7 +62,10 @@ from _doctor_common import (
 from _imports import find_repo_root, import_sibling
 from _ui import UI
 
-ProgressBar = import_sibling("_progress").ProgressBar
+if not __import__("typing").TYPE_CHECKING:
+    ProgressBar = import_sibling("_progress").ProgressBar
+else:
+    from _progress import ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants
