@@ -2,12 +2,10 @@
 
 Guidelines for GitHub Copilot when working in this repository.
 
-<!-- TODO (template users): This file is tailored to the boilerplate's
-     conventions.  After forking, update it to match YOUR project:
+<!-- TODO (template users): After forking, update to match YOUR project:
      - Replace project-specific names, entry points, and paths
-     - Add your own conventions, review priorities, and ignore rules
-     - Remove sections that don't apply to your project
-     - Add any domain-specific context that helps Copilot assist you
+     - Add your own conventions and review priorities
+     - Remove sections that don't apply
      Copilot reads this file on every interaction, so keep it accurate. -->
 
 ---
@@ -18,127 +16,81 @@ Guidelines for GitHub Copilot when working in this repository.
 
 A Python boilerplate/template project using src/ layout, Hatch for
 environment/build management, and extensive CI/CD. The single source of truth
-for almost all tool configuration is `pyproject.toml`.
+for tool configuration is `pyproject.toml`.
 
 ### Domain / Business Context
 
-This is a **template repository** — there is no application logic. The
-"product" is the project structure, CI/CD pipelines, tooling conventions,
-and documentation scaffolding. Everything under `src/` is placeholder code
-that template users replace with their own implementation.
+This is a **template repository** — no application logic. The "product" is the
+project structure, CI/CD pipelines, tooling conventions, and documentation.
+Everything under `src/` is placeholder code for template users to replace.
 
-<!-- TODO (template users): Replace the paragraph above with 2-3 sentences
-     describing what YOUR application does. Copilot is far more useful when
-     it knows the domain.
-     Examples:
-       "A payment processing API that integrates with Stripe and handles
-        subscription lifecycle management."
-       "A CLI tool for analysing genomics data from FASTQ files."
-     Delete this comment block after replacing. -->
+<!-- TODO (template users): Replace with 2-3 sentences describing what YOUR
+     application does, then delete this comment block. -->
 
 ### Build & Environment — Hatch
 
-- **Build backend:** Hatchling (`hatchling.build`) with `hatch-vcs` for git-tag versioning.
-- **Environments:** Hatch manages virtualenvs. Run commands with `hatch run <cmd>` or enter a shell with `hatch shell`.
-- **Dependency strategy:** `[project.optional-dependencies]` groups (`test`, `dev`, `extras`, `docs`) are the single source of truth. Hatch envs consume them via `features = [...]`.
-- **Key environments:**
-  - `default` — dev tools: ruff, mypy, pre-commit, bandit, commitizen, deptry (`hatch shell`)
-  - `docs` — mkdocs + material + mkdocstrings (`hatch run docs:serve`)
-  - `test` — pytest matrix across Python 3.11–3.13 (`hatch run test:run`)
-- **Removing a dependency** requires `hatch env remove default` then re-running; Hatch doesn't auto-uninstall.
-- **Version** comes from git tags via `hatch-vcs`. `release-please` creates the tags. Fallback: `0.0.0+unknown`.
+- **Build backend:** Hatchling with `hatch-vcs` for git-tag versioning.
+- **Envs:** `hatch run <cmd>` or `hatch shell`. Key envs: `default` (dev), `docs` (mkdocs), `test` (pytest matrix 3.11–3.13).
+- **Dependencies:** `[project.optional-dependencies]` groups are the source of truth. Hatch envs consume via `features = [...]`.
+- **Removing a dep** requires `hatch env remove default` then re-create; Hatch doesn't auto-uninstall.
+- **Version** from git tags via `hatch-vcs`. Fallback: `0.0.0+unknown`.
 
 ### Pre-commit Hooks
 
-Three installed hook stages plus a manual stage:
+| Stage          | Key hooks                                                | Count |
+| :------------- | :------------------------------------------------------- | ----: |
+| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + suite   |    38 |
+| **commit-msg** | commitizen (Conventional Commits)                        |     1 |
+| **pre-push**   | pytest, pip-audit, gitleaks, repo-doctor                 |     4 |
+| **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-sub |     4 |
+| **Total**      |                                                          | **47**|
 
-```
-pre-commit install                              # pre-commit stage
-pre-commit install --hook-type commit-msg        # commit-msg stage
-pre-commit install --hook-type pre-push          # pre-push stage
-```
-
-| Stage          | Key hooks                                                               |  Count |
-| :------------- | :---------------------------------------------------------------------- | -----: |
-| **pre-commit** | ruff, mypy, bandit, typos, actionlint, deptry, + pre-commit-hooks suite |     38 |
-| **commit-msg** | commitizen (Conventional Commits)                                       |      1 |
-| **pre-push**   | pytest, pip-audit, gitleaks                                             |      3 |
-| **manual**     | markdownlint-cli2, hadolint-docker, prettier, forbid-submodules         |      4 |
-| **Total**      |                                                                         | **46** |
-
-Full hook inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md)
-Config: `.pre-commit-config.yaml` · Typos config: `_typos.toml`
+Config: `.pre-commit-config.yaml` · Full inventory: [ADR 008](../docs/adr/008-pre-commit-hooks.md)
 
 ### GitHub Actions Workflows
 
-~36 workflow files in `.github/workflows/`, all SHA-pinned
-([ADR 004](../docs/adr/004-pin-action-shas.md)) with repository guard pattern
-([ADR 011](../docs/adr/011-repository-guard-pattern.md)).
-**Canonical inventory:** `docs/workflows.md` — that file is authoritative.
-
-See `.github/workflows/.instructions.md` for SHA pinning, repo guard, and
-CI gate conventions.
+~36 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
+**Canonical inventory:** `docs/workflows.md`. See `.github/workflows/.instructions.md` for conventions.
 
 ### Task Runner — Taskfile
 
-`Taskfile.yml` wraps common `hatch run` commands for convenience. Run `task` to
-list available tasks. Key ones:
-
-- `task test` / `task test:cov` / `task test:matrix` — run tests
-- `task lint` / `task lint:fix` / `task fmt` — linting and formatting
-- `task typecheck` — mypy
-- `task check` — all quality gates in one command
-- `task pre-commit:install` / `task pre-commit:run` — pre-commit management
-- `task commit` — interactive conventional commit via commitizen
-- `task deps:versions` / `task deps:upgrade` — dependency management
-- `task actions:versions` — show SHA-pinned action versions
-- `task actions:check` — CI gate: exit non-zero if stale or upgradable actions
+Key tasks: `task test`, `task lint`, `task fmt`, `task typecheck`, `task check` (all gates),
+`task commit`, `task deps:versions`. Run `task` for full list.
 
 ### Scripts
 
-Utility scripts live in `scripts/`. See [`scripts/README.md`](../scripts/README.md)
-for the full inventory and `scripts/.instructions.md` for conventions.
+Utility scripts in `scripts/`. See `scripts/README.md` for inventory,
+`scripts/.instructions.md` for conventions.
 
 ### Documentation
 
-MkDocs Material stack. See `docs/.instructions.md` for conventions and
-`docs/adr/.instructions.md` for ADR procedures. Serve locally:
-`hatch run docs:serve`.
+MkDocs Material. See `docs/.instructions.md` and `docs/adr/.instructions.md`.
+Serve: `hatch run docs:serve`.
 
 ### Key Configuration Files
 
-| File                         | Controls                                                                                                                    |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `pyproject.toml`             | Project metadata, dependencies, Hatch envs, and all tool configs (ruff, mypy, pytest, coverage, bandit, deptry, commitizen) |
-| `.pre-commit-config.yaml`    | All pre-commit hook definitions and stages                                                                                  |
-| `_typos.toml`                | Typos spellchecker exceptions and config                                                                                    |
-| `Taskfile.yml`               | Task runner shortcuts                                                                                                       |
-| `mkdocs.yml`                 | Documentation site config                                                                                                   |
-| `Containerfile`              | Multi-stage container build                                                                                                 |
-| `release-please-config.json` | Release automation config                                                                                                   |
-| `.github/dependabot.yml`     | Dependabot auto-update schedule                                                                                             |
-| `.markdownlint-cli2.jsonc`   | markdownlint rule overrides (MD024 siblings_only, MD033 allowed elements, MD046 disabled)                                   |
-| `mkdocs-hooks/repo_links.py` | MkDocs build hook: rewrites repo-relative links to GitHub URLs                                                              |
-| `mkdocs-hooks/generate_commands.py` | MkDocs build hook: auto-regenerates `docs/reference/commands.md` before each build                                   |
-| `mkdocs-hooks/include_templates.py` | MkDocs build hook: force-includes `docs/templates/` on MkDocs 1.6+ (which silently excludes `templates/` dirs)       |
-| `*.code-workspace`           | VS Code workspace settings, recommended extensions, editor config. **Note:** `${workspaceFolder}` doesn't reliably expand in `.code-workspace` settings — use relative paths instead. |
+| File | Controls |
+| --- | --- |
+| `pyproject.toml` | Project metadata, deps, Hatch envs, tool configs (ruff, mypy, pytest, bandit, etc.) |
+| `.pre-commit-config.yaml` | Hook definitions and stages |
+| `Taskfile.yml` | Task runner shortcuts |
+| `mkdocs.yml` | Documentation site config |
+| `Containerfile` | Multi-stage container build |
+| `release-please-config.json` | Release automation |
+| `mkdocs-hooks/*.py` | MkDocs build hooks (repo_links, generate_commands, include_templates) |
+| `*.code-workspace` | VS Code settings. **Note:** use relative paths, not `${workspaceFolder}`. |
 
 ### Targeted Instruction Files
 
-File-type-specific rules live in `.instructions.md` files closer to the code
-they govern. Copilot loads them automatically when the `applyTo` glob matches
-the file being edited.
+| File | Scope |
+| --- | --- |
+| `.github/workflows/.instructions.md` | Workflow YAML conventions |
+| `scripts/.instructions.md` | Script conventions |
+| `docs/.instructions.md` | Documentation conventions |
+| `docs/adr/.instructions.md` | ADR creation procedure |
+| `tests/.instructions.md` | Test conventions |
 
-| File                                          | Scope                        |
-| --------------------------------------------- | ---------------------------- |
-| `.github/workflows/.instructions.md`          | Workflow YAML conventions    |
-| `scripts/.instructions.md`                    | Script conventions           |
-| `docs/.instructions.md`                       | Documentation conventions    |
-| `docs/adr/.instructions.md`                   | ADR creation procedure       |
-| `tests/.instructions.md`                      | Test conventions             |
-
-This file covers **project-wide** rules. For file-type-specific details,
-Copilot should prefer the targeted instruction file.
+This file covers **project-wide** rules. Prefer the targeted instruction file for file-type-specific details.
 
 ---
 
@@ -146,387 +98,150 @@ Copilot should prefer the targeted instruction file.
 
 ### Leave TODOs for Template Users
 
-This is a **template repository**. When adding new files or features that
-template users will need to customise, include clear `TODO (template users):`
-comments explaining what to change. Examples:
-
-- Workflow files → TODO to enable the repository guard
-- Config files → TODO to replace placeholder values
-- Source files → TODO to replace example logic with real implementation
-- Documentation → TODO to update project-specific details
-
-TODOs should be actionable and specific — not just "fill this in" but
-"Replace `YOURNAME/YOURREPO` with your actual repo slug".
+Include `TODO (template users):` comments in new files explaining what to
+customise. Be specific: "Replace `YOURNAME/YOURREPO` with your repo slug."
 
 ### Check Templates Before Creating Files
 
-Before creating a new file, check the
-[template inventory](../docs/reference/template-inventory.md) for existing
-templates, examples, and conventions. Key ones: ADR template, workflow
-pattern, script conventions, MkDocs hook pattern, SQL migrations.
-
-The inventory also documents conventions for each file type (shebangs,
-logging, argparse, registration steps, etc.).
+Check [template inventory](../docs/reference/template-inventory.md) for
+existing templates and conventions before creating files from scratch.
 
 ### Use SKILL.md for Multi-step Operations
 
-`.github/SKILL.md` contains step-by-step procedures for adding or modifying
-project components (workflows, scripts, ADRs, hooks, dependencies,
-instruction files). **Always read `SKILL.md` before performing multi-step
-operations** — it lists not just the creation steps but also the required
-sync steps (index updates, regeneration, instruction file updates) that are
-easy to forget. If Copilot doesn't auto-load it, request it explicitly with
-`#file:.github/SKILL.md`.
+`.github/SKILL.md` has step-by-step procedures for adding components
+(workflows, scripts, ADRs, hooks, deps, instruction files). **Always read
+it before multi-step operations** — it lists sync steps easy to forget.
 
 ### Keep Related Files in Sync
 
-When updating a file, check whether other files reference or depend on what
-changed and update them too. Use the procedures in `.github/SKILL.md` as a
-checklist to ensure all sync steps are completed.
-
-Don't let documentation drift from reality.
-
-### Keep Copilot Instructions Current
-
-If a change to the project affects how Copilot should understand or work with
-the codebase, update the relevant instruction file as part of the same change:
-
-- **Targeted `.instructions.md` files first** — if a convention applies to a
-  specific file type (workflows, scripts, tests, docs, ADRs), update the
-  matching `.instructions.md` from the table above.
-- **This file** (`copilot-instructions.md`) — for project-wide changes:
-  new tool added/removed, new convention, new ADR, structural changes.
-- When adding or renaming a `.instructions.md` file, update the
-  "Targeted Instruction Files" table in this file.
-
-The goal is to keep instruction files up-to-date so Copilot doesn't have
-to rediscover project structure from scratch each session.
+When updating a file, update dependent files too. Use `.github/SKILL.md`
+as a checklist. Don't let documentation drift from reality.
 
 ### Provide Feedback and Pushback
 
-Don't just comply with every request. Push back when something is wrong,
-overcomplicated, or conflicts with how this project works. Specifically:
+Push back when a request introduces unnecessary complexity, conflicts with
+conventions/ADRs, or has a simpler alternative. Be direct: state the problem,
+explain why, suggest an alternative.
 
-- A request would introduce unnecessary complexity or tech debt
-- There's a simpler, more idiomatic approach available
-- A change conflicts with existing project conventions or ADRs
-- A dependency is being added when a stdlib solution would suffice
-- A proposed pattern doesn't scale or has known pitfalls
-- Code or documentation is misleading, vague, or sugarcoated
+### Clean Up Dead Code
 
-Be direct: state the problem, explain why it matters, suggest an
-alternative. Don't hedge with "you might consider" or "it could
-potentially be beneficial" — say what the issue is and what to do
-about it. Let the user make the final call, but don't soften the
-assessment to be polite.
-
-### Clean Up Dead Code When Encountered
-
-Remove dead code (unused functions, orphaned imports, commented-out blocks,
-stale helpers) as part of any task where you encounter it. Grep the codebase
-first to confirm the symbol is truly unused (check direct calls and dynamic
-references like `getattr`). Preserve symbols that are public API or documented
-extension points. Flag removals in the session recap.
+Remove dead code when encountered. Grep first to confirm it's unused.
+Preserve public API and documented extension points.
 
 ### Session Recap
 
-At the end of a significant coding session (multiple changes, new features,
-debugging sessions, or multi-step tasks), provide a brief recap that covers:
-
-1. **What changed** — files created, modified, or deleted
-2. **Why** — the motivation or problem being solved
-3. **Impact** — how the changes benefit the project (e.g., reduced
-   complexity, improved safety, better DX) _and_ any downsides or
-   trade-offs introduced (e.g., added maintenance burden, increased
-   build time, new dependency). Be honest about both sides so the user
-   can judge the net effect.
-4. **What to watch for** — any follow-up steps, known issues, or things
-   that need manual verification (e.g., "run pre-commit to verify",
-   "update branch protection to add the new check")
-5. **Decisions made** — any trade-offs or choices worth remembering
-6. **Recommendations** — improvements, refactors, or follow-up work
-   noticed during the session, even if unrelated to the current task.
-   Include brief rationale and rough priority (do-soon vs. nice-to-have).
-   Don't bury observations — if something is wrong, say so plainly.
-
-Skip the recap for trivial single-file edits or quick Q&A.
+After significant sessions, provide a brief recap: what changed, why,
+impact (pros and cons), what to watch for, decisions made, and recommendations.
+Skip for trivial single-file edits.
 
 ### Surface Issues
 
-During any session, proactively surface issues, risks, or anomalies
-noticed — even when they're not directly related to the current task.
-Examples: stale docs that contradict reality, a config that silently
-does nothing, a pattern that will break at scale, a TODO that should
-have been resolved long ago. Don't silently sweep things under the rug.
-Raise them at end of session (in the recap's "What to watch for") or
-inline if they're urgent. Keep each flag brief: what's wrong, why it
-matters, and a suggested next step.
+Proactively flag issues, risks, or anomalies noticed during any session —
+even if unrelated to the current task. Keep flags brief: what's wrong,
+why it matters, suggested next step.
 
 ### Verify Before Finishing
 
-Before concluding a task, verify the changes actually work:
-
-- **Code changes** — run the relevant tests (`task test`) or at minimum
-  check for syntax/type errors
-- **Workflow changes** — run `actionlint` against modified files
-- **Config changes** — run `validate-pyproject` or the relevant validator
-- **Hook changes** — run `pre-commit run <hook-id> --all-files` for
-  modified hooks
-- **Documentation changes** — check that links resolve and markup renders
-- **SHA-pinned actions** — when updating a SHA-pinned GitHub Action,
-  verify the commit SHA actually exists on the upstream repo's releases
-  page before committing. A wrong or truncated SHA will silently break
-  every workflow that references it.
-
-Don't declare something done based on "it looks right." If a
-verification step is available, run it.
+- **Code** — run tests (`task test`) or check for syntax/type errors
+- **Workflows** — run `actionlint`
+- **Hooks** — `pre-commit run <hook-id> --all-files`
+- **SHA-pinned actions** — verify the commit SHA exists upstream
 
 ### Tone
 
-Be direct and factual. Don't pad responses with filler praise ("Great
-question!", "This is a really well-structured project!") or hedge
-assessments to sound diplomatic. If something is broken, say it's broken.
-If a design choice has downsides, name them. The user wants accurate
-information, not reassurance.
-
-This applies to documentation too — don't write marketing copy in docs,
-READMEs, or comments. State what something does, what its limitations are,
-and move on.
+Direct and factual. No filler praise or diplomatic hedging. If something
+is broken, say so.
 
 ## Review Priorities
 
-### High Priority
-
-1. **Type hints** — Public functions should have type annotations (public = exported API and anything not prefixed with `_` in `src/`)
-2. **Tests** — Changes should include or update relevant tests
-3. **Security** — Flag:
-   - Hardcoded credentials, secrets, API keys
-   - SQL injection risks
-   - `subprocess` with `shell=True` (prefer `shell=False` with argument list)
-   - Unsafe `yaml.load()` (use `yaml.safe_load()`)
-   - Logging secrets or tokens
-4. **Import errors** — Ensure imports work with src/ layout (must be installed)
-
-### Medium Priority
-
-5. **Docstrings** — Public functions should have docstrings
+1. **Type hints** — Public functions in `src/` should have annotations
+2. **Tests** — Changes should include or update tests
+3. **Security** — Flag hardcoded secrets, `shell=True`, unsafe `yaml.load()`, SQL injection
+4. **Import errors** — Must work with src/ layout
+5. **Docstrings** — Google style on public functions
 6. **Error handling** — Appropriate exception handling
-7. **Naming** — Clear, descriptive variable and function names
-
-### Low Priority
-
-8. **Comments** — Explain _why_, not _what_. Skip comments that restate the code
-   (`# Read the file` before `file.read_text()`). Add them when the reasoning
-   isn't obvious — non-trivial regex patterns, workarounds, design trade-offs,
-   or "this looks wrong but is intentional because…"
-9. **Code style** — Ruff handles most of this automatically
 
 ### General Guidance
 
-- **Prefer minimal diffs** — Avoid stylistic rewrites; Ruff already enforces formatting
-- **Don't churn** — Only suggest changes that add clear value
-- **Use Hatch for virtual environments** — Prefer `hatch shell` to enter the dev environment rather than creating manual `.venv` directories. Hatch manages environments automatically and keeps them in sync with `pyproject.toml`. Don't create `.venv` or `.venv-1` directories manually; use `hatch env create` if you need to explicitly create an environment.
-- **Never install packages globally** — Always install into a Hatch-managed environment. Never run bare `pip install <package>` outside a venv. Use `hatch run <cmd>` or `hatch shell` for project work, or `pipx` for standalone CLI tools.
+- Prefer minimal diffs — Ruff handles formatting
+- Use `hatch shell` for envs, never bare `pip install`
+- Don't create `.venv` manually; use Hatch
 
 ## Conventions
 
 ### Python
 
-- Use absolute imports: `from simple_python_boilerplate.module import func`
-- Type hints for all public functions and methods
-- Type checking uses **mypy** (strict mode) — prefer fixes compatible with mypy
-- Docstrings in Google style format
-- Constants in UPPER_SNAKE_CASE
+- Absolute imports: `from simple_python_boilerplate.module import func`
+- Type hints on all public functions; mypy strict mode
+- Google style docstrings; constants in UPPER_SNAKE_CASE
 - `pathlib.Path` over `os.path`; `subprocess.run()` with arg lists (never `shell=True`)
-- `tomllib` (stdlib 3.11+) for TOML; `importlib.metadata` for package introspection
+- `from __future__ import annotations` at top of every file
+- `tomllib` for TOML; `importlib.metadata` for package introspection
 
-Script-specific conventions (argparse, logging, shared modules) are in
-`scripts/.instructions.md`.
+Script-specific conventions are in `scripts/.instructions.md`.
 
-### Script Coding Patterns
+### Ruff — Linting & Formatting
 
-Script-specific coding patterns (progress indicators, recommended scripts,
-dashboard output, colors) live in `scripts/.instructions.md`. That file is
-automatically loaded when editing scripts. See `.github/SKILL.md` for
-multi-step procedures (adding new scripts, shared modules, etc.).
+Ruff handles both linting and formatting as pre-commit hooks. **Write code
+that passes on the first try.** Full config in `pyproject.toml` under `[tool.ruff]`.
 
-### Ruff and Formatting Rules
+Validate before committing:
 
-This project uses **ruff** for both linting and formatting. Both run as
-pre-commit hooks — code that violates any enabled rule will block commits.
-**Write code that passes ruff on the first try.** When in doubt, check
-`pyproject.toml` under `[tool.ruff]` for the full config.
+    hatch run ruff check src/ scripts/ tests/    # lint
+    hatch run ruff format --check src/ scripts/  # format check
 
-#### Formatting (ruff format)
-
-- **Line length**: Target 88 chars (E501 is disabled, but ruff format
-  still wraps). Don't rewrap lines unless readability requires it.
-- **String quotes**: ruff enforces double quotes.
-- **Trailing commas**: ruff adds trailing commas in multi-line structures.
-  Don't fight it — include them.
-- **Import sorting**: ruff enforces `isort`-compatible import order.
-  Group order: stdlib → third-party → local. Local script modules
-  (prefixed with `_`) go in a separate block with a comment.
-
-#### Lint rules — enabled categories and common violations
-
-The full selected rule set: `E`, `W`, `F`, `I`, `UP`, `D`, `T20`, `B`,
-`C4`, `SIM`, `PTH`, `PERF`, `RUF`. Write code that satisfies all of these.
-Key rules Copilot must follow:
-
-- **PERF401**: Use `list.extend(generator)` instead of a for-loop that
-  appends one item at a time. **Do not** write
-  `for x in items: results.append(transform(x))` — use
-  `results.extend(transform(x) for x in items)` or a list comprehension.
-- **PERF203**: Don't use `try`/`except` inside a loop body when it can
-  be restructured.
-- **C4 (flake8-comprehensions)**: Use list/dict/set comprehensions
-  instead of calling `list()`, `dict()`, `set()` with a generator.
-  Use `[x for x in items]` not `list(x for x in items)`.
-- **SIM (flake8-simplify)**: Simplify boolean expressions, use ternary
-  operators where clear, avoid redundant `if`/`else` branches.
-- **B (flake8-bugbear)**: No mutable default arguments, no bare `except`,
-  no redundant `isinstance` calls, use `contextlib.suppress()` instead
-  of bare `except: pass`.
-- **PTH (flake8-use-pathlib)**: Use `pathlib.Path` over `os.path`.
-  `Path.open()` not `open()`, `Path.exists()` not `os.path.exists()`.
-- **UP (pyupgrade)**: Use modern Python 3.11+ syntax. `X | Y` not
-  `Union[X, Y]`, `dict` not `typing.Dict`, f-strings over `.format()`.
-- **T20 (flake8-print)**: No `print()` in `src/` code. In scripts and
-  tests `T20` is disabled via per-file-ignores.
-- **F (Pyflakes)**: No unused imports, no undefined names, no unused
-  variables.
-- **I (isort)**: Imports sorted correctly per the isort config.
-- **D (pydocstyle)**: Google-style docstrings required on public
-  functions in `src/`. Disabled for tests, scripts, and experiments
-  via per-file-ignores.
-- **RUF**: Ruff-specific rules — unused `noqa` directives, ambiguous
-  unicode, etc.
-
-#### Other style rules
-
-- **Unused imports/variables**: Remove them proactively.
-- **Type annotations**: mypy runs in strict mode. Use `from __future__
-  import annotations` at the top of every file for PEP 604 union syntax
-  (`X | Y` instead of `Union[X, Y]`).
-- **f-string formatting**: Prefer f-strings over `.format()` or `%`.
-- **Boolean traps**: Use keyword arguments for boolean parameters
-  (`func(dry_run=True)` not `func(True)`).
+Key conventions: double quotes, trailing commas, isort import order
+(stdlib → third-party → local), no `print()` in `src/` (T20), pathlib
+over os.path (PTH), modern 3.11+ syntax (UP), comprehensions over
+`list()`/`dict()` calls (C4), `list.extend()` over append-in-loop (PERF401).
+For any specific rule: `ruff rule <CODE>`.
 
 ### Bandit — Security Linting
 
-**Bandit** runs as a pre-commit hook on every commit. Write code that
-passes bandit without needing `# nosec` suppression. Config is in
-`pyproject.toml` under `[tool.bandit]`.
+Pre-commit hook. Config in `pyproject.toml` under `[tool.bandit]`.
+Validate: `hatch run bandit -c pyproject.toml -r src/`
 
-Common violations to avoid:
-
-- **B101 (assert)**: Suppressed globally — asserts are allowed.
-- **B108 (hardcoded tmp)**: Don't hardcode `/tmp` paths. Use
-  `tempfile.mkdtemp()` or `tempfile.NamedTemporaryFile()`.
-- **B301/B302 (pickle)**: Don't use `pickle.loads()` or `marshal` on
-  untrusted data.
-- **B307 (eval)**: Never use `eval()` or `exec()` on user input.
-- **B602 (subprocess shell)**: Never use `subprocess.run(shell=True)`.
-  Always pass argument lists.
-- **B603 (subprocess no shell)**: Use `subprocess.run()` with explicit
-  arg lists.
-- **B608 (SQL injection)**: Don't build SQL with string concatenation or
-  f-strings — use parameterized queries.
-- **B324 (insecure hash)**: Don't use `md5` or `sha1` for security
-  purposes. Use `hashlib.sha256()` or stronger.
-- **B506 (yaml load)**: Use `yaml.safe_load()`, never `yaml.load()`
-  without `Loader=SafeLoader`.
+Key rules: no `eval()`/`exec()`, no `pickle` on untrusted data, no
+`shell=True`, no hardcoded `/tmp` (use `tempfile`), `yaml.safe_load()`
+not `yaml.load()`, parameterized SQL queries.
 
 ### Project Structure
 
-- Source code in `src/simple_python_boilerplate/`
-- Tests in `tests/`
-- Scripts in `scripts/`
-- Documentation in `docs/`
+- Source: `src/simple_python_boilerplate/`
+- Tests: `tests/` · Scripts: `scripts/` · Docs: `docs/`
 
 ### Git & PRs
 
-- Conventional commit messages: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, `ci:`
-- Use `ci:` for workflow-only changes, `docs:` for docs-only changes, `chore:` for maintenance
-- One logical change per commit
-- PR titles follow conventional commit format
-
-### Commit Message Format
-
-When generating commit messages, follow the template in `.gitmessage.txt`:
-
-```
-<type>(<scope>): <description>
-
-Why: <motivation for the change>
-
-What changed: <summary of changes>
-
-How tested: <how the change was verified>
-
-Breaking change: <describe if applicable, otherwise omit>
-
-Issues/Refs: #<issue number if applicable, otherwise omit>
-```
-
-- **type** — `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-- **scope** — optional area affected (e.g., `cli`, `docs`, `ci`)
-- **description** — imperative mood, lowercase, no period, max 50 chars
-- Body sections (`Why`, `What changed`, `How tested`) should be included for non-trivial commits
-- Omit `Breaking change` and `Issues/Refs` sections when not applicable
-
-### CI/CD
-
-See `.github/workflows/.instructions.md` for workflow conventions (SHA
-pinning, repo guard, CI gate).
+- Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `ci:`, `test:`, `refactor:`
+- One logical change per commit; PR titles follow conventional format
+- Commit message template in `.gitmessage.txt`: `<type>(<scope>): <description>`
+  with body sections `Why:`, `What changed:`, `How tested:`
 
 ## Ignore / Don't Flag
 
-- **Line length (E501)** — Disabled in this project; don't request rewrapping docstrings or comments unless readability is impacted
+- **E501** — Disabled; don't request rewrapping
 - **Generated files** — `*.egg-info/`, `__pycache__/`, `.venv/`
-- **Types in tests** — See `tests/.instructions.md` for test-specific leniency
+- **Types in tests** — See `tests/.instructions.md`
 
-## Architecture & Design References
+## Architecture References
 
-For deeper context beyond what's in this file, consult these docs:
+- `docs/design/architecture.md` — System overview, data flows
+- `docs/design/tool-decisions.md` — Tool comparison notes
+- `docs/adr/` — 40 Architecture Decision Records
 
-- **`docs/design/architecture.md`** — System overview, module responsibilities,
-  data flows, CI/CD architecture, and what's not yet implemented
-- **`docs/design/tool-decisions.md`** — Detailed tool comparison notes: what
-  was chosen, what was skipped, and why (pre-commit hooks, workflows, Python tooling)
-- **`docs/adr/`** — Architecture Decision Records (template: `docs/adr/template.md`)
+Key ADRs: 001 (src/ layout), 008 (pre-commit hooks), 024 (CI gate),
+031 (script conventions), 040 (v1.0 readiness).
 
-These are the canonical references for _why_ things are the way they are.
-This file summarises _what_ to do; those files explain the reasoning.
+**When numbers here conflict with those docs, the docs win.**
 
-**When numbers in this file conflict with those docs, those docs win.**
-This file is a quick-reference summary that can go stale; the docs above
-are maintained as the source of truth.
+## Common Issues
 
-Key ADRs that most affect day-to-day work:
+1. Missing `pip install -e .` — use editable install for src/ layout
+2. Wrong imports — use `simple_python_boilerplate`, not `src`
+3. Mutable default arguments — `def func(items=[])` is a bug
+4. Hatch env stale after dep removal — `hatch env remove default` then re-create
+5. Bare `pip install` outside venv — always use Hatch env or `pipx`
 
-| ADR | Decision                                             |
-| --- | ---------------------------------------------------- |
-| 001 | src/ layout for package structure                    |
-| 008 | Pre-commit hooks (full inventory, 46 hooks)          |
-| 024 | CI gate pattern (single required check)              |
-| 031 | Script conventions (argparse, logging, shebang, etc) |
-| 040 | v1.0 release readiness checklist                     |
+## Known Limitations
 
-Full index (40 ADRs): [`docs/adr/README.md`](../docs/adr/README.md)
-
-## Common Issues to Catch
-
-1. **Missing `pip install -e .`** — If running from source, use editable install so imports resolve with src/ layout
-2. **Import from wrong location** — Should import from `simple_python_boilerplate`, not `src`
-3. **Mutable default arguments** — `def func(items=[])` is a bug
-4. **Bare except clauses** — Should catch specific exceptions
-5. **Unused imports/variables** — Ruff catches these, but flag if missed
-6. **Hatch env stale after dependency removal** — After removing a dependency from `pyproject.toml`, run `hatch env remove default` then re-create. Hatch doesn't auto-uninstall removed packages; the old package silently remains.
-7. **Installing packages outside a venv** — Never run bare `pip install <package>`. Always use a Hatch env, `.venv`, or `pipx`. This is easy to forget and causes global pollution.
-
-## Known Limitations / Tech Debt
-
-See [`docs/known-issues.md`](../docs/known-issues.md) for the current list.
-That file is the canonical tracker — add new entries there, not here.
+See [`docs/known-issues.md`](../docs/known-issues.md) for the canonical list.

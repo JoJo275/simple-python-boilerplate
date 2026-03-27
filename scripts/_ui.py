@@ -35,7 +35,7 @@ from _colors import Colors, supports_unicode, unicode_symbols
 
 __all__ = ["RECOMMENDED_SCRIPTS", "UI"]
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "1.2.0"
 
 # ---------------------------------------------------------------------------
 # Shared recommended-scripts registry
@@ -119,6 +119,17 @@ class UI:
         "white": "white",
     }
 
+    # For each theme, pick a command-text color that's visually distinct.
+    _COMMAND_COLORS: ClassVar[dict[str, str]] = {
+        "cyan": "magenta",
+        "blue": "green",
+        "green": "cyan",
+        "yellow": "cyan",
+        "magenta": "cyan",
+        "red": "cyan",
+        "white": "cyan",
+    }
+
     def __init__(
         self,
         title: str,
@@ -158,6 +169,12 @@ class UI:
     def _themed(self, text: str) -> str:
         """Apply the theme color to *text*."""
         fn: Callable[[str], str] = getattr(self.c, self._accent)
+        return fn(text)
+
+    def _command_styled(self, text: str) -> str:
+        """Apply the command-highlight color (distinct from theme) to *text*."""
+        color_name = self._COMMAND_COLORS.get(self.theme, "cyan")
+        fn: Callable[[str], str] = getattr(self.c, color_name)
         return fn(text)
 
     # ── Layout elements ────────────────────────────────────────
@@ -334,6 +351,47 @@ class UI:
                 f"{color_fn(status_text)}"
             )
 
+    # ── Rules summary bar ───────────────────────────────────────
+
+    def rules_summary(
+        self,
+        passed: int,
+        total: int,
+        *,
+        bar_width: int = 24,
+    ) -> None:
+        """Print an inline rules-upheld bar (e.g. ``41/47 rules upheld``).
+
+        Args:
+            passed: Number of rules that passed.
+            total: Total number of rules evaluated.
+            bar_width: Width of the inline progress bar in characters.
+        """
+        pct = (passed / total * 100) if total > 0 else 0
+        filled = int(bar_width * passed / total) if total > 0 else 0
+        fill_char = "\u2588" if self._use_unicode else "#"
+        empty_char = "\u2591" if self._use_unicode else "-"
+
+        bar_fill = fill_char * filled
+        bar_empty = empty_char * (bar_width - filled)
+
+        # Color the bar green if all pass, yellow if most pass, red otherwise
+        if pct >= 100:
+            bar_str = self.c.green(bar_fill) + self.c.dim(bar_empty)
+            pct_str = self.c.green(f"{pct:.0f}%")
+            count_str = self.c.green(f"{passed}/{total}")
+        elif pct >= 70:
+            bar_str = self.c.yellow(bar_fill) + self.c.dim(bar_empty)
+            pct_str = self.c.yellow(f"{pct:.0f}%")
+            count_str = self.c.yellow(f"{passed}/{total}")
+        else:
+            bar_str = self.c.red(bar_fill) + self.c.dim(bar_empty)
+            pct_str = self.c.red(f"{pct:.0f}%")
+            count_str = self.c.red(f"{passed}/{total}")
+
+        label = self.c.bold("rules upheld")
+        print(f"  {count_str} {label}  [{bar_str}]  {pct_str}")
+
     # ── Recommended Scripts ────────────────────────────────────
 
     def recommended_scripts(
@@ -369,14 +427,15 @@ class UI:
         print(f"    {self.c.dim('Location:')} scripts/ directory")
         print()
         print(
-            f"    {self.c.yellow('These scripts may already exist in this repo if it was')}"
+            f"    {self.c.white('These scripts may already exist in this')}"
+            f" {self._themed('repo')} {self.c.white('if it was')}"
         )
-        print(f"    {self.c.yellow('forked from or based on the source.')}")
+        print(f"    {self.c.white('forked from or based on the source.')}")
         print()
         repo_link = self._themed(self.c.link("repo", repo_url))
         print(
-            f"    {self.c.yellow('If not, visit the source')} {repo_link} "
-            f"{self.c.yellow('by JoJo275 to obtain them.')}"
+            f"    {self.c.white('If not, visit the source')} {repo_link} "
+            f"{self.c.white('by JoJo275 to obtain them.')}"
         )
         print()
         for i, key in enumerate(keys):
@@ -388,4 +447,4 @@ class UI:
                 print()
             print(f"      {self._themed(desc)}")
             print(f"      {self.c.dim(self.h_line * len(desc))}")
-            print(f"        {self.c.bold(self.c.white(cmd))}")
+            print(f"        {self.c.bold(self._command_styled(cmd))}")

@@ -359,6 +359,29 @@ repos:
       - id: gitleaks
         stages: [pre-push]
 
+  # ---------------------------------------------------------------------------
+  # repo-doctor — Repository structure health checks (local script)
+  # Validates file presence, TOML config, content patterns, and more.
+  #
+  # Modes:
+  #   Warn-only (default):  shows warnings but never blocks the push.
+  #   Strict / blocking:    add --strict to args — exit non-zero on warnings.
+  #
+  # To switch to strict mode, change args to:
+  #   args: ["--missing", "--profile", "all", "--include-info", "--strict"]
+  # ---------------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: repo-doctor
+        name: Repo structure health checks
+        entry: python scripts/repo_doctor.py
+        args: ["--missing", "--profile", "all", "--include-info"]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+        verbose: true
+
   # ===========================================================================
   # STAGE: manual — "strict mode" opt-in hooks
   # ===========================================================================

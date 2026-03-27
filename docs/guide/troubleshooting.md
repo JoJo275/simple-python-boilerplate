@@ -782,14 +782,14 @@ ls -la .git
 # 1. See which files conflict
 git status
 
-# 2. Open conflicting files — look for conflict markers
-<<<<<<< HEAD
-your changes
-=======
-their changes
->>>>>>> branch-name
+# 2. Open conflicting files — look for conflict markers:
+#    <<<<<<< HEAD
+#    your changes
+#    =======
+#    their changes
+#    >>>>>>> branch-name
 
-# 3. Edit the file to keep what you want (remove markers)
+# 3. Edit the file to keep what you want (remove all marker lines)
 
 # 4. Mark resolved and commit
 git add <resolved-file>

@@ -1002,8 +1002,39 @@ def _collect_test_coverage() -> dict:
     }
 
 
+def _try_generate_coverage() -> bool:
+    """Attempt to generate coverage.json by running ``coverage json``.
+
+    If ``coverage.json`` and ``coverage.xml`` don't exist but the
+    ``coverage`` tool is available and has data (from a prior test run),
+    this asks it to export JSON.  Returns True if a file was created.
+    """
+    cov_cmd = shutil.which("coverage")
+    if cov_cmd is None:
+        return False
+    # Check if .coverage database exists (created by pytest --cov or coverage run)
+    cov_db = ROOT / ".coverage"
+    if not cov_db.is_file():
+        return False
+    try:
+        result = subprocess.run(  # nosec B603
+            [cov_cmd, "json", "-o", str(ROOT / "coverage.json")],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        return result.returncode == 0 and (ROOT / "coverage.json").is_file()
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+
+
 def _parse_coverage_data() -> dict | None:
     """Parse pytest/coverage.py data from ``coverage.json`` or ``coverage.xml``.
+
+    If neither file exists but a ``.coverage`` database is present (from a
+    prior test run), attempts to auto-generate ``coverage.json`` via
+    ``coverage json`` so users don't need an extra manual step.
 
     Returns a dict with overall and per-file line/branch coverage, or
     *None* if no coverage data file is found.
@@ -1082,6 +1113,41 @@ def _parse_coverage_data() -> dict | None:
             return result
         except (ValueError, KeyError, TypeError):
             log.debug("Failed to parse coverage.xml", exc_info=True)
+
+    # Neither file exists — try auto-generating from .coverage database
+    if _try_generate_coverage():
+        cov_json = ROOT / "coverage.json"
+        if cov_json.is_file():
+            try:
+                data = json.loads(cov_json.read_text(encoding="utf-8"))
+                totals = data.get("totals", {})
+                meta = data.get("meta", {})
+                files_data = data.get("files", {})
+                result = {
+                    "source": "coverage.json (auto-generated from .coverage)",
+                    "line_pct": totals.get("percent_covered", 0.0),
+                    "covered_lines": totals.get("covered_lines", 0),
+                    "num_statements": totals.get("num_statements", 0),
+                    "missing_lines": totals.get("missing_lines", 0),
+                    "has_branch": bool(meta.get("branch_coverage")),
+                    "per_file": {},
+                }
+                if result["has_branch"]:
+                    nb = totals.get("num_branches", 0)
+                    cb = totals.get("covered_branches", 0)
+                    result["covered_branches"] = cb
+                    result["num_branches"] = nb
+                    result["branch_pct"] = (cb / nb * 100) if nb > 0 else 0.0
+                for fpath, fdata in files_data.items():
+                    summary = fdata.get("summary", {})
+                    result["per_file"][fpath] = {
+                        "line_pct": summary.get("percent_covered", 0.0),
+                        "covered": summary.get("covered_lines", 0),
+                        "statements": summary.get("num_statements", 0),
+                    }
+                return result
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+                log.debug("Failed to parse auto-generated coverage.json", exc_info=True)
 
     return None
 
