@@ -1485,6 +1485,7 @@ def detect_release_system() -> dict:
         "config_found": [],
         "branches": [],
         "workflow_found": False,
+        "workflow_files": [],
     }
 
     remote_branches = get_remote_branches()
@@ -1529,13 +1530,12 @@ def detect_release_system() -> dict:
 
         # Check workflow files
         wf_found = False
+        matched_workflows: list[str] = []
         for wf_pattern in wf_patterns:
             for wf_file in workflow_files:
-                if wf_pattern in wf_file:
+                if wf_pattern in wf_file and wf_file not in matched_workflows:
+                    matched_workflows.append(wf_file)
                     wf_found = True
-                    break
-            if wf_found:
-                break
 
         # If we found config or workflow, this is the system
         if found_configs or wf_found:
@@ -1543,6 +1543,7 @@ def detect_release_system() -> dict:
             result["config_found"] = found_configs
             result["branches"] = found_branches
             result["workflow_found"] = wf_found
+            result["workflow_files"] = matched_workflows
             break
 
         # Also match on branches alone if patterns match
@@ -2671,7 +2672,7 @@ def _collect_info() -> dict[
         ("branch_characteristics", get_branch_characteristics),
     ]
     info: dict[str, object] = {}
-    with Spinner("Collecting git info", log_interval=5) as spin:
+    with Spinner("Collecting git info", log_interval=5, color="cyan") as spin:
         for key, fn in collectors:
             spin.update(key)
             info[key] = fn()
@@ -2682,7 +2683,7 @@ def _collect_health() -> tuple[list[dict[str, str]], int]:
     """Run all health checks and return (results, failure_count)."""
     results: list[dict[str, str]] = []
     failures = 0
-    with Spinner("Running health checks", log_interval=5) as spin:
+    with Spinner("Running health checks", log_interval=5, color="cyan") as spin:
         for name, check_fn in HEALTH_CHECKS:
             spin.update(name)
             passed, msg = check_fn()
@@ -2712,12 +2713,18 @@ def run(
     # Fetch and prune stale remote-tracking refs before collecting data.
     # This ensures branch activity stats are accurate and deleted remote
     # branches don't pollute the output.
-    with Spinner("Fetching remotes", log_interval=5):
+    with Spinner("Fetching remotes", log_interval=5, color="cyan"):
         fetch_ok, fetch_msg = _fetch_and_prune()
         if not fetch_ok:
             logger.warning(
                 "git fetch failed: %s (continuing with stale data)", fetch_msg
             )
+
+    # Run additional diagnostic commands at startup
+    _status_code, _status_out, _ = _run_git(["status", "--porcelain"])
+    status_cmd_ok = _status_code == 0
+    _revparse_code, _, _ = _run_git(["rev-parse", "--git-dir"])
+    revparse_cmd_ok = _revparse_code == 0
 
     # Collect info once and reuse for both display and JSON
     info = _collect_info()
@@ -2826,21 +2833,6 @@ def run(
     )
     print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
 
-    # ── Auto-refresh commands ──
-    # Show the commands the script ran automatically to ensure fresh data
-    print()
-    print(f"  {c.dim('Auto-refresh commands executed at startup:')}")
-    print(
-        f"    {c.cyan('git fetch --all --prune')}"
-        f"  {c.dim('sync remote-tracking refs, remove stale branches')}"
-    )
-    if fetch_ok:
-        print(f"    {c.green(check)} {c.dim('Fetch successful')}")
-    else:
-        print(
-            f"    {c.yellow(warn_sym)} {c.yellow('Fetch failed — using cached data')}"
-        )
-
     # Quick status bar — three indicators with explicit labels
     clean = not any(working_tree.values())
     sync_ok = "behind" not in upstream_status.lower()
@@ -2881,6 +2873,42 @@ def run(
             f"{c.yellow(_unpushed_count)}"
         )
 
+    # ── Startup Commands ──
+    _section("Startup Commands")
+    print(f"    {c.dim('Commands executed automatically to ensure fresh data.')}")
+    print(
+        f"    {c.green(check)} = {c.green('passed')}  "
+        f"{c.red(cross)} = {c.red('failed')}"
+    )
+    print()
+    cmd_w = 30
+    desc_w = 48
+    # Table header
+    print(
+        f"    {c.dim('Command'.ljust(cmd_w))} "
+        f"{c.dim('Description'.ljust(desc_w))} "
+        f"{c.dim('Status')}"
+    )
+    print(
+        f"    {c.cyan(h_line * cmd_w)} {c.cyan(h_line * desc_w)} {c.cyan(h_line * 6)}"
+    )
+    # Table rows
+    print(
+        f"    {c.cyan('git fetch --all --prune'.ljust(cmd_w))} "
+        f"{c.dim('sync remote-tracking refs, remove stale branches'.ljust(desc_w))} "
+        f"{c.green(check) if fetch_ok else c.red(cross)}"
+    )
+    print(
+        f"    {c.cyan('git status --porcelain'.ljust(cmd_w))} "
+        f"{c.dim('check working tree state'.ljust(desc_w))} "
+        f"{c.green(check) if status_cmd_ok else c.red(cross)}"
+    )
+    print(
+        f"    {c.cyan('git rev-parse --git-dir'.ljust(cmd_w))} "
+        f"{c.dim('verify git repository'.ljust(desc_w))} "
+        f"{c.green(check) if revparse_cmd_ok else c.red(cross)}"
+    )
+
     # ── Repository Info ──
     _section("Repository")
     _kv("Remote URL", remote_url, hint="origin remote (fetch/push URL)")
@@ -2907,6 +2935,7 @@ def run(
             f"    {c.dim('Showing commonly used keys — not every git config.')}"
             f"  {c.dim('Run --export-config for full reference.')}"
         )
+        print()
         # Column layout — widened to accommodate longer config key names
         key_w = 30
         scope_w = 12
@@ -2918,7 +2947,7 @@ def run(
         hdr_val = c.dim("Value")
         print(f"    {hdr_key} {hdr_scope} {hdr_val}")
         print(
-            f"    {c.dim(h_line * key_w)} {c.dim(h_line * scope_w)} {c.dim(h_line * val_w)}"
+            f"    {c.cyan(h_line * key_w)} {c.cyan(h_line * scope_w)} {c.cyan(h_line * val_w)}"
         )
         # Group keys by their logical section for visual separation
         current_group = ""
@@ -2953,13 +2982,16 @@ def run(
                 print(f"    {key_padded} {c.dim(scope_str)} {c.cyan(val)}")
         print()
         print(
-            f"    {c.dim('Run with --export-config for full reference, --apply-recommended to apply all')}"
+            f"    {c.dim('Run with')} {c.cyan('--export-config')} {c.dim('for full reference,')}"
+            f" {c.cyan('--apply-recommended')} {c.dim('to apply all,')}"
+            f" {c.cyan('--apply-recommended-minimal')} {c.dim('for core subset')}"
         )
 
     # ── Commit Activity — current branch (last 14 days) ──
     if commit_freq:
         _section(f"Commit Activity {dash} {c.green(current_branch)} (last 14 days)")
         print(f"    {c.dim('Daily commit frequency on this branch')}")
+        print()
         max_count = max(commit_freq.values()) if commit_freq else 1
         sorted_dates = sorted(commit_freq)
         bar_data: list[tuple[str, int, int]] = []
@@ -2990,6 +3022,7 @@ def run(
         print(
             f"    {c.dim('Diff of HEAD~5..HEAD — only the last 5 commits on this branch')}"
         )
+        print()
         fc = file_changes
         ins = fc.get("insertions", 0)
         dels = fc.get("deletions", 0)
@@ -3004,6 +3037,7 @@ def run(
         print(
             f"    {c.dim('Total diff of each branch vs merge-base with default branch')}"
         )
+        print()
         # Dynamic column width based on longest branch name (cap at 50)
         max_name = max((len(str(e["base_name"])) for e in branch_activity), default=20)
         name_w = min(max(max_name, 10), 50)
@@ -3395,41 +3429,52 @@ def run(
     # ── Release Branch ──
     _section("Release Branch")
     print(
-        f"    {c.dim('Automated release branches created by release automation tools.')}"
+        f"    {c.dim('Automated release branches managed by the configured release system.')}"
     )
-    print(
-        f"    {c.dim('These branches typically contain version bumps, changelogs, and')}"
-    )
-    print(f"    {c.dim('release PRs managed by the configured release system.')}")
+
+    print(f"    {c.cyan(h_line * 56)}")
 
     # Show detected release system status
     detected_name = release_system.get("name") if release_system else None
     if detected_name:
-        print(f"    {c.bold('Status:')} {c.green(f'{detected_name} detected')}")
+        print(
+            f"    {c.bold(c.cyan('Status:'))}   {c.green(f'{detected_name} detected')}"
+        )
+        print()
         config_found = release_system.get("config_found", [])
         if config_found:
-            print(f"    {c.dim('Config:')} {', '.join(config_found)}")
+            print(f"    {c.bold(c.cyan('Config:'))}   {', '.join(config_found)}")
+            print()
+        wf_files = release_system.get("workflow_files", [])
         if release_system.get("workflow_found"):
-            print(f"    {c.dim('Workflow: matching workflow file found')}")
+            if wf_files:
+                print(
+                    f"    {c.bold(c.cyan('Workflow:'))} {', '.join(c.cyan(f) for f in wf_files)}"
+                )
+            else:
+                print(f"    {c.bold(c.cyan('Workflow:'))} matching workflow file found")
+            print()
     else:
-        print(f"    {c.bold('Status:')} {c.yellow('No release automation detected')}")
-        print(f"    {c.dim('No known release system config found (release-please,')}")
         print(
-            f"    {c.dim('semantic-release, changesets, standard-version, commitizen).')}"
+            f"    {c.bold(c.cyan('Status:'))}   {c.yellow('No release automation detected')}"
         )
+        print()
+        print(
+            f"    {c.dim('No known release system config found')}"
+            f" {c.dim('(release-please, semantic-release, changesets, standard-version, commitizen)')}"
+        )
+        print()
 
     # Show release branches (from the release system or fallback to rp_branches)
     display_branches = release_system.get("branches", []) if release_system else []
     if not display_branches:
         display_branches = rp_branches
     if display_branches:
-        print()
+        print(f"    {c.bold(c.cyan('Branches:'))}")
         for branch in display_branches:
-            print(f"    {c.cyan(branch)}")
+            print(f"      {c.cyan(dot)} {c.cyan(branch)}")
     elif detected_name:
-        print(
-            f"    {c.dim('No active release branches found (this is normal between releases)')}"
-        )
+        print(f"    {c.yellow('No active release branches (normal between releases)')}")
 
     # ── Health Checks ──
     _section("Health Checks")

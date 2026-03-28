@@ -338,10 +338,11 @@ class Spinner:
     def _draw_frame(self, item_name: str, count: int) -> None:
         width = _terminal_width()
         frame = self._frames[self._frame_idx % len(self._frames)]
-        if self._color_code:
-            frame = f"\033[{self._color_code}m{frame}\033[0m"
         display_name = _truncate(item_name, 40)
-        line = f"\r  {frame} {self.label}  [{count}]  {display_name}"
+        content = f"  {frame} {self.label}  [{count}]  {display_name}"
+        if self._color_code:
+            content = f"\033[{self._color_code}m{content}\033[0m"
+        line = f"\r{content}"
         sys.stdout.write(line.ljust(width))
         sys.stdout.flush()
 
