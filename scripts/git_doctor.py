@@ -2808,6 +2808,7 @@ def run(
         print(c.cyan(f"  {tl}{border}{tr}"))
         print(f"  {c.cyan(vl)} {c.bold(title)}")
         print(c.cyan(f"  {bl}{border}{br}"))
+        print()
 
     def _kv(label: str, value: str, width: int = 18, hint: str = "") -> None:
         """Print a key-value pair with consistent alignment.
@@ -2876,6 +2877,7 @@ def run(
     # ── Startup Commands ──
     _section("Startup Commands")
     print(f"    {c.dim('Commands executed automatically to ensure fresh data.')}")
+    print()
     print(
         f"    {c.green(check)} = {c.green('passed')}  "
         f"{c.red(cross)} = {c.red('failed')}"
@@ -2933,7 +2935,7 @@ def run(
         )
         print(
             f"    {c.dim('Showing commonly used keys — not every git config.')}"
-            f"  {c.dim('Run --export-config for full reference.')}"
+            f"  {c.dim('Run')} {c.cyan('--export-config')} {c.dim('for full reference.')}"
         )
         print()
         # Column layout — widened to accommodate longer config key names
@@ -3012,6 +3014,7 @@ def run(
                 print()
         total_recent = sum(commit_freq.values())
         avg = total_recent / len(commit_freq) if commit_freq else 0
+        print()
         print(f"    {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
 
     # ── File Change Summary — current branch (last 5 commits) ──

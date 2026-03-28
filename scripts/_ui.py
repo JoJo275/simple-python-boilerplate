@@ -235,6 +235,7 @@ class UI:
         print(self._themed(f"  {self.tl}{border}{self.tr}"))
         print(f"  {self._themed(self.vl)} {self.c.bold(self._themed(title))}")
         print(self._themed(f"  {self.bl}{border}{self.br}"))
+        print()
 
     def kv(
         self,
