@@ -2,14 +2,17 @@
 """Environment and dependency inspector — full inventory of your setup.
 
 Shows a comprehensive view of your development environment:
-  - Python version, location, and supported versions for the project
+  - Python version, location, implementation, and supported versions
+  - Duplicate Python installations on the system
   - Git version and location
   - Virtual environment status (global vs local)
-  - All installed packages with versions and update availability
-  - Entry points registered by installed packages
+  - Installed packages grouped by installation location (global, venv, Hatch, etc.)
+  - Duplicate package detection across environments
+  - Entry points registered by installed packages (with removal instructions)
   - Build and environment tools found on PATH (hatch, tox, nox, etc.)
   - Python version support validation (cross-checks pyproject.toml sources)
   - Key PATH directories with duplicate detection
+  - System environment summary
   - Related scripts for further investigation
 
 This complements ``dep_versions.py`` (which focuses on project deps
@@ -21,7 +24,8 @@ Flags::
     --json              Output as JSON (for CI integration)
     --section SECTION   Only show a specific section
                         (python, git, venv, packages, entrypoints,
-                         build-tools, python-support, path)
+                         build-tools, python-support, path,
+                         python-installs, system)
     -q, --quiet         Suppress output; exit code only
     --no-color          Disable colored output
     --version           Print version and exit
@@ -34,6 +38,8 @@ Usage::
     python scripts/env_inspect.py --section build-tools
     python scripts/env_inspect.py --section python-support
     python scripts/env_inspect.py --section path
+    python scripts/env_inspect.py --section python-installs
+    python scripts/env_inspect.py --section system
 
 Portability:
     Can be used in other repos. Requires shared modules from this repo's
@@ -67,7 +73,7 @@ from _ui import UI
 
 log = logging.getLogger(__name__)
 
-SCRIPT_VERSION = "1.1.0"
+SCRIPT_VERSION = "2.0.0"
 THEME = "cyan"
 
 ROOT = find_repo_root()
@@ -145,7 +151,12 @@ def _git_info() -> dict:
 
 
 def _all_installed_packages() -> list[dict]:
-    """List all packages installed in the current environment."""
+    """List all packages installed in the current environment.
+
+    Returns all discovered distributions including duplicates (same name
+    at different locations). The caller is responsible for deduplication
+    if a unique list is needed.
+    """
     packages = []
     for dist in importlib.metadata.distributions():
         name = dist.metadata["Name"]
@@ -162,15 +173,18 @@ def _all_installed_packages() -> list[dict]:
             }
         )
 
-    # Deduplicate by name (keep first seen)
+    return sorted(packages, key=lambda p: (p["name"] or "").lower())
+
+
+def _deduplicate_packages(packages: list[dict]) -> list[dict]:
+    """Deduplicate packages by name, keeping the first occurrence."""
     seen: set[str] = set()
     unique: list[dict] = []
-    for pkg in sorted(packages, key=lambda p: (p["name"] or "").lower()):
+    for pkg in packages:
         key = (pkg["name"] or "").lower()
         if key not in seen:
             seen.add(key)
             unique.append(pkg)
-
     return unique
 
 
@@ -302,18 +316,301 @@ def _hatch_info() -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# Discover Python installations on the system
+# ---------------------------------------------------------------------------
+
+
+def _find_python_installations() -> list[dict]:
+    """Find all Python installations on the system.
+
+    Searches PATH and common install locations for python executables,
+    returning version and path info for each unique installation found.
+    """
+    pythons: list[dict] = []
+    seen_paths: set[str] = set()
+
+    # Candidate executable names
+    candidates = [
+        "python3",
+        "python",
+        "python3.11",
+        "python3.12",
+        "python3.13",
+        "python3.14",
+    ]
+    if sys.platform == "win32":
+        candidates.extend(["py", "python.exe"])
+
+    for name in candidates:
+        path = shutil.which(name)
+        if not path:
+            continue
+        resolved = str(Path(path).resolve())
+        if resolved in seen_paths:
+            continue
+        seen_paths.add(resolved)
+
+        version = ""
+        implementation = ""
+        try:
+            result = subprocess.run(  # nosec B603
+                [
+                    path,
+                    "-c",
+                    "import sys, platform; "
+                    "print(platform.python_version()); "
+                    "print(platform.python_implementation())",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().splitlines()
+                version = lines[0] if lines else ""
+                implementation = lines[1] if len(lines) > 1 else ""
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+
+        pythons.append(
+            {
+                "name": name,
+                "path": resolved,
+                "version": version,
+                "implementation": implementation,
+            }
+        )
+
+    # Also try the Windows `py` launcher to discover all installed versions
+    if sys.platform == "win32":
+        py_cmd = shutil.which("py")
+        if py_cmd:
+            try:
+                result = subprocess.run(  # nosec B603
+                    [py_cmd, "--list-paths"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if result.returncode == 0:
+                    for line in result.stdout.strip().splitlines():
+                        # Format: " -V-32    C:\...\python.exe" or similar
+                        m = re.match(r"\s*-V?:?(\S+)\s+(.+)", line)
+                        if not m:
+                            # Alternate format: " -3.12-64  C:\...\python.exe *"
+                            m = re.match(r"\s*-(\S+)\s+(.+?)(?:\s+\*)?$", line)
+                        if m:
+                            py_path = m.group(2).strip().rstrip(" *")
+                            resolved = str(Path(py_path).resolve())
+                            if resolved not in seen_paths:
+                                seen_paths.add(resolved)
+                                # Get version from the executable itself
+                                ver = ""
+                                impl = ""
+                                try:
+                                    r2 = subprocess.run(  # nosec B603
+                                        [
+                                            py_path,
+                                            "-c",
+                                            "import platform; "
+                                            "print(platform.python_version()); "
+                                            "print(platform.python_implementation())",
+                                        ],
+                                        capture_output=True,
+                                        text=True,
+                                        timeout=10,
+                                    )
+                                    if r2.returncode == 0:
+                                        ls = r2.stdout.strip().splitlines()
+                                        ver = ls[0] if ls else ""
+                                        impl = ls[1] if len(ls) > 1 else ""
+                                except (subprocess.TimeoutExpired, OSError):
+                                    pass
+                                pythons.append(
+                                    {
+                                        "name": f"py {m.group(1)}",
+                                        "path": resolved,
+                                        "version": ver,
+                                        "implementation": impl,
+                                    }
+                                )
+            except (subprocess.TimeoutExpired, OSError):
+                pass
+
+    return pythons
+
+
+# ---------------------------------------------------------------------------
+# Package location categorization
+# ---------------------------------------------------------------------------
+
+
+def _categorize_location(location: str) -> str:
+    """Classify a package installation path into a human-readable category.
+
+    Returns a category string like 'Global (system)', 'Virtual Environment',
+    'Hatch Environment', etc.
+    """
+    if not location:
+        return "Unknown"
+
+    loc_lower = location.lower().replace("\\", "/")
+
+    # Hatch environments
+    if "/.local/share/hatch/" in loc_lower or "/hatch/env/" in loc_lower:
+        # Try to extract the env name
+        for pattern in [r"hatch/env[s]?/([^/]+)", r"hatch/([^/]+)/lib"]:
+            m = re.search(pattern, loc_lower)
+            if m:
+                return f"Hatch ({m.group(1)})"
+        return "Hatch Environment"
+
+    # Windows AppData hatch
+    if "appdata" in loc_lower and "hatch" in loc_lower:
+        m = re.search(r"hatch/env[s]?/([^/]+)", loc_lower)
+        if m:
+            return f"Hatch ({m.group(1)})"
+        return "Hatch Environment"
+
+    # Tox environments
+    if "/.tox/" in loc_lower or "\\.tox\\" in location.lower():
+        m = re.search(r"\.tox/([^/\\]+)", loc_lower)
+        if m:
+            return f"Tox ({m.group(1)})"
+        return "Tox Environment"
+
+    # Nox environments
+    if "/.nox/" in loc_lower or "\\.nox\\" in location.lower():
+        m = re.search(r"\.nox/([^/\\]+)", loc_lower)
+        if m:
+            return f"Nox ({m.group(1)})"
+        return "Nox Environment"
+
+    # Poetry environments
+    if "/pypoetry/" in loc_lower:
+        return "Poetry Environment"
+
+    # Conda environments
+    if "/conda/" in loc_lower or "/envs/" in loc_lower:
+        m = re.search(r"envs/([^/\\]+)", loc_lower)
+        if m:
+            return f"Conda ({m.group(1)})"
+        return "Conda Environment"
+
+    # Generic virtual environment
+    if (
+        "/.venv/" in loc_lower
+        or "/venv/" in loc_lower
+        or "\\.venv\\" in location.lower()
+        or "\\venv\\" in location.lower()
+    ):
+        return "Virtual Environment (.venv)"
+
+    # pipx
+    if "/pipx/" in loc_lower:
+        return "pipx"
+
+    # User site-packages (--user installs)
+    if "/site-packages" in loc_lower and (
+        "/.local/" in loc_lower or "/appdata/" in loc_lower
+    ):
+        # Check if it's inside a venv by comparing with sys.prefix
+        if sys.prefix != sys.base_prefix:
+            return "Virtual Environment"
+        return "User (--user)"
+
+    # If it's inside sys.prefix and we're in a venv, it's the active venv
+    if sys.prefix != sys.base_prefix:
+        prefix_norm = sys.prefix.lower().replace("\\", "/")
+        if loc_lower.startswith(prefix_norm):
+            return "Virtual Environment (active)"
+
+    # System/global Python
+    base_norm = sys.base_prefix.lower().replace("\\", "/")
+    if loc_lower.startswith(base_norm):
+        return "Global (system)"
+
+    return "Global (system)"
+
+
+def _group_packages_by_location(packages: list[dict]) -> dict[str, list[dict]]:
+    """Group packages by their installation location category."""
+    groups: dict[str, list[dict]] = {}
+    for pkg in packages:
+        category = _categorize_location(pkg.get("location", ""))
+        groups.setdefault(category, []).append(pkg)
+    return groups
+
+
+def _find_duplicate_packages(packages: list[dict]) -> dict[str, list[dict]]:
+    """Find packages installed in multiple locations.
+
+    Returns {package_name: [list of package entries from different locations]}.
+    Only includes packages found in more than one distinct location.
+    """
+    by_name: dict[str, list[dict]] = {}
+    for pkg in packages:
+        key = (pkg.get("name") or "").lower()
+        if key:
+            by_name.setdefault(key, []).append(pkg)
+
+    # Keep only those with multiple distinct locations
+    duplicates: dict[str, list[dict]] = {}
+    for name, entries in by_name.items():
+        locations = {e.get("location", "") for e in entries}
+        if len(locations) > 1:
+            duplicates[name] = entries
+    return duplicates
+
+
+# ---------------------------------------------------------------------------
+# System environment summary
+# ---------------------------------------------------------------------------
+
+
+def _system_env_summary() -> dict:
+    """Gather system environment info relevant to Python development."""
+    env = os.environ
+    info: dict = {
+        "os": platform.system(),
+        "os_version": platform.version(),
+        "os_release": platform.release(),
+        "hostname": platform.node(),
+        "cpu_count": os.cpu_count(),
+        "encoding": sys.getdefaultencoding(),
+        "filesystem_encoding": sys.getfilesystemencoding(),
+    }
+
+    # Virtual env indicators
+    if env.get("VIRTUAL_ENV"):
+        info["VIRTUAL_ENV"] = env["VIRTUAL_ENV"]
+    if env.get("CONDA_DEFAULT_ENV"):
+        info["CONDA_DEFAULT_ENV"] = env["CONDA_DEFAULT_ENV"]
+    if env.get("HATCH_ENV_ACTIVE"):
+        info["HATCH_ENV_ACTIVE"] = env["HATCH_ENV_ACTIVE"]
+
+    return info
+
+
+# ---------------------------------------------------------------------------
 # Main collector
 # ---------------------------------------------------------------------------
 
 
 def gather_env_info(*, check_updates: bool = True) -> dict:
     """Gather all environment information."""
+    all_packages = _all_installed_packages()
+    packages = _deduplicate_packages(all_packages)
     info: dict = {
         "python": _python_info(),
         "git": _git_info(),
-        "packages": _all_installed_packages(),
+        "packages": packages,
+        "packages_by_location": _group_packages_by_location(all_packages),
+        "duplicate_packages": _find_duplicate_packages(all_packages),
+        "python_installations": _find_python_installations(),
         "entry_points": _collect_entry_points(),
         "path": _inspect_path(),
+        "system": _system_env_summary(),
     }
 
     if check_updates:
@@ -449,7 +746,8 @@ def print_env_info(
         )
         ui.blank()
         ui.kv("Version", py["version"])
-        ui.kv("Implementation", py["implementation"])
+        ui.kv("Implementation", c.cyan(py["implementation"]))
+        ui.kv("Compiler", py.get("compiler", "unknown"))
         ui.kv("Executable", py["executable"])
         ui.kv("Platform", py["platform"])
         ui.kv("Architecture", py["architecture"])
@@ -469,6 +767,80 @@ def print_env_info(
                 ui.status_line(
                     "warn", f"Current Python {current} not in supported list", "yellow"
                 )
+
+    # ── Python Installations ──
+    if show_all or section == "python-installs":
+        py_installs = info.get("python_installations", [])
+        ui.section(f"Python Installations ({len(py_installs)})")
+        ui.blank()
+        ui.info_line("All Python installations found on your system. Duplicate")
+        ui.info_line("installations can cause confusion about which Python is used.")
+        ui.blank()
+        if py_installs:
+            ui.table_header(
+                [
+                    ("Name", 16),
+                    ("Version", 12),
+                    ("Impl", 10),
+                    ("Path", 36),
+                ],
+                themed=True,
+            )
+            # Detect duplicate versions
+            version_counts: dict[str, int] = {}
+            for inst in py_installs:
+                v = inst.get("version", "")
+                if v:
+                    version_counts[v] = version_counts.get(v, 0) + 1
+
+            for inst in py_installs:
+                name = inst.get("name", "")
+                ver = inst.get("version", "unknown")
+                impl = inst.get("implementation", "")
+                path = inst.get("path", "")
+
+                # Flag current interpreter
+                is_current = Path(path).resolve() == Path(sys.executable).resolve()
+                name_display = c.green(name) if is_current else name
+                if is_current:
+                    name_display = name_display + c.dim(" *")
+
+                # Flag duplicates (same version, different path)
+                is_dup = version_counts.get(ver, 0) > 1
+                ver_display = c.yellow(ver) if is_dup else ver
+
+                # Truncate path
+                path_display = path
+                if len(path_display) > 36:
+                    path_display = "..." + path_display[-33:]
+
+                ui.table_row(
+                    [
+                        (name_display, 16),
+                        (ver_display, 12),
+                        (c.cyan(impl) if impl else c.dim("-"), 10),
+                        (c.dim(path_display), 36),
+                    ]
+                )
+
+            # Check for actual duplicates (same version, different paths)
+            dup_versions = [v for v, count in version_counts.items() if count > 1]
+            if dup_versions:
+                ui.blank()
+                ui.status_line(
+                    "warn",
+                    f"Duplicate Python version(s) found: {', '.join(dup_versions)} "
+                    "— ensure you're using the intended installation",
+                    "yellow",
+                )
+            if any(
+                Path(inst.get("path", "")).resolve() == Path(sys.executable).resolve()
+                for inst in py_installs
+            ):
+                ui.blank()
+                ui.info_line(c.dim("* = currently active Python interpreter"))
+        else:
+            ui.info_line("No Python installations detected on PATH.")
 
     # ── Git ──
     if show_all or section == "git":
@@ -530,56 +902,91 @@ def print_env_info(
     if show_all or section == "packages":
         packages = info["packages"]
         outdated = info.get("outdated", {})
+        packages_by_loc = info.get("packages_by_location", {})
+        duplicate_pkgs = info.get("duplicate_packages", {})
+
         ui.section(f"Installed Packages ({len(packages)})")
         ui.blank()
-        ui.info_line("All packages in the current environment. Outdated packages")
+        ui.info_line("All packages in the current environment, grouped by install")
         ui.info_line(
-            "may need upgrading. Run "
+            "location. Run "
             + ui._command_styled("python scripts/dep_versions.py")
-            + c.dim(" for details.")
-        )
-        ui.blank()
-
-        ui.table_header(
-            [
-                ("Package", 30),
-                ("Version", 16),
-                ("Latest", 14),
-                ("Status", 10),
-            ],
-            themed=True,
+            + c.dim(" for project dep details.")
         )
 
-        for pkg in packages:
-            name = pkg["name"] or ""
-            ver = pkg["version"] or ""
-            name_lower = name.lower()
-            latest = outdated.get(name_lower, "")
-
-            if latest and latest != ver:
-                status = c.yellow("outdated")
-                name_col = c.yellow(name)
-            else:
-                status = c.green("ok") if ver else c.dim("-")
-                name_col = name
-
-            # Truncate long version strings to prevent overlap
-            ver_display = ver if len(ver) <= 15 else ver[:12] + "..."
-            latest_display = latest if len(latest) <= 13 else latest[:10] + "..."
-
-            ui.table_row(
-                [
-                    (name_col, 30),
-                    (ver_display, 16),
-                    (latest_display or c.dim("-"), 14),
-                    (status, 10),
-                ]
+        # Show packages grouped by location
+        for location_name in sorted(packages_by_loc.keys()):
+            loc_packages = packages_by_loc[location_name]
+            ui.blank()
+            print(
+                f"    {c.bold(c.cyan(location_name))}"
+                f"  {c.dim(f'({len(loc_packages)} package(s)')}"
             )
+            ui.blank()
+
+            ui.table_header(
+                [
+                    ("Package", 30),
+                    ("Version", 16),
+                    ("Latest", 14),
+                    ("Status", 10),
+                ],
+                themed=True,
+            )
+
+            for pkg in sorted(loc_packages, key=lambda p: (p["name"] or "").lower()):
+                name = pkg["name"] or ""
+                ver = pkg["version"] or ""
+                name_lower = name.lower()
+                latest = outdated.get(name_lower, "")
+
+                is_dup = name_lower in duplicate_pkgs
+                if latest and latest != ver:
+                    status = c.yellow("outdated")
+                    name_col = c.yellow(name)
+                elif is_dup:
+                    status = c.magenta("dup")
+                    name_col = c.magenta(name)
+                else:
+                    status = c.green("ok") if ver else c.dim("-")
+                    name_col = name
+
+                ver_display = ver if len(ver) <= 15 else ver[:12] + "..."
+                latest_display = latest if len(latest) <= 13 else latest[:10] + "..."
+
+                ui.table_row(
+                    [
+                        (name_col, 30),
+                        (ver_display, 16),
+                        (latest_display or c.dim("-"), 14),
+                        (status, 10),
+                    ]
+                )
+
+        # Duplicate packages summary
+        if duplicate_pkgs:
+            ui.blank()
+            ui.status_line(
+                "warn",
+                f"{len(duplicate_pkgs)} package(s) installed in multiple locations",
+                "yellow",
+            )
+            for dup_name, dup_entries in sorted(duplicate_pkgs.items()):
+                locations = [
+                    _categorize_location(e.get("location", "")) for e in dup_entries
+                ]
+                versions = [e.get("version", "?") for e in dup_entries]
+                loc_ver = ", ".join(
+                    f"{loc} (v{ver})"
+                    for loc, ver in zip(locations, versions, strict=True)
+                )
+                ui.info_line(f"  {c.magenta(dup_name)}: {loc_ver}")
 
         outdated_count = len(outdated)
         ui.blank()
         ui.info_line(
-            f"{len(packages)} package(s) installed"
+            f"{len(packages)} package(s) installed across "
+            f"{len(packages_by_loc)} location(s)"
             + (f", {outdated_count} outdated" if outdated_count else "")
         )
 
@@ -592,6 +999,22 @@ def print_env_info(
         ui.info_line("the CLI tools available in your environment. If your package")
         ui.info_line("defines [project.scripts] in pyproject.toml, its commands")
         ui.info_line("appear here after installation.")
+        ui.blank()
+        # Note about terminal availability
+        py = info["python"]
+        if py["in_venv"]:
+            ui.info_line(
+                c.dim("Note: these entry points are available in any terminal where")
+            )
+            ui.info_line(
+                c.dim("this virtual environment is activated. They are NOT available")
+            )
+            ui.info_line(c.dim("in terminals using a different Python environment."))
+        else:
+            ui.info_line(
+                c.dim("Note: these entry points are available in any terminal on your")
+            )
+            ui.info_line(c.dim("system where this Python installation is on PATH."))
         ui.blank()
         if eps:
             ui.table_header(
@@ -611,6 +1034,29 @@ def print_env_info(
                         (c.magenta(target_display), 46),
                     ]
                 )
+            # How to remove entry points
+            ui.blank()
+            ui.info_line(c.bold("Removing an entry point:"))
+            ui.info_line(
+                "  To remove an unwanted entry point, uninstall the package that"
+            )
+            ui.info_line("  provides it:")
+            ui.blank()
+            print(
+                f"    {ui._command_styled('pip uninstall <package-name>')}"
+                f"  {c.dim('(removes the package and its entry points)')}"
+            )
+            ui.blank()
+            ui.info_line(
+                "  If you want to keep the package but remove only the command,"
+            )
+            ui.info_line("  remove the [project.scripts] entry from its pyproject.toml")
+            ui.info_line("  and reinstall:")
+            ui.blank()
+            print(
+                f"    {ui._command_styled('pip install -e .')}"
+                f"  {c.dim('(reinstalls without the removed entry point)')}"
+            )
         else:
             ui.info_line("No console_scripts or gui_scripts entry points found.")
 
@@ -751,6 +1197,26 @@ def print_env_info(
                 "yellow",
             )
 
+    # ── System Environment ──
+    if show_all or section == "system":
+        sys_info = info.get("system", {})
+        ui.section("System Environment")
+        ui.blank()
+        ui.info_line("System and environment details relevant to Python development.")
+        ui.blank()
+        ui.kv("OS", f"{sys_info.get('os', '?')} {sys_info.get('os_release', '')}")
+        ui.kv("OS version", sys_info.get("os_version", "unknown"))
+        ui.kv("Hostname", sys_info.get("hostname", "unknown"))
+        ui.kv("CPU count", str(sys_info.get("cpu_count", "?")))
+        ui.kv("Default encoding", sys_info.get("encoding", "unknown"))
+        ui.kv("FS encoding", sys_info.get("filesystem_encoding", "unknown"))
+        if sys_info.get("VIRTUAL_ENV"):
+            ui.kv("VIRTUAL_ENV", sys_info["VIRTUAL_ENV"])
+        if sys_info.get("CONDA_DEFAULT_ENV"):
+            ui.kv("CONDA_DEFAULT_ENV", sys_info["CONDA_DEFAULT_ENV"])
+        if sys_info.get("HATCH_ENV_ACTIVE"):
+            ui.kv("HATCH_ENV_ACTIVE", sys_info["HATCH_ENV_ACTIVE"])
+
     # ── Recommended Scripts ──
     if show_all:
         ui.recommended_scripts(
@@ -790,6 +1256,7 @@ def main() -> int:
         "--section",
         choices=[
             "python",
+            "python-installs",
             "git",
             "venv",
             "packages",
@@ -797,6 +1264,7 @@ def main() -> int:
             "build-tools",
             "python-support",
             "path",
+            "system",
         ],
         help="Only show a specific section",
     )
