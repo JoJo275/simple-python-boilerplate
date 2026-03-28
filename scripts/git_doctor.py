@@ -3,7 +3,7 @@
 
 Displays a comprehensive overview of the repository's git state:
 branches, remotes, current working branch, recent commits,
-release-please branches, and git-related health checks.
+release automation branches, and git-related health checks.
 
 Flags::
 
@@ -1422,6 +1422,146 @@ def find_release_please_branches() -> list[str]:
     return branches
 
 
+# ---------------------------------------------------------------------------
+# Auto-release system detection
+# ---------------------------------------------------------------------------
+
+# Known auto-release branch patterns and config files
+_RELEASE_SYSTEMS: list[dict[str, object]] = [
+    {
+        "name": "release-please",
+        "branch_patterns": ["release-please"],
+        "config_files": [
+            "release-please-config.json",
+            ".release-please-manifest.json",
+        ],
+        "workflow_patterns": ["release-please", "release_please"],
+    },
+    {
+        "name": "semantic-release",
+        "branch_patterns": ["semantic-release"],
+        "config_files": [
+            ".releaserc",
+            ".releaserc.json",
+            ".releaserc.yml",
+            ".releaserc.yaml",
+            "release.config.js",
+            "release.config.cjs",
+        ],
+        "workflow_patterns": ["semantic-release", "semantic_release"],
+    },
+    {
+        "name": "changesets",
+        "branch_patterns": ["changeset-release"],
+        "config_files": [".changeset/config.json"],
+        "workflow_patterns": ["changesets", "changeset"],
+    },
+    {
+        "name": "standard-version",
+        "branch_patterns": [],
+        "config_files": [".versionrc", ".versionrc.json", ".versionrc.js"],
+        "workflow_patterns": ["standard-version"],
+    },
+    {
+        "name": "commitizen",
+        "branch_patterns": [],
+        "config_files": [".cz.toml", ".cz.json", "cz.json"],
+        "workflow_patterns": ["commitizen", "cz"],
+    },
+]
+
+
+def detect_release_system() -> dict:
+    """Detect which auto-release system is configured in this repo.
+
+    Returns a dict with:
+        - name: str | None — detected system name
+        - config_found: list[str] — config files found
+        - branches: list[str] — release branches found
+        - workflow_found: bool — whether a matching workflow was found
+    """
+    result: dict = {
+        "name": None,
+        "config_found": [],
+        "branches": [],
+        "workflow_found": False,
+    }
+
+    remote_branches = get_remote_branches()
+    local_branch_names: list[str] = []
+    code, out, _ = _run_git(["branch", "--format=%(refname:short)"])
+    if code == 0 and out:
+        local_branch_names = out.strip().splitlines()
+
+    all_branch_names = []
+    for b in remote_branches:
+        name = b.split("/", 1)[-1] if "/" in b else b
+        all_branch_names.append((name, b))
+    all_branch_names.extend((b, b) for b in local_branch_names)
+
+    # Check workflows directory
+    workflows_dir = ROOT / ".github" / "workflows"
+    workflow_files: list[str] = []
+    if workflows_dir.is_dir():
+        workflow_files = [
+            f.name.lower() for f in workflows_dir.iterdir() if f.is_file()
+        ]
+
+    for system in _RELEASE_SYSTEMS:
+        sys_name: str = system["name"]  # type: ignore[assignment]
+        branch_patterns: list[str] = system["branch_patterns"]  # type: ignore[assignment]
+        config_files: list[str] = system["config_files"]  # type: ignore[assignment]
+        wf_patterns: list[str] = system["workflow_patterns"]  # type: ignore[assignment]
+
+        # Check config files
+        found_configs = []
+        for cf in config_files:
+            config_path = ROOT / cf
+            if config_path.exists():
+                found_configs.append(cf)
+
+        # Check branches
+        found_branches = []
+        for pattern in branch_patterns:
+            for short_name, full_name in all_branch_names:
+                if short_name.startswith(pattern) and full_name not in found_branches:
+                    found_branches.append(full_name)
+
+        # Check workflow files
+        wf_found = False
+        for wf_pattern in wf_patterns:
+            for wf_file in workflow_files:
+                if wf_pattern in wf_file:
+                    wf_found = True
+                    break
+            if wf_found:
+                break
+
+        # If we found config or workflow, this is the system
+        if found_configs or wf_found:
+            result["name"] = sys_name
+            result["config_found"] = found_configs
+            result["branches"] = found_branches
+            result["workflow_found"] = wf_found
+            break
+
+        # Also match on branches alone if patterns match
+        if found_branches:
+            result["name"] = sys_name
+            result["branches"] = found_branches
+            break
+
+    # If no system detected but there are release-please branches,
+    # fall back to release-please detection
+    if not result["name"] and not result["branches"]:
+        # Check for any release-like branches
+        for short_name, full_name in all_branch_names:
+            if "release" in short_name.lower():
+                result["branches"].append(full_name)
+
+    return result
+
+
 def get_upstream_status() -> str:
     """Check if current branch is ahead/behind its upstream tracking ref.
 
@@ -2423,10 +2563,10 @@ def check_merge_base_freshness() -> tuple[bool, str]:
 
 
 # ---------------------------------------------------------------------------
-# Helpful commands reference
+# Helpful git commands reference
 # ---------------------------------------------------------------------------
 
-# TODO (template users): Add or remove helpful commands that match your
+# TODO (template users): Add or remove helpful git commands that match your
 #   team's git workflow (e.g. signed commits, rebase preferences).
 HELPFUL_COMMANDS: list[dict[str, str]] = [
     {
@@ -2511,6 +2651,7 @@ def _collect_info() -> dict[
         ("contributors", get_contributors_count),
         ("working_tree", get_working_tree_status),
         ("release_please_branches", find_release_please_branches),
+        ("release_system", detect_release_system),
         ("user_name", lambda: get_git_config_value("user.name")),
         ("user_email", lambda: get_git_config_value("user.email")),
         ("branch_activity", lambda: get_recent_branches_with_stats(5)),
@@ -2593,6 +2734,7 @@ def run(
     contributors: int = info["contributors"]  # type: ignore[assignment]
     working_tree: dict[str, int] = info["working_tree"]  # type: ignore[assignment]
     rp_branches: list[str] = info["release_please_branches"]  # type: ignore[assignment]
+    release_system: dict = info.get("release_system", {})  # type: ignore[assignment]
     user_name: str = info["user_name"]  # type: ignore[assignment]
     user_email: str = info["user_email"]  # type: ignore[assignment]
     branch_activity: list[dict[str, object]] = info["branch_activity"]  # type: ignore[assignment]
@@ -2616,7 +2758,7 @@ def run(
             "info": info,
             "health": health_results,
             "failures": failures,
-            "helpful_commands": HELPFUL_COMMANDS,
+            "helpful_git_commands": HELPFUL_COMMANDS,
         }
         print(json.dumps(payload, indent=2, default=str))
         return 1 if failures else 0
@@ -2673,6 +2815,9 @@ def run(
 
     # ── Header ──
     header_border = h_double * 60
+    check = sym.get("check", "+")
+    cross = sym.get("cross", "x")
+    warn_sym = sym.get("warn", "!")
     print()
     print(c.bold(c.cyan(f"  {tl_d}{header_border}{tr_d}")))
     print(
@@ -2681,10 +2826,22 @@ def run(
     )
     print(c.bold(c.cyan(f"  {bl_d}{header_border}{br_d}")))
 
+    # ── Auto-refresh commands ──
+    # Show the commands the script ran automatically to ensure fresh data
+    print()
+    print(f"  {c.dim('Auto-refresh commands executed at startup:')}")
+    print(
+        f"    {c.cyan('git fetch --all --prune')}"
+        f"  {c.dim('sync remote-tracking refs, remove stale branches')}"
+    )
+    if fetch_ok:
+        print(f"    {c.green(check)} {c.dim('Fetch successful')}")
+    else:
+        print(
+            f"    {c.yellow(warn_sym)} {c.yellow('Fetch failed — using cached data')}"
+        )
+
     # Quick status bar — three indicators with explicit labels
-    check = sym.get("check", "+")
-    cross = sym.get("cross", "x")
-    warn_sym = sym.get("warn", "!")
     clean = not any(working_tree.values())
     sync_ok = "behind" not in upstream_status.lower()
     passed_count = len(health_results) - failures
@@ -3235,13 +3392,44 @@ def run(
             f"    {c.yellow(str(stash_count))} stash(es) saved  {c.dim('shelved changes via git stash')}"
         )
 
-    # ── Release Please ──
-    _section("Release Please")
-    if rp_branches:
-        for branch in rp_branches:
-            print(f"    {c.cyan(branch)}")
+    # ── Release Branch ──
+    _section("Release Branch")
+    print(
+        f"    {c.dim('Automated release branches created by release automation tools.')}"
+    )
+    print(
+        f"    {c.dim('These branches typically contain version bumps, changelogs, and')}"
+    )
+    print(f"    {c.dim('release PRs managed by the configured release system.')}")
+
+    # Show detected release system status
+    detected_name = release_system.get("name") if release_system else None
+    if detected_name:
+        print(f"    {c.bold('Status:')} {c.green(f'{detected_name} detected')}")
+        config_found = release_system.get("config_found", [])
+        if config_found:
+            print(f"    {c.dim('Config:')} {', '.join(config_found)}")
+        if release_system.get("workflow_found"):
+            print(f"    {c.dim('Workflow: matching workflow file found')}")
     else:
-        print(f"    {c.yellow('No release-please branches found')}")
+        print(f"    {c.bold('Status:')} {c.yellow('No release automation detected')}")
+        print(f"    {c.dim('No known release system config found (release-please,')}")
+        print(
+            f"    {c.dim('semantic-release, changesets, standard-version, commitizen).')}"
+        )
+
+    # Show release branches (from the release system or fallback to rp_branches)
+    display_branches = release_system.get("branches", []) if release_system else []
+    if not display_branches:
+        display_branches = rp_branches
+    if display_branches:
+        print()
+        for branch in display_branches:
+            print(f"    {c.cyan(branch)}")
+    elif detected_name:
+        print(
+            f"    {c.dim('No active release branches found (this is normal between releases)')}"
+        )
 
     # ── Health Checks ──
     _section("Health Checks")
@@ -3266,8 +3454,8 @@ def run(
         label = (r["name"] + ":").ljust(hc_name_w)
         print(f"    {icon} {c.dim(label)} {r['message']}")
 
-    # ── Helpful Commands ──
-    _section("Helpful Commands")
+    # ── Helpful Git Commands ──
+    _section("Helpful Git Commands")
     for cmd_info in HELPFUL_COMMANDS:
         print(f"    {c.cyan(cmd_info['cmd'])}")
         print(f"      {c.dim(cmd_info['desc'])}")
