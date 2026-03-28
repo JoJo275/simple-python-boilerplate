@@ -3240,18 +3240,23 @@ def run(
         _merge_row("Merge base", merge_plain, c.yellow, rel_date)
         print(f"    {'':{lbl_w}s} {c.dim('last common ancestor with default')}")
         if author:
+            print()
             print(f"    {'Author'.ljust(lbl_w)} {author}")
+            print(f"    {'':{lbl_w}s} {c.dim('commit author of merge base')}")
         if default_ahead != "0":
+            print()
             ahead_plain = f"{default_ahead} commit(s) ahead of merge base"
             _merge_row(default_branch + " ahead", ahead_plain, c.yellow)
             print(
                 f"    {'':{lbl_w}s} {c.dim('new work on default since you branched')}"
             )
         if current_ahead != "0":
+            print()
             br_plain = f"{current_ahead} commit(s) ahead of merge base"
             _merge_row("Branch ahead", br_plain, c.cyan)
             print(f"    {'':{lbl_w}s} {c.dim('your unique work since branching')}")
         if branch_divergence:
+            print()
             div_sha = branch_divergence.get("sha", "")
             div_msg = branch_divergence.get("message", "")
             div_date = branch_divergence.get("date", "")
