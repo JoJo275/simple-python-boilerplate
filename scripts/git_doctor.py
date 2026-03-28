@@ -2631,7 +2631,10 @@ HEALTH_CHECKS: list[tuple[str, CheckFn]] = [
 ]
 
 
-def _collect_info() -> dict[
+def _collect_info(
+    *,
+    spinner_color: str | None = "cyan",
+) -> dict[
     str,
     str | int | list[str] | list[dict[str, str]] | dict[str, int],
 ]:
@@ -2672,18 +2675,21 @@ def _collect_info() -> dict[
         ("branch_characteristics", get_branch_characteristics),
     ]
     info: dict[str, object] = {}
-    with Spinner("Collecting git info", log_interval=5, color="cyan") as spin:
+    with Spinner("Collecting git info", log_interval=5, color=spinner_color) as spin:
         for key, fn in collectors:
             spin.update(key)
             info[key] = fn()
     return info  # type: ignore[return-value]
 
 
-def _collect_health() -> tuple[list[dict[str, str]], int]:
+def _collect_health(
+    *,
+    spinner_color: str | None = "cyan",
+) -> tuple[list[dict[str, str]], int]:
     """Run all health checks and return (results, failure_count)."""
     results: list[dict[str, str]] = []
     failures = 0
-    with Spinner("Running health checks", log_interval=5, color="cyan") as spin:
+    with Spinner("Running health checks", log_interval=5, color=spinner_color) as spin:
         for name, check_fn in HEALTH_CHECKS:
             spin.update(name)
             passed, msg = check_fn()
@@ -2710,10 +2716,13 @@ def run(
     """
     elapsed_start = time.monotonic()
 
+    # Resolve spinner color: --no-color (color=False) disables it.
+    spinner_color: str | None = None if color is False else "cyan"
+
     # Fetch and prune stale remote-tracking refs before collecting data.
     # This ensures branch activity stats are accurate and deleted remote
     # branches don't pollute the output.
-    with Spinner("Fetching remotes", log_interval=5, color="cyan"):
+    with Spinner("Fetching remotes", log_interval=5, color=spinner_color):
         fetch_ok, fetch_msg = _fetch_and_prune()
         if not fetch_ok:
             logger.warning(
@@ -2727,7 +2736,7 @@ def run(
     revparse_cmd_ok = _revparse_code == 0
 
     # Collect info once and reuse for both display and JSON
-    info = _collect_info()
+    info = _collect_info(spinner_color=spinner_color)
     current_branch: str = info["current_branch"]  # type: ignore[assignment]
     default_branch: str = info["default_branch"]  # type: ignore[assignment]
     remote_url: str = info["remote_url"]  # type: ignore[assignment]
@@ -2757,12 +2766,16 @@ def run(
     file_changes: dict[str, int] = info["file_change_summary"]  # type: ignore[assignment]
     branch_chars: dict[str, str] = info["branch_characteristics"]  # type: ignore[assignment]
 
-    health_results, failures = _collect_health()
+    health_results, failures = _collect_health(spinner_color=spinner_color)
 
     if output_json:
         payload: dict[str, object] = {
             "version": SCRIPT_VERSION,
             "info": info,
+            "startup_commands": {
+                "git_status_porcelain": status_cmd_ok,
+                "git_rev_parse_git_dir": revparse_cmd_ok,
+            },
             "health": health_results,
             "failures": failures,
             "helpful_git_commands": HELPFUL_COMMANDS,
@@ -5419,64 +5432,72 @@ def cleanup_repo(
     print(c.cyan(f"  {tl}{sec_border}{tr}"))
     print(f"  {c.cyan(vl)} {c.bold('Results')}")
     print(c.cyan(f"  {bl}{sec_border}{br}"))
-    print()
 
     deleted = 0
     failed = 0
 
     # Delete stale branches
-    for b in stale_branches:
-        name = b["name"]
-        code, _, err = _run_git(["branch", "-d", name])
-        if code == 0:
-            print(f"    {c.green(check_sym)} Deleted stale: {name}")
-            deleted += 1
-        else:
-            # Try force-delete if branch wasn't merged
-            code2, _, err2 = _run_git(["branch", "-D", name])
-            if code2 == 0:
-                print(
-                    f"    {c.green(check_sym)} Deleted stale (force): {name}"
-                    f"  {c.dim('(not fully merged)')}"
-                )
+    if stale_branches:
+        print()
+        print(f"    {c.bold('Stale branches:')}")
+        for b in stale_branches:
+            name = b["name"]
+            code, _, err = _run_git(["branch", "-d", name])
+            if code == 0:
+                print(f"      {c.green(check_sym)} {name}")
                 deleted += 1
             else:
-                print(f"    {c.red(cross_sym)} Failed: {name}  {c.red(err2 or err)}")
-                failed += 1
+                # Try force-delete if branch wasn't merged
+                code2, _, err2 = _run_git(["branch", "-D", name])
+                if code2 == 0:
+                    print(
+                        f"      {c.green(check_sym)} {name}"
+                        f"  {c.dim('(force — not fully merged)')}"
+                    )
+                    deleted += 1
+                else:
+                    print(f"      {c.red(cross_sym)} {name}  {c.red(err2 or err)}")
+                    failed += 1
 
     # Delete gone branches
-    for name in gone_branches:
-        code, _, err = _run_git(["branch", "-d", name])
-        if code == 0:
-            print(f"    {c.green(check_sym)} Deleted gone: {name}")
-            deleted += 1
-        else:
-            code2, _, err2 = _run_git(["branch", "-D", name])
-            if code2 == 0:
-                print(
-                    f"    {c.green(check_sym)} Deleted gone (force): {name}"
-                    f"  {c.dim('(not fully merged)')}"
-                )
+    if gone_branches:
+        print()
+        print(f"    {c.bold('Gone branches:')}")
+        for name in gone_branches:
+            code, _, err = _run_git(["branch", "-d", name])
+            if code == 0:
+                print(f"      {c.green(check_sym)} {name}")
                 deleted += 1
             else:
-                print(f"    {c.red(cross_sym)} Failed: {name}  {c.red(err2 or err)}")
-                failed += 1
+                code2, _, err2 = _run_git(["branch", "-D", name])
+                if code2 == 0:
+                    print(
+                        f"      {c.green(check_sym)} {name}"
+                        f"  {c.dim('(force — not fully merged)')}"
+                    )
+                    deleted += 1
+                else:
+                    print(f"      {c.red(cross_sym)} {name}  {c.red(err2 or err)}")
+                    failed += 1
 
     # Run git gc
     gc_success = False
     if has_gc_work:
+        print()
+        print(f"    {c.bold('Housekeeping:')}")
         code, out, err = _run_git(["gc", "--auto", "--prune=now"], timeout=60)
         if code == 0:
-            print(f"    {c.green(check_sym)} git gc completed")
+            print(f"      {c.green(check_sym)} git gc completed")
             gc_success = True
         else:
-            print(f"    {c.red(cross_sym)} git gc failed: {c.red(err)}")
+            print(f"      {c.red(cross_sym)} git gc failed: {c.red(err)}")
             failed += 1
 
     # ── Summary ──
     elapsed = time.monotonic() - elapsed_start
     print()
     print(c.cyan(f"  {h_double * 60}"))
+    print()
 
     parts: list[str] = []
     if deleted > 0:
@@ -5490,9 +5511,11 @@ def cleanup_repo(
     else:
         summary = ", ".join(parts) if parts else ""
         print(f"  {c.red(cross_sym)} {c.red(f'{failed} failed')}  {c.dim(summary)}")
+    print()
     print(
         f"  {c.dim(f'Completed in {elapsed:.1f}s  {dot}  git-doctor v{SCRIPT_VERSION}')}"
     )
+    print()
     print(c.cyan(f"  {h_double * 60}"))
 
     # ── Recommendations ──
@@ -5531,12 +5554,16 @@ def cleanup_repo(
     return 1 if failed > 0 else 0
 
 
-def create_new_branch(*, color: bool | None = None) -> int:
+def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> int:
     """Interactive branch creation workflow.
 
     Walks the user through creating a branch off ``origin/main``,
     pushing it with upstream tracking, and printing a summary of
     every command that ran.
+
+    Args:
+        color: Force color on/off, or None for auto-detect.
+        dry_run: If True, show what commands would run without executing.
 
     Returns:
         Exit code: 0 on success, 1 on failure.
@@ -5562,10 +5589,14 @@ def create_new_branch(*, color: bool | None = None) -> int:
     dot = "\u2022" if use_unicode else "*"
 
     # ── Title ──
+    mode_label = " (dry run)" if dry_run else ""
     border = h_double * 60
     print()
     print(c.bold(c.cyan(f"  {tl_d}{border}{tr_d}")))
-    print(f"  {c.bold(c.cyan(vl_d))} {c.bold(c.cyan('New Branch Creation'))}")
+    print(
+        f"  {c.bold(c.cyan(vl_d))} {c.bold(c.cyan('New Branch Creation'))}"
+        f"{c.dim(mode_label)}"
+    )
     print(c.bold(c.cyan(f"  {bl_d}{border}{br_d}")))
     print()
 
@@ -5639,9 +5670,19 @@ def create_new_branch(*, color: bool | None = None) -> int:
     print()
     section_border = h_line * 60
     print(c.cyan(f"  {tl}{section_border}{tr}"))
-    print(f"  {c.cyan(vl)} {c.bold('Running commands')}")
+    header_label = "Would run" if dry_run else "Running commands"
+    print(f"  {c.cyan(vl)} {c.bold(header_label)}")
     print(c.cyan(f"  {bl}{section_border}{br}"))
     print()
+
+    if dry_run:
+        for description, _git_args, display_cmd in steps:
+            print(f"    {c.cyan(dot)} {c.cyan(display_cmd)}")
+            print(f"      {c.dim(description)}")
+        print()
+        print(f"  {c.dim('No changes made (dry run).')}")
+        print()
+        return 0
 
     failed = False
     for description, git_args, display_cmd in steps:
@@ -6440,8 +6481,8 @@ def main() -> int:
         "--dry-run",
         action="store_true",
         help="With --apply-from, --apply-recommended, "
-        "--apply-recommended-minimal, --refresh, or --cleanup: "
-        "show what would be changed without applying",
+        "--apply-recommended-minimal, --refresh, --cleanup, or "
+        "--new-branch: show what would be changed without applying",
     )
     parser.add_argument(
         "--new-branch",
@@ -6510,7 +6551,7 @@ def main() -> int:
     # --new-branch mode: interactive branch creation and exit
     if args.new_branch:
         nb_color = False if args.no_color else None
-        return create_new_branch(color=nb_color)
+        return create_new_branch(color=nb_color, dry_run=args.dry_run)
 
     # --apply-from mode: apply desired values from edited reference file
     if args.apply_from:

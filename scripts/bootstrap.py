@@ -9,7 +9,12 @@ Typical actions:
 5. Install pre-commit hooks (all stages)
 6. Check Task runner availability
 7. Verify editable install
-8. Print next steps
+8. Build smoke test (hatch build)
+9. Wheel install test (pip install --dry-run)
+10. Template placeholder validation
+11. Publishability checks (pyproject.toml fields)
+12. CLI entry point check
+Plus optional: quality pass (ruff + mypy), docs build, Hatch env verification
 
 Flags::
 
@@ -17,6 +22,9 @@ Flags::
     --skip-hooks         Skip pre-commit hook installation
     --skip-test-matrix   Skip creating test.py3.x environments (faster setup)
     -q, --quiet          Suppress informational output (errors/warnings still shown)
+    --strict             Run optional quality pass (ruff + mypy) after setup
+    --fix                With --strict, auto-fix ruff issues where possible
+    --ci-like            Run all checks including quality pass and docs build
     --version            Print version and exit
 
 Usage::
@@ -25,6 +33,9 @@ Usage::
     python scripts/bootstrap.py --skip-hooks               # skip hook install
     python scripts/bootstrap.py --skip-hooks --skip-test-matrix  # fastest setup
     python scripts/bootstrap.py --dry-run                  # preview
+    python scripts/bootstrap.py --strict                   # setup + quality pass
+    python scripts/bootstrap.py --strict --fix             # setup + auto-fix lint
+    python scripts/bootstrap.py --ci-like                  # setup + quality + docs
 
 Portability:
     Repo-specific — expects Hatch, pre-commit, and this project's
@@ -38,6 +49,7 @@ import argparse
 import contextlib
 import json
 import logging
+import re
 import shutil
 import subprocess  # nosec B404
 import sys
@@ -53,8 +65,8 @@ log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 MIN_PYTHON = (3, 11)
-TOTAL_STEPS = 7
-SCRIPT_VERSION = "1.5.0"
+TOTAL_STEPS = 12
+SCRIPT_VERSION = "2.0.0"
 
 # Theme color for this script's dashboard output.
 THEME = "green"
@@ -341,23 +353,419 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         return False
 
 
-def print_next_steps(ui: UI) -> None:
-    """Print helpful next steps and recommended scripts."""
+# -- Template placeholder patterns that should be replaced after customize --
+_PLACEHOLDER_PATTERNS: list[tuple[str, str]] = [
+    (r"simple_python_boilerplate", "package name"),
+    (r"simple-python-boilerplate", "project slug"),
+    (r"JoJo275/simple-python-boilerplate", "repo slug"),
+    (r"JoJo275", "GitHub owner"),
+]
+
+
+def build_smoke_test(*, dry_run: bool = False) -> bool:
+    """Run ``hatch build`` and verify it produces artifacts.
+
+    Args:
+        dry_run: If True, skip actual build.
+
+    Returns:
+        True if the build succeeds.
+    """
+    c = Colors()
+    log.info("\n%s", c.bold(f"[8/{TOTAL_STEPS}] Build smoke test..."))
+    sym = unicode_symbols()
+    if dry_run:
+        log.info("  %s Would run hatch build", c.dim(sym["arrow"]))
+        return True
+    try:
+        with Spinner("Building package") as spin:
+            spin.update("sdist + wheel")
+            run_cmd(["hatch", "build"], capture=True)
+        # Check that dist/ contains files
+        dist_dir = ROOT / "dist"
+        artifacts = list(dist_dir.glob("*")) if dist_dir.is_dir() else []
+        if artifacts:
+            names = [a.name for a in artifacts[-2:]]  # show last sdist + wheel
+            log.info(
+                "  %s Build succeeded (%d artifact%s)",
+                c.green(sym["check"]),
+                len(artifacts),
+                "s" if len(artifacts) != 1 else "",
+            )
+            for name in names:
+                log.info("    %s %s", c.dim(sym["arrow"]), c.dim(name))
+            return True
+        log.warning("  %s Build ran but produced no artifacts", c.yellow(sym["warn"]))
+        return False
+    except subprocess.CalledProcessError as e:
+        log.error("  %s Build failed: %s", c.red(sym["cross"]), e)
+        return False
+
+
+def wheel_install_test(*, dry_run: bool = False) -> bool:
+    """Install the built wheel with ``pip install --dry-run`` to verify.
+
+    Args:
+        dry_run: If True, skip actual install test.
+
+    Returns:
+        True if wheel validates successfully.
+    """
+    c = Colors()
+    log.info("\n%s", c.bold(f"[9/{TOTAL_STEPS}] Wheel install test..."))
+    sym = unicode_symbols()
+    if dry_run:
+        log.info("  %s Would test wheel installation", c.dim(sym["arrow"]))
+        return True
+
+    dist_dir = ROOT / "dist"
+    wheels = sorted(dist_dir.glob("*.whl")) if dist_dir.is_dir() else []
+    if not wheels:
+        log.warning("  %s No wheel found in dist/ — skipping", c.yellow(sym["warn"]))
+        return True  # advisory only
+
+    wheel = wheels[-1]  # latest
+    try:
+        with Spinner("Testing wheel install") as spin:
+            spin.update("pip install --dry-run")
+            # TODO (template users): Replace 'simple_python_boilerplate' with
+            #   your package name after running customize.py.
+            run_cmd(
+                [
+                    "hatch",
+                    "run",
+                    "pip",
+                    "install",
+                    "--dry-run",
+                    str(wheel),
+                ],
+                capture=True,
+            )
+        log.info("  %s Wheel installable: %s", c.green(sym["check"]), c.dim(wheel.name))
+        return True
+    except subprocess.CalledProcessError as e:
+        log.error("  %s Wheel install test failed: %s", c.red(sym["cross"]), e)
+        return False
+
+
+def check_template_placeholders() -> bool:
+    """Check if template placeholders have been customized.
+
+    Returns:
+        True always (advisory check — never blocks setup).
+    """
+    c = Colors()
+    log.info("\n%s", c.bold(f"[10/{TOTAL_STEPS}] Checking template placeholders..."))
+    sym = unicode_symbols()
+
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.is_file():
+        log.warning("  %s pyproject.toml not found — skipping", c.yellow(sym["warn"]))
+        return True
+
+    content = pyproject.read_text(encoding="utf-8")
+    found: list[str] = []
+    for pattern, label in _PLACEHOLDER_PATTERNS:
+        if re.search(pattern, content):
+            found.append(label)
+
+    if found:
+        log.info(
+            "  %s Template defaults detected (run %s to customize):",
+            c.yellow(sym["warn"]),
+            c.cyan("python scripts/customize.py"),
+        )
+        for label in found:
+            log.info("    %s %s", c.dim(sym["arrow"]), label)
+    else:
+        log.info("  %s Template placeholders customized", c.green(sym["check"]))
+
+    return True  # advisory — never blocks
+
+
+def check_publishability() -> bool:
+    """Check pyproject.toml has required fields for publishing.
+
+    Returns:
+        True always (advisory check — never blocks setup).
+    """
+    c = Colors()
+    log.info("\n%s", c.bold(f"[11/{TOTAL_STEPS}] Checking publishability..."))
+    sym = unicode_symbols()
+
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.is_file():
+        log.warning("  %s pyproject.toml not found — skipping", c.yellow(sym["warn"]))
+        return True
+
+    content = pyproject.read_text(encoding="utf-8")
+
+    required_fields = {
+        "name": r"^\s*name\s*=",
+        "version / dynamic": r'(^\s*version\s*=|"version"\s*.*dynamic)',
+        "description": r"^\s*description\s*=",
+        "license": r"^\s*license\s*=",
+        "authors": r"^\s*\[\[project\.authors\]\]|^\s*authors\s*=",
+    }
+
+    missing: list[str] = []
+    for field, pattern in required_fields.items():
+        if not re.search(pattern, content, re.MULTILINE):
+            missing.append(field)
+
+    if missing:
+        log.warning(
+            "  %s Missing fields for PyPI publishing:",
+            c.yellow(sym["warn"]),
+        )
+        for field in missing:
+            log.warning("    %s %s", c.dim(sym["arrow"]), field)
+    else:
+        log.info("  %s All required publishing fields present", c.green(sym["check"]))
+
+    return True  # advisory
+
+
+def check_cli_entry_point(*, dry_run: bool = False) -> bool:
+    """Check if CLI entry points are defined and functional.
+
+    Args:
+        dry_run: If True, skip execution test.
+
+    Returns:
+        True if entry points are found (or none defined — not an error).
+    """
+    c = Colors()
+    log.info("\n%s", c.bold(f"[12/{TOTAL_STEPS}] Checking CLI entry points..."))
+    sym = unicode_symbols()
+
+    pyproject = ROOT / "pyproject.toml"
+    if not pyproject.is_file():
+        log.info("  %s No pyproject.toml — skipping", c.dim(sym["arrow"]))
+        return True
+
+    content = pyproject.read_text(encoding="utf-8")
+
+    # Check for [project.scripts] section
+    if "[project.scripts]" not in content:
+        log.info(
+            "  %s No CLI entry points defined %s",
+            c.dim(sym["arrow"]),
+            c.dim("(add [project.scripts] to pyproject.toml to define one)"),
+        )
+        return True
+
+    # Extract entry point names
+    in_scripts = False
+    entry_points: list[str] = []
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped == "[project.scripts]":
+            in_scripts = True
+            continue
+        if in_scripts:
+            if stripped.startswith("["):
+                break
+            match = re.match(r"^(\w[\w-]*)\s*=", stripped)
+            if match:
+                entry_points.append(match.group(1))
+
+    if not entry_points:
+        log.info("  %s No entry points parsed", c.dim(sym["arrow"]))
+        return True
+
+    if dry_run:
+        for ep in entry_points:
+            log.info("  %s Would test: %s", c.dim(sym["arrow"]), c.cyan(ep))
+        return True
+
+    ok = True
+    for ep in entry_points:
+        try:
+            run_cmd(
+                ["hatch", "run", ep, "--help"],
+                capture=True,
+                check=True,
+                timeout=30,
+            )
+            log.info("  %s %s --help works", c.green(sym["check"]), c.cyan(ep))
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            log.warning("  %s %s --help failed", c.yellow(sym["warn"]), c.cyan(ep))
+            ok = False
+
+    return ok
+
+
+def run_quality_pass(*, dry_run: bool = False, fix: bool = False) -> bool:
+    """Run linting and type checking (optional quality pass).
+
+    Args:
+        dry_run: If True, skip execution.
+        fix: If True, run ruff with --fix.
+
+    Returns:
+        True if all quality checks pass.
+    """
+    c = Colors()
+    log.info("\n%s", c.bold("Quality pass (optional)..."))
+    sym = unicode_symbols()
+
+    if dry_run:
+        log.info("  %s Would run ruff check + mypy", c.dim(sym["arrow"]))
+        return True
+
+    all_ok = True
+
+    # Ruff check
+    try:
+        ruff_cmd = ["hatch", "run", "ruff", "check", "src/", "scripts/", "tests/"]
+        if fix:
+            ruff_cmd.append("--fix")
+        with Spinner("Running ruff") as spin:
+            spin.update("linting")
+            run_cmd(ruff_cmd, capture=True)
+        log.info("  %s ruff check passed", c.green(sym["check"]))
+    except subprocess.CalledProcessError:
+        log.warning("  %s ruff check found issues", c.yellow(sym["warn"]))
+        if not fix:
+            log.info(
+                "    %s Run with %s to auto-fix",
+                c.dim(sym["arrow"]),
+                c.cyan("--fix"),
+            )
+        all_ok = False
+
+    # Mypy
+    try:
+        with Spinner("Running mypy") as spin:
+            spin.update("type checking")
+            run_cmd(["hatch", "run", "mypy", "src/"], capture=True)
+        log.info("  %s mypy passed", c.green(sym["check"]))
+    except subprocess.CalledProcessError:
+        log.warning("  %s mypy found issues", c.yellow(sym["warn"]))
+        all_ok = False
+
+    return all_ok
+
+
+def check_docs_build(*, dry_run: bool = False) -> bool:
+    """Try building docs with mkdocs.
+
+    Args:
+        dry_run: If True, skip actual build.
+
+    Returns:
+        True if docs build succeeds (or skipped).
+    """
+    c = Colors()
+    log.info("\n%s", c.bold("Docs build check (optional)..."))
+    sym = unicode_symbols()
+
+    mkdocs_yml = ROOT / "mkdocs.yml"
+    if not mkdocs_yml.is_file():
+        log.info("  %s No mkdocs.yml — skipping", c.dim(sym["arrow"]))
+        return True
+
+    if dry_run:
+        log.info("  %s Would run hatch run docs:build", c.dim(sym["arrow"]))
+        return True
+
+    try:
+        with Spinner("Building docs") as spin:
+            spin.update("mkdocs build")
+            run_cmd(["hatch", "run", "docs:build", "--strict"], capture=True)
+        log.info("  %s Docs build succeeded", c.green(sym["check"]))
+        return True
+    except subprocess.CalledProcessError:
+        log.warning(
+            "  %s Docs build failed %s",
+            c.yellow(sym["warn"]),
+            c.dim("(check mkdocs config)"),
+        )
+        return False
+
+
+def check_hatch_envs(*, dry_run: bool = False) -> bool:
+    """Verify that Hatch environments are healthy.
+
+    Args:
+        dry_run: If True, skip actual checks.
+
+    Returns:
+        True if all environments are healthy.
+    """
+    c = Colors()
+    log.info("\n%s", c.bold("Hatch environment verification..."))
+    sym = unicode_symbols()
+
+    if dry_run:
+        log.info("  %s Would verify Hatch environments", c.dim(sym["arrow"]))
+        return True
+
+    try:
+        result = run_cmd(["hatch", "env", "show", "--json"], capture=True, check=False)
+        if result.returncode != 0:
+            log.warning(
+                "  %s Could not query Hatch environments", c.yellow(sym["warn"])
+            )
+            return False
+
+        envs = json.loads(result.stdout)
+        expected = {"default", "docs"}
+        found = set(envs.keys())
+        missing = expected - found
+
+        if missing:
+            log.warning(
+                "  %s Missing environments: %s",
+                c.yellow(sym["warn"]),
+                ", ".join(c.cyan(e) for e in sorted(missing)),
+            )
+            return False
+
+        log.info(
+            "  %s %d environment%s available: %s",
+            c.green(sym["check"]),
+            len(found),
+            "s" if len(found) != 1 else "",
+            ", ".join(c.dim(e) for e in sorted(found)),
+        )
+        return True
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        log.warning("  %s Env check failed: %s", c.yellow(sym["warn"]), e)
+        return False
+
+
+def print_next_steps(ui: UI, *, results: dict[str, bool] | None = None) -> None:
+    """Print helpful next steps and recommended scripts.
+
+    Args:
+        ui: UI instance for rendering.
+        results: Dict of step name → pass/fail, used to tailor advice.
+    """
     # TODO (template users): Update the package name and URLs below
     #   after running customize.py, or remove this function if your
     #   bootstrap has different post-setup instructions.
     c = Colors()
+    results = results or {}
     ui.section("Setup Complete — Next Steps")
     log.info("")
-    log.info("  1. Enter the dev environment:")
+
+    step = 1
+
+    log.info("  %d. Enter the dev environment:", step)
     log.info("     $ %s", c.cyan("hatch shell"))
     log.info("")
-    log.info("  2. Verify the package is importable:")
+    step += 1
+
+    log.info("  %d. Verify the package is importable:", step)
     log.info(
         "     $ %s", c.cyan('hatch run python -c "import simple_python_boilerplate"')
     )
     log.info("")
-    log.info("  3. Verify tools work:")
+    step += 1
+
+    log.info("  %d. Verify tools work:", step)
     log.info(
         "     $ %s        %s", c.cyan("task check"), c.dim("# Run all quality gates")
     )
@@ -366,10 +774,16 @@ def print_next_steps(ui: UI) -> None:
         "     $ %s       %s", c.cyan("task --list"), c.dim("# See all available tasks")
     )
     log.info("")
-    log.info("  4. Customize the template:")
-    log.info("     $ %s", c.cyan("python scripts/customize.py"))
-    log.info("")
-    log.info("  5. (Optional) Enable GitHub workflows:")
+    step += 1
+
+    # Dynamic: show customize step only if placeholders were detected
+    if results.get("placeholders", True):
+        log.info("  %d. Customize the template:", step)
+        log.info("     $ %s", c.cyan("python scripts/customize.py"))
+        log.info("")
+        step += 1
+
+    log.info("  %d. (Optional) Enable GitHub workflows:", step)
     log.info(
         "     $ %s", c.cyan("python scripts/customize.py --enable-workflows OWNER/REPO")
     )
@@ -377,9 +791,33 @@ def print_next_steps(ui: UI) -> None:
         "     %s", c.dim("Or set repository variable: vars.ENABLE_WORKFLOWS = 'true'")
     )
     log.info("")
+    step += 1
+
+    # Dynamic: suggest quality pass if it wasn't run
+    if not results.get("quality_ran"):
+        log.info("  %d. (Optional) Run quality checks:", step)
+        log.info(
+            "     $ %s",
+            c.cyan("python scripts/bootstrap.py --strict"),
+        )
+        log.info(
+            "     %s",
+            c.dim("Runs ruff + mypy to catch issues early"),
+        )
+        log.info("")
+        step += 1
+
+    # Dynamic: suggest docs build if it wasn't run
+    if not results.get("docs_ran") and (ROOT / "mkdocs.yml").is_file():
+        log.info("  %d. (Optional) Build docs:", step)
+        log.info("     $ %s", c.cyan("hatch run docs:serve"))
+        log.info("")
+        step += 1
+
     log.info(
-        "  %s",
-        c.dim("Documentation: https://JoJo275.github.io/simple-python-boilerplate/"),
+        "  %s %s",
+        c.dim("Documentation:"),
+        c.cyan("https://JoJo275.github.io/simple-python-boilerplate/"),
     )
     log.info("")
 
@@ -426,6 +864,22 @@ def main() -> int:
         action="store_true",
         help="Quick import and arg-parse health check; exit 0 immediately",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="Run optional quality pass (ruff + mypy) after setup",
+    )
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="With --strict, auto-fix ruff issues where possible",
+    )
+    parser.add_argument(
+        "--ci-like",
+        action="store_true",
+        help="Run all checks including quality pass and docs build "
+        "(mirrors CI pipeline)",
+    )
     args = parser.parse_args()
 
     if args.smoke:
@@ -441,8 +895,15 @@ def main() -> int:
 
     if not args.quiet:
         ui.header()
+        mode_parts: list[str] = []
         if args.dry_run:
-            ui.info_line("Dry run mode — no changes will be made")
+            mode_parts.append("dry run")
+        if args.strict:
+            mode_parts.append("strict")
+        if args.ci_like:
+            mode_parts.append("CI-like")
+        if mode_parts:
+            ui.info_line(f"Mode: {', '.join(mode_parts)}")
 
     # Run prerequisite checks
     all_ok = True
@@ -460,7 +921,10 @@ def main() -> int:
         )
         return 1
 
-    # Setup steps
+    # Track results for dynamic next steps
+    step_results: dict[str, bool] = {}
+
+    # Core setup steps
     all_ok &= create_hatch_env(
         skip_test_matrix=args.skip_test_matrix, dry_run=args.dry_run
     )
@@ -468,11 +932,39 @@ def main() -> int:
     check_task_runner()
     all_ok &= verify_setup(dry_run=args.dry_run)
 
+    # Extended checks (always run)
+    all_ok &= build_smoke_test(dry_run=args.dry_run)
+    all_ok &= wheel_install_test(dry_run=args.dry_run)
+    check_template_placeholders()
+    step_results["placeholders"] = True  # always true (advisory)
+    check_publishability()
+    all_ok &= check_cli_entry_point(dry_run=args.dry_run)
+
+    # Hatch env verification
+    check_hatch_envs(dry_run=args.dry_run)
+
+    # Optional: quality pass (--strict or --ci-like)
+    step_results["quality_ran"] = False
+    if args.strict or args.ci_like:
+        quality_ok = run_quality_pass(dry_run=args.dry_run, fix=args.fix)
+        step_results["quality_ran"] = True
+        if args.strict:
+            all_ok &= quality_ok  # strict mode: quality failures block
+
+    # Optional: docs build (--ci-like only)
+    step_results["docs_ran"] = False
+    if args.ci_like:
+        docs_ok = check_docs_build(dry_run=args.dry_run)
+        step_results["docs_ran"] = True
+        all_ok &= docs_ok
+
     elapsed = time.monotonic() - start_time
 
     if all_ok:
-        print_next_steps(ui)
+        print_next_steps(ui, results=step_results)
+        log.info("")
         log.info("%s", c.dim(f"Completed in {elapsed:.1f}s"))
+        log.info("")
         return 0
     else:
         log.warning(
@@ -480,7 +972,9 @@ def main() -> int:
             c.yellow(sym["warn"]),
             c.yellow("Setup completed with warnings. Review the output above."),
         )
+        log.info("")
         log.info("%s", c.dim(f"Completed in {elapsed:.1f}s"))
+        log.info("")
         return 1
 
 
