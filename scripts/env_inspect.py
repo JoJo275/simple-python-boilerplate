@@ -41,6 +41,8 @@ Usage::
     python scripts/env_inspect.py --section python-installs
     python scripts/env_inspect.py --section system
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in other repos. Requires shared modules from this repo's
     scripts/ directory: ``_colors.py``, ``_imports.py``, ``_progress.py``,

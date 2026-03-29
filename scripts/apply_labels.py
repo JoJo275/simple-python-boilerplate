@@ -21,6 +21,8 @@ Usage::
 For visual example of extended set, see
 https://github.com/JoJo275/simple-python-boilerplate/labels?page=1.
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any GitHub repo — applies labels from JSON definitions.
     Requires shared modules: ``_imports.py``, ``_progress.py``.

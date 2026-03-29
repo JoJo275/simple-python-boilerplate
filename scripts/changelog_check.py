@@ -19,6 +19,8 @@ Usage::
     python scripts/changelog_check.py --quiet       # Exit code only (for CI)
     python scripts/changelog_check.py --changelog-path docs/CHANGES.md
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with a Keep a Changelog-style CHANGELOG.md
     and semver git tags.  Requires shared modules: ``_colors.py``,
@@ -46,7 +48,7 @@ log = logging.getLogger(__name__)
 
 ROOT = find_repo_root()
 CHANGELOG = ROOT / "CHANGELOG.md"
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 # Theme color for this script's dashboard output.
 THEME = "magenta"
@@ -62,6 +64,13 @@ VERSION_HEADING_RE = re.compile(
 
 # Git tag pattern (release-please convention)
 TAG_RE = re.compile(r"^v(\d+\.\d+\.\d+(?:[a-zA-Z0-9.+-]*)?)$")
+
+# release-please generates headings like: ## [1.2.3](url) (date)
+# Manually written entries look like:     ## 0.1.0 (date)
+_RP_HEADING_RE = re.compile(
+    r"^##\s+\[(\d+\.\d+\.\d+(?:[a-zA-Z0-9.+-]*)?)\]\(",
+    re.MULTILINE,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -197,11 +206,65 @@ def check_ordering(
     return len(misordered) == 0
 
 
+def _has_release_please() -> bool:
+    """Check whether the project uses release-please.
+
+    Looks for ``release-please-config.json`` in the repo root or a
+    release-please workflow in ``.github/workflows/``.
+    """
+    if (ROOT / "release-please-config.json").is_file():
+        return True
+    wf_dir = ROOT / ".github" / "workflows"
+    if wf_dir.is_dir():
+        for wf in wf_dir.iterdir():
+            if wf.is_file() and "release-please" in wf.name:
+                return True
+    return False
+
+
+def _detect_pre_release_please(
+    untagged_versions: list[str],
+    changelog_path: Path,
+) -> set[str]:
+    """Identify changelog entries that predate release-please adoption.
+
+    release-please generates headings with a link: ``## [1.2.3](url)``.
+    Manually written entries lack the link: ``## 0.1.0 (date)``.
+    If an untagged version's heading is *not* in the release-please link
+    format, it was likely written before release-please was adopted and
+    no tag was ever intended.
+
+    When the project does **not** use release-please at all, every
+    manually written entry is treated as intentional (no tag expected)
+    so it is not flagged as drift.
+
+    Args:
+        untagged_versions: Versions in CHANGELOG but not in git tags.
+        changelog_path: Path to the CHANGELOG.md file.
+
+    Returns:
+        Set of version strings identified as manually written.
+    """
+    if not untagged_versions or not changelog_path.exists():
+        return set()
+
+    text = changelog_path.read_text(encoding="utf-8")
+    rp_versions = set(_RP_HEADING_RE.findall(text))
+
+    # If release-please is not configured, ALL manually written entries
+    # (those not in release-please link format) are intentional.
+    if not _has_release_please():
+        return {v for v in untagged_versions if v not in rp_versions}
+
+    return {v for v in untagged_versions if v not in rp_versions}
+
+
 def compare_versions(
     changelog_versions: list[str],
     tag_versions: list[str],
     *,
     verbose: bool = False,
+    changelog_path: Path = CHANGELOG,
 ) -> int:
     """Compare changelog versions against git tags and report differences.
 
@@ -211,6 +274,7 @@ def compare_versions(
         changelog_versions: Versions found in CHANGELOG.md.
         tag_versions: Versions found in git tags.
         verbose: Log detailed output (in-sync versions).
+        changelog_path: Path to the CHANGELOG.md file.
 
     Returns:
         Exit code: 0 if in sync, 1 if drift detected.
@@ -235,19 +299,49 @@ def compare_versions(
     duplicates = check_duplicates(changelog_versions)
     ordering_ok = check_ordering(changelog_versions)
 
+    # Detect pre-release-please entries (manually written, no tag expected).
+    # These are typically the first entry in the CHANGELOG that predates
+    # release-please adoption — no corresponding git tag was ever created.
+    pre_rp_versions = _detect_pre_release_please(
+        in_changelog_not_tagged, changelog_path
+    )
+    # Only count genuinely unexpected drift (exclude pre-release-please entries)
+    real_drift = [v for v in in_changelog_not_tagged if v not in pre_rp_versions]
+
     has_drift = bool(
-        in_changelog_not_tagged
-        or tagged_not_in_changelog
-        or duplicates
-        or not ordering_ok
+        real_drift or tagged_not_in_changelog or duplicates or not ordering_ok
     )
 
-    if in_changelog_not_tagged:
+    if pre_rp_versions:
+        uses_rp = _has_release_please()
+        if uses_rp:
+            section_label = (
+                f"Pre-release-please entries ({len(pre_rp_versions)}) "
+                f"— no tag expected:"
+            )
+            entry_hint = "(manually written before release-please adoption)"
+        else:
+            section_label = (
+                f"Manually written entries ({len(pre_rp_versions)}) — no tag expected:"
+            )
+            entry_hint = "(manually written changelog entry, no git tag)"
         log.info(
             "\n  %s",
-            c.yellow(f"In CHANGELOG but not tagged ({len(in_changelog_not_tagged)}):"),
+            c.cyan(section_label),
         )
-        for v in in_changelog_not_tagged:
+        for v in pre_rp_versions:
+            log.info(
+                "    - %s  %s",
+                c.cyan(v),
+                c.dim(entry_hint),
+            )
+
+    if real_drift:
+        log.info(
+            "\n  %s",
+            c.yellow(f"In CHANGELOG but not tagged ({len(real_drift)}):"),
+        )
+        for v in real_drift:
             log.info("    - %s", c.yellow(v))
 
     if tagged_not_in_changelog:
@@ -274,10 +368,8 @@ def compare_versions(
         )
 
     ui.footer(
-        passed=len(in_sync),
-        failed=len(in_changelog_not_tagged)
-        + len(tagged_not_in_changelog)
-        + len(duplicates),
+        passed=len(in_sync) + len(pre_rp_versions),
+        failed=len(real_drift) + len(tagged_not_in_changelog) + len(duplicates),
     )
 
     return 1 if has_drift else 0
@@ -347,6 +439,7 @@ def main() -> int:
         changelog_versions,
         tag_versions,
         verbose=args.verbose,
+        changelog_path=changelog_path,
     )
 
 

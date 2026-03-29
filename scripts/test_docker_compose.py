@@ -21,6 +21,8 @@ Usage::
     python scripts/test_docker_compose.py --keep --verbose
     python scripts/test_docker_compose.py --timeout 600
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with a ``docker-compose.yml`` and
     ``Containerfile``.  Requires shared modules: ``_imports.py``,

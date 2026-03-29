@@ -23,7 +23,8 @@ Usage::
     python scripts/archive_todos.py --dry-run
     python scripts/archive_todos.py --quiet
     python scripts/archive_todos.py --no-backup
-    task clean:todo
+
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
 
 Portability:
     Can be used in any repo — archives TODO items from Markdown notes.

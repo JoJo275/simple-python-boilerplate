@@ -29,6 +29,8 @@ Usage::
     python scripts/check_known_issues.py --quiet
     python scripts/check_known_issues.py --json
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with a ``docs/known-issues.md`` that follows
     the same Resolved table format.  Requires shared modules:

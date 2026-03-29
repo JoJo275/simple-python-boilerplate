@@ -58,6 +58,8 @@ Usage::
     python scripts/repo_doctor.py --smoke
     python scripts/repo_doctor.py --smoke ci
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with ``repo_doctor.d/`` rule profiles.
     Requires shared modules: ``_colors.py``, ``_imports.py``,

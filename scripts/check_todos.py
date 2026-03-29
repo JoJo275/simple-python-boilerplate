@@ -11,7 +11,6 @@ Flags::
     --count             Only print the count of TODOs found
     --json              Output results as JSON (for CI integration)
     --exclude PREFIX    Additional path prefixes to exclude (repeatable)
-    -q, --quiet         Suppress output (exit code still indicates result)
     --version           Print version and exit
 
 Usage::
@@ -21,7 +20,8 @@ Usage::
     python scripts/check_todos.py --json
     python scripts/check_todos.py --pattern "TODO"
     python scripts/check_todos.py --exclude docs/notes
-    python scripts/check_todos.py --quiet
+
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
 
 Portability:
     Can be used in any repo — scans for a configurable text pattern.
@@ -43,13 +43,14 @@ from _ui import UI
 
 _progress = import_sibling("_progress")
 Spinner = _progress.Spinner
+ProgressBar = _progress.ProgressBar
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 # Theme color for this script's dashboard output.
 THEME = "yellow"
@@ -102,6 +103,35 @@ SCAN_EXTENSIONS = {
     ".env",
     ".containerfile",
     ".dockerfile",
+    ".xml",
+    ".properties",
+    ".gitignore",
+    ".gitattributes",
+    ".editorconfig",
+    ".flake8",
+    ".pylintrc",
+    ".pre-commit-config",
+    ".dockerignore",
+    ".j2",
+    ".jinja2",
+    ".tf",
+    ".hcl",
+    ".lock",
+    ".csv",
+    ".r",
+    ".rb",
+    ".go",
+    ".java",
+    ".c",
+    ".h",
+    ".cpp",
+    ".rs",
+    ".lua",
+    ".tex",
+    ".bib",
+    ".graphql",
+    ".proto",
+    ".conf",
 }
 
 # Extensionless filenames that should always be scanned
@@ -111,6 +141,68 @@ SCAN_FILENAMES = {
     "Makefile",
     "Taskfile",
     "Procfile",
+    "Vagrantfile",
+    "Rakefile",
+    "Gemfile",
+    "LICENSE",
+    "CODEOWNERS",
+    "FUNDING",
+}
+
+# Binary extensions to always skip (never try to read these)
+BINARY_EXTENSIONS = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".ico",
+    ".bmp",
+    ".webp",
+    ".svg",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".otf",
+    ".zip",
+    ".tar",
+    ".gz",
+    ".bz2",
+    ".xz",
+    ".7z",
+    ".rar",
+    ".exe",
+    ".dll",
+    ".so",
+    ".dylib",
+    ".bin",
+    ".obj",
+    ".o",
+    ".pyc",
+    ".pyo",
+    ".class",
+    ".jar",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".sqlite3",
+    ".db",
+    ".sqlite",
+    ".whl",
+    ".egg",
+    ".mp3",
+    ".mp4",
+    ".avi",
+    ".mov",
+    ".wav",
+    ".pgp",
+    ".asc",
+    ".sig",
+    ".gpg",
 }
 
 log = logging.getLogger(__name__)
@@ -184,8 +276,13 @@ def find_todos(
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
-        if path.suffix not in SCAN_EXTENSIONS and path.name not in SCAN_FILENAMES:
+        # Skip known binary files
+        if path.suffix.lower() in BINARY_EXTENSIONS:
             continue
+        # Accept known text extensions, known filenames, or try any other file
+        is_known_text = (
+            path.suffix.lower() in SCAN_EXTENSIONS or path.name in SCAN_FILENAMES
+        )
         if _is_excluded(path, exclude_dirs, suffixes):
             continue
         if any(path.is_relative_to(e) for e in extra):
@@ -194,6 +291,9 @@ def find_todos(
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except (OSError, PermissionError):
+            continue
+        # Skip files that look binary (contain null bytes in first 8KB)
+        if not is_known_text and "\x00" in text[:8192]:
             continue
 
         files_scanned += 1
@@ -283,6 +383,7 @@ def format_report(
         f"  {ui._themed(ui.vl)} {c.bold(f'Found {c.yellow(str(total))} TODO(s) across {c.yellow(str(len(results)))} file(s)')}"
     )
     lines.append(ui._themed(f"  {ui.bl}{ui.h_line * 60}{ui.br}"))
+    lines.append("")
 
     for path, matches in results.items():
         rel = path.relative_to(root)
@@ -291,6 +392,7 @@ def format_report(
         lines.append(
             f"    {c.yellow(str(rel))}  {c.dim(f'({match_count} match{suffix})')}"
         )
+        lines.append("")
         for line_num, line_text in matches:
             display = line_text.strip()
             if len(display) > 100:
@@ -300,6 +402,7 @@ def format_report(
 
     # Footer
     lines.append(f"  {c.dim(ui.h_double * 60)}")
+    lines.append("")
     scanned_info = f" (scanned {files_scanned} files)" if files_scanned else ""
     lines.append(
         f"  {c.yellow(sym['flag'])} {total} TODO(s) remaining{scanned_info} "
@@ -358,12 +461,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Output results as JSON (for CI integration)",
     )
     parser.add_argument(
-        "--quiet",
-        "-q",
-        action="store_true",
-        help="Suppress output (exit code still indicates result)",
-    )
-    parser.add_argument(
         "--exclude",
         action="append",
         default=[],
@@ -389,12 +486,11 @@ def main() -> int:
         print(f"check_todos {SCRIPT_VERSION}: smoke ok")
         return 0
 
-    # Configure logging: --quiet suppresses INFO, errors always shown
-    level = logging.WARNING if args.quiet else logging.INFO
-    logging.basicConfig(format="%(message)s", level=level)
+    # Configure logging
+    logging.basicConfig(format="%(message)s", level=logging.INFO)
 
     c = Colors()
-    show_progress = not args.quiet and not args.json_output and not args.count
+    show_progress = not args.json_output and not args.count
 
     results, files_scanned = find_todos(
         root=ROOT,
@@ -405,21 +501,17 @@ def main() -> int:
         show_progress=show_progress,
     )
 
-    if not args.quiet:
-        report = format_report(
-            results,
-            ROOT,
-            count_only=args.count,
-            as_json=args.json_output,
-            colors=c,
-            files_scanned=files_scanned,
-        )
-        # All human-readable output goes to stdout so that callers
-        # (e.g. Taskfile, PowerShell) don't treat it as an error.
-        if args.json_output:
-            print(report)
-        else:
-            print(report)
+    report = format_report(
+        results,
+        ROOT,
+        count_only=args.count,
+        as_json=args.json_output,
+        colors=c,
+        files_scanned=files_scanned,
+    )
+    # All human-readable output goes to stdout so that callers
+    # (e.g. Taskfile, PowerShell) don't treat it as an error.
+    print(report)
 
     # Non-zero exit if TODOs remain (useful in CI)
     return 1 if results else 0

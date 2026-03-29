@@ -123,6 +123,8 @@ Customisation notes:
   to ensure remote-tracking refs are current and deleted remote branches
   are cleaned up.
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any Git repository.  Requires shared modules:
     ``_colors.py``, ``_imports.py``, ``_ui.py``, ``_progress.py``.
