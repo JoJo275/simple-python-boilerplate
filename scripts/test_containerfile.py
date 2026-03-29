@@ -21,6 +21,8 @@ Usage::
     python scripts/test_containerfile.py --keep --verbose
     python scripts/test_containerfile.py --timeout 600
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with a ``Containerfile``.  Requires shared
     modules: ``_imports.py``, ``_progress.py``, ``_container_common.py``.

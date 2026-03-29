@@ -21,7 +21,6 @@ Flags::
     --dry-run            Show what would happen without making changes
     --skip-hooks         Skip pre-commit hook installation
     --skip-test-matrix   Skip creating test.py3.x environments (faster setup)
-    -q, --quiet          Suppress informational output (errors/warnings still shown)
     --strict             Run optional quality pass (ruff + mypy) after setup
     --fix                With --strict, auto-fix ruff issues where possible
     --ci-like            Run all checks including quality pass and docs build
@@ -37,6 +36,8 @@ Usage::
     python scripts/bootstrap.py --strict --fix             # setup + auto-fix lint
     python scripts/bootstrap.py --ci-like                  # setup + quality + docs
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Repo-specific — expects Hatch, pre-commit, and this project's
     layout.  Requires shared modules: ``_colors.py``, ``_imports.py``,
@@ -49,11 +50,13 @@ import argparse
 import contextlib
 import json
 import logging
+import os
 import re
 import shutil
 import subprocess  # nosec B404
 import sys
 import time
+from pathlib import Path
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _colors import Colors, unicode_symbols
@@ -113,10 +116,17 @@ def run_cmd(
     )
 
 
+def _step_label(step: int, title: str) -> str:
+    """Format a colored step label like ``[1/12] Title``."""
+    c = Colors()
+    return f"{c.cyan(f'[{step}/{TOTAL_STEPS}]')} {c.bold(c.green(title))}"
+
+
 def check_python() -> bool:
     """Verify Python version."""
     c = Colors()
-    log.info("\n%s", c.bold(f"[1/{TOTAL_STEPS}] Checking Python version..."))
+    log.info("\n%s", _step_label(1, "Checking Python version..."))
+    log.info("")
     current = sys.version_info[:2]
     min_str = f"{MIN_PYTHON[0]}.{MIN_PYTHON[1]}"
     cur_str = f"{current[0]}.{current[1]}"
@@ -126,6 +136,8 @@ def check_python() -> bool:
         log.info(
             "  %s Python %s (>= %s)", c.green(sym["check"]), c.green(cur_str), min_str
         )
+        log.info("")
+        log.info("    %s Executable: %s", c.dim(sym["arrow"]), c.cyan(sys.executable))
         return True
     else:
         log.error(
@@ -135,6 +147,8 @@ def check_python() -> bool:
             sym["dash"],
             min_str,
         )
+        log.error("")
+        log.error("    %s Executable: %s", c.dim(sym["arrow"]), c.dim(sys.executable))
         log.error(
             "  Install Python %s+: %s",
             min_str,
@@ -146,7 +160,8 @@ def check_python() -> bool:
 def check_git() -> bool:
     """Verify Git is installed and we're inside a Git repository."""
     c = Colors()
-    log.info("\n%s", c.bold(f"[2/{TOTAL_STEPS}] Checking Git..."))
+    log.info("\n%s", _step_label(2, "Checking Git..."))
+    log.info("")
     sym = unicode_symbols()
     git = shutil.which("git")
     if not git:
@@ -161,13 +176,16 @@ def check_git() -> bool:
         return False
 
     log.info("  %s Git repository detected", c.green(sym["check"]))
+    log.info("")
+    log.info("    %s Project root: %s", c.dim(sym["arrow"]), c.cyan(str(ROOT)))
     return True
 
 
 def check_hatch() -> bool:
     """Verify Hatch is installed."""
     c = Colors()
-    log.info("\n%s", c.bold(f"[3/{TOTAL_STEPS}] Checking Hatch..."))
+    log.info("\n%s", _step_label(3, "Checking Hatch..."))
+    log.info("")
     sym = unicode_symbols()
     hatch = shutil.which("hatch")
     if not hatch:
@@ -195,6 +213,16 @@ def check_hatch() -> bool:
     result = run_cmd(["hatch", "--version"], capture=True, check=False)
     if result.returncode == 0:
         log.info("  %s %s", c.green(sym["check"]), result.stdout.strip())
+        log.info("    %s Hatch path: %s", c.dim(sym["arrow"]), c.cyan(hatch))
+        # Show Hatch cache/data directory
+        cache_result = run_cmd(["hatch", "config", "find"], capture=True, check=False)
+        if cache_result.returncode == 0:
+            config_path = Path(cache_result.stdout.strip())
+            log.info(
+                "    %s Config dir: %s",
+                c.dim(sym["arrow"]),
+                c.cyan(str(config_path.parent)),
+            )
         return True
     log.error("  %s Hatch found but failed to run", c.red(sym["cross"]))
     return False
@@ -211,7 +239,8 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
         True if all environments were created successfully.
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[4/{TOTAL_STEPS}] Creating Hatch environments..."))
+    log.info("\n%s", _step_label(4, "Creating Hatch environments..."))
+    log.info("")
 
     # Environments to create
     envs = ["default", "docs"]
@@ -248,7 +277,41 @@ def create_hatch_env(*, skip_test_matrix: bool = False, dry_run: bool = False) -
             log.error("  %s Failed to create %s: %s", c.red(sym["cross"]), env, e)
             all_ok = False
 
+    # Show environment paths
+    if not dry_run:
+        _show_env_paths(c, sym)
+
     return all_ok
+
+
+def _show_env_paths(c: Colors, sym: dict[str, str]) -> None:
+    """Display discovered Hatch environment paths."""
+    result = run_cmd(["hatch", "env", "show", "--json"], capture=True, check=False)
+    if result.returncode != 0:
+        return
+    try:
+        env_data = json.loads(result.stdout)
+    except (json.JSONDecodeError, AttributeError):
+        return
+    if not env_data:
+        return
+    log.info("")
+    log.info("  %s Environment paths:", c.bold(sym["info"]))
+    for env_name in sorted(env_data):
+        path_result = run_cmd(
+            ["hatch", "env", "find", env_name], capture=True, check=False
+        )
+        if path_result.returncode == 0 and path_result.stdout.strip():
+            env_path = path_result.stdout.strip()
+            exists = Path(env_path).exists()
+            status = c.green(sym["check"]) if exists else c.dim("(not created)")
+            log.info(
+                "    %s %s %s %s",
+                status,
+                c.cyan(env_name),
+                c.dim(sym["arrow"]),
+                c.dim(env_path),
+            )
 
 
 def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
@@ -262,7 +325,8 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
         True if hooks were installed (or skipped) successfully.
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[5/{TOTAL_STEPS}] Installing pre-commit hooks..."))
+    log.info("\n%s", _step_label(5, "Installing pre-commit hooks..."))
+    log.info("")
     sym = unicode_symbols()
     if skip:
         log.info("  %s Skipped (--skip-hooks)", c.dim(sym["arrow"]))
@@ -287,6 +351,13 @@ def install_hooks(*, skip: bool = False, dry_run: bool = False) -> bool:
                 run_cmd(cmd, dry_run=dry_run)
         label = "Would install" if dry_run else "Installed"
         log.info("  %s %s all hook stages", c.green(sym["check"]), label)
+        config = ROOT / ".pre-commit-config.yaml"
+        if config.is_file():
+            log.info(
+                "    %s Config: %s",
+                c.dim(sym["arrow"]),
+                c.dim(str(config.relative_to(ROOT))),
+            )
         return True
     except subprocess.CalledProcessError as e:
         log.error("  %s Failed: %s", c.red(sym["cross"]), e)
@@ -300,7 +371,8 @@ def check_task_runner() -> bool:
         True always — Task is optional so this never blocks setup.
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[6/{TOTAL_STEPS}] Checking Task runner..."))
+    log.info("\n%s", _step_label(6, "Checking Task runner..."))
+    log.info("")
     sym = unicode_symbols()
     task = shutil.which("task")
     if task:
@@ -323,7 +395,8 @@ def verify_setup(*, dry_run: bool = False) -> bool:
         True if the setup is verified (or dry-run mode).
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[7/{TOTAL_STEPS}] Verifying setup..."))
+    log.info("\n%s", _step_label(7, "Verifying setup..."))
+    log.info("")
     sym = unicode_symbols()
     if dry_run:
         log.info("  %s Would verify package version", c.dim(sym["arrow"]))
@@ -372,7 +445,8 @@ def build_smoke_test(*, dry_run: bool = False) -> bool:
         True if the build succeeds.
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[8/{TOTAL_STEPS}] Build smoke test..."))
+    log.info("\n%s", _step_label(8, "Build smoke test..."))
+    log.info("")
     sym = unicode_symbols()
     if dry_run:
         log.info("  %s Would run hatch build", c.dim(sym["arrow"]))
@@ -412,7 +486,8 @@ def wheel_install_test(*, dry_run: bool = False) -> bool:
         True if wheel validates successfully.
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[9/{TOTAL_STEPS}] Wheel install test..."))
+    log.info("\n%s", _step_label(9, "Wheel install test..."))
+    log.info("")
     sym = unicode_symbols()
     if dry_run:
         log.info("  %s Would test wheel installation", c.dim(sym["arrow"]))
@@ -455,7 +530,8 @@ def check_template_placeholders() -> bool:
         True always (advisory check — never blocks setup).
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[10/{TOTAL_STEPS}] Checking template placeholders..."))
+    log.info("\n%s", _step_label(10, "Checking template placeholders..."))
+    log.info("")
     sym = unicode_symbols()
 
     pyproject = ROOT / "pyproject.toml"
@@ -471,12 +547,17 @@ def check_template_placeholders() -> bool:
 
     if found:
         log.info(
-            "  %s Template defaults detected (run %s to customize):",
+            "  %s Template defaults detected %s:",
             c.yellow(sym["warn"]),
-            c.cyan("python scripts/customize.py"),
+            c.dim(f"(in {pyproject.relative_to(ROOT)})"),
         )
         for label in found:
             log.info("    %s %s", c.dim(sym["arrow"]), label)
+        log.info(
+            "    %s Run %s to customize",
+            c.dim(sym["arrow"]),
+            c.cyan("python scripts/customize.py"),
+        )
     else:
         log.info("  %s Template placeholders customized", c.green(sym["check"]))
 
@@ -490,7 +571,8 @@ def check_publishability() -> bool:
         True always (advisory check — never blocks setup).
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[11/{TOTAL_STEPS}] Checking publishability..."))
+    log.info("\n%s", _step_label(11, "Checking publishability..."))
+    log.info("")
     sym = unicode_symbols()
 
     pyproject = ROOT / "pyproject.toml"
@@ -515,13 +597,19 @@ def check_publishability() -> bool:
 
     if missing:
         log.warning(
-            "  %s Missing fields for PyPI publishing:",
+            "  %s Missing fields for PyPI publishing %s:",
             c.yellow(sym["warn"]),
+            c.dim(f"(in {pyproject.relative_to(ROOT)})"),
         )
         for field in missing:
             log.warning("    %s %s", c.dim(sym["arrow"]), field)
     else:
         log.info("  %s All required publishing fields present", c.green(sym["check"]))
+        log.info(
+            "    %s Checked: %s",
+            c.dim(sym["arrow"]),
+            c.dim(str(pyproject.relative_to(ROOT))),
+        )
 
     return True  # advisory
 
@@ -536,7 +624,8 @@ def check_cli_entry_point(*, dry_run: bool = False) -> bool:
         True if entry points are found (or none defined — not an error).
     """
     c = Colors()
-    log.info("\n%s", c.bold(f"[12/{TOTAL_STEPS}] Checking CLI entry points..."))
+    log.info("\n%s", _step_label(12, "Checking CLI entry points..."))
+    log.info("")
     sym = unicode_symbols()
 
     pyproject = ROOT / "pyproject.toml"
@@ -854,12 +943,6 @@ def main() -> int:
         help="Show what would happen without making changes",
     )
     parser.add_argument(
-        "--quiet",
-        "-q",
-        action="store_true",
-        help="Suppress informational output (errors and warnings still shown)",
-    )
-    parser.add_argument(
         "--smoke",
         action="store_true",
         help="Quick import and arg-parse health check; exit 0 immediately",
@@ -886,26 +969,52 @@ def main() -> int:
         print(f"bootstrap {SCRIPT_VERSION}: smoke ok")
         return 0
 
-    level = logging.WARNING if args.quiet else logging.INFO
+    level = logging.INFO
     logging.basicConfig(format="%(message)s", level=level)
 
     ui = UI(title="Bootstrap", version=SCRIPT_VERSION, theme=THEME)
 
     start_time = time.monotonic()
 
-    if not args.quiet:
-        ui.header()
-        mode_parts: list[str] = []
-        if args.dry_run:
-            mode_parts.append("dry run")
-        if args.strict:
-            mode_parts.append("strict")
-        if args.ci_like:
-            mode_parts.append("CI-like")
-        if mode_parts:
-            ui.info_line(f"Mode: {', '.join(mode_parts)}")
+    ui.header()
+    mode_parts: list[str] = []
+    if args.dry_run:
+        mode_parts.append("dry run")
+    if args.skip_hooks:
+        mode_parts.append("skip hooks")
+    if args.skip_test_matrix:
+        mode_parts.append("skip test matrix")
+    if args.strict:
+        mode_parts.append("strict")
+    if args.fix:
+        mode_parts.append("fix")
+    if args.ci_like:
+        mode_parts.append("CI-like")
+    if mode_parts:
+        ui.info_line(f"Mode: {', '.join(mode_parts)}")
 
-    # Run prerequisite checks
+    # ── Environment overview section ─────────────────────────
+    ui.section("Environment Overview")
+    c_info = Colors()
+    ui.kv(
+        "Python",
+        c_info.green(
+            f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
+        ),
+    )
+    ui.kv("Executable", c_info.cyan(sys.executable))
+    ui.kv("Project root", c_info.cyan(str(ROOT)))
+    ui.kv("Platform", c_info.cyan(sys.platform))
+    # Show cache dir
+    cache_dir = os.environ.get("XDG_CACHE_HOME") or (
+        Path.home() / ".cache"
+        if sys.platform != "win32"
+        else Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+    )
+    ui.kv("Cache directory", c_info.cyan(str(cache_dir)))
+
+    # ── Section: Prerequisite Checks ────────────────────────────
+    ui.section("Prerequisite Checks")
     all_ok = True
     all_ok &= check_python()
     all_ok &= check_git()
@@ -924,7 +1033,8 @@ def main() -> int:
     # Track results for dynamic next steps
     step_results: dict[str, bool] = {}
 
-    # Core setup steps
+    # ── Section: Core Setup ──────────────────────────────────
+    ui.section("Core Setup")
     all_ok &= create_hatch_env(
         skip_test_matrix=args.skip_test_matrix, dry_run=args.dry_run
     )
@@ -932,7 +1042,8 @@ def main() -> int:
     check_task_runner()
     all_ok &= verify_setup(dry_run=args.dry_run)
 
-    # Extended checks (always run)
+    # ── Section: Extended Checks ─────────────────────────────
+    ui.section("Extended Checks")
     all_ok &= build_smoke_test(dry_run=args.dry_run)
     all_ok &= wheel_install_test(dry_run=args.dry_run)
     check_template_placeholders()
@@ -946,6 +1057,7 @@ def main() -> int:
     # Optional: quality pass (--strict or --ci-like)
     step_results["quality_ran"] = False
     if args.strict or args.ci_like:
+        ui.section("Quality & Docs")
         quality_ok = run_quality_pass(dry_run=args.dry_run, fix=args.fix)
         step_results["quality_ran"] = True
         if args.strict:

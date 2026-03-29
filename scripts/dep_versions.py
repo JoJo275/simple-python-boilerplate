@@ -43,6 +43,8 @@ Usage::
     python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
     python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any Python repo with a ``pyproject.toml`` that
     declares dependencies.  Requires shared modules: ``_colors.py``,

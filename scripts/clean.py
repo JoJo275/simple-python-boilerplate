@@ -9,7 +9,7 @@ Flags::
     --dry-run        Show what would be removed without deleting
     --include-venv   Also remove .venv* directories (requires confirmation)
     -y, --yes        Skip confirmation prompt for --include-venv
-    -q, --quiet      Suppress informational output (errors still shown)
+    -q, --quiet      Suppress informational output (exit code still shown)
     --version        Print version and exit
 
 Usage::
@@ -19,7 +19,8 @@ Usage::
     python scripts/clean.py --quiet
     python scripts/clean.py --include-venv          # Also removes .venv directories
     python scripts/clean.py --include-venv --yes    # Skip confirmation prompt
-    task clean:all
+
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
 
 Portability:
     Can be used in any Python repo — cleans standard build artifacts.
@@ -30,6 +31,7 @@ Portability:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import logging
 import shutil
 import sys
@@ -45,7 +47,7 @@ from _ui import UI
 # ---------------------------------------------------------------------------
 
 ROOT = find_repo_root()
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "2.0.0"
 
 # Theme color for this script's dashboard output.
 THEME = "cyan"
@@ -133,12 +135,15 @@ def remove_path(path: Path, *, dry_run: bool = False) -> bool | None:
     return True
 
 
-def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, int]:
+def clean(
+    *, dry_run: bool = False, include_venv: bool = False, quiet: bool = False
+) -> tuple[int, int]:
     """Remove all build artifacts and caches.
 
     Args:
         dry_run: If True, only log what would be removed.
         include_venv: If True, also remove .venv* directories.
+        quiet: If True, suppress headers and progress bars.
 
     Returns:
         Tuple of (items_removed, errors).
@@ -148,14 +153,27 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
     c = Colors()
     # Per-section counters for the summary
     section_counts: dict[str, int] = {}
+    # Track bytes reclaimed
+    bytes_reclaimed = 0
 
     # Track directories removed in previous phases so we don't double-count
     # files inside them (e.g. .pyc files inside already-removed __pycache__).
     removed_dirs: set[Path] = set()
 
+    def _dir_size(path: Path) -> int:
+        """Calculate total size of a directory tree."""
+        total = 0
+        try:
+            for f in path.rglob("*"):
+                if f.is_file():
+                    total += f.stat().st_size
+        except (OSError, PermissionError):
+            pass
+        return total
+
     def _track(result: bool | None, path: Path | None = None) -> None:
         """Update counters and track removed directories."""
-        nonlocal removed, errors
+        nonlocal removed, errors, bytes_reclaimed
         if result is True:
             removed += 1
             if path and path.is_dir():
@@ -166,116 +184,132 @@ def clean(*, dry_run: bool = False, include_venv: bool = False) -> tuple[int, in
     action = "Scanning" if dry_run else "Removing"
     sym = unicode_symbols()
     ui = UI(title="Clean", version=SCRIPT_VERSION, theme=THEME)
-    ui.header()
+    if not quiet:
+        ui.header()
 
-    # ── Section 1: Cache directories ─────────────────────────
-    ui.section(f"{action} cache directories")
-    section_start = removed
-    bar = ProgressBar(
-        total=len(CACHE_DIRS) + len(CACHE_FILES),
-        label="Caches",
-        color="cyan",
-    )
-    for name in CACHE_DIRS:
-        path = ROOT / name
-        _track(remove_path(path, dry_run=dry_run), path)
-        bar.update(name)
-    for name in CACHE_FILES:
-        _track(remove_path(ROOT / name, dry_run=dry_run))
-        bar.update(name)
-    section_counts["cache items"] = removed - section_start
-    bar.finish()
-    if removed - section_start == 0:
-        log.info("  %s", c.dim("No cache items found."))
+    # ── Collect all targets first ────────────────────────────
+    # Build a flat list of (section_label, path) so we can drive a single bar.
+    all_targets: list[tuple[str, Path]] = []
 
-    # ── Section 2: Build directories ─────────────────────────
-    ui.section(f"{action} build directories")
-    section_start = removed
-    bar = ProgressBar(total=len(BUILD_DIRS), label="Build", color="blue")
-    for name in BUILD_DIRS:
-        path = ROOT / name
-        _track(remove_path(path, dry_run=dry_run), path)
-        bar.update(name)
-    section_counts["build directories"] = removed - section_start
-    bar.finish()
-    if removed - section_start == 0:
-        log.info("  %s", c.dim("No build directories found."))
+    # Cache directories
+    all_targets.extend(("cache items", ROOT / name) for name in CACHE_DIRS)
+    all_targets.extend(("cache items", ROOT / name) for name in CACHE_FILES)
 
-    # ── Section 3: Recursive directories ─────────────────────
-    ui.section(f"{action} __pycache__ & *.egg-info (recursive)")
-    section_start = removed
-    # Collect all targets first for an accurate progress bar
-    recursive_targets: list[Path] = []
+    # Build directories
+    all_targets.extend(("build directories", ROOT / name) for name in BUILD_DIRS)
+
+    # Recursive directories
     for pattern in RECURSIVE_DIRS:
         for path in sorted(ROOT.rglob(pattern)):
             if ".venv" in path.parts and not include_venv:
                 continue
-            recursive_targets.append(path)
-    if recursive_targets:
-        bar = ProgressBar(
-            total=len(recursive_targets), label="Recursive", color="yellow"
-        )
-        for path in recursive_targets:
-            _track(remove_path(path, dry_run=dry_run), path)
-            bar.update(path.name)
-        bar.finish()
-    section_counts["recursive directories"] = removed - section_start
-    if removed - section_start == 0:
-        log.info("  %s", c.dim("No __pycache__ or *.egg-info directories found."))
+            all_targets.append(("recursive directories", path))
 
-    # ── Section 4: Stale file patterns ───────────────────────
-    ui.section(f"{action} stale files (*.pyc, *.pyo, .coverage.*)")
-    section_start = removed
-    file_targets: list[Path] = []
+    # Stale file patterns
     for pattern in FILE_PATTERNS:
         for path in sorted(ROOT.rglob(pattern)):
             if ".venv" in path.parts and not include_venv:
                 continue
-            if any(path.is_relative_to(d) for d in removed_dirs):
-                continue
-            file_targets.append(path)
-    if file_targets:
-        bar = ProgressBar(total=len(file_targets), label="Files", color="magenta")
-        for path in file_targets:
-            _track(remove_path(path, dry_run=dry_run))
-            bar.update(path.name)
-        bar.finish()
-    section_counts["stale files"] = removed - section_start
-    if removed - section_start == 0:
-        log.info("  %s", c.dim("No stale files found."))
+            all_targets.append(("stale files", path))
 
-    # ── Section 5: Virtual environments (optional) ───────────
+    # Virtual environments (optional)
     if include_venv:
-        ui.section(f"{action} virtual environments")
-        section_start = removed
-        venv_targets = [d for d in sorted(ROOT.glob(".venv*")) if d.is_dir()]
-        if venv_targets:
-            bar = ProgressBar(total=len(venv_targets), label="Venvs", color="red")
-            for venv_dir in venv_targets:
-                _track(remove_path(venv_dir, dry_run=dry_run), venv_dir)
-                bar.update(venv_dir.name)
-            bar.finish()
-        section_counts["virtual environments"] = removed - section_start
-        if removed - section_start == 0:
-            log.info("  %s", c.dim("No .venv* directories found."))
+        all_targets.extend(
+            ("virtual environments", venv_dir)
+            for venv_dir in sorted(ROOT.glob(".venv*"))
+            if venv_dir.is_dir()
+        )
+
+    # ── Single progress bar across all targets ───────────────
+    bar = None
+    if all_targets and not quiet:
+        bar = ProgressBar(
+            total=len(all_targets),
+            label=action,
+            color="cyan",
+        )
+
+    current_section = ""
+    for section_label, path in all_targets:
+        # Print section header when entering a new section
+        if section_label != current_section:
+            if current_section:
+                # Spacing between sections
+                log.info("")
+            current_section = section_label
+            section_counts.setdefault(section_label, 0)
+            if not quiet:
+                ui.section(f"{action} {section_label}")
+
+        # Skip files inside already-removed directories
+        if section_label == "stale files" and any(
+            path.is_relative_to(d) for d in removed_dirs
+        ):
+            if bar:
+                bar.update(path.name)
+            continue
+
+        # Measure size before removal
+        if path.exists():
+            if path.is_dir():
+                bytes_reclaimed += _dir_size(path)
+            elif path.is_file():
+                with contextlib.suppress(OSError):
+                    bytes_reclaimed += path.stat().st_size
+
+        result = remove_path(path, dry_run=dry_run)
+        _track(result, path if path.is_dir() else None)
+        if result is True:
+            section_counts[section_label] = section_counts.get(section_label, 0) + 1
+        if bar:
+            bar.update(path.name)
+
+    if bar:
+        bar.finish()
 
     # ── Summary ──────────────────────────────────────────────
-    verb = "Would remove" if dry_run else "Cleaned"
     ok = sym["check"]
     fail = sym["cross"]
-    ui.section("Summary")
+    verb = "Would remove" if dry_run else "Cleaned"
+
+    log.info("")
+    if not quiet:
+        ui.section("Summary")
+
     for label, count in section_counts.items():
         if count > 0:
             log.info("  %s %s %d %s", c.green(ok), verb, count, label)
+
     if removed == 0:
         log.info("  %s", c.green(ok + " Nothing to clean — already tidy!"))
     else:
-        ui.separator()
-        log.info("  Total: %s %d item(s)", verb.lower(), removed)
+        log.info("")
+        if not quiet:
+            ui.separator()
+        size_str = _format_size(bytes_reclaimed)
+        log.info(
+            "  Total: %s %d item(s)  %s %s",
+            verb.lower(),
+            removed,
+            c.dim(sym["dash"]),
+            c.cyan(f"{size_str} {'would be ' if dry_run else ''}reclaimed"),
+        )
+
     if errors:
+        log.info("")
         log.warning("  %s %d item(s) failed to remove", c.red(fail), errors)
 
+    log.info("")
     return removed, errors
+
+
+def _format_size(size_bytes: int) -> str:
+    """Format bytes into a human-readable size string."""
+    for unit in ("B", "KB", "MB", "GB"):
+        if size_bytes < 1024:
+            return f"{size_bytes:.1f} {unit}" if unit != "B" else f"{size_bytes} {unit}"
+        size_bytes /= 1024  # type: ignore[assignment]
+    return f"{size_bytes:.1f} TB"
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +345,7 @@ def main() -> int:
         "--quiet",
         "-q",
         action="store_true",
-        help="Suppress informational output (errors still shown)",
+        help="Suppress informational output (exit code still shown)",
     )
     parser.add_argument(
         "--include-venv",
@@ -356,8 +390,16 @@ def main() -> int:
             log.info("Aborted.")
             return 0
 
-    _removed, err = clean(dry_run=args.dry_run, include_venv=args.include_venv)
-    return 1 if err else 0
+    _removed, err = clean(
+        dry_run=args.dry_run, include_venv=args.include_venv, quiet=args.quiet
+    )
+    exit_code = 1 if err else 0
+
+    # Always show exit code, even in quiet mode
+    if args.quiet:
+        print(f"exit {exit_code}")
+
+    return exit_code
 
 
 if __name__ == "__main__":

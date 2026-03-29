@@ -22,6 +22,8 @@ Usage::
     python scripts/doctor.py --json       # Machine-readable output
     python scripts/doctor.py --quiet      # One-line summary
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Repo-specific — aggregates project-specific health checks.
     Requires shared modules: ``_colors.py``, ``_imports.py``,

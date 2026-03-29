@@ -33,6 +33,8 @@ Usage::
     python scripts/check_python_support.py --json
     python scripts/check_python_support.py --quiet   # Exit code only (for CI)
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in other repos that have a ``pyproject.toml`` with
     classifiers and ``requires-python``.  Requires shared modules:

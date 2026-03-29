@@ -49,6 +49,8 @@ Output:
     repo structure tree, file access stats, per-file git history, test
     coverage analysis, and Mermaid charts.
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any Python repo with a ``pyproject.toml``.
     Requires shared modules: ``_colors.py``, ``_imports.py``,

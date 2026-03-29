@@ -114,6 +114,8 @@ Caching:
     during repeated runs.  Override with ``WV_CACHE_TTL`` env var
     (seconds).  Set ``WV_CACHE_TTL=0`` to disable caching entirely.
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Can be used in any repo with SHA-pinned GitHub Actions in
     ``.github/workflows/``.  Requires shared modules: ``_colors.py``,

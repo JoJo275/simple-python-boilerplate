@@ -69,6 +69,8 @@ Usage::
     python scripts/customize.py --apply-from customize-config.md --dry-run
     python scripts/customize.py --apply-from customize-config.md
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Template-specific — customises this template's placeholders and
     structure.  Requires shared modules: ``_colors.py``, ``_imports.py``,
@@ -2563,7 +2565,9 @@ def _export_config_with_status(filepath: str) -> int:
         f"    {c.green(sym['check'])} "
         f"{c.bold(c.green('Configuration file generated successfully'))}"
     )
+    print()
     print(f"    {c.dim('File:')}     {ui._themed(file_link)}")
+    print()
     print(f"    {c.dim('Elapsed:')}  {elapsed:.2f}s")
 
     # ── Instructions ──
@@ -2571,7 +2575,9 @@ def _export_config_with_status(filepath: str) -> int:
     print(
         f"    {ui._themed('1.')} Open the generated file and fill in your project values"
     )
+    print()
     print(f"    {ui._themed('2.')} Check the boxes for options you want to enable")
+    print()
     print(f"    {ui._themed('3.')} Preview your changes before applying:")
     print()
     preview_cmd = f"python scripts/customize.py --apply-from {filepath} --dry-run"

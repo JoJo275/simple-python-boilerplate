@@ -45,6 +45,8 @@ Flags::
     --dry-run    Print generated Markdown to stdout instead of writing to disk
     --version    Print script version and exit
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Repo-specific — generates docs from this project's scripts.
     Requires shared module: ``_imports.py``.

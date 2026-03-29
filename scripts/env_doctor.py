@@ -29,6 +29,8 @@ Usage::
     python scripts/env_doctor.py --strict
     python scripts/env_doctor.py --json
 
+    Task runner shortcuts for this script are defined in ``Taskfile.yml``.
+
 Portability:
     Repo-specific — checks are tailored to this project's tooling
     (Hatch, pre-commit, Taskfile). Requires shared modules:
