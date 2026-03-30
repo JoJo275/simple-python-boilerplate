@@ -254,6 +254,29 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         # scripts.  Stripping repo-doctor leaves them in place, which
         # is correct.
     },
+    "mkdocs-hooks": {
+        "label": "MkDocs hooks (mkdocs-hooks/)",
+        "paths": ["mkdocs-hooks/"],
+    },
+    "repo-sauron": {
+        "label": "Repo sauron report & script",
+        "paths": [
+            "scripts/repo_sauron.py",
+            "repo-sauron-report.md",
+        ],
+    },
+    "git-config-ref": {
+        "label": "Git configuration reference",
+        "paths": ["git-config-reference.md"],
+    },
+    "test-config-ref": {
+        "label": "Test configuration reference",
+        "paths": ["test-config-ref.md"],
+    },
+    "commit-report": {
+        "label": "Commit report",
+        "paths": ["commit-report.md"],
+    },
 }
 
 # Files that are private-repo-specific and should be removed when
@@ -2091,6 +2114,10 @@ def export_customize_config(filepath: str) -> str:
         "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
         "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
         "",
+        "> **Note:** Checkboxes must be toggled by editing the raw Markdown source \u2014",
+        "> change `[ ]` to `[x]` (or vice versa). Clicking checkboxes in a Markdown",
+        "> preview (e.g. VS Code) may not persist changes to the file.",
+        "",
         "> **Tip:** For a fully non-interactive approach without editing this file,",
         "> use `python scripts/customize.py --non-interactive --project-name NAME",
         "> --author NAME --github-user NAME` with all values on the command line.",
@@ -2114,6 +2141,11 @@ def export_customize_config(filepath: str) -> str:
         "",
         "## License",
         "",
+        "A license defines how others may use, modify, and distribute your code.",
+        'Without one, your project is "all rights reserved" by default \u2014 no one',
+        "can legally reuse it. Open-source licenses (MIT, Apache, BSD, etc.) grant",
+        "explicit permissions and are expected by package registries like PyPI.",
+        "",
         "Pick **one** license by changing the checkbox to `[x]`:",
         "",
     ]
@@ -2133,6 +2165,12 @@ def export_customize_config(filepath: str) -> str:
             "  for private repos (CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, scorecard",
             "  workflow, etc.).",
             "",
+            "> **Note:** Private repositories on GitHub have a limited amount of Actions",
+            "> minutes per month (e.g. 2,000 min/month on the Free plan). CI/CD workflows",
+            "> can consume these quickly — especially matrix builds, container builds, and",
+            "> nightly scheduled jobs. Consider disabling non-essential workflows or moving",
+            "> heavy jobs to self-hosted runners to stay within your quota.",
+            "",
             "Files that would be removed:",
             "",
         ]
@@ -2150,7 +2188,15 @@ def export_customize_config(filepath: str) -> str:
             "## Optional Directories to Strip",
             "",
             "Check the boxes for directories you do **not** need.",
-            "The files inside will be deleted.",
+            "**\u26a0 Checked items will be permanently deleted** (directories and all files inside).",
+            "You can recover them from git history if needed.",
+            "",
+            "> **Deletion mode:** Checking a box deletes the **entire directory and all its",
+            "> contents**. Individual files listed under each option are also deleted even",
+            "> when they live outside the directory (e.g. related scripts). If you only want",
+            "> to remove specific files rather than whole directories, use",
+            "> `python scripts/customize.py` interactively with `--strip` and specify",
+            "> individual paths, or manually delete the files you don't need.",
             "",
         ]
     )
@@ -2160,7 +2206,8 @@ def export_customize_config(filepath: str) -> str:
         for p in paths:
             exists = (ROOT / p).exists()
             marker = " *(not found)*" if not exists else ""
-            lines.append(f"  - `{p}`{marker}")
+            kind = "*(directory + all contents)*" if p.endswith("/") else "*(file)*"
+            lines.append(f"  - `{p}` {kind}{marker}")
     lines.append("")
 
     lines.extend(

@@ -333,6 +333,7 @@ def format_report(
     as_json: bool = False,
     colors: Colors | None = None,
     files_scanned: int = 0,
+    skip_header: bool = False,
 ) -> str:
     """Build a report string for the found TODOs.
 
@@ -343,6 +344,7 @@ def format_report(
         as_json: If True, return a JSON-encoded report.
         colors: Colors instance for styled output.
         files_scanned: Total number of files scanned.
+        skip_header: If True, omit the title header (caller already printed it).
 
     Returns:
         Formatted report string.
@@ -379,14 +381,15 @@ def format_report(
     lines: list[str] = []
 
     # Header (double-border box)
-    lines.append("")
-    lines.append(c.bold(ui._themed(f"  {ui.tl_d}{ui.h_double * 60}{ui.tr_d}")))
-    lines.append(
-        f"  {c.bold(ui._themed(ui.vl_d))} "
-        f"{c.bold(ui._themed('TODO Scanner'))}  "
-        f"{c.dim(f'v{SCRIPT_VERSION}')}"
-    )
-    lines.append(c.bold(ui._themed(f"  {ui.bl_d}{ui.h_double * 60}{ui.br_d}")))
+    if not skip_header:
+        lines.append("")
+        lines.append(c.bold(ui._themed(f"  {ui.tl_d}{ui.h_double * 60}{ui.tr_d}")))
+        lines.append(
+            f"  {c.bold(ui._themed(ui.vl_d))} "
+            f"{c.bold(ui._themed('TODO Scanner'))}  "
+            f"{c.dim(f'v{SCRIPT_VERSION}')}"
+        )
+        lines.append(c.bold(ui._themed(f"  {ui.bl_d}{ui.h_double * 60}{ui.br_d}")))
 
     # Section: results
     lines.append("")
@@ -504,6 +507,10 @@ def main() -> int:
     c = Colors()
     show_progress = not args.json_output and not args.count
 
+    if show_progress:
+        ui = UI(title="TODO Scanner", version=SCRIPT_VERSION, theme=THEME)
+        ui.header()
+
     results, files_scanned = find_todos(
         root=ROOT,
         pattern=args.pattern,
@@ -520,6 +527,7 @@ def main() -> int:
         as_json=args.json_output,
         colors=c,
         files_scanned=files_scanned,
+        skip_header=show_progress,
     )
     # All human-readable output goes to stdout so that callers
     # (e.g. Taskfile, PowerShell) don't treat it as an error.

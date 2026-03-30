@@ -584,7 +584,7 @@ def check_publishability() -> bool:
 
     required_fields = {
         "name": r"^\s*name\s*=",
-        "version / dynamic": r'(^\s*version\s*=|"version"\s*.*dynamic)',
+        "version / dynamic": r'(^\s*version\s*=|dynamic\s*=\s*\[.*"version")',
         "description": r"^\s*description\s*=",
         "license": r"^\s*license\s*=",
         "authors": r"^\s*\[\[project\.authors\]\]|^\s*authors\s*=",
