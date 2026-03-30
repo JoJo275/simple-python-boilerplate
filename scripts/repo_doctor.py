@@ -1049,7 +1049,11 @@ def main() -> int:
     # Count total work items for progress: TOML rules + 4 programmatic checks
     total_steps = len(rules) + 4
     with ProgressBar(
-        total=total_steps, label="Evaluating rules", color="yellow", log_interval=10
+        total=total_steps,
+        label="Evaluating rules",
+        color="yellow",
+        log_interval=10,
+        pulse=True,
     ) as bar:
         bar.update("TOML rules")
         warnings, passed = _evaluate_rules(
@@ -1174,8 +1178,10 @@ def main() -> int:
             cat = p.rule.category or "general"
             cat_counts[cat] = cat_counts.get(cat, 0) + 1
         if cat_counts:
+            max_cnt_width = max(len(str(cnt)) for cnt in cat_counts.values())
             for cat, cnt in sorted(cat_counts.items()):
-                ui.info_line(f"  {ui.c.green(check_sym)} {cat}: {cnt} passed")
+                cnt_str = str(cnt).rjust(max_cnt_width)
+                ui.info_line(f"  {ui.c.green(check_sym)} {cat}: {cnt_str} passed")
 
     # ── Recommended Scripts ──
     ui.recommended_scripts(

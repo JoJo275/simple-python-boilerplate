@@ -78,10 +78,22 @@ def doctor() -> None:
     Delegates to engine.diagnose_environment() for the actual checks,
     then formats the output for the terminal.
     """
+    import argparse
+
     from simple_python_boilerplate.engine import (
         DiagnosticInfo,
         diagnose_environment,
     )
+
+    parser = argparse.ArgumentParser(
+        description="Diagnose environment and configuration issues.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s (simple-python-boilerplate doctor)",
+    )
+    parser.parse_args()
 
     diag: DiagnosticInfo = diagnose_environment()
 

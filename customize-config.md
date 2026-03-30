@@ -19,6 +19,10 @@ then apply your choices:
 3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`
 4. Apply: `python scripts/customize.py --apply-from customize-config.md`
 
+> **Note:** Checkboxes must be toggled by editing the raw Markdown source —
+> change `[ ]` to `[x]` (or vice versa). Clicking checkboxes in a Markdown
+> preview (e.g. VS Code) may not persist changes to the file.
+
 > **Tip:** For a fully non-interactive approach without editing this file,
 > use `python scripts/customize.py --non-interactive --project-name NAME
 > --author NAME --github-user NAME` with all values on the command line.
@@ -42,6 +46,11 @@ Fill in **your** project values. Leave a field empty to keep the template defaul
 
 ## License
 
+A license defines how others may use, modify, and distribute your code.
+Without one, your project is "all rights reserved" by default — no one
+can legally reuse it. Open-source licenses (MIT, Apache, BSD, etc.) grant
+explicit permissions and are expected by package registries like PyPI.
+
 Pick **one** license by changing the checkbox to `[x]`:
 
 - [x] **Apache License 2.0** (`apache-2.0`)
@@ -55,6 +64,12 @@ Pick **one** license by changing the checkbox to `[x]`:
 - [ ] **Private repository** — Strip open-source community files not needed
   for private repos (CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, scorecard
   workflow, etc.).
+
+> **Note:** Private repositories on GitHub have a limited amount of Actions
+> minutes per month (e.g. 2,000 min/month on the Free plan). CI/CD workflows
+> can consume these quickly — especially matrix builds, container builds, and
+> nightly scheduled jobs. Consider disabling non-essential workflows or moving
+> heavy jobs to self-hosted runners to stay within your quota.
 
 Files that would be removed:
 
@@ -78,42 +93,78 @@ Files that would be removed:
 ## Optional Directories to Strip
 
 Check the boxes for directories you do **not** need.
-The files inside will be deleted.
+**⚠ Checked items will be permanently deleted** (directories and all files inside).
+You can recover them from git history if needed.
+
+> **Deletion mode:** Checking a box deletes the **entire directory and all its
+> contents**. Individual files listed under each option are also deleted even
+> when they live outside the directory (e.g. related scripts). If you only want
+> to remove specific files rather than whole directories, use
+> `python scripts/customize.py` interactively with `--strip` and specify
+> individual paths, or manually delete the files you don't need.
 
 - [ ] **Database directory (schema, migrations, seeds, queries)** (`db`)
-  - `db/`
-  - `scripts/sql/`
-  - `src/simple_python_boilerplate/sql/`
+  > Deletes the entire `db/` directory tree and related SQL scripts.
+  - `db/` *(directory + all contents)*
+  - `scripts/sql/` *(directory + all contents)*
+  - `src/simple_python_boilerplate/sql/` *(directory + all contents)*
 - [ ] **Experiments / scratch code directory** (`experiments`)
-  - `experiments/`
+  > Deletes the experiments folder used for prototyping and scratch work.
+  - `experiments/` *(directory + all contents)*
 - [ ] **Local data / state directory (var/)** (`var`)
-  - `var/`
+  > Deletes the var/ directory used for local runtime data and example databases.
+  - `var/` *(directory + all contents)*
 - [ ] **Security-policy & issue templates (docs/templates/)** (`docs-templates`)
-  - `docs/templates/`
+  > Deletes issue/PR templates and security policy templates.
+  - `docs/templates/` *(directory + all contents)*
 - [ ] **Container files (Containerfile, docker-compose, build & scan workflows)** (`container`)
-  - `Containerfile`
-  - `docker-compose.yml`
-  - `container-structure-test.yml`
-  - `.github/workflows/container-build.yml`
-  - `.github/workflows/container-scan.yml`
-  - `scripts/_container_common.py`
-  - `scripts/test_containerfile.py`
-  - `scripts/test_containerfile.sh`
-  - `scripts/test_docker_compose.py`
-  - `scripts/test_docker_compose.sh`
+  > Deletes all container-related files: Containerfile, docker-compose,
+  > structure tests, CI workflows for container builds and scans, and
+  > related test scripts.
+  - `Containerfile` *(file)*
+  - `docker-compose.yml` *(file)*
+  - `container-structure-test.yml` *(file)*
+  - `.github/workflows/container-build.yml` *(file)*
+  - `.github/workflows/container-scan.yml` *(file)*
+  - `scripts/_container_common.py` *(file)*
+  - `scripts/test_containerfile.py` *(file)*
+  - `scripts/test_containerfile.sh` *(file)*
+  - `scripts/test_docker_compose.py` *(file)*
+  - `scripts/test_docker_compose.sh` *(file)*
 - [ ] **Optional workflow templates (.github/workflows-optional/)** (`optional-workflows`)
-  - `.github/workflows-optional/`
+  > Deletes optional pre-built workflow templates you can enable later.
+  - `.github/workflows-optional/` *(directory + all contents)*
 - [ ] **Label management files (labels/, apply scripts)** (`labels`)
-  - `labels/`
-  - `scripts/apply_labels.py`
-  - `scripts/apply-labels.sh`
+  > Deletes GitHub label definitions and the scripts that apply them.
+  - `labels/` *(directory + all contents)*
+  - `scripts/apply_labels.py` *(file)*
+  - `scripts/apply-labels.sh` *(file)*
 - [ ] **Repo doctor checks (repo_doctor.d/, doctor scripts)** (`repo-doctor`)
-  - `repo_doctor.d/`
-  - `scripts/repo_doctor.py`
-  - `scripts/doctor.py`
-  - `scripts/env_doctor.py`
-  - `scripts/git_doctor.py`
-  - `scripts/_doctor_common.py`
+  > Deletes all doctor/diagnostic scripts and rule profiles. Shared
+  > modules (`_ui.py`, `_colors.py`) are kept since other scripts use them.
+  - `repo_doctor.d/` *(directory + all contents)*
+  - `scripts/repo_doctor.py` *(file)*
+  - `scripts/doctor.py` *(file)*
+  - `scripts/env_doctor.py` *(file)*
+  - `scripts/git_doctor.py` *(file)*
+  - `scripts/_doctor_common.py` *(file)*
+- [ ] **MkDocs hooks (mkdocs-hooks/)** (`mkdocs-hooks`)
+  > Deletes custom MkDocs build hooks (repo_links, generate_commands,
+  > include_templates). Update `mkdocs.yml` to remove hook references.
+  - `mkdocs-hooks/` *(directory + all contents)*
+- [ ] **Repo sauron report & script** (`repo-sauron`)
+  > Deletes the repository statistics report script.
+  - `scripts/repo_sauron.py` *(file)*
+  - `repo-sauron-report.md` *(file)*
+- [ ] **Git configuration reference** (`git-config-ref`)
+  > Deletes the git configuration reference document.
+  - `git-config-reference.md` *(file)*
+- [ ] **Test configuration reference** (`test-config-ref`)
+  > Deletes the test configuration reference document.
+  - `test-config-ref.md` *(file)*
+- [ ] **Commit report** (`commit-report`)
+  > Deletes the commit report file.
+  - `commit-report.md` *(file)*
 
 ---
 
