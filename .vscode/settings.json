@@ -102,6 +102,15 @@
     // markdownlint reads rules from .markdownlint-cli2.jsonc.
     // Don't auto-format on save — Prettier reformatting can conflict
     // with markdownlint rules and manual table alignment.
+    //
+    // Toggling checkboxes in Markdown:
+    //   VS Code's built-in preview does NOT support clicking checkboxes.
+    //   Use these extensions instead (both recommended by this project):
+    //   • MarkClick.md (kyuukab.markclick-md) — click checkboxes
+    //     directly in the editor with coloured backgrounds
+    //   • Markdown All in One (yzhang.markdown-all-in-one) — Alt+C
+    //     toggles the checkbox on the current line in the source
+    //   Open a side-by-side preview with Ctrl+K V to see changes live.
     "[markdown]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": false,

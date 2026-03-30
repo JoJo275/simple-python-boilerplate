@@ -25,6 +25,7 @@
         "ms-azuretools.vscode-docker",
         "shd101wyy.markdown-preview-enhanced",
         "kamikillerto.vscode-colorize",
-        "yzhang.markdown-all-in-one"
+        "yzhang.markdown-all-in-one",
+        "kyuukab.markclick-md"
     ]
 }
