@@ -3034,16 +3034,14 @@ def export_customize_config(filepath: str) -> str:
             "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
             "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
             "",
-            "> **Tip \u2014 Clickable checkboxes:** In VS Code, checkboxes are clickable in the",
-            "> Markdown preview (Ctrl+Shift+V or the preview icon). Clicking a checkbox",
-            "> toggles `[ ]` \u2194 `[x]` in the source file. If clicking does nothing:",
+            "> **Tip \u2014 Toggling checkboxes:** VS Code's Markdown preview does **not**",
+            "> support clicking checkboxes. Instead, edit them directly in the source:",
             ">",
-            "> 1. Ensure the VS Code setting `markdown.editor.toggleCheckboxInPreview`",
-            ">    is **enabled** (it is on by default in this project's `.vscode/settings.json`).",
-            "> 2. Make sure you are viewing the **Markdown preview**, not the raw source.",
-            "> 3. If using the side-by-side preview, click the checkbox in the **right** pane.",
+            "> - Change `[ ]` to `[x]` (or vice versa) in this file",
+            "> - Or place your cursor on a checkbox line and press **Alt+C**",
+            ">   (requires the *Markdown All in One* extension, recommended by this project)",
             ">",
-            "> Alternatively, edit the raw Markdown directly: change `[ ]` to `[x]` (or vice versa).",
+            "> Use **Ctrl+K V** to open a side-by-side preview while you edit.",
             "",
             "> **Tip:** For a fully non-interactive approach without editing this file,",
             "> use `python scripts/customize.py --non-interactive --project-name NAME",
@@ -3250,8 +3248,6 @@ def export_customize_config(filepath: str) -> str:
         elif key == "code-workspace" and not i_paths:
             i_paths = _discover_code_workspace_files()
 
-        lines.append(f'<a id="item-{key}"></a>')
-        lines.append("")
         lines.append(
             f"- [ ] **{entry['label']}** (`{key}`) "
             f"\u2014 [details \u2193](#detail-{key})"
@@ -3306,8 +3302,6 @@ def export_customize_config(filepath: str) -> str:
             "These are structural or destructive operations that go beyond "
             "removing individual items.",
             "",
-            '<a id="item-flatten-layout"></a>',
-            "",
             "- [ ] **Convert to flat layout** (`flatten-layout`) \u2014 Move package from "
             "`src/<package>/` to `<package>/` at repository root. Updates imports, "
             "pyproject.toml build config, and test paths. This is a one-way structural "
@@ -3317,8 +3311,6 @@ def export_customize_config(filepath: str) -> str:
             "> moves to the repository root. `pyproject.toml` build backend changes from "
             '> `packages = ["src"]` to default discovery. Test imports and CI paths are '
             "> updated. This matches the flat layout used by many smaller Python projects.",
-            "",
-            '<a id="item-nuke-repo"></a>',
             "",
             "- [ ] **\u2622\ufe0f NUKE \u2014 Delete entire repository contents** (`nuke-repo`) \u2014 Remove "
             "**ALL** files and directories in the repository, leaving only an empty directory. "
@@ -3395,7 +3387,7 @@ def export_customize_config(filepath: str) -> str:
                 "corresponding test files."
             )
             lines.append("")
-        lines.append(f"\u2191 [Back to selection](#item-{key})")
+        lines.append("\u2191 [Back to selection](#items-to-remove)")
         lines.append("")
         lines.append("---")
         lines.append("")
@@ -3429,7 +3421,7 @@ def export_customize_config(filepath: str) -> str:
                 status = "\u2705" if exists else "\u274c not found"
                 lines.append(f"- `{p}` {status}")
             lines.append("")
-        lines.append(f"\u2191 [Back to selection](#item-{key})")
+        lines.append("\u2191 [Back to selection](#items-to-remove)")
         lines.append("")
         lines.append("---")
         lines.append("")
