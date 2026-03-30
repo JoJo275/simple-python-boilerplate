@@ -249,6 +249,8 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "Containerfile",
             "docker-compose.yml",
             "container-structure-test.yml",
+            ".containerignore",
+            ".dockerignore",
             ".github/workflows/container-build.yml",
             ".github/workflows/container-scan.yml",
             "scripts/_container_common.py",
@@ -387,6 +389,106 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         "downside": (
             "Lose commit tracking document. Use git log directly "
             "or regenerate with a custom script."
+        ),
+    },
+    "codecov-config": {
+        "label": "Codecov configuration & coverage data",
+        "paths": ["codecov.yml", "coverage.json"],
+        "description": (
+            "Codecov CI integration configuration and generated coverage "
+            "data file. Only needed if using Codecov for coverage tracking."
+        ),
+        "downside": (
+            "Lose Codecov CI integration config. Must recreate from "
+            "Codecov docs if you add coverage tracking later."
+        ),
+    },
+    "readthedocs-config": {
+        "label": "Read the Docs configuration",
+        "paths": [".readthedocs.yaml"],
+        "description": (
+            "Configuration for deploying documentation to Read the Docs. "
+            "Only needed if hosting docs on readthedocs.org."
+        ),
+        "downside": (
+            "Lose Read the Docs deployment config. Must recreate from "
+            "RTD docs if you deploy documentation there later."
+        ),
+    },
+    "release-automation-config": {
+        "label": "Release automation configuration (release-please)",
+        "paths": [
+            "release-please-config.json",
+            ".release-please-manifest.json",
+        ],
+        "description": (
+            "Release Please configuration for automated changelog "
+            "generation and version bumping via conventional commits."
+        ),
+        "downside": (
+            "Lose automated release config. Must set up release "
+            "automation from scratch if needed later."
+        ),
+    },
+    "requirements-files": {
+        "label": "Pip requirements files (redundant with pyproject.toml)",
+        "paths": [
+            "requirements.txt",
+            "requirements-dev.txt",
+        ],
+        "description": (
+            "Traditional pip requirements files. Redundant when using "
+            "Hatch with pyproject.toml for dependency management."
+        ),
+        "downside": (
+            "Lose pip-compatible requirements files. Some deployment "
+            "tools still expect requirements.txt — recreate with "
+            "'pip freeze' or 'hatch dep show requirements' if needed."
+        ),
+    },
+    "linting-config": {
+        "label": "Markdown & formatting linter configs (.markdownlint, .prettierignore, .editorconfig)",
+        "paths": [
+            ".markdownlint-cli2.jsonc",
+            ".prettierignore",
+            ".editorconfig",
+        ],
+        "description": (
+            "Configuration files for markdownlint-cli2, Prettier ignore "
+            "patterns, and EditorConfig cross-editor formatting. Only "
+            "needed if using these linting/formatting tools."
+        ),
+        "downside": (
+            "Lose consistent cross-editor formatting (.editorconfig) and "
+            "markdown lint rules. Some pre-commit hooks may fail without "
+            "these configs — update .pre-commit-config.yaml accordingly."
+        ),
+    },
+    "link-checker": {
+        "label": "Link checker ignore list (.lycheeignore)",
+        "paths": [".lycheeignore"],
+        "description": (
+            "Ignore list for the Lychee link checker, used by CI to skip "
+            "known-broken or intentionally-unreachable URLs."
+        ),
+        "downside": (
+            "Lychee link-check CI jobs may report false positives for URLs "
+            "that were previously ignored. Recreate if needed."
+        ),
+    },
+    "git-templates": {
+        "label": "Git config templates (.gitconfig.recommended, .gitmessage.txt)",
+        "paths": [
+            ".gitconfig.recommended",
+            ".gitmessage.txt",
+        ],
+        "description": (
+            "Recommended Git configuration and commit message template. "
+            "Useful for onboarding but not required for the project to work."
+        ),
+        "downside": (
+            "Lose recommended git aliases, merge strategies, and commit "
+            "message format. Developers must configure git manually."
         ),
     },
 }
@@ -722,6 +824,7 @@ class Config:
     strip_dirs: list[str] = field(default_factory=list)
     strip_files_only: set[str] = field(default_factory=set)
     template_cleanup: list[str] = field(default_factory=list)
+    template_cleanup_files_only: set[str] = field(default_factory=set)
     private_repo: bool = False
     dry_run: bool = False
 
@@ -1618,6 +1721,7 @@ def apply_template_cleanup(
     cfg: Config,
     *,
     dry_run: bool = False,
+    files_only_keys: set[str] | None = None,
 ) -> list[str]:
     """Execute template cleanup operations.
 
@@ -1628,11 +1732,14 @@ def apply_template_cleanup(
         keys: Keys from :data:`TEMPLATE_CLEANUP` identifying what to clean.
         cfg: Config with package_name for stub generation.
         dry_run: If ``True``, report without modifying.
+        files_only_keys: Keys for which only files should be deleted
+            (directory structures are preserved).
 
     Returns:
         List of descriptions of actions taken.
     """
     actions: list[str] = []
+    files_only = files_only_keys or set()
     c = Colors()
     sym = unicode_symbols()
 
@@ -1654,17 +1761,41 @@ def apply_template_cleanup(
         # Standard path-based deletion
         label = str(entry.get("label", key))
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
+        is_files_only = key in files_only
 
         existing = [(p, ROOT / p) for p in paths if (ROOT / p).exists()]
         if existing:
-            print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}")
+            mode_hint = " (files only)" if is_files_only else ""
+            print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}{c.dim(mode_hint)}")
 
         for rel_path, target in existing:
-            if dry_run:
+            if target.is_dir() and is_files_only:
+                # Delete files inside the directory but keep the structure
+                dir_files = [p for p in target.rglob("*") if p.is_file()]
+                for f in dir_files:
+                    f_rel = f.relative_to(ROOT).as_posix()
+                    actions.append(f"Removed: {f_rel}")
+                    if dry_run:
+                        print(
+                            f"    {c.yellow(sym['arrow'])} Would remove file: {c.dim(f_rel)}"
+                        )
+                    else:
+                        try:
+                            f.unlink()
+                            print(f"    {c.green(sym['check'])} Removed file: {f_rel}")
+                        except (OSError, PermissionError) as exc:
+                            log.warning(
+                                "    %s Failed to remove %s: %s",
+                                sym["cross"],
+                                f_rel,
+                                exc,
+                            )
+            elif dry_run:
                 kind = "directory" if target.is_dir() else "file"
                 print(
                     f"    {c.yellow(sym['arrow'])} Would remove {kind}: {c.yellow(rel_path)}"
                 )
+                actions.append(f"Removed: {rel_path}")
             else:
                 try:
                     if target.is_dir():
@@ -1679,7 +1810,7 @@ def apply_template_cleanup(
                     log.warning(
                         "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
                     )
-            actions.append(f"Removed: {rel_path}")
+                actions.append(f"Removed: {rel_path}")
 
     return actions
 
@@ -2224,6 +2355,80 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
 
 _CONFIG_DEFAULT_PATH = "customize-config.md"
 
+# Files/directories that are core to the project and should never be flagged
+# as "untracked" by the warning table in the exported config.
+CORE_ITEMS: set[str] = {
+    "pyproject.toml",
+    "README.md",
+    "LICENSE",
+    "Taskfile.yml",
+    "mkdocs.yml",
+    "_typos.toml",
+    "CHANGELOG.md",
+    "customize-config.md",
+    "src",
+    "tests",
+    "scripts",
+    "docs",
+}
+
+
+def _count_dir_files(directory: Path) -> int:
+    """Count files in a directory recursively.
+
+    Args:
+        directory: Path to the directory.
+
+    Returns:
+        Number of files found, or 0 if the directory doesn't exist.
+    """
+    if not directory.is_dir():
+        return 0
+    return sum(1 for p in directory.rglob("*") if p.is_file())
+
+
+def _detect_untracked_items() -> list[dict[str, str]]:
+    """Detect root-level files/dirs not covered by any removal option.
+
+    Scans the repository root for items that are not referenced in
+    STRIPPABLE, TEMPLATE_CLEANUP, or PRIVATE_REPO_STRIP and are not
+    core project files. These are candidates for adding removal options.
+
+    Returns:
+        List of dicts with 'path' and 'type' keys for each untracked item.
+    """
+    covered: set[str] = set()
+    for registry in (STRIPPABLE, TEMPLATE_CLEANUP, PRIVATE_REPO_STRIP):
+        for entry in registry.values():
+            paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
+            for p in paths:
+                # Normalize: strip trailing slash, take first path component
+                normalized = p.rstrip("/").split("/")[0]
+                covered.add(normalized)
+
+    untracked: list[dict[str, str]] = []
+    for entry in sorted(ROOT.iterdir(), key=lambda e: (not e.is_dir(), e.name.lower())):
+        # Skip hidden files/dirs (dotfiles) except specific ones
+        if entry.name.startswith(".") and entry.name not in covered:
+            continue
+        # Skip build artifacts and caches
+        if entry.name in SKIP_DIRS or any(
+            entry.name.endswith(s) for s in SKIP_DIR_SUFFIXES
+        ):
+            continue
+        # Skip core items
+        if entry.name in CORE_ITEMS:
+            continue
+        # Check if covered by any removal entry
+        if entry.name not in covered:
+            untracked.append(
+                {
+                    "path": entry.name + ("/" if entry.is_dir() else ""),
+                    "type": "directory" if entry.is_dir() else "file",
+                }
+            )
+    return untracked
+
 
 def _build_repo_tree() -> str:
     """Build a directory/file tree of the repository for the config file.
@@ -2276,6 +2481,10 @@ def export_customize_config(filepath: str) -> str:
 
     Generates a human-friendly document where users fill in project values,
     select options via checkboxes, and then apply with ``--apply-from``.
+    Sections are ordered so users see the repository layout before choosing
+    what to remove. Optional directories and template cleanup are merged
+    into a single "Items to Remove" section. A warning table appears at
+    the top if untracked root-level items are detected.
 
     Args:
         filepath: Output file path.
@@ -2289,11 +2498,12 @@ def export_customize_config(filepath: str) -> str:
     strip_count = len(STRIPPABLE)
     cleanup_count = len(TEMPLATE_CLEANUP)
     total_items = strip_count + cleanup_count
+    untracked = _detect_untracked_items()
 
     lines: list[str] = [
         "# Customize Configuration",
         "",
-        "<!-- Auto-generated by customize.py — edit the values below, then apply. -->",
+        "<!-- Auto-generated by customize.py \u2014 edit the values below, then apply. -->",
         "",
         f"| **Generated by** | `customize.py` v{SCRIPT_VERSION} |",
         "| --- | --- |",
@@ -2304,74 +2514,113 @@ def export_customize_config(filepath: str) -> str:
         "| **Apply** | `python scripts/customize.py --apply-from customize-config.md` |",
         "| **Preview** | `python scripts/customize.py --apply-from customize-config.md --dry-run` |",
         "",
-        "---",
-        "",
-        "## Table of Contents",
-        "",
-        "- [How This File Works](#how-this-file-works)",
-        "- [Project Identity](#project-identity)",
-        "- [License](#license)",
-        "- [Repository Visibility](#repository-visibility)",
-        "- [Optional Directories to Strip](#optional-directories-to-strip)",
-        "- [Template Cleanup](#template-cleanup)",
-        "- [Repository Layout](#repository-layout)",
-        "- [Disclaimers & Downsides](#disclaimers--downsides)",
-        "- [Applying Changes from This File](#applying-changes-from-this-file)",
-        "",
-        "---",
-        "",
-        "## How This File Works",
-        "",
-        "This file lets you configure project customization offline.",
-        "Fill in the values below, check the boxes for options you want,",
-        "then apply your choices:",
-        "",
-        "1. Edit the **Value** column in the Project Identity table below.",
-        "2. Check the boxes (`[x]`) for options you want to enable.",
-        "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
-        "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
-        "",
-        "> **Tip:** In VS Code, you can click checkboxes directly in the Markdown",
-        "> preview to toggle them. The changes will persist to the file.",
-        "> Alternatively, edit the raw Markdown: change `[ ]` to `[x]` (or vice versa).",
-        "",
-        "> **Tip:** For a fully non-interactive approach without editing this file,",
-        "> use `python scripts/customize.py --non-interactive --project-name NAME",
-        "> --author NAME --github-user NAME` with all values on the command line.",
-        "",
-        "---",
-        "",
-        "## Project Identity",
-        "",
-        "Fill in **your** project values. Leave a field empty to keep the template default.",
-        "",
-        "| Setting | Value | Notes |",
-        "| :--- | :--- | :--- |",
-        f"| **Project name** | `{TEMPLATE_PROJECT_NAME}` | Lowercase, hyphens OK (e.g. `my-cool-app`). Used as repo slug and PyPI name. |",
-        f"| **Package name** | `{TEMPLATE_PACKAGE_NAME}` | Python import name, underscored. Auto-derived from project name if left as default. |",
-        f"| **Author** | `{TEMPLATE_AUTHOR}` | Author / maintainer name for pyproject.toml. |",
-        f"| **GitHub user** | `{TEMPLATE_GITHUB_USER}` | GitHub username or organization. |",
-        f"| **Description** | `{TEMPLATE_DESCRIPTION}` | One-line project description. |",
-        f"| **CLI prefix** | `{TEMPLATE_CLI_PREFIX}` | CLI command prefix for entry points (e.g. `spb-version`). Default: initials of project name. |",
-        "",
-        "---",
-        "",
-        "## License",
-        "",
-        "A license defines how others may use, modify, and distribute your code.",
-        'Without one, your project is "all rights reserved" by default \u2014 no one',
-        "can legally reuse it. Open-source licenses (MIT, Apache, BSD, etc.) grant",
-        "explicit permissions and are expected by package registries like PyPI.",
-        "",
-        "Pick **one** license by changing the checkbox to `[x]`:",
-        "",
     ]
 
+    # ── Untracked items warning ──
+    if untracked:
+        lines.extend(
+            [
+                "> **\u26a0\ufe0f Untracked Items Detected**",
+                ">",
+                "> The following root-level files or directories are not covered by any",
+                "> removal option. Consider adding them to `STRIPPABLE` in `customize.py`",
+                "> or verify they are intentional additions.",
+                "",
+                "| Path | Type | Status |",
+                "| :--- | :--- | :--- |",
+            ]
+        )
+        lines.extend(
+            f"| `{item['path']}` | {item['type']} | \u26a0\ufe0f No removal option |"
+            for item in untracked
+        )
+        lines.append("")
+
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Table of Contents",
+            "",
+            "- [How This File Works](#how-this-file-works)",
+            "- [Project Identity](#project-identity)",
+            "- [License](#license)",
+            "- [Repository Visibility](#repository-visibility)",
+            "- [Repository Layout](#repository-layout)",
+            "- [Items to Remove](#items-to-remove)",
+            "- [Item Details & Trade-offs](#item-details--trade-offs)",
+            "- [Script Recommended](#script-recommended)",
+            "- [Quick Reference](#quick-reference)",
+            "- [Applying Changes from This File](#applying-changes-from-this-file)",
+            "",
+            "---",
+            "",
+            "## How This File Works",
+            "",
+            "This file lets you configure project customization offline.",
+            "Fill in the values below, check the boxes for options you want,",
+            "then apply your choices:",
+            "",
+            "1. Edit the **Value** column in the Project Identity table below.",
+            "2. Check the boxes (`[x]`) for options you want to enable.",
+            "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
+            "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
+            "",
+            "> **Tip:** In VS Code, checkboxes are clickable in the Markdown preview.",
+            "> Clicking a checkbox toggles it in the underlying file. Ensure the setting",
+            "> `markdown.editor.toggleCheckboxInPreview` is enabled (it is on by default).",
+            "> Alternatively, edit the raw Markdown: change `[ ]` to `[x]` (or vice versa).",
+            "",
+            "> **Tip:** For a fully non-interactive approach without editing this file,",
+            "> use `python scripts/customize.py --non-interactive --project-name NAME",
+            "> --author NAME --github-user NAME` with all values on the command line.",
+            "",
+            "---",
+            "",
+        ]
+    )
+
+    # ── Project Identity ──
+    lines.extend(
+        [
+            "## Project Identity",
+            "",
+            "Fill in **your** project values. Leave a field empty to keep the template default.",
+            "",
+            "| Setting | Value | Notes |",
+            "| :--- | :--- | :--- |",
+            f"| **Project name** | `{TEMPLATE_PROJECT_NAME}` | Lowercase, hyphens OK (e.g. `my-cool-app`). Used as repo slug and PyPI name. |",
+            f"| **Package name** | `{TEMPLATE_PACKAGE_NAME}` | Python import name, underscored. Auto-derived from project name if left as default. |",
+            f"| **Author** | `{TEMPLATE_AUTHOR}` | Author / maintainer name for pyproject.toml. |",
+            f"| **GitHub user** | `{TEMPLATE_GITHUB_USER}` | GitHub username or organization. |",
+            f"| **Description** | `{TEMPLATE_DESCRIPTION}` | One-line project description. |",
+            f"| **CLI prefix** | `{TEMPLATE_CLI_PREFIX}` | CLI command prefix for entry points (e.g. `spb-version`). Default: initials of project name. |",
+            "",
+            "---",
+            "",
+        ]
+    )
+
+    # ── License ──
+    lines.extend(
+        [
+            "## License",
+            "",
+            "A license defines how others may use, modify, and distribute your code.",
+            'Without one, your project is "all rights reserved" by default \u2014 no one',
+            "can legally reuse it. Open-source licenses (MIT, Apache, BSD, etc.) grant",
+            "explicit permissions and are expected by package registries like PyPI.",
+            "",
+            "Pick **one** license by changing the checkbox to `[x]`:",
+            "",
+        ]
+    )
     for key, info in LICENSE_CHOICES.items():
         checked = "x" if key == "apache-2.0" else " "
         lines.append(f"- [{checked}] **{info['name']}** (`{key}`)")
     lines.append("")
 
+    # ── Repository Visibility ──
     lines.extend(
         [
             "---",
@@ -2398,79 +2647,7 @@ def export_customize_config(filepath: str) -> str:
         lines.extend(f"  - `{p}`" for p in priv_paths)
     lines.append("")
 
-    # ── Optional Directories to Strip ──
-    lines.extend(
-        [
-            "---",
-            "",
-            "## Optional Directories to Strip",
-            "",
-            "Select directories and files you do **not** need.",
-            "You can recover anything from git history if needed.",
-            "",
-            "### Bulk Actions",
-            "",
-            "> Use these to apply actions to all items at once without",
-            "> checking individual boxes below.",
-            "",
-            "- [ ] **Select all items below** (`select-all`) \u2014 Mark all items for deletion (directory + files)",
-            "- [ ] **Delete only files in all items** (`select-all-files-only`) \u2014 Delete files in all items but keep empty directory structures",
-            "",
-            "> Or bypass individual selection entirely:",
-            "",
-            "- [ ] **Delete ALL directories regardless of selection** (`delete-all-dirs`) \u2014 Delete every optional directory and file listed below",
-            "- [ ] **Delete ALL files only regardless of selection** (`delete-all-files`) \u2014 Delete files in every optional directory but keep directory structures",
-            "",
-            "### Individual Items",
-            "",
-            "For each item, check the main box to **delete the directory and all files**.",
-            "Optionally, also check the \u201cfiles only\u201d sub-option to **keep the directory**",
-            "structure but remove all files inside.",
-            "",
-        ]
-    )
-    for key, entry in STRIPPABLE.items():
-        desc = str(entry.get("description", ""))
-        downside = str(entry.get("downside", ""))
-        lines.append(f"- [ ] **{entry['label']}** (`{key}`)")
-        lines.append(
-            f"  - [ ] Files only \u2014 keep empty directory structure (`{key}:files-only`)"
-        )
-        if desc:
-            lines.append(f"  - **Description:** {desc}")
-        if downside:
-            lines.append(f"  - **Downsides:** {downside}")
-        paths: list[str] = entry["paths"]  # type: ignore[assignment]
-        lines.append("  - Contents:")
-        for p in paths:
-            exists = (ROOT / p).exists()
-            marker = " *(not found)*" if not exists else ""
-            kind = "*(directory + all contents)*" if p.endswith("/") else "*(file)*"
-            lines.append(f"    - `{p}` {kind}{marker}")
-        lines.append("")
-
-    # ── Template Cleanup ──
-    lines.extend(
-        [
-            "---",
-            "",
-            "## Template Cleanup",
-            "",
-            "These items exist to support the template repository itself.",
-            "Check the boxes for items you want to clean up.",
-            "",
-            "> **Note:** Each item has trade-offs. See the",
-            "> [Disclaimers & Downsides](#disclaimers--downsides) section",
-            "> at the bottom for full details on each item.",
-            "> You can always recover files from git history.",
-            "",
-        ]
-    )
-    for key, entry in TEMPLATE_CLEANUP.items():
-        lines.append(f"- [ ] **{entry['label']}** (`{key}`)")
-    lines.append("")
-
-    # ── Repository Layout ──
+    # ── Repository Layout (moved above items to remove) ──
     lines.extend(
         [
             "---",
@@ -2497,15 +2674,117 @@ def export_customize_config(filepath: str) -> str:
         ]
     )
 
-    # ── Disclaimers & Downsides ──
+    # ── Items to Remove (merged section) ──
+    # CSS to center detail anchors in the viewport when clicked
     lines.extend(
         [
             "---",
             "",
-            "## Disclaimers & Downsides",
+            "<style>",
+            '[id^="detail-"] { scroll-margin-top: 40vh; }',
+            '[id^="item-"] { scroll-margin-top: 40vh; }',
+            "</style>",
             "",
-            "Detailed trade-offs for each strippable and cleanup item.",
-            "Read these before making your selections above.",
+            "## Items to Remove",
+            "",
+            "Select directories and files you do **not** need.",
+            "You can recover anything from git history if needed.",
+            "",
+            "> Directories are deleted **dynamically** \u2014 any new files added to a",
+            "> directory after this config was generated will also be removed when",
+            "> applied. See the [Repository Layout](#repository-layout) to preview",
+            "> the full file tree.",
+            "",
+            "### Bulk Actions",
+            "",
+            "> Use these to apply actions to all items at once without",
+            "> checking individual boxes below.",
+            "",
+            "- [ ] **Select all items below** (`select-all`) \u2014 Mark all items for deletion (directory + files)",
+            "- [ ] **Delete only files in all items** (`select-all-files-only`) \u2014 Delete files in all items but keep empty directory structures",
+            "",
+            "> Or bypass individual selection entirely:",
+            "",
+            "- [ ] **Delete ALL directories regardless of selection** (`delete-all-dirs`) \u2014 Delete every optional directory and file listed below",
+            "- [ ] **Delete ALL files only regardless of selection** (`delete-all-files`) \u2014 Delete files in every optional directory but keep directory structures",
+            "",
+            "### Optional Directories & Files",
+            "",
+            "For each item, check the main box to **delete the directory and all files**.",
+            'Optionally, also check the "files only" sub-option to **keep the directory**',
+            "structure but remove all files inside.",
+            "",
+        ]
+    )
+
+    # Helper to generate a compact item entry with files listing
+    def _emit_item_entry(
+        key: str,
+        entry: dict[str, object],
+        *,
+        show_files_only: bool = True,
+    ) -> None:
+        """Append a checkbox item with file listing to *lines*."""
+        i_paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
+        lines.append(f'<a id="item-{key}"></a>')
+        lines.append("")
+        lines.append(
+            f"- [ ] **{entry['label']}** (`{key}`) "
+            f"\u2014 [details \u2193](#detail-{key})"
+        )
+        if show_files_only and i_paths:
+            lines.append(
+                f"  - [ ] Files only \u2014 keep empty directory structure (`{key}:files-only`)"
+            )
+        # Show compact contents: dirs with file count, limited individual files
+        dirs_list = [p for p in i_paths if p.endswith("/")]
+        files_list = [p for p in i_paths if not p.endswith("/")]
+        if dirs_list:
+            lines.extend(
+                f"  - `{d}` *({_count_dir_files(ROOT / d.rstrip('/'))} files"
+                f" \u2014 all contents deleted dynamically)*"
+                for d in dirs_list[:2]
+            )
+            if len(dirs_list) > 2:
+                lines.append(f"  - *+ {len(dirs_list) - 2} more directories*")
+        if files_list:
+            lines.extend(f"  - `{f}`" for f in files_list[:3])
+            if len(files_list) > 3:
+                lines.append(f"  - *+ {len(files_list) - 3} more files*")
+        lines.append("")
+
+    # Generate compact item entries for STRIPPABLE
+    for key, entry in STRIPPABLE.items():
+        _emit_item_entry(key, entry)
+
+    # ── Template Cleanup (same format, within the same section) ──
+    lines.extend(
+        [
+            "### Template Cleanup",
+            "",
+            "These items exist to support the template repository itself.",
+            "Check the boxes for items you want to clean up.",
+            "See [Item Details & Trade-offs](#item-details--trade-offs) for full disclaimers.",
+            "",
+        ]
+    )
+    for key, entry in TEMPLATE_CLEANUP.items():
+        has_paths = bool(entry.get("paths"))
+        # Special items (placeholder-code, advanced-workflows) have no
+        # explicit paths — skip the files-only sub-option for them.
+        _emit_item_entry(key, entry, show_files_only=has_paths)
+
+    # ── Item Details & Trade-offs ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Item Details & Trade-offs",
+            "",
+            "Detailed descriptions and trade-offs for each removable item.",
+            "Read these before making your selections in [Items to Remove](#items-to-remove).",
+            "",
+            "---",
             "",
             "### Optional Directories",
             "",
@@ -2514,31 +2793,98 @@ def export_customize_config(filepath: str) -> str:
     for key, entry in STRIPPABLE.items():
         desc = str(entry.get("description", ""))
         downside = str(entry.get("downside", ""))
+        s_paths = entry["paths"]  # type: ignore[assignment]
+        lines.append(f'<a id="detail-{key}"></a>')
+        lines.append("")
         lines.append(f"#### `{key}` \u2014 {entry['label']}")
         lines.append("")
         if desc:
-            lines.append(f"**What it is:** {desc}")
+            lines.append(f"> **What it is:** {desc}")
             lines.append("")
         if downside:
-            lines.append(f"\u26a0\ufe0f **Downsides of deletion:** {downside}")
+            lines.append(f"> \u26a0\ufe0f **Downsides:** {downside}")
             lines.append("")
-        paths = entry["paths"]  # type: ignore[assignment]
         lines.append("**Files affected:**")
-        for p in paths:
+        for p in s_paths:
             exists = (ROOT / p).exists()
             status = "\u2705" if exists else "\u274c not found"
             lines.append(f"- `{p}` {status}")
         lines.append("")
+        lines.append(f"\u2191 [Back to selection](#item-{key})")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
 
-    lines.append("### Template Cleanup Items")
-    lines.append("")
+    lines.extend(
+        [
+            "### Template Cleanup Items",
+            "",
+        ]
+    )
     for key, entry in TEMPLATE_CLEANUP.items():
+        desc = str(entry.get("description", ""))
+        downside = str(entry.get("downside", ""))
         disclaimer = str(entry.get("disclaimer", ""))
+        t_paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
+        lines.append(f'<a id="detail-{key}"></a>')
+        lines.append("")
         lines.append(f"#### `{key}` \u2014 {entry['label']}")
         lines.append("")
+        if desc:
+            lines.append(f"> **What it is:** {desc}")
+            lines.append("")
+        if downside:
+            lines.append(f"> \u26a0\ufe0f **Downsides:** {downside}")
+            lines.append("")
         if disclaimer:
             lines.append(f"> {disclaimer}")
             lines.append("")
+        if t_paths:
+            lines.append("**Files affected:**")
+            for p in t_paths:
+                exists = (ROOT / p).exists()
+                status = "\u2705" if exists else "\u274c not found"
+                lines.append(f"- `{p}` {status}")
+            lines.append("")
+        lines.append(f"\u2191 [Back to selection](#item-{key})")
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+
+    # ── Script Recommended ──
+    lines.extend(
+        [
+            "## Script Recommended",
+            "",
+            "While this Markdown file provides a visual way to configure customization,",
+            "the **recommended approach for automation and reproducibility** is to use",
+            "the script directly:",
+            "",
+            "```bash",
+            "# Interactive wizard (guided step-by-step)",
+            "python scripts/customize.py",
+            "",
+            "# Non-interactive (CI/automation friendly)",
+            "python scripts/customize.py --non-interactive \\",
+            "    --project-name my-project \\",
+            '    --author "Your Name" \\',
+            "    --github-user yourusername \\",
+            "    --strip db experiments var \\",
+            "    --template-cleanup adr-files docs-notes placeholder-code",
+            "```",
+            "",
+            "**Advantages of the script over this file:**",
+            "",
+            "| Feature | Script | This file |",
+            "| :--- | :--- | :--- |",
+            "| Validation | \u2705 Real-time input validation | \u274c No validation until apply |",
+            "| Dynamic discovery | \u2705 Always current file lists | \u26a0\ufe0f Snapshot at generation time |",
+            "| Automation | \u2705 `--non-interactive` flag | \u274c Requires manual editing |",
+            "| Dry run | \u2705 `--dry-run` flag | \u2705 `--dry-run` flag |",
+            "| Reproducibility | \u2705 Full CLI args | \u26a0\ufe0f File-based config |",
+            "",
+        ]
+    )
 
     # ── Quick Reference ──
     lines.extend(
@@ -2583,6 +2929,7 @@ def export_customize_config(filepath: str) -> str:
             "- Unchecked boxes (`[ ]`) leave that option inactive.",
             "- **Bulk actions** override individual selections when checked.",
             "- **Files only** options delete files but preserve directory structures.",
+            "- **Directories delete dynamically** \u2014 all contents are removed, including files added after this config was generated.",
             "- Use `--dry-run` to preview all changes before applying.",
             "- Use `--force` to skip the already-customized safety check.",
             "",
@@ -2748,8 +3095,34 @@ def apply_from_config(
     # Parse options
     license_id = _parse_md_license(content)
     private_repo = _parse_md_private_repo(content)
-    raw_strip_keys = _parse_md_checkboxes(content, "Optional Directories to Strip")
-    template_cleanup = _parse_md_checkboxes(content, "Template Cleanup")
+
+    # Try new unified "Items to Remove" section first, fall back to old format
+    bulk_action_keys = {
+        "select-all",
+        "select-all-files-only",
+        "delete-all-dirs",
+        "delete-all-files",
+    }
+    all_remove_keys = _parse_md_checkboxes(content, "Items to Remove")
+    if all_remove_keys:
+        raw_strip_keys = [
+            k
+            for k in all_remove_keys
+            if k in STRIPPABLE or k.endswith(":files-only") or k in bulk_action_keys
+        ]
+        template_cleanup = [
+            k
+            for k in all_remove_keys
+            if k in TEMPLATE_CLEANUP
+            or (
+                k.endswith(":files-only")
+                and k.removesuffix(":files-only") in TEMPLATE_CLEANUP
+            )
+        ]
+    else:
+        # Backward compatibility with old separate sections
+        raw_strip_keys = _parse_md_checkboxes(content, "Optional Directories to Strip")
+        template_cleanup = _parse_md_checkboxes(content, "Template Cleanup")
 
     # ── Resolve bulk actions and files-only flags ──
     all_strippable_keys = list(STRIPPABLE.keys())
@@ -2765,6 +3138,15 @@ def apply_from_config(
         k.removesuffix(":files-only")
         for k in raw_strip_keys
         if k.endswith(":files-only") and k.removesuffix(":files-only") in STRIPPABLE
+    }
+
+    # Per-item files-only flags for template cleanup
+    tc_keys = [k for k in template_cleanup if k in TEMPLATE_CLEANUP]
+    tc_files_only = {
+        k.removesuffix(":files-only")
+        for k in template_cleanup
+        if k.endswith(":files-only")
+        and k.removesuffix(":files-only") in TEMPLATE_CLEANUP
     }
 
     # Bulk overrides
@@ -2794,7 +3176,8 @@ def apply_from_config(
         cli_prefix=cli_prefix,
         license_id=license_id,
         strip_dirs=strip_dirs,
-        template_cleanup=template_cleanup,
+        template_cleanup=tc_keys,
+        template_cleanup_files_only=tc_files_only,
         private_repo=private_repo,
         dry_run=dry_run,
         strip_files_only=files_only_keys,
@@ -2878,7 +3261,12 @@ def apply_from_config(
 
     if cfg.template_cleanup:
         print(f"\n{tag}Template cleanup...")
-        apply_template_cleanup(cfg.template_cleanup, cfg, dry_run=dry_run)
+        apply_template_cleanup(
+            cfg.template_cleanup,
+            cfg,
+            dry_run=dry_run,
+            files_only_keys=cfg.template_cleanup_files_only or None,
+        )
         bar.update("cleanup")
     else:
         print(f"\n{tag}Template cleanup: none")
@@ -3092,7 +3480,12 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
     # Step 5: Template cleanup
     if cfg.template_cleanup:
         print(f"\n{tag}Template cleanup...")
-        apply_template_cleanup(cfg.template_cleanup, cfg, dry_run=cfg.dry_run)
+        apply_template_cleanup(
+            cfg.template_cleanup,
+            cfg,
+            dry_run=cfg.dry_run,
+            files_only_keys=cfg.template_cleanup_files_only or None,
+        )
     else:
         print(f"\n{tag}Template cleanup: none")
 

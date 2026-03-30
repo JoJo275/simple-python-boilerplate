@@ -102,6 +102,8 @@
     // markdownlint reads rules from .markdownlint-cli2.jsonc.
     // Don't auto-format on save — Prettier reformatting can conflict
     // with markdownlint rules and manual table alignment.
+    // Enable checkbox toggling in Markdown preview (e.g. customize-config.md).
+    "markdown.editor.toggleCheckboxInPreview": true,
     "[markdown]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": false,
