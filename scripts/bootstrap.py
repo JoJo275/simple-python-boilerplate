@@ -991,7 +991,8 @@ def main() -> int:
     if args.ci_like:
         mode_parts.append("CI-like")
     if mode_parts:
-        ui.info_line(f"Mode: {', '.join(mode_parts)}")
+        ui.blank()
+        ui.info_line(f"Mode: {ui.c.bold(', '.join(mode_parts))}")
 
     # ── Environment overview section ─────────────────────────
     ui.section("Environment Overview")
@@ -1002,9 +1003,13 @@ def main() -> int:
             f"{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}"
         ),
     )
+    print()
     ui.kv("Executable", c_info.cyan(sys.executable))
+    print()
     ui.kv("Project root", c_info.cyan(str(ROOT)))
+    print()
     ui.kv("Platform", c_info.cyan(sys.platform))
+    print()
     # Show cache dir
     cache_dir = os.environ.get("XDG_CACHE_HOME") or (
         Path.home() / ".cache"
@@ -1014,7 +1019,7 @@ def main() -> int:
     ui.kv("Cache directory", c_info.cyan(str(cache_dir)))
 
     # ── Section: Prerequisite Checks ────────────────────────────
-    ui.section("Prerequisite Checks")
+    ui.section("Prerequisite Checks", compact=True)
     all_ok = True
     all_ok &= check_python()
     all_ok &= check_git()
@@ -1034,7 +1039,7 @@ def main() -> int:
     step_results: dict[str, bool] = {}
 
     # ── Section: Core Setup ──────────────────────────────────
-    ui.section("Core Setup")
+    ui.section("Core Setup", compact=True)
     all_ok &= create_hatch_env(
         skip_test_matrix=args.skip_test_matrix, dry_run=args.dry_run
     )
@@ -1043,7 +1048,7 @@ def main() -> int:
     all_ok &= verify_setup(dry_run=args.dry_run)
 
     # ── Section: Extended Checks ─────────────────────────────
-    ui.section("Extended Checks")
+    ui.section("Extended Checks", compact=True)
     all_ok &= build_smoke_test(dry_run=args.dry_run)
     all_ok &= wheel_install_test(dry_run=args.dry_run)
     check_template_placeholders()
@@ -1057,7 +1062,7 @@ def main() -> int:
     # Optional: quality pass (--strict or --ci-like)
     step_results["quality_ran"] = False
     if args.strict or args.ci_like:
-        ui.section("Quality & Docs")
+        ui.section("Quality & Docs", compact=True)
         quality_ok = run_quality_pass(dry_run=args.dry_run, fix=args.fix)
         step_results["quality_ran"] = True
         if args.strict:

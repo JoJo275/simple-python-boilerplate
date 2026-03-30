@@ -520,7 +520,10 @@ def _format_warning(
     )
     cat = f" ({rule.category})" if rule.category else ""
 
-    lines = [f"{tag}{cat} {warning.message}"]
+    lines: list[str] = []
+    if not use_color:
+        lines.append(f"  {'─' * 56}")
+    lines.append(f"{tag}{cat} {warning.message}")
     if rule.impact:
         lines.append(f"  Impact: {rule.impact}")
     if show_hints and rule.hint:

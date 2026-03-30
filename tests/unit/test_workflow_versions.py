@@ -18,7 +18,6 @@ from _colors import Colors
 from workflow_versions import (
     _USES_RE,
     SCRIPT_VERSION,
-    _ansi_pad,
     _build_parser,
     _cached_gh_api,
     _normalize_version,
@@ -708,8 +707,8 @@ class TestMain:
         assert data[0]["action"] == "actions/checkout"
         assert data[0]["stale"] == "yes"
 
-    def test_header_goes_to_stderr(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    def test_header_goes_to_stdout(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
         from workflow_versions import main
 
@@ -722,40 +721,9 @@ class TestMain:
                 "sys.argv",
                 ["workflow_versions", "show", "--offline"],
             ),
-            caplog.at_level("INFO"),
         ):
             main()
-        assert "Workflow action versions" in caplog.text
-
-
-# ---------------------------------------------------------------------------
-# _ansi_pad
-# ---------------------------------------------------------------------------
-
-
-class TestAnsiPad:
-    """Tests for ANSI padding calculation."""
-
-    def test_no_color_returns_zero(self) -> None:
-        assert _ansi_pad("hello", "hello") == 0
-
-    def test_colored_text_returns_escape_len(self) -> None:
-        c = Colors(enabled=True)
-        raw = "error"
-        colored = c.red(raw)
-        pad = _ansi_pad(colored, raw)
-        # ANSI codes: \033[31m + \033[0m = 5 + 4 = 9 chars
-        assert pad == len(colored) - len(raw)
-        assert pad > 0
-
-    def test_different_color_methods(self) -> None:
-        c = Colors(enabled=True)
-        for method in ("bold", "dim", "red", "green", "yellow", "blue", "cyan"):
-            raw = "test"
-            colored = getattr(c, method)(raw)
-            pad = _ansi_pad(colored, raw)
-            assert pad == len(colored) - len(raw)
-            assert pad > 0
+        assert "Workflow Action Versions" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
