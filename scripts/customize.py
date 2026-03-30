@@ -11,7 +11,6 @@ See ADR 014 for the design rationale behind manual customization.
 
 Flags::
 
-    --dry-run               Show what would change without modifying any files
     --non-interactive       Skip interactive prompts; use CLI flags for all values
     --project-name NAME     Project name (lowercase-hyphenated, e.g. my-project)
     --package-name NAME     Python package name (underscored); auto-derived from
@@ -44,11 +43,13 @@ Flags::
 
 Usage::
 
-    # Interactive (default)
+    # Generate config file (default — also serves as preview)
     python scripts/customize.py
 
-    # Preview changes
-    python scripts/customize.py --dry-run
+    # Preview: edit the generated config, then review it before applying
+    #   1. Generate:  python scripts/customize.py
+    #   2. Edit:      customize-config.md  (fill in values, toggle checkboxes)
+    #   3. Apply:     python scripts/customize.py --apply-from customize-config.md
 
     # Fully non-interactive
     python scripts/customize.py --non-interactive \\
@@ -66,7 +67,6 @@ Usage::
 
     # Markdown config workflow (export → edit → apply)
     python scripts/customize.py --export-config
-    python scripts/customize.py --apply-from customize-config.md --dry-run
     python scripts/customize.py --apply-from customize-config.md
 
     Task runner shortcuts for this script are defined in ``Taskfile.yml``.
@@ -1299,9 +1299,7 @@ def gather_config_interactive() -> Config:
     ui.blank()
     print(f"  {c.bold('Project Customization Wizard')}")
     print(f"  {c.dim('Replace boilerplate placeholders with your project values.')}")
-    print(
-        f"  {c.dim('Press Enter to accept [defaults]. Re-run with --dry-run to preview.')}"
-    )
+    print(f"  {c.dim('Press Enter to accept [defaults].')}")
 
     # --- Project identity ---------------------------------------------------
     ui.section("Step 1/6 — Project Identity")
@@ -2455,7 +2453,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         epilog="""\
 examples:
   python scripts/customize.py
-  python scripts/customize.py --dry-run
+  python scripts/customize.py --apply-from customize-config.md
   python scripts/customize.py --non-interactive \\
       --project-name my-project --author "Jane Doe" \\
       --github-user janedoe
@@ -2465,11 +2463,6 @@ examples:
         "--version",
         action="version",
         version=f"%(prog)s {SCRIPT_VERSION}",
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would change without modifying any files",
     )
     parser.add_argument(
         "--quiet",
@@ -2619,7 +2612,6 @@ def config_from_args(args: argparse.Namespace) -> Config:
         strip_dirs=args.strip or [],
         template_cleanup=args.template_cleanup or [],
         private_repo=args.private_repo,
-        dry_run=args.dry_run,
     )
 
 
@@ -2628,14 +2620,13 @@ def config_from_args(args: argparse.Namespace) -> Config:
 # ---------------------------------------------------------------------------
 
 
-def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
+def enable_workflows_only(repo_slug: str) -> int:
     """Enable all workflows by replacing the YOURNAME/YOURREPO placeholder.
 
     This is a quick operation that only touches workflow files and related docs.
 
     Args:
         repo_slug: The GitHub repository slug (e.g., 'myorg/myproject').
-        dry_run: If True, show what would change without modifying files.
 
     Returns:
         Exit code: 0 on success, 1 on error.
@@ -2660,11 +2651,10 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
         ),
     ]
 
-    tag = "DRY RUN — " if dry_run else ""
-    print(f"{tag}Enabling workflows with repo slug: {repo_slug}")
+    print(f"Enabling workflows with repo slug: {repo_slug}")
     print()
 
-    modified = apply_replacements(replacements, dry_run=dry_run, show_progress=True)
+    modified = apply_replacements(replacements, show_progress=True)
 
     c = Colors()
     sym = unicode_symbols()
@@ -2687,14 +2677,10 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
         f" in {n_files} file{'s' if n_files != 1 else ''}"
     )
 
-    if dry_run:
-        print(f"\n{c.yellow('Dry run complete')} — no files were modified.")
-        print(f"{c.dim('Re-run without --dry-run to apply.')}")
-    else:
-        print(
-            f"\n{c.green(sym['check'])} {c.bold('Workflows enabled!')} They will now run on your repository."
-        )
-        print(f"\nNext step: push to GitHub and check the {c.cyan('Actions')} tab.")
+    print(
+        f"\n{c.green(sym['check'])} {c.bold('Workflows enabled!')} They will now run on your repository."
+    )
+    print(f"\nNext step: push to GitHub and check the {c.cyan('Actions')} tab.")
 
     return 0
 
@@ -3134,7 +3120,7 @@ def export_customize_config(filepath: str) -> str:
         f"| **Cleanup items** | {cleanup_count} template-specific items |",
         f"| **Total configurable** | {total_items} items |",
         "| **Apply** | `python scripts/customize.py --apply-from customize-config.md` |",
-        "| **Preview** | `python scripts/customize.py --apply-from customize-config.md --dry-run` |",
+        "| **Preview** | Edit this file, review your choices, then apply |",
         "",
     ]
 
@@ -3186,7 +3172,7 @@ def export_customize_config(filepath: str) -> str:
             "",
             "1. Edit the **Value** column in the Project Identity table below.",
             "2. Check the boxes (`[x]`) for options you want to enable.",
-            "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
+            "3. Review your choices in this file (the config IS your preview).",
             "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
             "",
             "> **Tip \u2014 Toggling checkboxes:** VS Code's built-in Markdown preview does **not**",
@@ -3616,7 +3602,7 @@ def export_customize_config(filepath: str) -> str:
             "| Command | Purpose |",
             "| :--- | :--- |",
             "| `python scripts/customize.py` | Generate this config file |",
-            "| `python scripts/customize.py --apply-from customize-config.md --dry-run` | Preview changes |",
+            "| `python scripts/customize.py --export-config` | Regenerate this config file |",
             "| `python scripts/customize.py --apply-from customize-config.md` | Apply changes |",
             "| `python scripts/customize.py --non-interactive --project-name NAME ...` | Direct CLI mode |",
             "| `python scripts/customize.py --enable-workflows owner/repo` | Enable workflows only |",
@@ -3635,9 +3621,6 @@ def export_customize_config(filepath: str) -> str:
             "Edit the values and checkboxes above, then apply:",
             "",
             "```bash",
-            "# Preview changes first",
-            "python scripts/customize.py --apply-from customize-config.md --dry-run",
-            "",
             "# Apply changes",
             "python scripts/customize.py --apply-from customize-config.md",
             "```",
@@ -3654,7 +3637,7 @@ def export_customize_config(filepath: str) -> str:
             "- **Flatten layout** moves your package from `src/` to the repo root.",
             "- **Nuke** deletes everything (recoverable via `git checkout HEAD -- .`).",
             "- **Deleting scripts** does NOT auto-delete related test files \u2014 do that separately.",
-            "- Use `--dry-run` to preview all changes before applying.",
+            "- The config file IS your preview — review it before applying.",
             "- Use `--force` to skip the already-customized safety check.",
             "",
         ]
@@ -3925,7 +3908,6 @@ def _run_repo_doctor(*, dry_run: bool = False) -> bool:
 def _generate_customization_report(
     cfg: Config,
     *,
-    dry_run: bool,
     enable_workflows: bool = False,
     do_flatten: bool = False,
     do_nuke: bool = False,
@@ -3941,7 +3923,6 @@ def _generate_customization_report(
 
     Args:
         cfg: The resolved Config used for this run.
-        dry_run: Whether this was a preview (dry-run) or actual apply.
         enable_workflows: Whether workflows were enabled.
         do_flatten: Whether flatten-layout was requested.
         do_nuke: Whether nuke-repo was requested.
@@ -3953,7 +3934,7 @@ def _generate_customization_report(
         The generated Markdown string.
     """
     timestamp = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
-    mode = "Dry-Run Preview" if dry_run else "Applied"
+    mode = "Applied"
     license_name = LICENSE_CHOICES.get(cfg.license_id, {}).get("name", cfg.license_id)
 
     # -- Collect selected items -----------------------------------------------
@@ -4026,15 +4007,6 @@ def _generate_customization_report(
         ]
     )
 
-    if dry_run:
-        lines.extend(
-            [
-                "> **Preview only** — no files were modified. Re-run without"
-                " `--dry-run` to apply.",
-                "",
-            ]
-        )
-
     # Table of contents
     lines.extend(
         [
@@ -4102,7 +4074,7 @@ def _generate_customization_report(
             flag_items.append("Private repository mode")
         if enable_workflows:
             flag_items.append(
-                f"Enable workflows (`{cfg.github_user}/{cfg.project_name}`)"
+                f"Enable all workflows (`{cfg.github_user}/{cfg.project_name}`)"
             )
         if do_flatten:
             flag_items.append("Convert to flat layout")
@@ -4213,15 +4185,7 @@ def _generate_customization_report(
 
     # Repository layout
     _has_removals = bool(removed_paths) and not do_nuke
-    if dry_run and _has_removals:
-        tree_desc = (
-            "preview of the repository structure after selected items"
-            " are removed (items to delete are excluded from this tree)"
-        )
-    elif dry_run:
-        tree_desc = "current repository structure (no removals selected)"
-    else:
-        tree_desc = "repository structure after applying changes"
+    tree_desc = "repository structure after applying changes"
     lines.extend(
         [
             "---",
@@ -4243,14 +4207,7 @@ def _generate_customization_report(
     )
 
     # File glossary
-    if dry_run and _has_removals:
-        gloss_desc = (
-            "Root-level files and directories that would remain after selected removals"
-        )
-    elif dry_run:
-        gloss_desc = "Root-level files and directories (no removals selected)"
-    else:
-        gloss_desc = "Root-level files and directories remaining after customization"
+    gloss_desc = "Root-level files and directories remaining after customization"
     lines.extend(
         [
             "---",
@@ -4311,48 +4268,25 @@ def _generate_customization_report(
             "",
             "## Next Steps",
             "",
+            "1. Review changes: `git diff`",
+            "2. Reinstall package: `pip install -e '.[dev]'`",
+            "3. Run tests: `task test` (or `pytest`)",
+            f'4. Verify import: `python -c "import {cfg.package_name}"`',
+            "5. Run the bootstrap script: `python scripts/bootstrap.py`",
+            "6. Run health checks: `python scripts/doctor.py`",
+            "7. Update pre-commit hooks if scripts were removed:"
+            " edit `.pre-commit-config.yaml`",
+            "8. Update `Taskfile.yml` if tasks reference removed scripts",
+            "9. Commit: `git add -A && git commit -m"
+            f" 'chore: customise from template ({cfg.project_name})'`",
+            "",
+            "> **Note:** If you removed scripts, check that no"
+            " pre-commit hooks, Taskfile tasks, or GitHub Actions"
+            " workflows reference them. Run `python scripts/doctor.py`"
+            " to catch common issues.",
+            "",
         ]
     )
-
-    if dry_run:
-        lines.extend(
-            [
-                "1. Review the selections above",
-                "2. Adjust checkboxes in `customize-config.md` if needed",
-                "3. Preview changes:",
-                "   ```bash",
-                "   python scripts/customize.py"
-                " --apply-from customize-config.md --dry-run",
-                "   ```",
-                "4. Apply changes:",
-                "   ```bash",
-                "   python scripts/customize.py --apply-from customize-config.md",
-                "   ```",
-                "",
-            ]
-        )
-    else:
-        lines.extend(
-            [
-                "1. Review changes: `git diff`",
-                "2. Reinstall package: `pip install -e '.[dev]'`",
-                "3. Run tests: `task test` (or `pytest`)",
-                f'4. Verify import: `python -c "import {cfg.package_name}"`',
-                "5. Run the bootstrap script: `python scripts/bootstrap.py`",
-                "6. Run health checks: `python scripts/doctor.py`",
-                "7. Update pre-commit hooks if scripts were removed:"
-                " edit `.pre-commit-config.yaml`",
-                "8. Update `Taskfile.yml` if tasks reference removed scripts",
-                "9. Commit: `git add -A && git commit -m"
-                f" 'chore: customise from template ({cfg.project_name})'`",
-                "",
-                "> **Note:** If you removed scripts, check that no"
-                " pre-commit hooks, Taskfile tasks, or GitHub Actions"
-                " workflows reference them. Run `python scripts/doctor.py`"
-                " to catch common issues.",
-                "",
-            ]
-        )
 
     # Footer
     lines.extend(
@@ -4370,7 +4304,6 @@ def _generate_customization_report(
 def _write_customization_report(
     cfg: Config,
     *,
-    dry_run: bool,
     enable_workflows: bool = False,
     do_flatten: bool = False,
     do_nuke: bool = False,
@@ -4381,7 +4314,6 @@ def _write_customization_report(
 
     Args:
         cfg: The resolved Config.
-        dry_run: Whether this was a dry-run.
         enable_workflows: Whether workflows were enabled.
         do_flatten: Whether flatten-layout was requested.
         do_nuke: Whether nuke-repo was requested.
@@ -4393,7 +4325,6 @@ def _write_customization_report(
     """
     report_md = _generate_customization_report(
         cfg,
-        dry_run=dry_run,
         enable_workflows=enable_workflows,
         do_flatten=do_flatten,
         do_nuke=do_nuke,
@@ -4405,9 +4336,7 @@ def _write_customization_report(
     return out_path
 
 
-def apply_from_config(
-    filepath: str, *, dry_run: bool = False, force: bool = False
-) -> int:
+def apply_from_config(filepath: str, *, force: bool = False) -> int:
     """Apply customization from an edited Markdown config file.
 
     Parses the file generated by ``--export-config`` and runs the same
@@ -4415,7 +4344,6 @@ def apply_from_config(
 
     Args:
         filepath: Path to the edited config Markdown file.
-        dry_run: If True, preview changes without applying.
         force: If True, skip the already-customized safety check.
 
     Returns:
@@ -4551,7 +4479,6 @@ def apply_from_config(
         template_cleanup=tc_keys,
         template_cleanup_files_only=tc_files_only,
         private_repo=private_repo,
-        dry_run=dry_run,
         strip_files_only=files_only_keys,
     )
 
@@ -4584,7 +4511,13 @@ def apply_from_config(
     replacements = plan_replacements(cfg)
     print_plan(cfg, replacements)
 
-    tag = f"{c.yellow('DRY RUN')} — " if dry_run else ""
+    # ── Execution ──────────────────────────────────────────────
+    ui.section("Applying Changes")
+
+    # If enable_workflows is checked, the YOURNAME/YOURREPO replacement is
+    # already in plan_replacements (rule #1).  No separate pass needed —
+    # a single scan handles both placeholder replacements and workflow
+    # enablement in one sprint.
 
     # Count total steps for progress bar
     total_steps = 1  # text replacements always happens
@@ -4593,91 +4526,149 @@ def apply_from_config(
     total_steps += 1  # package directory
     total_steps += 1  # license
     total_steps += bool(cfg.template_cleanup)
-    total_steps += bool(enable_workflows)
     total_steps += bool(do_flatten)
     total_steps += bool(do_nuke)
 
     start_time = time.monotonic()
-    bar = ProgressBar(total=total_steps, label="Applying", color="cyan")
+    bar = ProgressBar(total=total_steps, label="  Customizing", color="cyan")
 
-    # Execute the same steps as the interactive path
+    # Step: Strip optional directories
     if cfg.strip_dirs:
-        print(f"\n{tag}Stripping optional directories...")
         strip_directories(
             cfg.strip_dirs,
-            dry_run=dry_run,
             files_only_keys=cfg.strip_files_only or None,
         )
         bar.update("strip dirs")
 
+    # Step: Private repo cleanup
     if cfg.private_repo:
-        print(f"\n{tag}Stripping open-source community files (private repo)...")
         strip_directories(
             list(PRIVATE_REPO_STRIP.keys()),
-            dry_run=dry_run,
             strippable=PRIVATE_REPO_STRIP,
         )
         bar.update("private repo")
 
-    print(f"\n{tag}Applying text replacements...")
-    modified = apply_replacements(replacements, dry_run=dry_run, show_progress=True)
-    if dry_run:
-        for path, count in modified.items():
-            rel = path.relative_to(ROOT)
-            print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
-    total = sum(modified.values())
+    # Step: Text replacements (single pass — includes workflow enablement)
+    modified = apply_replacements(replacements, show_progress=False)
+    total_subs = sum(modified.values())
     n_files = len(modified)
-    print(
-        f"  Total: {total} replacement{'s' if total != 1 else ''}"
-        f" in {n_files} file{'s' if n_files != 1 else ''}"
-    )
-    bar.update("replacements")
+    bar.update("text replacements")
 
-    print(f"\n{tag}Package directory...")
-    if not rename_package_dir(cfg, dry_run=dry_run):
-        print("  (no rename needed)")
+    # Step: Package directory rename
+    renamed = rename_package_dir(cfg)
     bar.update("package dir")
 
-    print(f"\n{tag}License...")
-    if not apply_license(cfg, dry_run=dry_run):
-        print("  (keeping Apache-2.0)")
+    # Step: License
+    license_changed = apply_license(cfg)
     bar.update("license")
 
+    # Step: Template cleanup
     if cfg.template_cleanup:
-        print(f"\n{tag}Template cleanup...")
         apply_template_cleanup(
             cfg.template_cleanup,
             cfg,
-            dry_run=dry_run,
             files_only_keys=cfg.template_cleanup_files_only or None,
         )
         bar.update("cleanup")
-    else:
-        print(f"\n{tag}Template cleanup: none")
 
-    if enable_workflows:
-        repo_slug = f"{cfg.github_user}/{cfg.project_name}"
-        print(f"\n{tag}Enabling workflows with repo slug: {repo_slug}")
-        enable_workflows_only(repo_slug, dry_run=dry_run)
-        bar.update("enable workflows")
-
+    # Step: Flatten layout
     if do_flatten:
-        print(f"\n{tag}Converting to flat layout...")
-        _apply_flatten_layout(cfg.package_name, dry_run=dry_run)
+        _apply_flatten_layout(cfg.package_name)
         bar.update("flatten layout")
 
+    # Step: Nuke
     if do_nuke:
-        print(f"\n{tag}NUKE — Deleting all repository contents...")
-        _apply_nuke_repo(dry_run=dry_run)
+        _apply_nuke_repo()
         bar.update("nuke repo")
 
     bar.finish()
     elapsed = time.monotonic() - start_time
 
+    # ── Results Summary ────────────────────────────────────────
+    ui.section("Results")
+    print()
+
+    # Text replacements
+    print(
+        f"    {c.green(sym['check'])} {c.bold('Text replacements')}    "
+        f"{c.cyan(str(total_subs))} replacements across "
+        f"{c.cyan(str(n_files))} files"
+    )
+
+    # Package directory
+    if renamed:
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Package renamed')}     "
+            f"src/{TEMPLATE_PACKAGE_NAME}/ {sym['arrow']} "
+            f"{c.cyan(f'src/{cfg.package_name}/')}"
+        )
+    else:
+        print(
+            f"    {c.dim(sym['check'])} {c.bold('Package directory')}  "
+            f"{c.dim('no rename needed')}"
+        )
+
+    # License
+    if license_changed:
+        name = LICENSE_CHOICES[cfg.license_id]["name"]
+        print(
+            f"    {c.green(sym['check'])} {c.bold('License')}            "
+            f"switched to {c.cyan(str(name))}"
+        )
+    else:
+        print(
+            f"    {c.dim(sym['check'])} {c.bold('License')}            "
+            f"{c.dim('keeping Apache-2.0')}"
+        )
+
+    # Strip dirs
+    if cfg.strip_dirs:
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Stripped')}           "
+            f"{c.cyan(str(len(cfg.strip_dirs)))} optional item(s) removed"
+        )
+
+    # Private repo
+    if cfg.private_repo:
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Private repo')}      "
+            f"{c.cyan('community files stripped')}"
+        )
+
+    # Template cleanup
+    if cfg.template_cleanup:
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Template cleanup')}  "
+            f"{c.cyan(str(len(cfg.template_cleanup)))} item(s) cleaned"
+        )
+
+    # Enable workflows
+    if enable_workflows:
+        repo_slug = f"{cfg.github_user}/{cfg.project_name}"
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Workflows enabled')} "
+            f"repo slug set to {c.cyan(repo_slug)}"
+        )
+
+    # Flatten
+    if do_flatten:
+        print(
+            f"    {c.green(sym['check'])} {c.bold('Flat layout')}       "
+            f"{c.cyan('converted to flat layout')}"
+        )
+
+    # Nuke
+    if do_nuke:
+        print(
+            f"    {c.yellow('!')} {c.bold('Nuked')}              "
+            f"{c.yellow('all repository contents deleted')}"
+        )
+
+    print()
+
     # ── Generate customization report ──
     report_path = _write_customization_report(
         cfg,
-        dry_run=dry_run,
         enable_workflows=enable_workflows,
         do_flatten=do_flatten,
         do_nuke=do_nuke,
@@ -4685,50 +4676,49 @@ def apply_from_config(
         modified_files=modified,
     )
 
-    if dry_run:
+    # Post-customization health check
+    if not do_nuke:
+        ui.section("Health Check")
+        _run_repo_doctor()
         print()
-        print(f"  {c.dim(sym['sep'] * 50)}")
-        print(f"  {c.yellow('Dry run complete')} {sym['dash']} no files were modified.")
-        print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
-        print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
-        report_link = c.link(
-            str(report_path), f"file:///{str(report_path).replace(chr(92), '/')}"
-        )
-        print(f"  {c.dim('Report:')} {c.cyan(report_link)}")
-    else:
-        # Post-customization health check
-        if not do_nuke:
-            print(f"\n{c.bold('Health check...')}")
-            _run_repo_doctor(dry_run=dry_run)
 
-        print()
-        print(f"  {c.dim(sym['sep'] * 50)}")
-        print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
-        print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
-        print(f"\n  {c.bold('Next steps:')}")
-        print(f"  1. Review the changes:      {c.cyan('git diff')}")
-        reinstall_cmd = "pip install -e '.[dev]'"
-        print(f"  2. Reinstall package:       {c.cyan(reinstall_cmd)}")
-        print(f"  3. Run tests:               {c.cyan('task test')}  (or pytest)")
-        verify_cmd = f'python -c "import {cfg.package_name}"'
-        print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
-        print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
-        config_path = Path(filepath)
-        if DELETE_CONFIG_AFTER_APPLY and config_path.is_file():
-            config_path.unlink()
-            print(f"  6. Cleaned up config file:  {c.dim(config_path.name)} (deleted)")
-        elif config_path.is_file():
-            print(
-                f"  6. Config file kept:        {c.dim(config_path.name)}"
-                f" {c.dim('(DELETE_CONFIG_AFTER_APPLY=False)')}"
-            )
-        report_link = c.link(
-            str(report_path), f"file:///{str(report_path).replace(chr(92), '/')}"
+    # ── Completion ─────────────────────────────────────────────
+    print(f"  {c.dim(sym['sep'] * 54)}")
+    print()
+    print(f"    {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
+    print(f"    {c.dim(f'Completed in {elapsed:.1f}s')}")
+    print()
+
+    # Next steps
+    print(f"    {c.bold(c.cyan('Next Steps'))}")
+    print()
+    print(f"    {c.cyan('1.')} Review the changes:      {c.magenta('git diff')}")
+    reinstall_cmd = "pip install -e '.[dev]'"
+    print(f"    {c.cyan('2.')} Reinstall package:       {c.magenta(reinstall_cmd)}")
+    print(f"    {c.cyan('3.')} Run tests:               {c.magenta('task test')}")
+    verify_cmd = f'python -c "import {cfg.package_name}"'
+    print(f"    {c.cyan('4.')} Verify import:           {c.magenta(verify_cmd)}")
+    print(
+        f"    {c.cyan('5.')} Commit your changes:     {c.magenta('git add -A && git commit')}"
+    )
+    config_path = Path(filepath)
+    if DELETE_CONFIG_AFTER_APPLY and config_path.is_file():
+        config_path.unlink()
+        print(
+            f"    {c.cyan('6.')} Cleaned up config file:  {c.dim(config_path.name)} (deleted)"
         )
-        print(f"  7. Report generated:        {c.cyan(report_link)}")
-        print()
-        happy = "\U0001f389 Happy developing!"
-        print(f"  {c.bold(c.green(happy))}")
+    elif config_path.is_file():
+        print(f"    {c.cyan('6.')} Config file kept:        {c.dim(config_path.name)}")
+    report_link = c.link(
+        str(report_path), f"file:///{str(report_path).replace(chr(92), '/')}"
+    )
+    print(f"    {c.cyan('7.')} Report generated:        {c.green(report_link)}")
+    print()
+    from _colors import supports_unicode as _supports_unicode_check
+
+    happy_icon = "\U0001f389 " if _supports_unicode_check() else ""
+    print(f"    {c.bold(c.green(f'{happy_icon}Happy developing!'))}")
+    print()
 
     return 0
 
@@ -4755,7 +4745,7 @@ def main() -> int:
 
     # Handle --enable-workflows as a standalone operation
     if args.enable_workflows:
-        return enable_workflows_only(args.enable_workflows, dry_run=args.dry_run)
+        return enable_workflows_only(args.enable_workflows)
 
     # Handle --export-config as a standalone operation (explicit flag)
     if args.export_config:
@@ -4763,9 +4753,7 @@ def main() -> int:
 
     # Handle --apply-from as a standalone operation
     if args.apply_from:
-        return apply_from_config(
-            args.apply_from, dry_run=args.dry_run, force=args.force
-        )
+        return apply_from_config(args.apply_from, force=args.force)
 
     # Handle --non-interactive as before (direct application)
     if args.non_interactive:
@@ -4820,10 +4808,9 @@ def _export_config_with_status(filepath: str) -> int:
     print()
     print(f"    {ui._themed('2.')} Check the boxes for options you want to enable")
     print()
-    print(f"    {ui._themed('3.')} Preview your changes before applying:")
-    print()
-    preview_cmd = f"python scripts/customize.py --apply-from {filepath} --dry-run"
-    print(f"         {c.magenta(preview_cmd)}")
+    print(
+        f"    {ui._themed('3.')} Review your choices in the file (the config IS your preview)"
+    )
     print()
     print(f"    {ui._themed('4.')} Apply your customization:")
     print()
@@ -4861,7 +4848,6 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
         return 1
 
     cfg = config_from_args(args)
-    cfg.dry_run = args.dry_run
 
     # Plan and show
     replacements = plan_replacements(cfg)
@@ -4869,34 +4855,26 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
 
     c = Colors()
     sym = unicode_symbols()
-    tag = f"{c.yellow('DRY RUN')} — " if cfg.dry_run else ""
 
     # Step 1: Strip optional directories (before rename so paths still match)
     if cfg.strip_dirs:
-        print(f"\n{tag}Stripping optional directories...")
-        strip_directories(cfg.strip_dirs, dry_run=cfg.dry_run)
+        print("\nStripping optional directories...")
+        strip_directories(cfg.strip_dirs)
 
     # Step 1b: Private repo cleanup
     if cfg.private_repo:
-        print(f"\n{tag}Stripping open-source community files (private repo)...")
+        print("\nStripping open-source community files (private repo)...")
         strip_directories(
             list(PRIVATE_REPO_STRIP.keys()),
-            dry_run=cfg.dry_run,
             strippable=PRIVATE_REPO_STRIP,
         )
 
     # Step 2: Text replacements across all files
-    print(f"\n{tag}Applying text replacements...")
+    print("\nApplying text replacements...")
     modified = apply_replacements(
         replacements,
-        dry_run=cfg.dry_run,
         show_progress=not args.quiet,
     )
-    if cfg.dry_run:
-        # In dry-run mode, list every affected file for review
-        for path, count in modified.items():
-            rel = path.relative_to(ROOT)
-            print(f"  {rel} ({count} replacement{'s' if count != 1 else ''})")
     total = sum(modified.values())
     n_files = len(modified)
     print(
@@ -4905,58 +4883,52 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
     )
 
     # Step 3: Rename package directory
-    print(f"\n{tag}Package directory...")
-    if not rename_package_dir(cfg, dry_run=cfg.dry_run):
+    print("\nPackage directory...")
+    if not rename_package_dir(cfg):
         print("  (no rename needed)")
 
     # Step 4: License
-    print(f"\n{tag}License...")
-    if not apply_license(cfg, dry_run=cfg.dry_run):
+    print("\nLicense...")
+    if not apply_license(cfg):
         print("  (keeping Apache-2.0)")
 
     # Step 5: Template cleanup
     if cfg.template_cleanup:
-        print(f"\n{tag}Template cleanup...")
+        print("\nTemplate cleanup...")
         apply_template_cleanup(
             cfg.template_cleanup,
             cfg,
-            dry_run=cfg.dry_run,
             files_only_keys=cfg.template_cleanup_files_only or None,
         )
     else:
-        print(f"\n{tag}Template cleanup: none")
+        print("\nTemplate cleanup: none")
 
-    # Done
-    if cfg.dry_run:
-        print()
-        print(f"  {c.dim(sym['sep'] * 50)}")
-        print(f"  {c.yellow('Dry run complete')} {sym['dash']} no files were modified.")
-        print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
-    else:
-        # Post-customization health check
-        print(f"\n{c.bold('Health check...')}")
-        _run_repo_doctor(dry_run=cfg.dry_run)
+    # Post-customization health check
+    print(f"\n{c.bold('Health check...')}")
+    _run_repo_doctor()
 
-        print()
-        print(f"  {c.dim(sym['sep'] * 50)}")
-        print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
-        ws_file = ROOT / f"{TEMPLATE_PROJECT_NAME}.code-workspace"
-        print(f"\n  {c.bold('Next steps:')}")
-        print(f"  1. Review the changes:      {c.cyan('git diff')}")
-        reinstall_cmd = "pip install -e '.[dev]'"
-        print(f"  2. Reinstall package:       {c.cyan(reinstall_cmd)}")
-        print(f"  3. Run tests:               {c.cyan('task test')}  (or pytest)")
-        verify_cmd = f'python -c "import {cfg.package_name}"'
-        print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
-        print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
-        if ws_file.exists():
-            print(
-                f"  6. Rename workspace:        {TEMPLATE_PROJECT_NAME}.code-workspace"
-                f" {sym['arrow']} {c.cyan(f'{cfg.project_name}.code-workspace')}"
-            )
-        print()
-        happy = "\U0001f389 Happy developing!"
-        print(f"  {c.bold(c.green(happy))}")
+    print()
+    print(f"  {c.dim(sym['sep'] * 50)}")
+    print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
+    ws_file = ROOT / f"{TEMPLATE_PROJECT_NAME}.code-workspace"
+    print(f"\n  {c.bold('Next steps:')}")
+    print(f"  1. Review the changes:      {c.cyan('git diff')}")
+    reinstall_cmd = "pip install -e '.[dev]'"
+    print(f"  2. Reinstall package:       {c.cyan(reinstall_cmd)}")
+    print(f"  3. Run tests:               {c.cyan('task test')}  (or pytest)")
+    verify_cmd = f'python -c "import {cfg.package_name}"'
+    print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
+    print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
+    if ws_file.exists():
+        print(
+            f"  6. Rename workspace:        {TEMPLATE_PROJECT_NAME}.code-workspace"
+            f" {sym['arrow']} {c.cyan(f'{cfg.project_name}.code-workspace')}"
+        )
+    print()
+    from _colors import supports_unicode as _supports_unicode_check
+
+    happy_icon = "\U0001f389 " if _supports_unicode_check() else ""
+    print(f"  {c.bold(c.green(f'{happy_icon}Happy developing!'))}")
 
     # Recommended scripts
     if not args.quiet:
