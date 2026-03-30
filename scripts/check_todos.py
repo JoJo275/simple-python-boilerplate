@@ -42,7 +42,6 @@ from _imports import find_repo_root, import_sibling
 from _ui import UI
 
 _progress = import_sibling("_progress")
-Spinner = _progress.Spinner
 ProgressBar = _progress.ProgressBar
 
 # ---------------------------------------------------------------------------
@@ -261,7 +260,7 @@ def find_todos(
         exclude_dirs: Directory names to skip entirely.
         extra_excludes: Additional path prefixes to exclude.
         exclude_suffixes: Directory name suffixes to skip.
-        show_progress: Show a spinner while scanning.
+        show_progress: Show a progress bar while scanning.
 
     Returns:
         Tuple of (results dict mapping file paths to matches, files_scanned count).
@@ -271,15 +270,14 @@ def find_todos(
     extra = [Path(root / e) for e in (extra_excludes or [])]
     suffixes = exclude_suffixes or set()
     files_scanned = 0
-    spinner = Spinner("Scanning files", color="cyan") if show_progress else None
 
+    # Collect candidate files first so we can show a progress bar
+    candidates: list[tuple[Path, bool]] = []
     for path in sorted(root.rglob("*")):
         if not path.is_file():
             continue
-        # Skip known binary files
         if path.suffix.lower() in BINARY_EXTENSIONS:
             continue
-        # Accept known text extensions, known filenames, or try any other file
         is_known_text = (
             path.suffix.lower() in SCAN_EXTENSIONS or path.name in SCAN_FILENAMES
         )
@@ -287,18 +285,32 @@ def find_todos(
             continue
         if any(path.is_relative_to(e) for e in extra):
             continue
+        candidates.append((path, is_known_text))
 
+    bar = (
+        ProgressBar(total=len(candidates), label="Scanning files", color="cyan")
+        if show_progress
+        else None
+    )
+    if bar:
+        bar.__enter__()
+
+    for path, is_known_text in candidates:
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except (OSError, PermissionError):
+            if bar:
+                bar.update()
             continue
         # Skip files that look binary (contain null bytes in first 8KB)
         if not is_known_text and "\x00" in text[:8192]:
+            if bar:
+                bar.update()
             continue
 
         files_scanned += 1
-        if spinner:
-            spinner.update(str(path.relative_to(root)))
+        if bar:
+            bar.update(str(path.relative_to(root)))
         matches = []
         for i, line in enumerate(text.splitlines(), start=1):
             if pattern_lower in line.lower():
@@ -307,8 +319,8 @@ def find_todos(
         if matches:
             results[path] = matches
 
-    if spinner:
-        spinner.finish()
+    if bar:
+        bar.__exit__(None, None, None)
     log.debug("Scanned %d file(s)", files_scanned)
     return results, files_scanned
 

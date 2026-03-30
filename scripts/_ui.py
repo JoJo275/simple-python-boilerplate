@@ -228,14 +228,21 @@ class UI:
         )
         print(self.c.bold(self._themed(f"  {self.bl_d}{border}{self.br_d}")))
 
-    def section(self, title: str, *, width: int = 60) -> None:
-        """Print a section header with single-border box."""
+    def section(self, title: str, *, width: int = 60, compact: bool = False) -> None:
+        """Print a section header with single-border box.
+
+        Args:
+            title: Section title text.
+            width: Border width.
+            compact: If True, omit the trailing blank line.
+        """
         border = self.h_line * width
         print()
         print(self._themed(f"  {self.tl}{border}{self.tr}"))
         print(f"  {self._themed(self.vl)} {self.c.bold(self._themed(title))}")
         print(self._themed(f"  {self.bl}{border}{self.br}"))
-        print()
+        if not compact:
+            print()
 
     def kv(
         self,

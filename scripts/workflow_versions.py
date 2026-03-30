@@ -1233,7 +1233,11 @@ def main() -> int:
         no_color=not args.color,
     )
     if not quiet:
-        ui.header()
+        use_json = (
+            getattr(args, "json_output", False) and (args.command or "show") == "show"
+        )
+        if not use_json:
+            ui.header()
 
     if not WORKFLOWS_DIR.is_dir():
         logger.error("No workflows directory found at %s", WORKFLOWS_DIR)
