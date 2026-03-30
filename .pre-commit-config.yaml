@@ -98,7 +98,7 @@ repos:
   # Ruff - Fast Python linter and formatter
   # ---------------------------------------------------------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.8
     hooks:
       # Linter
       - id: ruff
@@ -161,7 +161,7 @@ repos:
   # each catches things the other misses.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/crate-ci/typos
-    rev: v1.44.0
+    rev: v1
     hooks:
       - id: typos
         args: [--config, _typos.toml]
@@ -182,7 +182,7 @@ repos:
   # Uses SchemaStore schemas for GitHub workflows, Dependabot, etc.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.0
+    rev: 0.37.1
     hooks:
       - id: check-github-workflows
       - id: check-github-actions
@@ -346,7 +346,7 @@ repos:
   # Scoped to *.md to limit the Node dependency surface.
   # ---------------------------------------------------------------------------
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.21.0
+    rev: v0.22.0
     hooks:
       - id: markdownlint-cli2
         stages: [manual]
