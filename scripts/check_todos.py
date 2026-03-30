@@ -507,10 +507,6 @@ def main() -> int:
     c = Colors()
     show_progress = not args.json_output and not args.count
 
-    if show_progress:
-        ui = UI(title="TODO Scanner", version=SCRIPT_VERSION, theme=THEME)
-        ui.header()
-
     results, files_scanned = find_todos(
         root=ROOT,
         pattern=args.pattern,
@@ -519,6 +515,10 @@ def main() -> int:
         exclude_suffixes=DEFAULT_EXCLUDE_SUFFIXES,
         show_progress=show_progress,
     )
+
+    if show_progress:
+        ui = UI(title="TODO Scanner", version=SCRIPT_VERSION, theme=THEME)
+        ui.header()
 
     report = format_report(
         results,
