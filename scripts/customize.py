@@ -85,6 +85,8 @@ import keyword
 import logging
 import re
 import shutil
+import subprocess  # nosec B404 — only used with static arg lists, no shell
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -489,6 +491,252 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         "downside": (
             "Lose recommended git aliases, merge strategies, and commit "
             "message format. Developers must configure git manually."
+        ),
+    },
+    "vscode-config": {
+        "label": "VS Code configuration (.vscode/)",
+        "paths": [".vscode/"],
+        "description": (
+            "VS Code workspace settings (settings.json, extensions.json) "
+            "that configure Python tooling, formatter, linter, and "
+            "recommended extensions for the project."
+        ),
+        "downside": (
+            "Lose pre-configured VS Code settings. Developers must "
+            "configure their VS Code environment manually. Some "
+            "features like auto-formatting on save and test discovery "
+            "will need manual setup."
+        ),
+    },
+    "code-workspace": {
+        "label": "VS Code workspace file (.code-workspace)",
+        "paths": [],  # Handled specially — dynamically discovers .code-workspace files
+        "description": (
+            "VS Code multi-root workspace file with recommended "
+            "extensions and cosmetic settings. Only needed when "
+            "opening the project via File > Open Workspace from File."
+        ),
+        "downside": (
+            "Lose workspace-level extension recommendations and "
+            "settings overrides. .vscode/settings.json still provides "
+            "full functionality when using File > Open Folder."
+        ),
+    },
+    "all-scripts": {
+        "label": "All scripts (scripts/ — everything except shared modules & customize.py)",
+        "paths": [],  # Handled specially — dynamically discovers scripts
+        "description": (
+            "All scripts in the scripts/ directory except shared modules "
+            "(_colors.py, _imports.py, _ui.py, _progress.py, "
+            "_container_common.py, _doctor_common.py) and customize.py "
+            "itself. Includes subdirectories like precommit/ and sql/."
+        ),
+        "downside": (
+            "Lose ALL automation scripts: bootstrap, doctor, clean, "
+            "label management, containerfile tests, dependency checks, "
+            "changelog checks, TODO archiving, and more. Taskfile tasks "
+            "and pre-commit hooks that call these scripts will break. "
+            "Some GitHub Actions workflows reference these scripts. "
+            "Related test files in tests/unit/ (e.g. test_doctor.py, "
+            "test_bootstrap.py) will become orphaned."
+        ),
+    },
+    "unit-tests": {
+        "label": "Unit tests (tests/unit/)",
+        "paths": ["tests/unit/"],
+        "description": (
+            "All unit test files. These test individual scripts and "
+            "source modules in isolation."
+        ),
+        "downside": (
+            "Lose all unit test coverage. CI test workflows will find "
+            "no tests to run (or fail if expecting test files). "
+            "Recreate from scratch when writing new code."
+        ),
+    },
+    "integration-tests": {
+        "label": "Integration tests (tests/integration/)",
+        "paths": ["tests/integration/"],
+        "description": (
+            "Integration test files including CLI smoke tests and "
+            "database integration tests."
+        ),
+        "downside": (
+            "Lose integration test examples. Must write integration "
+            "tests from scratch when needed."
+        ),
+    },
+    "all-tests": {
+        "label": "All test files (tests/ — unit + integration)",
+        "paths": ["tests/unit/", "tests/integration/"],
+        "description": (
+            "All test files in both unit/ and integration/ directories. "
+            "Keeps conftest.py, __init__.py, and README.md in tests/ root."
+        ),
+        "downside": (
+            "Lose ALL test coverage. CI test workflows will find no "
+            "tests. You start from zero when adding tests."
+        ),
+    },
+    "src-content": {
+        "label": "Source code files (src/ — placeholder modules)",
+        "paths": [],  # Handled specially — clears src/ module files
+        "description": (
+            "All placeholder source files in src/<package>/ directory: "
+            "api.py, cli.py, engine.py, main.py, and dev_tools/. Keeps "
+            "__init__.py, _version.py, and py.typed for package structure."
+        ),
+        "downside": (
+            "Lose all placeholder source code. Entry points in "
+            "pyproject.toml still reference these files — update them "
+            "if you rename or restructure. Tests that import these "
+            "modules will break."
+        ),
+    },
+    "docs-all": {
+        "label": "Entire docs/ directory (all documentation)",
+        "paths": ["docs/"],
+        "description": (
+            "The entire documentation directory including ADRs, design "
+            "docs, development guides, reference docs, user guides, "
+            "notes, templates, and top-level doc files. This removes "
+            "everything under docs/."
+        ),
+        "downside": (
+            "Lose ALL documentation: ADRs, architecture docs, dev "
+            "setup guides, API reference, and more. MkDocs builds "
+            "will fail completely. mkdocs.yml references all these "
+            "files. The copilot-instructions.md references design "
+            "docs for context. Significant loss of project knowledge."
+        ),
+    },
+    "github-all": {
+        "label": "Entire .github/ directory (workflows, templates, config)",
+        "paths": [".github/"],
+        "description": (
+            "The entire .github/ directory including all CI/CD workflows, "
+            "issue templates, PR templates, dependabot config, labeler "
+            "config, CODEOWNERS, funding config, and copilot instructions."
+        ),
+        "downside": (
+            "Lose ALL GitHub integration: CI/CD pipelines, automated "
+            "security scanning, dependency updates, issue/PR templates, "
+            "code ownership definitions, and Copilot context. Your "
+            "repository will have zero automation on GitHub."
+        ),
+    },
+    "pre-commit-config": {
+        "label": "Pre-commit configuration (.pre-commit-config.yaml)",
+        "paths": [".pre-commit-config.yaml"],
+        "description": (
+            "Pre-commit hook configuration with ~47 hooks across "
+            "pre-commit, commit-msg, pre-push, and manual stages."
+        ),
+        "downside": (
+            "Lose all pre-commit hooks: linting, formatting, security "
+            "checks, type checking, and commit message validation will "
+            "no longer run automatically before commits."
+        ),
+    },
+    "taskfile-config": {
+        "label": "Taskfile (Taskfile.yml)",
+        "paths": ["Taskfile.yml"],
+        "description": (
+            "Task runner configuration with shortcuts for test, lint, "
+            "fmt, typecheck, and other common development commands."
+        ),
+        "downside": (
+            "Lose all `task` command shortcuts. Developers must run "
+            "individual tool commands directly (pytest, ruff, mypy, etc.)."
+        ),
+    },
+    "mkdocs-config": {
+        "label": "MkDocs configuration (mkdocs.yml)",
+        "paths": ["mkdocs.yml"],
+        "description": (
+            "MkDocs Material documentation site configuration. Controls "
+            "the documentation structure, theme, plugins, and navigation."
+        ),
+        "downside": (
+            "Cannot build documentation site. `hatch run docs:serve` "
+            "will fail. Must recreate mkdocs.yml from scratch for "
+            "documentation hosting."
+        ),
+    },
+    "dependabot-config": {
+        "label": "Dependabot configuration (.github/dependabot.yml)",
+        "paths": [".github/dependabot.yml"],
+        "description": (
+            "Dependabot configuration for automated dependency update "
+            "pull requests. Covers pip, GitHub Actions, and Docker."
+        ),
+        "downside": (
+            "Lose automated dependency update PRs. Must monitor and "
+            "update dependencies manually."
+        ),
+    },
+    "dist-artifacts": {
+        "label": "Build artifacts (dist/)",
+        "paths": ["dist/"],
+        "description": (
+            "Build output directory containing wheel and sdist packages "
+            "generated by `hatch build`. These are reproducible."
+        ),
+        "downside": ("Must re-run `hatch build` to recreate. No functional loss."),
+    },
+    "typos-config": {
+        "label": "Typos configuration (_typos.toml)",
+        "paths": ["_typos.toml"],
+        "description": (
+            "Configuration for the typos spell checker used in CI and "
+            "pre-commit. Contains false-positive exclusions."
+        ),
+        "downside": (
+            "Typos CI checks and pre-commit hook may report false "
+            "positives without the ignore list."
+        ),
+    },
+    "changelog": {
+        "label": "Changelog (CHANGELOG.md)",
+        "paths": ["CHANGELOG.md"],
+        "description": (
+            "Project changelog auto-generated by release-please. "
+            "Contains the template project's release history, not yours."
+        ),
+        "downside": (
+            "Lose commit history documentation. Release-please will "
+            "recreate it on your first release if configured."
+        ),
+    },
+    "github-issue-templates": {
+        "label": "GitHub issue & PR templates (.github/ISSUE_TEMPLATE/, PULL_REQUEST_TEMPLATE.md)",
+        "paths": [
+            ".github/ISSUE_TEMPLATE/",
+            ".github/PULL_REQUEST_TEMPLATE.md",
+        ],
+        "description": (
+            "GitHub issue form templates (bug reports, feature requests, "
+            "design proposals, etc.) and pull request template."
+        ),
+        "downside": (
+            "Lose standardized issue and PR templates. Contributors will "
+            "create issues and PRs without structured forms."
+        ),
+    },
+    "github-config-files": {
+        "label": "GitHub config files (CODEOWNERS, labeler, funding)",
+        "paths": [
+            ".github/CODEOWNERS",
+            ".github/labeler.yml",
+            ".github/FUNDING.yml",
+        ],
+        "description": (
+            "GitHub repository configuration: code ownership rules, "
+            "automatic PR labeling, and sponsorship/funding links."
+        ),
+        "downside": (
+            "Lose automatic code review assignments, PR auto-labeling, "
+            "and GitHub Sponsors configuration."
         ),
     },
 }
@@ -1406,6 +1654,95 @@ def rename_package_dir(cfg: Config, *, dry_run: bool = False) -> bool:
     return True
 
 
+# Shared script modules that should NEVER be deleted by all-scripts
+_SHARED_MODULES: set[str] = {
+    "_colors.py",
+    "_imports.py",
+    "_ui.py",
+    "_progress.py",
+    "_container_common.py",
+    "_doctor_common.py",
+    "customize.py",
+}
+
+
+def _discover_all_scripts() -> list[str]:
+    """Dynamically discover all deletable scripts in scripts/.
+
+    Returns paths for all scripts except shared modules
+    (_colors.py, _imports.py, _ui.py, _progress.py,
+    _container_common.py, _doctor_common.py) and customize.py.
+
+    Returns:
+        List of relative paths (files and subdirectories).
+    """
+    scripts_dir = ROOT / "scripts"
+    paths: list[str] = []
+    if not scripts_dir.is_dir():
+        return paths
+    for entry in sorted(scripts_dir.iterdir()):
+        if entry.name.startswith("."):
+            continue
+        rel = f"scripts/{entry.name}"
+        if entry.is_dir():
+            if entry.name not in {"__pycache__"}:
+                paths.append(f"{rel}/")
+        elif entry.is_file() and entry.name not in _SHARED_MODULES:
+            paths.append(rel)
+    return paths
+
+
+def _discover_src_content_files() -> list[str]:
+    """Dynamically discover deletable source files in src/<package>/.
+
+    Returns paths for all source files except __init__.py,
+    _version.py, and py.typed.
+
+    Returns:
+        List of relative paths.
+    """
+    # Try current package name, fall back to template
+    pkg_dir = ROOT / "src" / TEMPLATE_PACKAGE_NAME
+    if not pkg_dir.is_dir():
+        # Check for any subdirectory in src/
+        src_dir = ROOT / "src"
+        if not src_dir.is_dir():
+            return []
+        subdirs = [
+            d for d in src_dir.iterdir() if d.is_dir() and d.name != "__pycache__"
+        ]
+        if not subdirs:
+            return []
+        pkg_dir = subdirs[0]
+
+    preserve = {"__init__.py", "_version.py", "py.typed"}
+    paths: list[str] = []
+    pkg_rel = f"src/{pkg_dir.name}"
+
+    for entry in sorted(pkg_dir.iterdir()):
+        if entry.name in preserve or entry.name == "__pycache__":
+            continue
+        rel = f"{pkg_rel}/{entry.name}"
+        if entry.is_dir():
+            paths.append(f"{rel}/")
+        elif entry.is_file():
+            paths.append(rel)
+    return paths
+
+
+def _discover_code_workspace_files() -> list[str]:
+    """Dynamically discover .code-workspace files at the repo root.
+
+    Returns:
+        List of relative paths for any .code-workspace files found.
+    """
+    return [
+        entry.name
+        for entry in sorted(ROOT.iterdir())
+        if entry.is_file() and entry.suffix == ".code-workspace"
+    ]
+
+
 def strip_directories(
     keys: list[str],
     *,
@@ -1446,6 +1783,15 @@ def strip_directories(
             continue
         label = str(entry.get("label", key))
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
+
+        # Dynamic path discovery for special entries with empty paths
+        if key == "all-scripts" and not paths:
+            paths = _discover_all_scripts()
+        elif key == "src-content" and not paths:
+            paths = _discover_src_content_files()
+        elif key == "code-workspace" and not paths:
+            paths = _discover_code_workspace_files()
+
         is_files_only = key in files_only
 
         # Partition into existing dirs and files
@@ -2399,8 +2745,14 @@ def _detect_untracked_items() -> list[dict[str, str]]:
     """
     covered: set[str] = set()
     for registry in (STRIPPABLE, TEMPLATE_CLEANUP, PRIVATE_REPO_STRIP):
-        for entry in registry.values():
+        for key, entry in registry.items():
             paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
+            # Include dynamically discovered paths for keys with empty paths
+            if not paths:
+                if key == "code-workspace":
+                    paths = _discover_code_workspace_files()
+                elif key == "src-content":
+                    paths = _discover_src_content_files()
             for p in paths:
                 # Normalize: strip trailing slash, take first path component
                 normalized = p.rstrip("/").split("/")[0]
@@ -2476,6 +2828,121 @@ def _build_repo_tree() -> str:
     return "\n".join(lines)
 
 
+# Known file/directory descriptions for the glossary.
+# Covers root-level files, top-level directories, and key config files.
+_FILE_DESCRIPTIONS: dict[str, str] = {
+    # ── Root files ──
+    "pyproject.toml": "Project metadata, dependencies, and tool configs (ruff, mypy, pytest, bandit).",
+    "README.md": "Project overview and quick-start instructions.",
+    "LICENSE": "Open-source license terms.",
+    "CHANGELOG.md": "Version history following Keep a Changelog format.",
+    "CONTRIBUTING.md": "Contributor guidelines (workflow, code style, PR process).",
+    "CODE_OF_CONDUCT.md": "Community code of conduct.",
+    "SECURITY.md": "Security policy and vulnerability reporting instructions.",
+    "Taskfile.yml": "Task runner shortcuts (`task test`, `task lint`, `task fmt`, etc.).",
+    "mkdocs.yml": "MkDocs Material documentation site configuration.",
+    "Containerfile": "Multi-stage container image build definition.",
+    "docker-compose.yml": "Local development container orchestration.",
+    "codecov.yml": "Codecov coverage reporting configuration.",
+    "coverage.json": "Coverage data snapshot.",
+    "release-please-config.json": "Release-please automation configuration.",
+    "requirements.txt": "Pip requirements for production (mirrors pyproject.toml).",
+    "requirements-dev.txt": "Pip requirements for development (mirrors pyproject.toml).",
+    "_typos.toml": "Typos spell-checker configuration and word exceptions.",
+    "customize-config.md": "Generated offline customization config (this file).",
+    "container-structure-test.yml": "Container structure test assertions.",
+    "pgp-key.asc": "PGP public key for commit signing / identity verification.",
+    "commit-report.md": "Generated commit activity report.",
+    "repo-sauron-report.md": "Generated repository overview report.",
+    "git-config-reference.md": "Git configuration reference guide.",
+    "test-config-ref.md": "Test configuration reference guide.",
+    # ── Directories ──
+    "src/": "Source code (src/ layout). Contains the main Python package.",
+    "tests/": "Test suite — unit and integration tests.",
+    "scripts/": "Utility and automation scripts for development tasks.",
+    "docs/": "MkDocs documentation source files.",
+    "docs/adr/": "Architecture Decision Records documenting design choices.",
+    "docs/design/": "System architecture and design documentation.",
+    "docs/development/": "Developer setup and contribution guides.",
+    "docs/guide/": "User-facing how-to guides.",
+    "docs/notes/": "Developer notes, learning resources, and scratch docs.",
+    "docs/reference/": "API and command reference documentation.",
+    "docs/templates/": "Reusable document templates (security policy, issue templates).",
+    "db/": "Database schema, migrations, seed data, and example queries.",
+    "db/migrations/": "SQL migration scripts (numbered, sequential).",
+    "db/seeds/": "Database seed data for development/testing.",
+    "db/queries/": "Example SQL queries.",
+    "experiments/": "Scratch code for prototyping and testing ideas.",
+    "var/": "Local runtime data and state (SQLite, logs, temp files).",
+    "labels/": "GitHub label definitions (JSON) for issue/PR management.",
+    "mkdocs-hooks/": "MkDocs build hooks (repo links, command generation, template includes).",
+    "repo_doctor.d/": "TOML rule profiles for the repo-doctor health checker.",
+    ".github/": "GitHub-specific config (workflows, templates, dependabot, etc.).",
+    ".vscode/": "VS Code editor settings and extension recommendations.",
+}
+
+
+def _build_file_glossary() -> list[str]:
+    """Build a glossary of root files and directories with descriptions.
+
+    Scans the repository root and produces a Markdown table mapping each
+    file / directory to a one-line description.  Descriptions are drawn from
+    ``_FILE_DESCRIPTIONS`` when available; otherwise a generic description
+    is inferred from the file extension or name.
+
+    Returns:
+        List of Markdown lines (without trailing newline per line).
+    """
+    extension_hints: dict[str, str] = {
+        ".py": "Python script.",
+        ".md": "Markdown documentation.",
+        ".yml": "YAML configuration.",
+        ".yaml": "YAML configuration.",
+        ".toml": "TOML configuration.",
+        ".json": "JSON data / configuration.",
+        ".txt": "Plain-text file.",
+        ".sh": "Shell script.",
+        ".sql": "SQL script.",
+        ".cfg": "Configuration file.",
+    }
+
+    try:
+        entries = sorted(
+            ROOT.iterdir(),
+            key=lambda e: (not e.is_dir(), e.name.lower()),
+        )
+    except PermissionError:
+        return ["*Could not read repository root.*"]
+
+    # Filter out hidden dirs, caches, build artifacts
+    entries = [
+        e
+        for e in entries
+        if not (
+            e.name.startswith(".")
+            or e.name in SKIP_DIRS
+            or e.name.endswith(".egg-info")
+        )
+    ]
+
+    lines: list[str] = [
+        "| Path | Description |",
+        "| :--- | :--- |",
+    ]
+
+    for entry in entries:
+        name = f"{entry.name}/" if entry.is_dir() else entry.name
+        desc = _FILE_DESCRIPTIONS.get(name)
+        if desc is None and not entry.is_dir():
+            # Fallback: infer from extension
+            desc = extension_hints.get(entry.suffix.lower(), "Project file.")
+        elif desc is None:
+            desc = "Project directory."
+        lines.append(f"| `{name}` | {desc} |")
+
+    return lines
+
+
 def export_customize_config(filepath: str) -> str:
     """Write a Markdown configuration file for offline editing.
 
@@ -2546,10 +3013,11 @@ def export_customize_config(filepath: str) -> str:
             "- [Project Identity](#project-identity)",
             "- [License](#license)",
             "- [Repository Visibility](#repository-visibility)",
+            "- [Enable Workflows](#enable-workflows)",
             "- [Repository Layout](#repository-layout)",
             "- [Items to Remove](#items-to-remove)",
             "- [Item Details & Trade-offs](#item-details--trade-offs)",
-            "- [Script Recommended](#script-recommended)",
+            "- [Recommended Scripts](#recommended-scripts)",
             "- [Quick Reference](#quick-reference)",
             "- [Applying Changes from This File](#applying-changes-from-this-file)",
             "",
@@ -2566,10 +3034,16 @@ def export_customize_config(filepath: str) -> str:
             "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
             "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
             "",
-            "> **Tip:** In VS Code, checkboxes are clickable in the Markdown preview.",
-            "> Clicking a checkbox toggles it in the underlying file. Ensure the setting",
-            "> `markdown.editor.toggleCheckboxInPreview` is enabled (it is on by default).",
-            "> Alternatively, edit the raw Markdown: change `[ ]` to `[x]` (or vice versa).",
+            "> **Tip \u2014 Clickable checkboxes:** In VS Code, checkboxes are clickable in the",
+            "> Markdown preview (Ctrl+Shift+V or the preview icon). Clicking a checkbox",
+            "> toggles `[ ]` \u2194 `[x]` in the source file. If clicking does nothing:",
+            ">",
+            "> 1. Ensure the VS Code setting `markdown.editor.toggleCheckboxInPreview`",
+            ">    is **enabled** (it is on by default in this project's `.vscode/settings.json`).",
+            "> 2. Make sure you are viewing the **Markdown preview**, not the raw source.",
+            "> 3. If using the side-by-side preview, click the checkbox in the **right** pane.",
+            ">",
+            "> Alternatively, edit the raw Markdown directly: change `[ ]` to `[x]` (or vice versa).",
             "",
             "> **Tip:** For a fully non-interactive approach without editing this file,",
             "> use `python scripts/customize.py --non-interactive --project-name NAME",
@@ -2647,6 +3121,35 @@ def export_customize_config(filepath: str) -> str:
         lines.extend(f"  - `{p}`" for p in priv_paths)
     lines.append("")
 
+    # ── Enable Workflows ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Enable Workflows",
+            "",
+            "GitHub Actions workflows ship with a placeholder `YOURNAME/YOURREPO` in",
+            "permission and repository references. Checking the box below replaces that",
+            "placeholder with your **GitHub user** and **Project name** from the",
+            "[Project Identity](#project-identity) table (e.g. `myuser/my-project`).",
+            "",
+            "This is equivalent to running:",
+            "```bash",
+            "python scripts/customize.py --enable-workflows myuser/my-project",
+            "```",
+            "",
+            "- [ ] **Enable all workflows** (`enable-workflows`) \u2014 Replace `YOURNAME/YOURREPO`"
+            " in every `.yml` file under `.github/workflows/` with your repo slug.",
+            "",
+            "> **What this changes:** Each workflow `.yaml` file under `.github/workflows/`",
+            "> contains a `YOURNAME/YOURREPO` placeholder in repository references,",
+            "> permissions, and environment URLs. This operation finds and replaces every",
+            "> occurrence so workflows can run on your fork/clone. Without this step,",
+            "> workflows that reference the repository by name will fail.",
+            "",
+        ]
+    )
+
     # ── Repository Layout (moved above items to remove) ──
     lines.extend(
         [
@@ -2674,16 +3177,28 @@ def export_customize_config(filepath: str) -> str:
         ]
     )
 
+    # ── File Glossary ──
+    lines.extend(
+        [
+            "<details>",
+            "<summary><strong>Click to expand file glossary</strong></summary>",
+            "",
+        ]
+    )
+    lines.extend(_build_file_glossary())
+    lines.extend(
+        [
+            "",
+            "</details>",
+            "",
+        ]
+    )
+
     # ── Items to Remove (merged section) ──
     # CSS to center detail anchors in the viewport when clicked
     lines.extend(
         [
             "---",
-            "",
-            "<style>",
-            '[id^="detail-"] { scroll-margin-top: 40vh; }',
-            '[id^="item-"] { scroll-margin-top: 40vh; }',
-            "</style>",
             "",
             "## Items to Remove",
             "",
@@ -2726,6 +3241,15 @@ def export_customize_config(filepath: str) -> str:
     ) -> None:
         """Append a checkbox item with file listing to *lines*."""
         i_paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
+
+        # Dynamic path discovery for special entries with empty paths
+        if key == "all-scripts" and not i_paths:
+            i_paths = _discover_all_scripts()
+        elif key == "src-content" and not i_paths:
+            i_paths = _discover_src_content_files()
+        elif key == "code-workspace" and not i_paths:
+            i_paths = _discover_code_workspace_files()
+
         lines.append(f'<a id="item-{key}"></a>')
         lines.append("")
         lines.append(
@@ -2774,6 +3298,41 @@ def export_customize_config(filepath: str) -> str:
         # explicit paths — skip the files-only sub-option for them.
         _emit_item_entry(key, entry, show_files_only=has_paths)
 
+    # ── Special Operations ──
+    lines.extend(
+        [
+            "### Special Operations",
+            "",
+            "These are structural or destructive operations that go beyond "
+            "removing individual items.",
+            "",
+            '<a id="item-flatten-layout"></a>',
+            "",
+            "- [ ] **Convert to flat layout** (`flatten-layout`) \u2014 Move package from "
+            "`src/<package>/` to `<package>/` at repository root. Updates imports, "
+            "pyproject.toml build config, and test paths. This is a one-way structural "
+            "change. See [ADR 001](docs/adr/001-src-layout.md) for why src/ layout was chosen.",
+            "",
+            "> **What changes:** The `src/` directory is removed. Your package directory "
+            "> moves to the repository root. `pyproject.toml` build backend changes from "
+            '> `packages = ["src"]` to default discovery. Test imports and CI paths are '
+            "> updated. This matches the flat layout used by many smaller Python projects.",
+            "",
+            '<a id="item-nuke-repo"></a>',
+            "",
+            "- [ ] **\u2622\ufe0f NUKE \u2014 Delete entire repository contents** (`nuke-repo`) \u2014 Remove "
+            "**ALL** files and directories in the repository, leaving only an empty directory. "
+            "This is irreversible without git history. Use this when you want to start "
+            "completely from scratch with nothing but a `.git/` directory.",
+            "",
+            "> **\u26a0\ufe0f WARNING:** This will delete EVERYTHING \u2014 source code, tests, docs, "
+            "> scripts, workflows, configuration, and this config file itself. The only way "
+            "> to recover is from git history (`git checkout HEAD -- .`). Use with extreme "
+            "> caution. You will be prompted for confirmation even in non-interactive mode.",
+            "",
+        ]
+    )
+
     # ── Item Details & Trade-offs ──
     lines.extend(
         [
@@ -2793,10 +3352,17 @@ def export_customize_config(filepath: str) -> str:
     for key, entry in STRIPPABLE.items():
         desc = str(entry.get("description", ""))
         downside = str(entry.get("downside", ""))
-        s_paths = entry["paths"]  # type: ignore[assignment]
-        lines.append(f'<a id="detail-{key}"></a>')
-        lines.append("")
-        lines.append(f"#### `{key}` \u2014 {entry['label']}")
+        s_paths: list[str] = entry["paths"]  # type: ignore[assignment]
+
+        # Dynamic path discovery for special entries
+        if key == "all-scripts" and not s_paths:
+            s_paths = _discover_all_scripts()
+        elif key == "src-content" and not s_paths:
+            s_paths = _discover_src_content_files()
+        elif key == "code-workspace" and not s_paths:
+            s_paths = _discover_code_workspace_files()
+
+        lines.append(f'#### <a id="detail-{key}"></a>`{key}` \u2014 {entry["label"]}')
         lines.append("")
         if desc:
             lines.append(f"> **What it is:** {desc}")
@@ -2804,12 +3370,31 @@ def export_customize_config(filepath: str) -> str:
         if downside:
             lines.append(f"> \u26a0\ufe0f **Downsides:** {downside}")
             lines.append("")
-        lines.append("**Files affected:**")
-        for p in s_paths:
-            exists = (ROOT / p).exists()
-            status = "\u2705" if exists else "\u274c not found"
-            lines.append(f"- `{p}` {status}")
+        if s_paths:
+            lines.append("**Files affected:**")
+            for p in s_paths:
+                exists = (ROOT / p).exists()
+                status = "\u2705" if exists else "\u274c not found"
+                lines.append(f"- `{p}` {status}")
+        else:
+            lines.append("**Files affected:** *(dynamically discovered at apply time)*")
         lines.append("")
+        # Note about related test files for script entries
+        if key in {
+            "all-scripts",
+            "utility-scripts",
+            "repo-doctor",
+            "labels",
+            "repo-sauron",
+        }:
+            lines.append(
+                "> **Note:** Deleting scripts does NOT automatically delete their "
+                "related test files in `tests/unit/` (e.g. `test_doctor.py`, "
+                "`test_bootstrap.py`). Those tests will become orphaned and fail. "
+                "Consider also selecting **unit-tests** or manually removing the "
+                "corresponding test files."
+            )
+            lines.append("")
         lines.append(f"\u2191 [Back to selection](#item-{key})")
         lines.append("")
         lines.append("---")
@@ -2826,9 +3411,7 @@ def export_customize_config(filepath: str) -> str:
         downside = str(entry.get("downside", ""))
         disclaimer = str(entry.get("disclaimer", ""))
         t_paths: list[str] = entry.get("paths", [])  # type: ignore[assignment]
-        lines.append(f'<a id="detail-{key}"></a>')
-        lines.append("")
-        lines.append(f"#### `{key}` \u2014 {entry['label']}")
+        lines.append(f'#### <a id="detail-{key}"></a>`{key}` \u2014 {entry["label"]}')
         lines.append("")
         if desc:
             lines.append(f"> **What it is:** {desc}")
@@ -2851,37 +3434,24 @@ def export_customize_config(filepath: str) -> str:
         lines.append("---")
         lines.append("")
 
-    # ── Script Recommended ──
+    # ── Recommended Scripts ──
     lines.extend(
         [
-            "## Script Recommended",
+            "## Recommended Scripts",
             "",
-            "While this Markdown file provides a visual way to configure customization,",
-            "the **recommended approach for automation and reproducibility** is to use",
-            "the script directly:",
+            "Scripts that help before, during, and after customization.",
             "",
-            "```bash",
-            "# Interactive wizard (guided step-by-step)",
-            "python scripts/customize.py",
-            "",
-            "# Non-interactive (CI/automation friendly)",
-            "python scripts/customize.py --non-interactive \\",
-            "    --project-name my-project \\",
-            '    --author "Your Name" \\',
-            "    --github-user yourusername \\",
-            "    --strip db experiments var \\",
-            "    --template-cleanup adr-files docs-notes placeholder-code",
-            "```",
-            "",
-            "**Advantages of the script over this file:**",
-            "",
-            "| Feature | Script | This file |",
+            "| Script | Command | Description |",
             "| :--- | :--- | :--- |",
-            "| Validation | \u2705 Real-time input validation | \u274c No validation until apply |",
-            "| Dynamic discovery | \u2705 Always current file lists | \u26a0\ufe0f Snapshot at generation time |",
-            "| Automation | \u2705 `--non-interactive` flag | \u274c Requires manual editing |",
-            "| Dry run | \u2705 `--dry-run` flag | \u2705 `--dry-run` flag |",
-            "| Reproducibility | \u2705 Full CLI args | \u26a0\ufe0f File-based config |",
+            "| **Bootstrap** | `python scripts/bootstrap.py` | One-command project setup for fresh clones |",
+            "| **Doctor** | `python scripts/doctor.py` | Unified health check (runs all doctors) |",
+            "| **Repo Sauron** | `python scripts/repo_sauron.py` | Repository statistics Markdown report |",
+            "| **Clean** | `python scripts/clean.py` | Remove build artifacts and caches |",
+            "| **Env Doctor** | `python scripts/env_doctor.py` | Development environment diagnostics |",
+            "| **Dep Versions** | `python scripts/dep_versions.py show` | Dependency versions and update status |",
+            "",
+            "> **Tip:** Run `python scripts/bootstrap.py` first after customization to",
+            "> reinstall dependencies and verify your environment is healthy.",
             "",
         ]
     )
@@ -2930,6 +3500,10 @@ def export_customize_config(filepath: str) -> str:
             "- **Bulk actions** override individual selections when checked.",
             "- **Files only** options delete files but preserve directory structures.",
             "- **Directories delete dynamically** \u2014 all contents are removed, including files added after this config was generated.",
+            "- **Enable Workflows** replaces `YOURNAME/YOURREPO` in all workflow `.yml` files.",
+            "- **Flatten layout** moves your package from `src/` to the repo root.",
+            "- **Nuke** deletes everything (recoverable via `git checkout HEAD -- .`).",
+            "- **Deleting scripts** does NOT auto-delete related test files \u2014 do that separately.",
             "- Use `--dry-run` to preview all changes before applying.",
             "- Use `--force` to skip the already-customized safety check.",
             "",
@@ -2991,10 +3565,10 @@ def _parse_md_checkboxes(content: str, section_heading: str) -> list[str]:
     )
     section_text = content[heading_match.end() : section_end]
 
-    # Find checked boxes with key in parens (backtick-wrapped)
+    # Find checked boxes with key in backtick-wrapped parens: (`key`)
     checked: list[str] = [
         match.group(1)
-        for match in re.finditer(r"-\s*\[x\]\s*\*?\*?[^(]*\(`([^)]+)`\)", section_text)
+        for match in re.finditer(r"-\s*\[x\]\s*.*\(`([^)]+)`\)", section_text)
     ]
 
     return checked
@@ -3041,6 +3615,156 @@ def _parse_md_private_repo(content: str) -> bool:
     return bool(
         re.search(r"-\s*\[x\]\s*\*\*Private repository\*\*", content, re.IGNORECASE)
     )
+
+
+def _apply_flatten_layout(package_name: str, *, dry_run: bool = False) -> None:
+    """Convert from src/ layout to flat layout.
+
+    Moves the package directory from ``src/<package>/`` to ``<package>/``
+    at the repository root, removes the now-empty ``src/`` directory,
+    and updates pyproject.toml to remove the src/ directory reference.
+
+    Args:
+        package_name: The package name (underscored).
+        dry_run: If True, report without modifying.
+    """
+    c = Colors()
+    sym = unicode_symbols()
+
+    src_pkg = ROOT / "src" / package_name
+    dst_pkg = ROOT / package_name
+
+    if not src_pkg.is_dir():
+        print(
+            f"  {c.yellow(sym['warn'])} src/{package_name}/ not found — skipping flatten"
+        )
+        return
+
+    if dst_pkg.exists():
+        print(
+            f"  {c.yellow(sym['warn'])} {package_name}/ already exists at root — skipping flatten"
+        )
+        return
+
+    if dry_run:
+        print(f"  Would move: src/{package_name}/ -> {package_name}/")
+        print("  Would update pyproject.toml build paths")
+        print("  Would remove: src/ directory")
+    else:
+        # Move the package directory
+        shutil.move(str(src_pkg), str(dst_pkg))
+        print(
+            f"  {c.green(sym['check'])} Moved: src/{package_name}/ -> {package_name}/"
+        )
+
+        # Remove src/ README if present
+        src_readme = ROOT / "src" / "README.md"
+        if src_readme.is_file():
+            src_readme.unlink()
+
+        # Remove empty src/ directory
+        src_dir = ROOT / "src"
+        if src_dir.is_dir() and not list(src_dir.iterdir()):
+            src_dir.rmdir()
+            print(f"  {c.green(sym['check'])} Removed empty: src/")
+
+        # Update pyproject.toml to remove src/ layout reference
+        pyproject = ROOT / "pyproject.toml"
+        if pyproject.is_file():
+            text = pyproject.read_text(encoding="utf-8")
+            # Remove or update hatchling src directory config
+            text = text.replace('sources = ["src"]', "")
+            text = text.replace("sources = ['src']", "")
+            text = text.replace('packages = ["src"]', "")
+            pyproject.write_text(text, encoding="utf-8")
+            print(f"  {c.green(sym['check'])} Updated pyproject.toml build paths")
+
+
+def _apply_nuke_repo(*, dry_run: bool = False) -> None:
+    """Delete ALL files and directories in the repository (except .git/).
+
+    Args:
+        dry_run: If True, report without modifying.
+    """
+    c = Colors()
+    sym = unicode_symbols()
+
+    count = 0
+    for entry in sorted(ROOT.iterdir()):
+        if entry.name == ".git":
+            continue
+        if dry_run:
+            kind = "directory" if entry.is_dir() else "file"
+            print(f"  Would remove {kind}: {entry.name}")
+        else:
+            try:
+                if entry.is_dir():
+                    shutil.rmtree(entry)
+                else:
+                    entry.unlink()
+            except (OSError, PermissionError) as exc:
+                log.warning("  Failed to remove %s: %s", entry.name, exc)
+                continue
+        count += 1
+
+    if dry_run:
+        print(f"\n  Would remove {count} items (everything except .git/)")
+    else:
+        print(
+            f"\n  {c.green(sym['check'])} Removed {count} items — repository is now empty"
+        )
+        print(f"  {c.dim('Recover with: git checkout HEAD -- .')}")
+
+
+def _run_repo_doctor(*, dry_run: bool = False) -> bool:
+    """Run repo_doctor.py --missing as a post-customization health check.
+
+    Args:
+        dry_run: If True, report what would run without executing.
+
+    Returns:
+        True if the check ran (or would run) and passed, False otherwise.
+    """
+    c = Colors()
+    sym = unicode_symbols()
+    doctor_script = ROOT / "scripts" / "repo_doctor.py"
+    if not doctor_script.is_file():
+        print(f"  {c.dim('repo_doctor.py not found — skipping health check')}")
+        return True
+
+    if dry_run:
+        print("  Would run: python scripts/repo_doctor.py --missing")
+        return True
+
+    print(f"  {c.dim('Running repo health check...')}")
+    try:
+        result = subprocess.run(  # nosec B603 — args are static, no user input
+            [sys.executable, str(doctor_script), "--missing"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            # Count warnings in output
+            warn_count = result.stdout.count("WARN") + result.stdout.count("\u26a0")
+            if warn_count > 0:
+                print(
+                    f"  {c.yellow(sym['warn'])} Health check: "
+                    f"{warn_count} warning{'s' if warn_count != 1 else ''} "
+                    f"(expected after stripping files)"
+                )
+            else:
+                print(f"  {c.green(sym['check'])} Health check: all checks passed")
+            return True
+        print(
+            f"  {c.yellow(sym['warn'])} Health check returned "
+            f"exit code {result.returncode}"
+        )
+        return False
+    except (subprocess.TimeoutExpired, OSError) as exc:
+        print(f"  {c.yellow(sym['warn'])} Health check failed: {exc}")
+        return False
 
 
 def apply_from_config(
@@ -3103,7 +3827,17 @@ def apply_from_config(
         "delete-all-dirs",
         "delete-all-files",
     }
+
     all_remove_keys = _parse_md_checkboxes(content, "Items to Remove")
+
+    # Parse enable-workflows from its own section
+    enable_workflows_keys = _parse_md_checkboxes(content, "Enable Workflows")
+    enable_workflows = "enable-workflows" in enable_workflows_keys
+
+    # Extract special operations
+    do_flatten = "flatten-layout" in all_remove_keys
+    do_nuke = "nuke-repo" in all_remove_keys
+
     if all_remove_keys:
         raw_strip_keys = [
             k
@@ -3189,15 +3923,24 @@ def apply_from_config(
     print(f"  {c.bold('Applying from:')} {c.cyan(filepath)}")
     print()
 
-    # Safety check
+    # Safety check — allow idempotent re-runs when config matches
     if not force and _already_customized():
-        log.warning(
-            "This project appears to have already been customized "
-            "(src/%s/ is missing or pyproject.toml has been modified).",
-            TEMPLATE_PACKAGE_NAME,
-        )
-        log.error("Use --force to run anyway.")
-        return 1
+        # Check if the config matches the current state (idempotent re-run)
+        pkg_dir = ROOT / "src" / cfg.package_name
+        if pkg_dir.is_dir():
+            # Package already renamed to target name — this is a valid re-run
+            print(
+                f"  {c.dim('Note: Project appears already customized.')} "
+                f"{c.dim('Running idempotently (safe to re-run).')}"
+            )
+        else:
+            log.warning(
+                "This project appears to have already been customized "
+                "(src/%s/ is missing or pyproject.toml has been modified).",
+                TEMPLATE_PACKAGE_NAME,
+            )
+            log.error("Use --force to run anyway.")
+            return 1
 
     # Show what we parsed
     replacements = plan_replacements(cfg)
@@ -3212,6 +3955,9 @@ def apply_from_config(
     total_steps += 1  # package directory
     total_steps += 1  # license
     total_steps += bool(cfg.template_cleanup)
+    total_steps += bool(enable_workflows)
+    total_steps += bool(do_flatten)
+    total_steps += bool(do_nuke)
 
     start_time = time.monotonic()
     bar = ProgressBar(total=total_steps, label="Applying", color="cyan")
@@ -3271,27 +4017,56 @@ def apply_from_config(
     else:
         print(f"\n{tag}Template cleanup: none")
 
+    if enable_workflows:
+        repo_slug = f"{cfg.github_user}/{cfg.project_name}"
+        print(f"\n{tag}Enabling workflows with repo slug: {repo_slug}")
+        enable_workflows_only(repo_slug, dry_run=dry_run)
+        bar.update("enable workflows")
+
+    if do_flatten:
+        print(f"\n{tag}Converting to flat layout...")
+        _apply_flatten_layout(cfg.package_name, dry_run=dry_run)
+        bar.update("flatten layout")
+
+    if do_nuke:
+        print(f"\n{tag}NUKE — Deleting all repository contents...")
+        _apply_nuke_repo(dry_run=dry_run)
+        bar.update("nuke repo")
+
     bar.finish()
     elapsed = time.monotonic() - start_time
 
     if dry_run:
         print()
-        print(f"  {c.dim('─' * 50)}")
-        print(f"  {c.yellow('Dry run complete')} — no files were modified.")
+        print(f"  {c.dim(sym['sep'] * 50)}")
+        print(f"  {c.yellow('Dry run complete')} {sym['dash']} no files were modified.")
         print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
         print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
     else:
+        # Post-customization health check
+        if not do_nuke:
+            print(f"\n{c.bold('Health check...')}")
+            _run_repo_doctor(dry_run=dry_run)
+
         print()
-        print(f"  {c.dim('─' * 50)}")
+        print(f"  {c.dim(sym['sep'] * 50)}")
         print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
         print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
         print(f"\n  {c.bold('Next steps:')}")
-        print(f"  1. Review the changes:  {c.cyan('git diff')}")
+        print(f"  1. Review the changes:      {c.cyan('git diff')}")
         reinstall_cmd = "pip install -e '.[dev]'"
-        print(f"  2. Reinstall:           {c.cyan(reinstall_cmd)}")
-        print(f"  3. Run tests:           {c.cyan('task test')}  (or pytest)")
+        print(f"  2. Reinstall package:       {c.cyan(reinstall_cmd)}")
+        print(f"  3. Run tests:               {c.cyan('task test')}  (or pytest)")
         verify_cmd = f'python -c "import {cfg.package_name}"'
-        print(f"  4. Verify import:       {c.cyan(verify_cmd)}")
+        print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
+        print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
+        config_path = Path(filepath)
+        if config_path.is_file():
+            config_path.unlink()
+            print(f"  6. Cleaned up config file:  {c.dim(config_path.name)} (deleted)")
+        print()
+        happy = "\U0001f389 Happy developing!"
+        print(f"  {c.bold(c.green(happy))}")
 
     return 0
 
@@ -3492,26 +4267,34 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
     # Done
     if cfg.dry_run:
         print()
-        print(f"  {c.dim('─' * 50)}")
-        print(f"  {c.yellow('Dry run complete')} — no files were modified.")
+        print(f"  {c.dim(sym['sep'] * 50)}")
+        print(f"  {c.yellow('Dry run complete')} {sym['dash']} no files were modified.")
         print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
     else:
+        # Post-customization health check
+        print(f"\n{c.bold('Health check...')}")
+        _run_repo_doctor(dry_run=cfg.dry_run)
+
         print()
-        print(f"  {c.dim('─' * 50)}")
+        print(f"  {c.dim(sym['sep'] * 50)}")
         print(f"  {c.green(sym['check'])} {c.bold(c.green('Customization complete!'))}")
         ws_file = ROOT / f"{TEMPLATE_PROJECT_NAME}.code-workspace"
         print(f"\n  {c.bold('Next steps:')}")
-        print(f"  1. Review the changes:  {c.cyan('git diff')}")
+        print(f"  1. Review the changes:      {c.cyan('git diff')}")
         reinstall_cmd = "pip install -e '.[dev]'"
-        print(f"  2. Reinstall:           {c.cyan(reinstall_cmd)}")
-        print(f"  3. Run tests:           {c.cyan('task test')}  (or pytest)")
+        print(f"  2. Reinstall package:       {c.cyan(reinstall_cmd)}")
+        print(f"  3. Run tests:               {c.cyan('task test')}  (or pytest)")
         verify_cmd = f'python -c "import {cfg.package_name}"'
-        print(f"  4. Verify import:       {c.cyan(verify_cmd)}")
+        print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
+        print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
         if ws_file.exists():
             print(
-                f"  5. Rename workspace:    {TEMPLATE_PROJECT_NAME}.code-workspace"
+                f"  6. Rename workspace:        {TEMPLATE_PROJECT_NAME}.code-workspace"
                 f" {sym['arrow']} {c.cyan(f'{cfg.project_name}.code-workspace')}"
             )
+        print()
+        happy = "\U0001f389 Happy developing!"
+        print(f"  {c.bold(c.green(happy))}")
 
     # Recommended scripts
     if not args.quiet:
