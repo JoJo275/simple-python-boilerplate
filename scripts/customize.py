@@ -130,6 +130,10 @@ TEMPLATE_DESCRIPTION = (
 )
 TEMPLATE_CLI_PREFIX = "spb"  # -> cfg.cli_prefix    (entry-point command prefix)
 
+# Whether to delete the config markdown file after successfully applying it.
+# Set to True to auto-delete customize-config.md after apply; False to keep it.
+DELETE_CONFIG_AFTER_APPLY: bool = False
+
 # Directory names to skip when scanning files (exact match)
 SKIP_DIRS: set[str] = {
     ".git",
@@ -2701,6 +2705,9 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
 
 _CONFIG_DEFAULT_PATH = "customize-config.md"
 
+# Output path for the customization report generated after apply or dry-run.
+_REPORT_OUTPUT_PATH = "customize-report.md"
+
 # Files/directories that are core to the project and should never be flagged
 # as "untracked" by the warning table in the exported config.
 CORE_ITEMS: set[str] = {
@@ -2712,6 +2719,7 @@ CORE_ITEMS: set[str] = {
     "_typos.toml",
     "CHANGELOG.md",
     "customize-config.md",
+    "customize-report.md",
     "src",
     "tests",
     "scripts",
@@ -2850,6 +2858,7 @@ _FILE_DESCRIPTIONS: dict[str, str] = {
     "requirements-dev.txt": "Pip requirements for development (mirrors pyproject.toml).",
     "_typos.toml": "Typos spell-checker configuration and word exceptions.",
     "customize-config.md": "Generated offline customization config (this file).",
+    "customize-report.md": "Generated customization report (dry-run or applied).",
     "container-structure-test.yml": "Container structure test assertions.",
     "pgp-key.asc": "PGP public key for commit signing / identity verification.",
     "commit-report.md": "Generated commit activity report.",
@@ -2935,6 +2944,152 @@ def _build_file_glossary() -> list[str]:
         desc = _FILE_DESCRIPTIONS.get(name)
         if desc is None and not entry.is_dir():
             # Fallback: infer from extension
+            desc = extension_hints.get(entry.suffix.lower(), "Project file.")
+        elif desc is None:
+            desc = "Project directory."
+        lines.append(f"| `{name}` | {desc} |")
+
+    return lines
+
+
+def _build_repo_tree_filtered(removed_paths: set[str]) -> str:
+    """Build a virtual directory tree excluding paths marked for removal.
+
+    Works like :func:`_build_repo_tree` but prunes entries whose relative
+    path (from ``ROOT``) matches or is a child of any entry in
+    *removed_paths*.  Used by the customisation report to preview the
+    repository layout after applying selections.
+
+    Args:
+        removed_paths: Set of repo-relative path strings to exclude.
+            Directory paths may or may not have a trailing ``/``.
+
+    Returns:
+        Formatted tree string with Unicode box-drawing characters.
+    """
+    # Normalise removed paths: strip trailing slashes for consistent prefix matching
+    normalised: set[str] = {p.rstrip("/") for p in removed_paths}
+    lines: list[str] = []
+    repo_name = ROOT.name
+
+    def _is_removed(rel: str) -> bool:
+        """Return True if *rel* (no trailing slash) should be pruned."""
+        bare = rel.rstrip("/")
+        if bare in normalised:
+            return True
+        # Check if any ancestor directory is removed
+        return any(bare.startswith(rp + "/") for rp in normalised)
+
+    def _walk(directory: Path, prefix: str = "") -> None:
+        try:
+            entries = sorted(
+                directory.iterdir(),
+                key=lambda e: (not e.is_dir(), e.name.lower()),
+            )
+        except PermissionError:
+            return
+
+        # Standard SKIP_DIRS filter (same as _build_repo_tree)
+        entries = [
+            e
+            for e in entries
+            if not (
+                e.is_dir()
+                and (
+                    e.name in SKIP_DIRS
+                    or e.name.startswith(".")
+                    or e.name.endswith(".egg-info")
+                )
+            )
+        ]
+        # Additional filter: exclude paths in the removal plan
+        entries = [
+            e
+            for e in entries
+            if not _is_removed(str(e.relative_to(ROOT)).replace("\\", "/"))
+        ]
+
+        for i, entry in enumerate(entries):
+            is_last = i == len(entries) - 1
+            connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+            extension = "    " if is_last else "\u2502   "
+
+            if entry.is_dir():
+                lines.append(f"{prefix}{connector}{entry.name}/")
+                _walk(entry, prefix + extension)
+            else:
+                lines.append(f"{prefix}{connector}{entry.name}")
+
+    lines.append(f"{repo_name}/")
+    _walk(ROOT)
+    return "\n".join(lines)
+
+
+def _build_file_glossary_filtered(removed_paths: set[str]) -> list[str]:
+    """Build a root-level file glossary excluding paths marked for removal.
+
+    Works like :func:`_build_file_glossary` but omits entries whose
+    repo-relative path is in *removed_paths*.
+
+    Args:
+        removed_paths: Set of repo-relative path strings to exclude.
+
+    Returns:
+        Lines of a Markdown table (header + rows).
+    """
+    normalised: set[str] = {p.rstrip("/") for p in removed_paths}
+
+    extension_hints: dict[str, str] = {
+        ".py": "Python script.",
+        ".md": "Markdown documentation.",
+        ".yml": "YAML configuration.",
+        ".yaml": "YAML configuration.",
+        ".toml": "TOML configuration.",
+        ".json": "JSON data / configuration.",
+        ".jsonc": "JSONC (JSON with Comments) configuration.",
+        ".txt": "Plain-text file.",
+        ".cfg": "Configuration file.",
+        ".sh": "Shell script.",
+        ".sql": "SQL file.",
+        ".asc": "ASCII-armored key file.",
+    }
+
+    try:
+        entries = sorted(
+            ROOT.iterdir(),
+            key=lambda e: (not e.is_dir(), e.name.lower()),
+        )
+    except PermissionError:
+        return ["*Could not read repository root.*"]
+
+    entries = [
+        e
+        for e in entries
+        if not (
+            e.name.startswith(".")
+            or e.name in SKIP_DIRS
+            or e.name.endswith(".egg-info")
+        )
+    ]
+
+    # Filter out removed paths
+    entries = [
+        e
+        for e in entries
+        if e.name.rstrip("/") not in normalised
+        and (f"{e.name}/" if e.is_dir() else e.name) not in normalised
+        and e.name not in normalised
+    ]
+
+    lines: list[str] = [
+        "| Path | Description |",
+        "| :--- | :--- |",
+    ]
+
+    for entry in entries:
+        name = f"{entry.name}/" if entry.is_dir() else entry.name
+        desc = _FILE_DESCRIPTIONS.get(name)
+        if desc is None and not entry.is_dir():
             desc = extension_hints.get(entry.suffix.lower(), "Project file.")
         elif desc is None:
             desc = "Project directory."
@@ -3034,12 +3189,15 @@ def export_customize_config(filepath: str) -> str:
             "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
             "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
             "",
-            "> **Tip \u2014 Toggling checkboxes:** VS Code's Markdown preview does **not**",
-            "> support clicking checkboxes. Instead, edit them directly in the source:",
+            "> **Tip \u2014 Toggling checkboxes:** VS Code's built-in Markdown preview does **not**",
+            "> support clicking checkboxes to edit the raw file. Options:",
             ">",
-            "> - Change `[ ]` to `[x]` (or vice versa) in this file",
-            "> - Or place your cursor on a checkbox line and press **Alt+C**",
-            ">   (requires the *Markdown All in One* extension, recommended by this project)",
+            "> - **Edit directly:** Change `[ ]` to `[x]` (or vice versa) in this file",
+            "> - **Keyboard shortcut:** Place cursor on a checkbox line and press **Alt+C**",
+            ">   (requires *Markdown All in One* \u2014 already recommended by this project)",
+            "> - **Click in editor:** Install *MarkClick.md*",
+            ">   (`kyuukab.markclick-md`) to click checkboxes directly in the editor",
+            ">   — toggles the raw file instantly with colored highlights",
             ">",
             "> Use **Ctrl+K V** to open a side-by-side preview while you edit.",
             "",
@@ -3759,6 +3917,494 @@ def _run_repo_doctor(*, dry_run: bool = False) -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# Customization report generation
+# ---------------------------------------------------------------------------
+
+
+def _generate_customization_report(
+    cfg: Config,
+    *,
+    dry_run: bool,
+    enable_workflows: bool = False,
+    do_flatten: bool = False,
+    do_nuke: bool = False,
+    elapsed: float = 0.0,
+    modified_files: dict[Path, int] | None = None,
+) -> str:
+    """Generate a Markdown report summarising the customization outcome.
+
+    Produces a nicely formatted document with an index, selected options
+    summary, repo layout tree, file glossary (filtered to what remains
+    after removal), placeholder-modified file list, recommended scripts,
+    and project identity table.
+
+    Args:
+        cfg: The resolved Config used for this run.
+        dry_run: Whether this was a preview (dry-run) or actual apply.
+        enable_workflows: Whether workflows were enabled.
+        do_flatten: Whether flatten-layout was requested.
+        do_nuke: Whether nuke-repo was requested.
+        elapsed: Wall-clock time for the operation.
+        modified_files: Mapping of file paths to replacement counts from
+            ``apply_replacements()``.
+
+    Returns:
+        The generated Markdown string.
+    """
+    timestamp = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+    mode = "Dry-Run Preview" if dry_run else "Applied"
+    license_name = LICENSE_CHOICES.get(cfg.license_id, {}).get("name", cfg.license_id)
+
+    # -- Collect selected items -----------------------------------------------
+    strip_labels: list[str] = []
+    for key in cfg.strip_dirs:
+        entry = STRIPPABLE.get(key)
+        if entry:
+            label = str(entry.get("label", key))
+            if key in (cfg.strip_files_only or set()):
+                label += " *(files only)*"
+            strip_labels.append(label)
+
+    cleanup_labels: list[str] = []
+    for key in cfg.template_cleanup:
+        entry = TEMPLATE_CLEANUP.get(key)
+        if entry:
+            label = str(entry.get("label", key))
+            if key in (cfg.template_cleanup_files_only or set()):
+                label += " *(files only)*"
+            cleanup_labels.append(label)
+
+    # -- Build removal plan (used to filter tree & glossary) -------------------
+    removed_paths: set[str] = set()
+    for key in cfg.strip_dirs:
+        if key in (cfg.strip_files_only or set()):
+            continue  # files-only keeps the directory
+        entry = STRIPPABLE.get(key) or {}
+        for p in entry.get("paths", []):  # type: ignore[union-attr]
+            removed_paths.add(str(p).rstrip("/"))
+    for key in cfg.template_cleanup:
+        if key in (cfg.template_cleanup_files_only or set()):
+            continue
+        entry = TEMPLATE_CLEANUP.get(key) or {}
+        for p in entry.get("paths", []):  # type: ignore[union-attr]
+            removed_paths.add(str(p).rstrip("/"))
+    if cfg.private_repo:
+        for priv_entry in PRIVATE_REPO_STRIP.values():
+            for p in priv_entry.get("paths", []):  # type: ignore[union-attr]
+                removed_paths.add(str(p).rstrip("/"))
+
+    # -- Generate tree and glossary (filtered to show post-removal state) -----
+    if do_nuke:
+        tree_block = "*Repository contents nuked — empty directory.*"
+        glossary_lines = ["*No files remain after nuke.*"]
+    elif removed_paths:
+        tree_block = _build_repo_tree_filtered(removed_paths)
+        glossary_lines = _build_file_glossary_filtered(removed_paths)
+    else:
+        tree_block = _build_repo_tree()
+        glossary_lines = _build_file_glossary()
+
+    # -- Assemble report ------------------------------------------------------
+    lines: list[str] = []
+
+    # Title & header table
+    lines.extend(
+        [
+            f"# Customization Report — {mode}",
+            "",
+            "<!-- Auto-generated by customize.py — do not edit manually. -->",
+            "",
+            f"| **Report type** | {mode} |",
+            "| --- | --- |",
+            f"| **Generated by** | `customize.py` v{SCRIPT_VERSION} |",
+            f"| **Timestamp** | {timestamp} |",
+            f"| **Elapsed** | {elapsed:.2f}s |",
+            f"| **Project name** | `{cfg.project_name}` |",
+            f"| **Package name** | `{cfg.package_name}` |",
+            "",
+        ]
+    )
+
+    if dry_run:
+        lines.extend(
+            [
+                "> **Preview only** — no files were modified. Re-run without"
+                " `--dry-run` to apply.",
+                "",
+            ]
+        )
+
+    # Table of contents
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Table of Contents",
+            "",
+            "- [Project Identity](#project-identity)",
+            "- [Selected Options](#selected-options)",
+            "- [Items to Remove](#items-to-remove)",
+            "- [Files Changed (Placeholder Replacements)](#files-changed-placeholder-replacements)",
+            "- [Repository Layout](#repository-layout)",
+            "- [File Glossary](#file-glossary)",
+            "- [Recommended Scripts](#recommended-scripts)",
+            "- [Next Steps](#next-steps)",
+            "",
+        ]
+    )
+
+    # Project identity
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Project Identity",
+            "",
+            "| Setting | Value |",
+            "| :--- | :--- |",
+            f"| **Project name** | `{cfg.project_name}` |",
+            f"| **Package name** | `{cfg.package_name}` |",
+            f"| **Author** | `{cfg.author}` |",
+            f"| **GitHub user** | `{cfg.github_user}` |",
+            f"| **Description** | {cfg.description} |",
+            f"| **CLI prefix** | `{cfg.cli_prefix}` |",
+            f"| **License** | {license_name} |",
+            f"| **Private repo** | {'Yes' if cfg.private_repo else 'No'} |",
+            "",
+        ]
+    )
+
+    # Selected options summary
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Selected Options",
+            "",
+        ]
+    )
+
+    if not (
+        strip_labels
+        or cleanup_labels
+        or enable_workflows
+        or do_flatten
+        or do_nuke
+        or cfg.private_repo
+    ):
+        lines.append("*No optional items selected — template kept as-is.*")
+        lines.append("")
+    else:
+        # Flags
+        flag_items: list[str] = []
+        if cfg.private_repo:
+            flag_items.append("Private repository mode")
+        if enable_workflows:
+            flag_items.append(
+                f"Enable workflows (`{cfg.github_user}/{cfg.project_name}`)"
+            )
+        if do_flatten:
+            flag_items.append("Convert to flat layout")
+        if do_nuke:
+            flag_items.append("NUKE — delete all contents")
+        if flag_items:
+            lines.append("### Flags")
+            lines.append("")
+            lines.extend(f"- {item}" for item in flag_items)
+            lines.append("")
+
+        if strip_labels:
+            lines.append("### Directories & Files to Remove")
+            lines.append("")
+            lines.extend(f"- {label}" for label in strip_labels)
+            lines.append("")
+
+        if cleanup_labels:
+            lines.append("### Template Cleanup")
+            lines.append("")
+            lines.extend(f"- {label}" for label in cleanup_labels)
+            lines.append("")
+
+    # Items to remove — detailed file listing
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Items to Remove",
+            "",
+        ]
+    )
+
+    _any_removal = False
+    for key in cfg.strip_dirs:
+        entry = STRIPPABLE.get(key) or {}
+        label = str(entry.get("label", key))
+        paths = entry.get("paths", [])
+        files_only = key in (cfg.strip_files_only or set())
+        mode_tag = " *(files only)*" if files_only else ""
+        lines.append(f"### `{key}` — {label}{mode_tag}")
+        lines.append("")
+        if paths:
+            lines.extend(f"- `{p}`" for p in paths)  # type: ignore[union-attr]
+            lines.append("")
+        _any_removal = True
+
+    for key in cfg.template_cleanup:
+        entry = TEMPLATE_CLEANUP.get(key) or {}
+        label = str(entry.get("label", key))
+        paths = entry.get("paths", [])
+        files_only = key in (cfg.template_cleanup_files_only or set())
+        mode_tag = " *(files only)*" if files_only else ""
+        lines.append(f"### `{key}` — {label}{mode_tag}")
+        lines.append("")
+        if paths:
+            lines.extend(f"- `{p}`" for p in paths)  # type: ignore[union-attr]
+            lines.append("")
+        _any_removal = True
+
+    if not _any_removal:
+        lines.append("*No items selected for removal.*")
+        lines.append("")
+
+    # Files changed — placeholder replacements
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Files Changed (Placeholder Replacements)",
+            "",
+        ]
+    )
+    _mod = modified_files or {}
+    if _mod:
+        total_replacements = sum(_mod.values())
+        n_mod_files = len(_mod)
+        lines.append(
+            f"> **{total_replacements}** replacement"
+            f"{'s' if total_replacements != 1 else ''}"
+            f" across **{n_mod_files}** file"
+            f"{'s' if n_mod_files != 1 else ''}."
+        )
+        lines.append("")
+        lines.extend(
+            [
+                "<details>",
+                "<summary><strong>Click to expand modified files list</strong>"
+                "</summary>",
+                "",
+                "| File | Replacements |",
+                "| :--- | ---: |",
+            ]
+        )
+        for path, count in sorted(_mod.items(), key=lambda x: str(x[0])):
+            rel = path.relative_to(ROOT) if path.is_absolute() else path
+            lines.append(f"| `{rel}` | {count} |")
+        lines.extend(
+            [
+                "",
+                "</details>",
+                "",
+            ]
+        )
+    else:
+        lines.append("*No placeholder replacements applied.*")
+        lines.append("")
+
+    # Repository layout
+    _has_removals = bool(removed_paths) and not do_nuke
+    if dry_run and _has_removals:
+        tree_desc = (
+            "preview of the repository structure after selected items"
+            " are removed (items to delete are excluded from this tree)"
+        )
+    elif dry_run:
+        tree_desc = "current repository structure (no removals selected)"
+    else:
+        tree_desc = "repository structure after applying changes"
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Repository Layout",
+            "",
+            f"> This tree shows the {tree_desc}.",
+            "",
+            "<details>",
+            "<summary><strong>Click to expand full repository tree</strong></summary>",
+            "",
+            "```",
+            tree_block,
+            "```",
+            "",
+            "</details>",
+            "",
+        ]
+    )
+
+    # File glossary
+    if dry_run and _has_removals:
+        gloss_desc = (
+            "Root-level files and directories that would remain after selected removals"
+        )
+    elif dry_run:
+        gloss_desc = "Root-level files and directories (no removals selected)"
+    else:
+        gloss_desc = "Root-level files and directories remaining after customization"
+    lines.extend(
+        [
+            "---",
+            "",
+            "## File Glossary",
+            "",
+            f"> {gloss_desc}.",
+            "",
+            "<details>",
+            "<summary><strong>Click to expand file glossary</strong></summary>",
+            "",
+        ]
+    )
+    lines.extend(glossary_lines)
+    lines.extend(
+        [
+            "",
+            "</details>",
+            "",
+        ]
+    )
+
+    # Recommended scripts
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Recommended Scripts",
+            "",
+            "Scripts that help before, during, and after customization.",
+            "",
+            "| Script | Command | Description |",
+            "| :--- | :--- | :--- |",
+            "| **Bootstrap** | `python scripts/bootstrap.py` |"
+            " One-command project setup for fresh clones |",
+            "| **Doctor** | `python scripts/doctor.py` |"
+            " Unified health check (runs all doctors) |",
+            "| **Repo Sauron** | `python scripts/repo_sauron.py` |"
+            " Repository statistics Markdown report |",
+            "| **Clean** | `python scripts/clean.py` |"
+            " Remove build artifacts and caches |",
+            "| **Env Doctor** | `python scripts/env_doctor.py` |"
+            " Development environment diagnostics |",
+            "| **Dep Versions** | `python scripts/dep_versions.py show` |"
+            " Dependency versions and update status |",
+            "",
+            "> **Tip:** Run `python scripts/bootstrap.py` first after"
+            " customization to reinstall dependencies and verify your"
+            " environment is healthy.",
+            "",
+        ]
+    )
+
+    # Next steps
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Next Steps",
+            "",
+        ]
+    )
+
+    if dry_run:
+        lines.extend(
+            [
+                "1. Review the selections above",
+                "2. Adjust checkboxes in `customize-config.md` if needed",
+                "3. Preview changes:",
+                "   ```bash",
+                "   python scripts/customize.py"
+                " --apply-from customize-config.md --dry-run",
+                "   ```",
+                "4. Apply changes:",
+                "   ```bash",
+                "   python scripts/customize.py --apply-from customize-config.md",
+                "   ```",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                "1. Review changes: `git diff`",
+                "2. Reinstall package: `pip install -e '.[dev]'`",
+                "3. Run tests: `task test` (or `pytest`)",
+                f'4. Verify import: `python -c "import {cfg.package_name}"`',
+                "5. Run the bootstrap script: `python scripts/bootstrap.py`",
+                "6. Run health checks: `python scripts/doctor.py`",
+                "7. Update pre-commit hooks if scripts were removed:"
+                " edit `.pre-commit-config.yaml`",
+                "8. Update `Taskfile.yml` if tasks reference removed scripts",
+                "9. Commit: `git add -A && git commit -m"
+                f" 'chore: customise from template ({cfg.project_name})'`",
+                "",
+                "> **Note:** If you removed scripts, check that no"
+                " pre-commit hooks, Taskfile tasks, or GitHub Actions"
+                " workflows reference them. Run `python scripts/doctor.py`"
+                " to catch common issues.",
+                "",
+            ]
+        )
+
+    # Footer
+    lines.extend(
+        [
+            "---",
+            "",
+            f"*Generated by `customize.py` v{SCRIPT_VERSION} on {timestamp}.*",
+            "",
+        ]
+    )
+
+    return "\n".join(lines)
+
+
+def _write_customization_report(
+    cfg: Config,
+    *,
+    dry_run: bool,
+    enable_workflows: bool = False,
+    do_flatten: bool = False,
+    do_nuke: bool = False,
+    elapsed: float = 0.0,
+    modified_files: dict[Path, int] | None = None,
+) -> Path:
+    """Generate and write the customization report to disk.
+
+    Args:
+        cfg: The resolved Config.
+        dry_run: Whether this was a dry-run.
+        enable_workflows: Whether workflows were enabled.
+        do_flatten: Whether flatten-layout was requested.
+        do_nuke: Whether nuke-repo was requested.
+        elapsed: Wall-clock seconds.
+        modified_files: Mapping of file paths to replacement counts.
+
+    Returns:
+        Path to the written report file.
+    """
+    report_md = _generate_customization_report(
+        cfg,
+        dry_run=dry_run,
+        enable_workflows=enable_workflows,
+        do_flatten=do_flatten,
+        do_nuke=do_nuke,
+        elapsed=elapsed,
+        modified_files=modified_files,
+    )
+    out_path = ROOT / _REPORT_OUTPUT_PATH
+    out_path.write_text(report_md, encoding="utf-8")
+    return out_path
+
+
 def apply_from_config(
     filepath: str, *, dry_run: bool = False, force: bool = False
 ) -> int:
@@ -4028,12 +4674,27 @@ def apply_from_config(
     bar.finish()
     elapsed = time.monotonic() - start_time
 
+    # ── Generate customization report ──
+    report_path = _write_customization_report(
+        cfg,
+        dry_run=dry_run,
+        enable_workflows=enable_workflows,
+        do_flatten=do_flatten,
+        do_nuke=do_nuke,
+        elapsed=elapsed,
+        modified_files=modified,
+    )
+
     if dry_run:
         print()
         print(f"  {c.dim(sym['sep'] * 50)}")
         print(f"  {c.yellow('Dry run complete')} {sym['dash']} no files were modified.")
         print(f"  {c.dim(f'Completed in {elapsed:.1f}s')}")
         print(f"  {c.dim('Re-run without --dry-run to apply changes.')}")
+        report_link = c.link(
+            str(report_path), f"file:///{str(report_path).replace(chr(92), '/')}"
+        )
+        print(f"  {c.dim('Report:')} {c.cyan(report_link)}")
     else:
         # Post-customization health check
         if not do_nuke:
@@ -4053,9 +4714,18 @@ def apply_from_config(
         print(f"  4. Verify import:           {c.cyan(verify_cmd)}")
         print(f"  5. Commit your changes:     {c.cyan('git add -A && git commit')}")
         config_path = Path(filepath)
-        if config_path.is_file():
+        if DELETE_CONFIG_AFTER_APPLY and config_path.is_file():
             config_path.unlink()
             print(f"  6. Cleaned up config file:  {c.dim(config_path.name)} (deleted)")
+        elif config_path.is_file():
+            print(
+                f"  6. Config file kept:        {c.dim(config_path.name)}"
+                f" {c.dim('(DELETE_CONFIG_AFTER_APPLY=False)')}"
+            )
+        report_link = c.link(
+            str(report_path), f"file:///{str(report_path).replace(chr(92), '/')}"
+        )
+        print(f"  7. Report generated:        {c.cyan(report_link)}")
         print()
         happy = "\U0001f389 Happy developing!"
         print(f"  {c.bold(c.green(happy))}")

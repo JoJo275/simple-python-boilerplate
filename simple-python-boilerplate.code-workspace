@@ -157,7 +157,11 @@
 			"kamikillerto.vscode-colorize",
 			// Markdown All in One — keyboard shortcuts, TOC generation,
 			// auto-preview, and list editing for Markdown files.
-			"yzhang.markdown-all-in-one"
+			"yzhang.markdown-all-in-one",
+			// MarkClick.md — click checkboxes directly in the editor to
+			// toggle them. Highlights unchecked (orange) and checked (green)
+			// with colored backgrounds. Ideal for customize-config.md.
+			"kyuukab.markclick-md"
 		]
 
 		// ── Unwanted Recommendations (optional) ─────────────────

@@ -117,7 +117,11 @@
         "ms-azuretools.vscode-docker",
         "shd101wyy.markdown-preview-enhanced",
         "kamikillerto.vscode-colorize",
-        "yzhang.markdown-all-in-one"
+        "yzhang.markdown-all-in-one",
+        // MarkClick.md — click checkboxes directly in the editor to
+        // toggle them. Highlights unchecked (orange) and checked (green)
+        // with colored backgrounds. Ideal for customize-config.md.
+        "kyuukab.markclick-md"
       ],
 
       // Container-specific setting overrides.
