@@ -198,18 +198,50 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/sql/",
             f"src/{TEMPLATE_PACKAGE_NAME}/sql/",
         ],
+        "description": (
+            "Database schema definitions, migration scripts, SQL seed "
+            "data, and example queries for SQL-based projects."
+        ),
+        "downside": (
+            "Lose database scaffolding (schema, migrations, seeds). "
+            "Must recreate from scratch if you add a database layer later."
+        ),
     },
     "experiments": {
         "label": "Experiments / scratch code directory",
         "paths": ["experiments/"],
+        "description": (
+            "Notebook-style scratch code area for testing ideas, "
+            "prototyping APIs, and exploring data without polluting src/."
+        ),
+        "downside": (
+            "Lose a dedicated scratch-work area. You'll need to create "
+            "a new directory for ad-hoc experiments."
+        ),
     },
     "var": {
         "label": "Local data / state directory (var/)",
         "paths": ["var/"],
+        "description": (
+            "Local runtime data such as SQLite databases, log files, "
+            "and application state. Gitignored for sensitive data."
+        ),
+        "downside": (
+            "Lose the sample SQLite database and the convention for "
+            "runtime data storage. Scripts that reference var/ will break."
+        ),
     },
     "docs-templates": {
         "label": "Security-policy & issue templates (docs/templates/)",
         "paths": ["docs/templates/"],
+        "description": (
+            "Pre-built security policy template and GitHub issue/PR "
+            "templates for standardized contributor experience."
+        ),
+        "downside": (
+            "Lose pre-written templates. You'll need to write issue "
+            "and PR templates from scratch if you want them later."
+        ),
     },
     "container": {
         "label": "Container files (Containerfile, docker-compose, build & scan workflows)",
@@ -225,10 +257,29 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/test_docker_compose.py",
             "scripts/test_docker_compose.sh",
         ],
+        "description": (
+            "Multi-stage Containerfile, docker-compose for local "
+            "development, container structure tests, and CI workflows "
+            "for building and scanning container images."
+        ),
+        "downside": (
+            "Lose container deployment setup including multi-stage "
+            "builds, security scanning, and structure tests. "
+            "Significant effort to recreate."
+        ),
     },
     "optional-workflows": {
         "label": "Optional workflow templates (.github/workflows-optional/)",
         "paths": [".github/workflows-optional/"],
+        "description": (
+            "Extra GitHub Actions workflow templates that can be moved "
+            "into .github/workflows/ when needed (e.g. nightly builds, "
+            "performance benchmarks)."
+        ),
+        "downside": (
+            "Lose pre-built optional workflow templates. Can be "
+            "recreated from GitHub Actions documentation if needed."
+        ),
     },
     "labels": {
         "label": "Label management files (labels/, apply scripts)",
@@ -237,6 +288,14 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/apply_labels.py",
             "scripts/apply-labels.sh",
         ],
+        "description": (
+            "Standardized GitHub label definitions (baseline + extended "
+            "sets) and scripts to apply them via the GitHub API."
+        ),
+        "downside": (
+            "Lose automated label management. Must configure GitHub "
+            "labels manually through the web UI."
+        ),
     },
     "repo-doctor": {
         "label": "Repo doctor checks (repo_doctor.d/, doctor scripts)",
@@ -253,10 +312,30 @@ STRIPPABLE: dict[str, dict[str, object]] = {
         # customize.py, dep_versions.py, etc.), not just the doctor
         # scripts.  Stripping repo-doctor leaves them in place, which
         # is correct.
+        "description": (
+            "Repository health check system with TOML rule profiles "
+            "for CI, Python, docs, containers, database, and security. "
+            "Includes environment and git diagnostics."
+        ),
+        "downside": (
+            "Lose automated repository health monitoring and "
+            "diagnostics. Manual inspection required to catch "
+            "missing files, config drift, and structural issues."
+        ),
     },
     "mkdocs-hooks": {
         "label": "MkDocs hooks (mkdocs-hooks/)",
         "paths": ["mkdocs-hooks/"],
+        "description": (
+            "Build-time MkDocs hooks that auto-generate command "
+            "references, resolve repo links, and include template "
+            "content during documentation builds."
+        ),
+        "downside": (
+            "MkDocs builds will fail if hooks are referenced in "
+            "mkdocs.yml. Remove hook entries from mkdocs.yml before "
+            "or after stripping."
+        ),
     },
     "repo-sauron": {
         "label": "Repo sauron report & script",
@@ -264,18 +343,51 @@ STRIPPABLE: dict[str, dict[str, object]] = {
             "scripts/repo_sauron.py",
             "repo-sauron-report.md",
         ],
+        "description": (
+            "Repository statistics dashboard that generates a "
+            "comprehensive Markdown report with file counts, language "
+            "breakdown, git history, test coverage, and directory tree."
+        ),
+        "downside": (
+            "Lose repo analytics dashboard. No built-in replacement "
+            "for at-a-glance repository statistics."
+        ),
     },
     "git-config-ref": {
         "label": "Git configuration reference",
         "paths": ["git-config-reference.md"],
+        "description": (
+            "Reference document covering recommended Git configuration "
+            "settings, aliases, and workflow tips."
+        ),
+        "downside": (
+            "Lose reference material. Consult official Git docs or "
+            "create your own reference instead."
+        ),
     },
     "test-config-ref": {
         "label": "Test configuration reference",
         "paths": ["test-config-ref.md"],
+        "description": (
+            "Reference document for pytest configuration, fixtures, "
+            "markers, and testing conventions used in this project."
+        ),
+        "downside": (
+            "Lose test setup reference. Consult pytest docs or "
+            "pyproject.toml [tool.pytest] for configuration."
+        ),
     },
     "commit-report": {
         "label": "Commit report",
         "paths": ["commit-report.md"],
+        "description": (
+            "Generated report summarizing recent commit history, "
+            "conventional commit breakdown, and authorship statistics."
+        ),
+        "downside": (
+            "Lose commit tracking document. Use git log directly "
+            "or regenerate with a custom script."
+        ),
     },
 }
 
@@ -608,6 +720,7 @@ class Config:
     cli_prefix: str = ""
     license_id: str = "apache-2.0"
     strip_dirs: list[str] = field(default_factory=list)
+    strip_files_only: set[str] = field(default_factory=set)
     template_cleanup: list[str] = field(default_factory=list)
     private_repo: bool = False
     dry_run: bool = False
@@ -1195,6 +1308,7 @@ def strip_directories(
     *,
     dry_run: bool = False,
     strippable: dict[str, dict[str, object]] | None = None,
+    files_only_keys: set[str] | None = None,
 ) -> list[str]:
     """Remove optional directories and files from the project.
 
@@ -1206,12 +1320,15 @@ def strip_directories(
         keys: Keys from *strippable* identifying what to remove.
         dry_run: If ``True``, report without deleting.
         strippable: Registry to look up keys.  Defaults to :data:`STRIPPABLE`.
+        files_only_keys: Keys for which only files should be deleted
+            (directory structures are preserved).
 
     Returns:
         Relative paths that were removed (or would be removed).
     """
     if strippable is None:
         strippable = STRIPPABLE
+    files_only = files_only_keys or set()
 
     c = Colors()
     sym = unicode_symbols()
@@ -1226,6 +1343,7 @@ def strip_directories(
             continue
         label = str(entry.get("label", key))
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
+        is_files_only = key in files_only
 
         # Partition into existing dirs and files
         dirs: list[tuple[str, Path]] = []
@@ -1242,23 +1360,51 @@ def strip_directories(
         if not dirs and not files:
             continue
 
-        print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}")
+        mode_hint = " (files only)" if is_files_only else ""
+        print(f"\n  {c.bold(c.cyan(f'[{key}]'))} {c.dim(label)}{c.dim(mode_hint)}")
 
         for rel_path, target in dirs:
-            removed.append(rel_path)
-            if dry_run:
-                print(
-                    f"    {c.yellow(sym['arrow'])} Would remove directory: {c.yellow(rel_path)}"
-                )
+            if is_files_only:
+                # Delete files inside the directory but keep the directory
+                dir_files = [p for p in target.rglob("*") if p.is_file()]
+                for f in dir_files:
+                    f_rel = f.relative_to(ROOT).as_posix()
+                    removed.append(f_rel)
+                    if dry_run:
+                        print(
+                            f"    {c.yellow(sym['arrow'])} Would remove file: {c.dim(f_rel)}"
+                        )
+                    else:
+                        try:
+                            f.unlink()
+                            print(f"    {c.green(sym['check'])} Removed file: {f_rel}")
+                        except (OSError, PermissionError) as exc:
+                            log.warning(
+                                "    %s Failed to remove %s: %s",
+                                sym["cross"],
+                                f_rel,
+                                exc,
+                            )
             else:
-                try:
-                    shutil.rmtree(target)
-                    print(f"    {c.green(sym['check'])} Removed directory: {rel_path}")
-                    affected_parents.add(target.parent)
-                except (OSError, PermissionError) as exc:
-                    log.warning(
-                        "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
+                removed.append(rel_path)
+                if dry_run:
+                    print(
+                        f"    {c.yellow(sym['arrow'])} Would remove directory: {c.yellow(rel_path)}"
                     )
+                else:
+                    try:
+                        shutil.rmtree(target)
+                        print(
+                            f"    {c.green(sym['check'])} Removed directory: {rel_path}"
+                        )
+                        affected_parents.add(target.parent)
+                    except (OSError, PermissionError) as exc:
+                        log.warning(
+                            "    %s Failed to remove %s: %s",
+                            sym["cross"],
+                            rel_path,
+                            exc,
+                        )
 
         for rel_path, target in files:
             removed.append(rel_path)
@@ -1276,8 +1422,9 @@ def strip_directories(
                         "    %s Failed to remove %s: %s", sym["cross"], rel_path, exc
                     )
 
-    # Offer to clean up empty parent directories
-    _cleanup_empty_parents(affected_parents, dry_run=dry_run)
+    # Offer to clean up empty parent directories (skip if files_only for all)
+    if not all(k in files_only for k in keys):
+        _cleanup_empty_parents(affected_parents, dry_run=dry_run)
 
     return removed
 
@@ -2078,6 +2225,52 @@ def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
 _CONFIG_DEFAULT_PATH = "customize-config.md"
 
 
+def _build_repo_tree() -> str:
+    """Build a directory/file tree of the repository for the config file.
+
+    Returns:
+        Formatted tree string with Unicode box-drawing characters.
+    """
+    lines: list[str] = []
+    repo_name = ROOT.name
+
+    def _walk(directory: Path, prefix: str = "") -> None:
+        try:
+            entries = sorted(
+                directory.iterdir(),
+                key=lambda e: (not e.is_dir(), e.name.lower()),
+            )
+        except PermissionError:
+            return
+        entries = [
+            e
+            for e in entries
+            if not (
+                e.is_dir()
+                and (
+                    e.name in SKIP_DIRS
+                    or e.name.startswith(".")
+                    or e.name.endswith(".egg-info")
+                )
+            )
+        ]
+
+        for i, entry in enumerate(entries):
+            is_last = i == len(entries) - 1
+            connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+            extension = "    " if is_last else "\u2502   "
+
+            if entry.is_dir():
+                lines.append(f"{prefix}{connector}{entry.name}/")
+                _walk(entry, prefix + extension)
+            else:
+                lines.append(f"{prefix}{connector}{entry.name}")
+
+    lines.append(f"{repo_name}/")
+    _walk(ROOT)
+    return "\n".join(lines)
+
+
 def export_customize_config(filepath: str) -> str:
     """Write a Markdown configuration file for offline editing.
 
@@ -2092,6 +2285,11 @@ def export_customize_config(filepath: str) -> str:
     """
     timestamp = datetime.datetime.now(tz=datetime.UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
+    # Count items for summary
+    strip_count = len(STRIPPABLE)
+    cleanup_count = len(TEMPLATE_CLEANUP)
+    total_items = strip_count + cleanup_count
+
     lines: list[str] = [
         "# Customize Configuration",
         "",
@@ -2100,8 +2298,27 @@ def export_customize_config(filepath: str) -> str:
         f"| **Generated by** | `customize.py` v{SCRIPT_VERSION} |",
         "| --- | --- |",
         f"| **Timestamp** | {timestamp} |",
+        f"| **Strippable items** | {strip_count} optional directories/files |",
+        f"| **Cleanup items** | {cleanup_count} template-specific items |",
+        f"| **Total configurable** | {total_items} items |",
         "| **Apply** | `python scripts/customize.py --apply-from customize-config.md` |",
         "| **Preview** | `python scripts/customize.py --apply-from customize-config.md --dry-run` |",
+        "",
+        "---",
+        "",
+        "## Table of Contents",
+        "",
+        "- [How This File Works](#how-this-file-works)",
+        "- [Project Identity](#project-identity)",
+        "- [License](#license)",
+        "- [Repository Visibility](#repository-visibility)",
+        "- [Optional Directories to Strip](#optional-directories-to-strip)",
+        "- [Template Cleanup](#template-cleanup)",
+        "- [Repository Layout](#repository-layout)",
+        "- [Disclaimers & Downsides](#disclaimers--downsides)",
+        "- [Applying Changes from This File](#applying-changes-from-this-file)",
+        "",
+        "---",
         "",
         "## How This File Works",
         "",
@@ -2114,9 +2331,9 @@ def export_customize_config(filepath: str) -> str:
         "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
         "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
         "",
-        "> **Note:** Checkboxes must be toggled by editing the raw Markdown source \u2014",
-        "> change `[ ]` to `[x]` (or vice versa). Clicking checkboxes in a Markdown",
-        "> preview (e.g. VS Code) may not persist changes to the file.",
+        "> **Tip:** In VS Code, you can click checkboxes directly in the Markdown",
+        "> preview to toggle them. The changes will persist to the file.",
+        "> Alternatively, edit the raw Markdown: change `[ ]` to `[x]` (or vice versa).",
         "",
         "> **Tip:** For a fully non-interactive approach without editing this file,",
         "> use `python scripts/customize.py --non-interactive --project-name NAME",
@@ -2161,13 +2378,13 @@ def export_customize_config(filepath: str) -> str:
             "",
             "## Repository Visibility",
             "",
-            "- [ ] **Private repository** — Strip open-source community files not needed",
+            "- [ ] **Private repository** \u2014 Strip open-source community files not needed",
             "  for private repos (CODE_OF_CONDUCT, CONTRIBUTING, SECURITY, scorecard",
             "  workflow, etc.).",
             "",
             "> **Note:** Private repositories on GitHub have a limited amount of Actions",
             "> minutes per month (e.g. 2,000 min/month on the Free plan). CI/CD workflows",
-            "> can consume these quickly — especially matrix builds, container builds, and",
+            "> can consume these quickly \u2014 especially matrix builds, container builds, and",
             "> nightly scheduled jobs. Consider disabling non-essential workflows or moving",
             "> heavy jobs to self-hosted runners to stay within your quota.",
             "",
@@ -2181,35 +2398,58 @@ def export_customize_config(filepath: str) -> str:
         lines.extend(f"  - `{p}`" for p in priv_paths)
     lines.append("")
 
+    # ── Optional Directories to Strip ──
     lines.extend(
         [
             "---",
             "",
             "## Optional Directories to Strip",
             "",
-            "Check the boxes for directories you do **not** need.",
-            "**\u26a0 Checked items will be permanently deleted** (directories and all files inside).",
-            "You can recover them from git history if needed.",
+            "Select directories and files you do **not** need.",
+            "You can recover anything from git history if needed.",
             "",
-            "> **Deletion mode:** Checking a box deletes the **entire directory and all its",
-            "> contents**. Individual files listed under each option are also deleted even",
-            "> when they live outside the directory (e.g. related scripts). If you only want",
-            "> to remove specific files rather than whole directories, use",
-            "> `python scripts/customize.py` interactively with `--strip` and specify",
-            "> individual paths, or manually delete the files you don't need.",
+            "### Bulk Actions",
+            "",
+            "> Use these to apply actions to all items at once without",
+            "> checking individual boxes below.",
+            "",
+            "- [ ] **Select all items below** (`select-all`) \u2014 Mark all items for deletion (directory + files)",
+            "- [ ] **Delete only files in all items** (`select-all-files-only`) \u2014 Delete files in all items but keep empty directory structures",
+            "",
+            "> Or bypass individual selection entirely:",
+            "",
+            "- [ ] **Delete ALL directories regardless of selection** (`delete-all-dirs`) \u2014 Delete every optional directory and file listed below",
+            "- [ ] **Delete ALL files only regardless of selection** (`delete-all-files`) \u2014 Delete files in every optional directory but keep directory structures",
+            "",
+            "### Individual Items",
+            "",
+            "For each item, check the main box to **delete the directory and all files**.",
+            "Optionally, also check the \u201cfiles only\u201d sub-option to **keep the directory**",
+            "structure but remove all files inside.",
             "",
         ]
     )
     for key, entry in STRIPPABLE.items():
+        desc = str(entry.get("description", ""))
+        downside = str(entry.get("downside", ""))
         lines.append(f"- [ ] **{entry['label']}** (`{key}`)")
+        lines.append(
+            f"  - [ ] Files only \u2014 keep empty directory structure (`{key}:files-only`)"
+        )
+        if desc:
+            lines.append(f"  - **Description:** {desc}")
+        if downside:
+            lines.append(f"  - **Downsides:** {downside}")
         paths: list[str] = entry["paths"]  # type: ignore[assignment]
+        lines.append("  - Contents:")
         for p in paths:
             exists = (ROOT / p).exists()
             marker = " *(not found)*" if not exists else ""
             kind = "*(directory + all contents)*" if p.endswith("/") else "*(file)*"
-            lines.append(f"  - `{p}` {kind}{marker}")
-    lines.append("")
+            lines.append(f"    - `{p}` {kind}{marker}")
+        lines.append("")
 
+    # ── Template Cleanup ──
     lines.extend(
         [
             "---",
@@ -2219,18 +2459,107 @@ def export_customize_config(filepath: str) -> str:
             "These items exist to support the template repository itself.",
             "Check the boxes for items you want to clean up.",
             "",
-            "> **Note:** Each item has trade-offs described in the disclaimer below it.",
+            "> **Note:** Each item has trade-offs. See the",
+            "> [Disclaimers & Downsides](#disclaimers--downsides) section",
+            "> at the bottom for full details on each item.",
             "> You can always recover files from git history.",
             "",
         ]
     )
     for key, entry in TEMPLATE_CLEANUP.items():
         lines.append(f"- [ ] **{entry['label']}** (`{key}`)")
-        disclaimer = str(entry.get("disclaimer", ""))
-        if disclaimer:
-            lines.append(f"  > {disclaimer}")
+    lines.append("")
+
+    # ── Repository Layout ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Repository Layout",
+            "",
+            "> This tree is **dynamically generated** from the current repository state.",
+            "> It shows every file and directory (excluding build artifacts and caches)",
+            "> so you can see what exists before deciding what to strip.",
+            "",
+            "<details>",
+            "<summary><strong>Click to expand full repository tree</strong></summary>",
+            "",
+            "```",
+        ]
+    )
+    lines.append(_build_repo_tree())
+    lines.extend(
+        [
+            "```",
+            "",
+            "</details>",
+            "",
+        ]
+    )
+
+    # ── Disclaimers & Downsides ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Disclaimers & Downsides",
+            "",
+            "Detailed trade-offs for each strippable and cleanup item.",
+            "Read these before making your selections above.",
+            "",
+            "### Optional Directories",
+            "",
+        ]
+    )
+    for key, entry in STRIPPABLE.items():
+        desc = str(entry.get("description", ""))
+        downside = str(entry.get("downside", ""))
+        lines.append(f"#### `{key}` \u2014 {entry['label']}")
+        lines.append("")
+        if desc:
+            lines.append(f"**What it is:** {desc}")
+            lines.append("")
+        if downside:
+            lines.append(f"\u26a0\ufe0f **Downsides of deletion:** {downside}")
+            lines.append("")
+        paths = entry["paths"]  # type: ignore[assignment]
+        lines.append("**Files affected:**")
+        for p in paths:
+            exists = (ROOT / p).exists()
+            status = "\u2705" if exists else "\u274c not found"
+            lines.append(f"- `{p}` {status}")
         lines.append("")
 
+    lines.append("### Template Cleanup Items")
+    lines.append("")
+    for key, entry in TEMPLATE_CLEANUP.items():
+        disclaimer = str(entry.get("disclaimer", ""))
+        lines.append(f"#### `{key}` \u2014 {entry['label']}")
+        lines.append("")
+        if disclaimer:
+            lines.append(f"> {disclaimer}")
+            lines.append("")
+
+    # ── Quick Reference ──
+    lines.extend(
+        [
+            "---",
+            "",
+            "## Quick Reference",
+            "",
+            "| Command | Purpose |",
+            "| :--- | :--- |",
+            "| `python scripts/customize.py` | Generate this config file |",
+            "| `python scripts/customize.py --apply-from customize-config.md --dry-run` | Preview changes |",
+            "| `python scripts/customize.py --apply-from customize-config.md` | Apply changes |",
+            "| `python scripts/customize.py --non-interactive --project-name NAME ...` | Direct CLI mode |",
+            "| `python scripts/customize.py --enable-workflows owner/repo` | Enable workflows only |",
+            "| `python scripts/customize.py --export-config custom-path.md` | Export to custom path |",
+            "",
+        ]
+    )
+
+    # ── Applying Changes ──
     lines.extend(
         [
             "---",
@@ -2252,6 +2581,8 @@ def export_customize_config(filepath: str) -> str:
             "- Values in the Project Identity table replace the template placeholders.",
             "- Checked boxes (`[x]`) activate that option (strip, cleanup, private repo).",
             "- Unchecked boxes (`[ ]`) leave that option inactive.",
+            "- **Bulk actions** override individual selections when checked.",
+            "- **Files only** options delete files but preserve directory structures.",
             "- Use `--dry-run` to preview all changes before applying.",
             "- Use `--force` to skip the already-customized safety check.",
             "",
@@ -2288,13 +2619,15 @@ def _parse_md_checkboxes(content: str, section_heading: str) -> list[str]:
     """Extract checked checkbox keys from a Markdown section.
 
     Looks for ``- [x] **Label** (`key`)`` patterns under the given heading.
+    Also matches sub-item checkboxes like ``- [x] Files only … (`key:files-only`)``.
 
     Args:
         content: Full Markdown file content.
         section_heading: The ``## Heading`` text to search under.
 
     Returns:
-        List of keys from checked checkboxes.
+        List of keys from checked checkboxes (including bulk action keys
+        and ``key:files-only`` compound keys).
     """
     # Find the section
     heading_pattern = re.compile(
@@ -2311,12 +2644,10 @@ def _parse_md_checkboxes(content: str, section_heading: str) -> list[str]:
     )
     section_text = content[heading_match.end() : section_end]
 
-    # Find checked boxes with key in parens
+    # Find checked boxes with key in parens (backtick-wrapped)
     checked: list[str] = [
         match.group(1)
-        for match in re.finditer(
-            r"-\s*\[x\]\s*\*\*[^*]+\*\*\s*\(`([^)]+)`\)", section_text
-        )
+        for match in re.finditer(r"-\s*\[x\]\s*\*?\*?[^(]*\(`([^)]+)`\)", section_text)
     ]
 
     return checked
@@ -2417,8 +2748,42 @@ def apply_from_config(
     # Parse options
     license_id = _parse_md_license(content)
     private_repo = _parse_md_private_repo(content)
-    strip_dirs = _parse_md_checkboxes(content, "Optional Directories to Strip")
+    raw_strip_keys = _parse_md_checkboxes(content, "Optional Directories to Strip")
     template_cleanup = _parse_md_checkboxes(content, "Template Cleanup")
+
+    # ── Resolve bulk actions and files-only flags ──
+    all_strippable_keys = list(STRIPPABLE.keys())
+    bulk_select_all = "select-all" in raw_strip_keys
+    bulk_files_only = "select-all-files-only" in raw_strip_keys
+    bulk_delete_all_dirs = "delete-all-dirs" in raw_strip_keys
+    bulk_delete_all_files = "delete-all-files" in raw_strip_keys
+
+    # Determine which individual keys are selected
+    individual_keys = [k for k in raw_strip_keys if k in STRIPPABLE]
+    # Per-item files-only flags
+    individual_files_only = {
+        k.removesuffix(":files-only")
+        for k in raw_strip_keys
+        if k.endswith(":files-only") and k.removesuffix(":files-only") in STRIPPABLE
+    }
+
+    # Bulk overrides
+    if bulk_delete_all_dirs or bulk_delete_all_files:
+        # Override: act on ALL strippable items
+        strip_dirs = all_strippable_keys
+        if bulk_delete_all_files:
+            files_only_keys: set[str] = set(all_strippable_keys)
+        else:
+            files_only_keys = set()
+    elif bulk_select_all:
+        strip_dirs = all_strippable_keys
+        if bulk_files_only:
+            files_only_keys = set(all_strippable_keys)
+        else:
+            files_only_keys = individual_files_only
+    else:
+        strip_dirs = individual_keys
+        files_only_keys = individual_files_only
 
     cfg = Config(
         project_name=project_name,
@@ -2432,6 +2797,7 @@ def apply_from_config(
         template_cleanup=template_cleanup,
         private_repo=private_repo,
         dry_run=dry_run,
+        strip_files_only=files_only_keys,
     )
 
     ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
@@ -2470,7 +2836,11 @@ def apply_from_config(
     # Execute the same steps as the interactive path
     if cfg.strip_dirs:
         print(f"\n{tag}Stripping optional directories...")
-        strip_directories(cfg.strip_dirs, dry_run=dry_run)
+        strip_directories(
+            cfg.strip_dirs,
+            dry_run=dry_run,
+            files_only_keys=cfg.strip_files_only or None,
+        )
         bar.update("strip dirs")
 
     if cfg.private_repo:

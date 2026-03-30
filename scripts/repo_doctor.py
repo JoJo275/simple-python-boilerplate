@@ -1178,10 +1178,12 @@ def main() -> int:
             cat = p.rule.category or "general"
             cat_counts[cat] = cat_counts.get(cat, 0) + 1
         if cat_counts:
+            max_cat_width = max(len(cat) for cat in cat_counts)
             max_cnt_width = max(len(str(cnt)) for cnt in cat_counts.values())
             for cat, cnt in sorted(cat_counts.items()):
+                cat_str = cat.ljust(max_cat_width)
                 cnt_str = str(cnt).rjust(max_cnt_width)
-                ui.info_line(f"  {ui.c.green(check_sym)} {cat}: {cnt_str} passed")
+                ui.info_line(f"  {ui.c.green(check_sym)} {cat_str}  {cnt_str} passed")
 
     # ── Recommended Scripts ──
     ui.recommended_scripts(
