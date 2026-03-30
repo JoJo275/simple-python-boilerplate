@@ -113,7 +113,7 @@ jobs:
       # dependency-snapshot flag also submits dependency data
       # to GitHub's Dependency Submission API (channel 4).
       - name: Generate SPDX SBOM (primary)
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -124,7 +124,7 @@ jobs:
       # Generates a CycloneDX 1.x JSON SBOM for consumers
       # that prefer the CycloneDX standard.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
