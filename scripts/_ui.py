@@ -36,9 +36,9 @@ from typing import ClassVar
 from _colors import Colors, supports_unicode, unicode_symbols
 from _imports import find_repo_root
 
-__all__ = ["RECOMMENDED_SCRIPTS", "UI"]
+__all__ = ["RECOMMENDED_SCRIPTS", "UI", "Spacing"]
 
-SCRIPT_VERSION = "1.2.0"
+SCRIPT_VERSION = "1.3.0"
 
 # ---------------------------------------------------------------------------
 # Shared recommended-scripts registry
@@ -133,6 +133,53 @@ def _resolve_repo_info() -> tuple[str, str, str]:
     return _DEFAULT_REPO_URL, "simple-python-boilerplate", "JoJo275"
 
 
+class Spacing:
+    """Vertical and horizontal spacing conventions for dashboard output.
+
+    Provides standardised gap sizes so all scripts produce consistently
+    spaced output without overlapping text.  Scripts can override the
+    defaults by passing custom values at construction time.
+
+    Attributes:
+        section_above: Blank lines before a section header.
+        section_below: Blank lines after a section header.
+        kv_gap: Blank lines between key-value groups.
+        block_gap: Blank lines between major blocks (e.g. after a table).
+        indent: Number of spaces for primary indentation.
+        nested_indent: Number of spaces for nested indentation.
+        label_width: Default column width for key-value label alignment.
+    """
+
+    def __init__(
+        self,
+        *,
+        section_above: int = 1,
+        section_below: int = 1,
+        kv_gap: int = 0,
+        block_gap: int = 1,
+        indent: int = 4,
+        nested_indent: int = 6,
+        label_width: int = 22,
+    ) -> None:
+        self.section_above = section_above
+        self.section_below = section_below
+        self.kv_gap = kv_gap
+        self.block_gap = block_gap
+        self.indent = indent
+        self.nested_indent = nested_indent
+        self.label_width = label_width
+
+    @property
+    def pad(self) -> str:
+        """Primary indent string."""
+        return " " * self.indent
+
+    @property
+    def nested_pad(self) -> str:
+        """Nested indent string."""
+        return " " * self.nested_indent
+
+
 class UI:
     """Uniform dashboard output matching the git_doctor.py style.
 
@@ -143,6 +190,7 @@ class UI:
             One of: ``"cyan"``, ``"blue"``, ``"green"``, ``"yellow"``,
             ``"magenta"``, ``"red"``, ``"white"``.
         no_color: Force disable colors (e.g. from ``--no-color`` flag).
+        spacing: Optional :class:`Spacing` instance for layout control.
     """
 
     # Map from color name to Colors method name
@@ -174,6 +222,7 @@ class UI:
         theme: str = "cyan",
         *,
         no_color: bool = False,
+        spacing: Spacing | None = None,
     ) -> None:
         self.title = title
         self.version = version
@@ -181,6 +230,7 @@ class UI:
         self.c = Colors(enabled=not no_color)
         self.sym = unicode_symbols()
         self._use_unicode = supports_unicode()
+        self.spacing = spacing or Spacing()
 
         # Box-drawing characters (Unicode with ASCII fallback)
         u = self._use_unicode
@@ -520,3 +570,18 @@ class UI:
             print(f"      {self._themed(desc)}")
             print(f"      {self.c.dim(self.h_line * len(desc))}")
             print(f"        {self.c.bold(self._command_styled(cmd))}")
+
+    # ── Spacing convenience ─────────────────────────────────────
+
+    def gap(self, lines: int = 1) -> None:
+        """Print *lines* blank lines (default 1)."""
+        for _ in range(lines):
+            print()
+
+    def padded(self, text: str, *, indent: int | None = None) -> None:
+        """Print *text* with configurable left-indent.
+
+        Uses ``self.spacing.indent`` by default.
+        """
+        pad = " " * (indent if indent is not None else self.spacing.indent)
+        print(f"{pad}{text}")
