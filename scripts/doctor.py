@@ -373,7 +373,8 @@ def collect_diagnostics() -> dict[str, str | dict[str, str]]:
     """
     info: dict[str, str | dict[str, str]] = {}
 
-    spinner = Spinner("Collecting diagnostics", color="cyan")
+    spinner = Spinner("Collecting diagnostics", color="magenta")
+    spinner.start()
 
     # Timestamp (UTC for unambiguous reports)
     info["timestamp"] = datetime.now(tz=UTC).isoformat()
@@ -555,6 +556,7 @@ def format_plain(
 ) -> str:
     """Format diagnostics as plain text with optional color."""
     c = Colors(enabled=use_color)
+    sym = unicode_symbols()
     ui = UI(
         title="Diagnostics Report",
         version=SCRIPT_VERSION,
@@ -563,52 +565,105 @@ def format_plain(
     )
 
     lines: list[str] = []
+    kv_width = 28  # consistent label column width
 
-    # Human-friendly section labels
-    _section_labels = {
-        "pip_install": "PIP_INSTALL (is the package pip-installed?)",
+    def _colorize_value(key: str, val: str) -> str:
+        """Apply color to a value based on its content."""
+        if val in ("missing", "MISSING", "no", "N/A", "not found", "error"):
+            return c.red(val)
+        if val.startswith(("yes", "installed", "present")) or val in (
+            "file",
+            "directory",
+        ):
+            return c.green(val)
+        if val.startswith("NO ") or val.startswith("no "):
+            return c.red(val)
+        if key == "tools_optional":
+            return c.yellow(val)
+        return val
+
+    def _section(title: str, *, color: str | None = None) -> None:
+        """Append a section header to lines."""
+        border = ui.h_line * 60
+        color_fn = getattr(c, color, ui._themed) if color else ui._themed
+        lines.append("")
+        lines.append(color_fn(f"  {ui.tl}{border}{ui.tr}"))
+        lines.append(f"  {color_fn(ui.vl)} {c.bold(color_fn(title))}")
+        lines.append(color_fn(f"  {ui.bl}{border}{ui.br}"))
+        lines.append("")
+
+    def _kv(label: str, value: str, *, key: str = "") -> None:
+        """Append a key-value line to lines with proper alignment."""
+        colored_val = _colorize_value(key or label, value)
+        # Pad the raw label text first, then apply dim styling so ANSI
+        # codes don't interfere with column alignment.
+        padded_label = (label + ":").ljust(kv_width)
+        lines.append(f"    {c.dim(padded_label)} {colored_val}")
+
+    # -- Human-friendly section labels --
+    _section_labels: dict[str, str] = {
+        "timestamp": "Timestamp",
+        "system": "System Information",
+        "environment": "Environment",
+        "tools": "Tool Versions",
+        "git": "Git Repository",
+        "package": "Package Status",
+        "paths": "Key Paths",
+        "hooks": "Pre-commit Hooks",
+        "pip_install": "Editable Install",
+        "python_compat": "Python Compatibility",
+        "pyproject": "pyproject.toml Validation",
+        "config_files": "Configuration Files",
+        "hatch_envs": "Hatch Environments",
+        "problems": "Problems",
     }
 
+    # -- Sections --
     for section, data in info.items():
         display_name = _section_labels.get(section, section.upper())
-        # Section header using UI box-drawing
-        border = ui.h_line * 60
-        header_text = f"  {ui.tl}{border}{ui.tr}"
+
+        # Problems section gets special color treatment
         if section == "problems":
             has_issues = isinstance(data, dict) and "status" not in data
-            header_text = c.red(header_text) if has_issues else c.green(header_text)
-            label_text = c.red(display_name) if has_issues else c.green(display_name)
+            color = "red" if has_issues else "green"
+            icon = sym["cross"] if has_issues else sym["check"]
+            _section(f"{icon} {display_name}", color=color)
         else:
-            header_text = ui._themed(header_text)
-            label_text = c.bold(display_name)
-        lines.append(header_text)
-        lines.append(f"  {ui._themed(ui.vl)} {label_text}")
-        bottom = f"  {ui.bl}{border}{ui.br}"
-        if section == "problems":
-            bottom = c.red(bottom) if has_issues else c.green(bottom)
-        else:
-            bottom = ui._themed(bottom)
-        lines.append(bottom)
+            _section(display_name)
 
         if isinstance(data, dict):
             for key, value in data.items():
-                val_str = str(value)
-                # Highlight problematic values
-                if val_str in ("missing", "MISSING", "no", "N/A", "not found", "error"):
-                    val_str = c.red(val_str)
-                elif val_str.startswith(("yes", "installed", "present")) or val_str in (
-                    "file",
-                    "directory",
-                ):
-                    val_str = c.green(val_str)
-                elif val_str.startswith("NO ") or val_str.startswith("no "):
-                    val_str = c.red(val_str)
-                elif key == "tools_optional":
-                    val_str = c.yellow(val_str)
-                lines.append(f"    {c.dim(key + ':'):22s} {val_str}")
+                _kv(key, str(value), key=key)
         else:
             lines.append(f"    {data}")
+
         lines.append("")
+
+    # -- Summary bar --
+    problems = info.get("problems", {})
+    total_checks = sum(
+        len(v) if isinstance(v, dict) else 1 for k, v in info.items() if k != "problems"
+    )
+
+    if isinstance(problems, dict) and "status" in problems:
+        lines.append(
+            f"  {c.green(sym['check'])} "
+            f"{c.bold(c.green('All checks passed'))} "
+            f"{c.dim(f'({total_checks} items collected)')}"
+        )
+    else:
+        real_problems = (
+            sum(1 for k in problems if k not in ("status", "tools_optional"))
+            if isinstance(problems, dict)
+            else 0
+        )
+        lines.append(
+            f"  {c.yellow(sym['warn'])} "
+            f"{c.bold(c.yellow(f'{real_problems} problem(s) found'))} "
+            f"{c.dim(f'({total_checks} items collected)')}"
+        )
+
+    lines.append("")
 
     return "\n".join(lines)
 
@@ -734,8 +789,29 @@ def main() -> int:
         )
         ui.header()
         output = format_plain(info, use_color=use_color)
+        print(output)
+        ui.recommended_scripts(
+            ["bootstrap", "env_doctor", "repo_doctor", "clean", "dep_versions"]
+        )
+        # Summary footer
+        problems = info.get("problems", {})
+        _info_keys = frozenset({"status", "tools_optional"})
+        if isinstance(problems, dict) and "status" in problems:
+            ui.footer(passed=1, failed=0, warned=0)
+        else:
+            real = (
+                sum(1 for k in problems if k not in _info_keys)
+                if isinstance(problems, dict)
+                else 0
+            )
+            warned = (
+                1 if isinstance(problems, dict) and "tools_optional" in problems else 0
+            )
+            ui.footer(passed=0, failed=real, warned=warned)
+        output = ""  # already printed
 
-    print(output)
+    if output:
+        print(output)
 
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

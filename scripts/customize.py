@@ -3134,7 +3134,7 @@ def export_customize_config(filepath: str) -> str:
         f"| **Cleanup items** | {cleanup_count} template-specific items |",
         f"| **Total configurable** | {total_items} items |",
         "| **Apply** | `python scripts/customize.py --apply-from customize-config.md` |",
-        "| **Preview** | Edit this file, review your choices, then apply |",
+        "| **Preview** | `python scripts/customize.py --apply-from customize-config.md --dry-run` |",
         "",
     ]
 
@@ -3186,12 +3186,17 @@ def export_customize_config(filepath: str) -> str:
             "",
             "1. Edit the **Value** column in the Project Identity table below.",
             "2. Check the boxes (`[x]`) for options you want to enable.",
-            "3. Review your choices in this file (the config IS your preview).",
+            "3. Preview: `python scripts/customize.py --apply-from customize-config.md --dry-run`",
+            "   (generates `customize-report.md` showing what would change \u2014 no files modified).",
             "4. Apply: `python scripts/customize.py --apply-from customize-config.md`",
             "",
             "> **Tip \u2014 Toggling checkboxes:** VS Code's built-in Markdown preview does **not**",
             "> support clicking checkboxes to edit the raw file. Options:",
             ">",
+            "> - **Markdown Preview Enhanced** (`shd101wyy.markdown-preview-enhanced`):",
+            ">   Supports clicking checkboxes directly in the preview pane \u2014 edits the",
+            ">   raw Markdown source automatically. This is the recommended extension",
+            ">   for working with this config file.",
             "> - **Edit directly:** Change `[ ]` to `[x]` (or vice versa) in this file",
             "> - **Keyboard shortcut:** Place cursor on a checkbox line and press **Alt+C**",
             ">   (requires *Markdown All in One* \u2014 already recommended by this project)",
@@ -3617,6 +3622,7 @@ def export_customize_config(filepath: str) -> str:
             "| :--- | :--- |",
             "| `python scripts/customize.py` | Generate this config file |",
             "| `python scripts/customize.py --export-config` | Regenerate this config file |",
+            "| `python scripts/customize.py --apply-from customize-config.md --dry-run` | Preview changes (no files modified) |",
             "| `python scripts/customize.py --apply-from customize-config.md` | Apply changes |",
             "| `python scripts/customize.py --non-interactive --project-name NAME ...` | Direct CLI mode |",
             "| `python scripts/customize.py --enable-workflows owner/repo` | Enable workflows only |",
@@ -3632,10 +3638,13 @@ def export_customize_config(filepath: str) -> str:
             "",
             "## Applying Changes from This File",
             "",
-            "Edit the values and checkboxes above, then apply:",
+            "Edit the values and checkboxes above, then preview and apply:",
             "",
             "```bash",
-            "# Apply changes",
+            "# Preview changes (generates customize-report.md without modifying files)",
+            "python scripts/customize.py --apply-from customize-config.md --dry-run",
+            "",
+            "# Apply changes for real",
             "python scripts/customize.py --apply-from customize-config.md",
             "```",
             "",
@@ -3652,6 +3661,7 @@ def export_customize_config(filepath: str) -> str:
             "- **Nuke** deletes everything (recoverable via `git checkout HEAD -- .`).",
             "- **Deleting scripts** does NOT auto-delete related test files \u2014 do that separately.",
             "- The config file IS your preview — review it before applying.",
+            "- Use `--dry-run` to generate a preview report (`customize-report.md`) without modifying any files.",
             "- Use `--force` to skip the already-customized safety check.",
             "",
         ]
@@ -4509,10 +4519,11 @@ def apply_from_config(
 
     ui = UI(title="Customize", version=SCRIPT_VERSION, theme=THEME)
     ui.header()
+    print()
 
-    print(f"  {c.bold('Applying from:')} {c.cyan(filepath)}")
+    print(f"    {c.bold('Applying from:')} {c.cyan(filepath)}")
     if dry_run:
-        print(f"  {c.yellow('(dry-run mode — no files will be modified)')}")
+        print(f"    {c.yellow('(dry-run mode — no files will be modified)')}")
     print()
 
     # Safety check — allow idempotent re-runs when config matches
@@ -4547,72 +4558,118 @@ def apply_from_config(
     if dry_run:
         # ── Dry-run: generate preview report without touching files ──
         ui.section("Preview (dry-run)")
+
         start_time = time.monotonic()
+
+        # Count total preview steps for progress bar
+        preview_steps = 1  # text replacement scan
+        preview_steps += int(cfg.package_name != TEMPLATE_PACKAGE_NAME)
+        preview_steps += int(cfg.license_id != "apache-2.0")
+        preview_steps += int(bool(cfg.strip_dirs))
+        preview_steps += int(cfg.private_repo)
+        preview_steps += int(bool(cfg.template_cleanup))
+        preview_steps += int(enable_workflows)
+        preview_steps += int(do_flatten)
+        preview_steps += int(do_nuke)
+        preview_steps += 1  # report generation
+        preview_steps = max(preview_steps, 1)
+
+        bar = ProgressBar(
+            total=preview_steps,
+            label="  Previewing",
+            color="cyan",
+            pulse=True,
+        )
 
         # Estimate text replacements by scanning without writing
         modified = apply_replacements(replacements, show_progress=False, dry_run=True)
         total_subs = sum(modified.values())
         n_files = len(modified)
+        bar.update("text replacements")
 
         # Check what *would* happen for rename / license
         renamed = cfg.package_name != TEMPLATE_PACKAGE_NAME
         license_changed = cfg.license_id != "apache-2.0"
 
-        elapsed = time.monotonic() - start_time
-
-        # Preview summary
-        print()
+        # Preview summary — what would change
+        lbl_w = 20  # label column width for alignment
         print(
-            f"    {c.cyan(sym['arrow'])} {c.bold('Text replacements')}    "
+            f"    {c.cyan(sym['arrow'])} {c.bold('Text replacements'):{lbl_w}s} "
             f"{c.cyan(str(total_subs))} replacement(s) across "
             f"{c.cyan(str(n_files))} file(s) would be made"
         )
+        print()
+
         if renamed:
+            bar.update("package rename")
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Package rename')}      "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Package rename'):{lbl_w}s} "
                 f"src/{TEMPLATE_PACKAGE_NAME}/ {sym['arrow']} "
                 f"{c.cyan(f'src/{cfg.package_name}/')}"
             )
+            print()
+
         if license_changed:
+            bar.update("license")
             name = LICENSE_CHOICES[cfg.license_id]["name"]
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('License')}             "
+                f"    {c.cyan(sym['arrow'])} {c.bold('License'):{lbl_w}s} "
                 f"would switch to {c.cyan(str(name))}"
             )
+            print()
+
         if cfg.strip_dirs:
+            bar.update("strip dirs")
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Strip')}               "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Strip'):{lbl_w}s} "
                 f"{c.cyan(str(len(cfg.strip_dirs)))} optional item(s) would be removed"
             )
+            print()
+
         if cfg.private_repo:
+            bar.update("private repo")
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Private repo')}        "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Private repo'):{lbl_w}s} "
                 f"{c.cyan('community files would be stripped')}"
             )
+            print()
+
         if cfg.template_cleanup:
+            bar.update("template cleanup")
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Template cleanup')}    "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Template cleanup'):{lbl_w}s} "
                 f"{c.cyan(str(len(cfg.template_cleanup)))} item(s) would be cleaned"
             )
+            print()
+
         if enable_workflows:
+            bar.update("workflows")
             repo_slug = f"{cfg.github_user}/{cfg.project_name}"
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Workflows')}           "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Workflows'):{lbl_w}s} "
                 f"repo slug would be set to {c.cyan(repo_slug)}"
             )
+            print()
+
         if do_flatten:
+            bar.update("flatten layout")
             print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Flat layout')}         "
+                f"    {c.cyan(sym['arrow'])} {c.bold('Flat layout'):{lbl_w}s} "
                 f"{c.cyan('would convert to flat layout')}"
             )
+            print()
+
         if do_nuke:
+            bar.update("nuke")
             print(
-                f"    {c.yellow('!')} {c.bold('Nuke')}                "
+                f"    {c.yellow('!')} {c.bold('Nuke'):{lbl_w}s} "
                 f"{c.yellow('would delete all repository contents')}"
             )
-        print()
+            print()
 
         # Generate preview report
+        bar.update("report")
+        elapsed = time.monotonic() - start_time
         report_path = _write_customization_report(
             cfg,
             enable_workflows=enable_workflows,
@@ -4622,13 +4679,16 @@ def apply_from_config(
             modified_files=modified,
             report_mode="Preview (dry-run)",
         )
+        bar.finish(vanish=True)
 
+        # ── Completion summary ──
         print(f"  {c.dim(sym['sep'] * 54)}")
         print()
         print(
             f"    {c.green(sym['check'])} "
             f"{c.bold(c.green('Preview report generated — no files were modified.'))}"
         )
+        print()
         print(f"    {c.dim(f'Completed in {elapsed:.1f}s')}")
         print()
         report_link = c.link(
@@ -4640,6 +4700,7 @@ def apply_from_config(
         print(f"    {c.bold(c.cyan('To apply for real:'))}")
         print(f"         {c.magenta(apply_cmd)}")
         print()
+
         return 0
 
     ui.section("Applying Changes")
@@ -4655,7 +4716,12 @@ def apply_from_config(
     total_steps += bool(do_nuke)
 
     start_time = time.monotonic()
-    bar = ProgressBar(total=total_steps, label="  Customizing", color="cyan")
+    bar = ProgressBar(
+        total=total_steps,
+        label="  Customizing",
+        color="cyan",
+        pulse=True,
+    )
 
     # Step: Strip optional directories
     if cfg.strip_dirs:
@@ -4706,7 +4772,7 @@ def apply_from_config(
         _apply_nuke_repo()
         bar.update("nuke repo")
 
-    bar.finish()
+    bar.finish(vanish=True)
     elapsed = time.monotonic() - start_time
 
     # ── Results Summary ────────────────────────────────────────
