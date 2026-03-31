@@ -1066,8 +1066,8 @@ def print_env_info(
                             (c.magenta(tgt_part), target_col),
                         ]
                     )
-                # One blank line between each entry point command
-                print()
+                # Separation line between each entry point for clarity
+                ui.separator(width=cmd_col + target_col + 1)
             # How to remove entry points
             ui.blank()
             ui.info_line(c.bold("Removing an entry point:"))

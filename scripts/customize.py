@@ -1293,6 +1293,54 @@ def _validate_package_name(name: str) -> str | None:
     return None
 
 
+def _validate_github_user(name: str) -> str | None:
+    """Return an error message if *name* is not a valid GitHub username/org."""
+    if not name:
+        return "GitHub user cannot be empty."
+    if not re.match(r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$", name):
+        return (
+            "GitHub usernames may only contain alphanumeric characters or "
+            "hyphens, cannot start or end with a hyphen."
+        )
+    if len(name) > 39:
+        return "GitHub usernames must be 39 characters or fewer."
+    if "--" in name:
+        return "GitHub usernames cannot contain consecutive hyphens."
+    return None
+
+
+def _validate_author(name: str) -> str | None:
+    """Return an error message if *name* is not a valid author string."""
+    if not name or not name.strip():
+        return "Author cannot be empty."
+    if len(name) > 200:
+        return "Author name is too long (max 200 characters)."
+    return None
+
+
+def _validate_cli_prefix(prefix: str) -> str | None:
+    """Return an error message if *prefix* is not a valid CLI prefix."""
+    if not prefix:
+        return "CLI prefix cannot be empty."
+    if not re.match(r"^[a-zA-Z][a-zA-Z0-9_-]*$", prefix):
+        return (
+            "CLI prefix must start with a letter and contain only "
+            "letters, digits, hyphens, or underscores."
+        )
+    if len(prefix) > 30:
+        return "CLI prefix is too long (max 30 characters)."
+    return None
+
+
+def _validate_description(desc: str) -> str | None:
+    """Return an error message if *desc* is not a valid description."""
+    if not desc or not desc.strip():
+        return "Description cannot be empty."
+    if len(desc) > 512:
+        return "Description is too long (max 512 characters)."
+    return None
+
+
 def gather_config_interactive() -> Config:
     """Run an interactive Q&A session and return a populated Config."""
     cfg = Config()
@@ -3207,6 +3255,14 @@ def export_customize_config(filepath: str) -> str:
             ">   — toggles the raw file instantly with colored highlights",
             ">",
             "> Use **Ctrl+K V** to open a side-by-side preview while you edit.",
+            ">",
+            "> **Caveat — Split editor required for clickable checkboxes:** Extensions",
+            "> that support clicking checkboxes in the rendered preview (e.g. Markdown",
+            "> Preview Enhanced) require a **split editor** setup: the raw Markdown file",
+            "> open on one side and the rendered preview on the other. Clicks in the",
+            "> preview pane only register edits back to the source file when both views",
+            "> are visible simultaneously. Without the split view, checkbox clicks may",
+            "> appear to toggle visually but won't persist to the raw file.",
             "",
             "> **Tip:** For a fully non-interactive approach without editing this file,",
             "> use `python scripts/customize.py --non-interactive --project-name NAME",
@@ -4417,6 +4473,26 @@ def apply_from_config(
     pkg_err = _validate_package_name(package_name)
     if pkg_err:
         log.error("Invalid package name '%s': %s", package_name, pkg_err)
+        return 1
+
+    gh_err = _validate_github_user(github_user)
+    if gh_err:
+        log.error("Invalid GitHub user '%s': %s", github_user, gh_err)
+        return 1
+
+    author_err = _validate_author(author)
+    if author_err:
+        log.error("Invalid author '%s': %s", author, author_err)
+        return 1
+
+    cli_err = _validate_cli_prefix(cli_prefix)
+    if cli_err:
+        log.error("Invalid CLI prefix '%s': %s", cli_prefix, cli_err)
+        return 1
+
+    desc_err = _validate_description(description)
+    if desc_err:
+        log.error("Invalid description '%s': %s", description, desc_err)
         return 1
 
     # Parse options
