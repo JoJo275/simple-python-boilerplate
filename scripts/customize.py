@@ -2411,11 +2411,24 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
 
     ui.section("Customization Plan")
 
-    # Count eligible files upfront for context
+    # Scan eligible files with a progress bar (the slow part)
+    plan_bar = ProgressBar(
+        total=3,
+        label="  Analyzing",
+        color="cyan",
+        pulse=True,
+    )
+    plan_bar._start_pulse()
     eligible_count = len(_collect_eligible_files())
+    plan_bar.update("file scan")
+    time.sleep(0.12)
+    plan_bar.update("computing plan")
+    time.sleep(0.12)
+    plan_bar.update("done")
+    plan_bar.finish(vanish=True)
 
     print(
-        f"\n  {c.bold('Text replacements')} "
+        f"  {c.bold('Text replacements')} "
         f"{c.dim(f'({len(replacements)} rules, ~{eligible_count} files to scan)')}"
     )
     for r in replacements:
@@ -3075,6 +3088,128 @@ def _build_repo_tree_filtered(removed_paths: set[str]) -> str:
     return "\n".join(lines)
 
 
+def _build_repo_tree_flattened(removed_paths: set[str], package_name: str) -> str:
+    """Build a virtual tree with src/ layout flattened to root.
+
+    Shows the repository as if ``src/<package>/`` had been moved to
+    ``<package>/`` at the repository root.  The ``src/`` directory
+    itself is excluded from the tree.
+
+    Args:
+        removed_paths: Set of repo-relative path strings to exclude.
+        package_name: The package directory name (underscored).
+
+    Returns:
+        Formatted tree string with Unicode box-drawing characters.
+    """
+    normalised: set[str] = {p.rstrip("/") for p in removed_paths} | {"src"}
+    lines: list[str] = []
+    repo_name = ROOT.name
+    pkg_src = ROOT / "src" / package_name
+
+    def _is_removed(rel: str) -> bool:
+        bare = rel.rstrip("/")
+        if bare in normalised:
+            return True
+        return any(bare.startswith(rp + "/") for rp in normalised)
+
+    def _walk_dir(directory: Path, prefix: str = "") -> None:
+        """Walk a directory and append tree lines."""
+        try:
+            entries = sorted(
+                directory.iterdir(),
+                key=lambda e: (not e.is_dir(), e.name.lower()),
+            )
+        except PermissionError:
+            return
+        entries = [
+            e
+            for e in entries
+            if not (
+                e.is_dir()
+                and (
+                    e.name in SKIP_DIRS
+                    or e.name.startswith(".")
+                    or e.name.endswith(".egg-info")
+                )
+            )
+        ]
+        for i, entry in enumerate(entries):
+            is_last = i == len(entries) - 1
+            connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+            extension = "    " if is_last else "\u2502   "
+            if entry.is_dir():
+                lines.append(f"{prefix}{connector}{entry.name}/")
+                _walk_dir(entry, prefix + extension)
+            else:
+                lines.append(f"{prefix}{connector}{entry.name}")
+
+    def _walk_root() -> None:
+        """Walk ROOT, injecting the flattened package at the correct position."""
+        try:
+            entries = sorted(
+                ROOT.iterdir(),
+                key=lambda e: (not e.is_dir(), e.name.lower()),
+            )
+        except PermissionError:
+            return
+
+        entries = [
+            e
+            for e in entries
+            if not (
+                e.is_dir()
+                and (
+                    e.name in SKIP_DIRS
+                    or e.name.startswith(".")
+                    or e.name.endswith(".egg-info")
+                )
+            )
+        ]
+        entries = [
+            e
+            for e in entries
+            if not _is_removed(str(e.relative_to(ROOT)).replace("\\", "/"))
+        ]
+
+        # Separate dirs and files (dirs first, then files)
+        dir_entries = [e for e in entries if e.is_dir()]
+        file_entries = [e for e in entries if not e.is_dir()]
+
+        # Insert virtual package dir among dirs at sorted position
+        all_dirs: list[tuple[str, Path | None]] = []
+        pkg_inserted = False
+        has_pkg = pkg_src.is_dir()
+        for d in dir_entries:
+            if has_pkg and not pkg_inserted and d.name.lower() > package_name.lower():
+                all_dirs.append(("virtual", pkg_src))
+                pkg_inserted = True
+            all_dirs.append(("real", d))
+        if has_pkg and not pkg_inserted:
+            all_dirs.append(("virtual", pkg_src))
+
+        all_items = all_dirs + [("real", f) for f in file_entries]
+        total = len(all_items)
+
+        for i, (kind, entry) in enumerate(all_items):
+            assert entry is not None
+            is_last = i == total - 1
+            connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+            extension = "    " if is_last else "\u2502   "
+            if kind == "virtual":
+                lines.append(f"{connector}{package_name}/")
+                _walk_dir(entry, extension)
+            elif entry.is_dir():
+                lines.append(f"{connector}{entry.name}/")
+                _walk_dir(entry, extension)
+            else:
+                lines.append(f"{connector}{entry.name}")
+
+    lines.append(f"{repo_name}/")
+    _walk_root()
+    return "\n".join(lines)
+
+
 def _build_file_glossary_filtered(removed_paths: set[str]) -> list[str]:
     """Build a root-level file glossary excluding paths marked for removal.
 
@@ -3538,11 +3673,6 @@ def export_customize_config(filepath: str) -> str:
             "This is irreversible without git history. Use this when you want to start "
             "completely from scratch with nothing but a `.git/` directory.",
             "",
-            "> **\u26a0\ufe0f WARNING:** This will delete EVERYTHING \u2014 source code, tests, docs, "
-            "> scripts, workflows, configuration, and this config file itself. The only way "
-            "> to recover is from git history (`git checkout HEAD -- .`). Use with extreme "
-            "> caution. You will be prompted for confirmation even in non-interactive mode.",
-            "",
         ]
     )
 
@@ -3987,6 +4117,44 @@ def _run_repo_doctor(*, dry_run: bool = False) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _generate_nuke_tree() -> str:
+    """Generate a fun ASCII-art tree for the nuke dry-run preview."""
+    return "\n".join(
+        [
+            "          . * .  *  . * .",
+            "        *   BOOM!   *",
+            "      . * . * . * . * .",
+            "        *  . * .  *",
+            "           ,' `.",
+            "          / o o \\",
+            "         /  ___  \\",
+            "        / /~~~~~\\ \\",
+            "       | |~~~~~~~| |",
+            "       | |~~~~~~~| |",
+            "        \\ \\~~~~~/ /",
+            "         `-------'",
+            "",
+            "  Nothing here but digital tumbleweeds.",
+            "",
+            "  Repository contents: vaporized.",
+            "  Files remaining: 0  (well, .git/ survived)",
+            "  Chance of recovery: git reflog",
+        ]
+    )
+
+
+def _generate_nuke_glossary() -> list[str]:
+    """Generate a fun glossary for the nuke dry-run preview."""
+    return [
+        "| Path | Description |",
+        "| :--- | :--- |",
+        "| `.git/` | The sole survivor. Clings to existence like a cockroach after the apocalypse. |",
+        "| `README.md` | Gone. Poof. It had a good run. |",
+        "| `src/` | Reduced to atoms. Even the electrons moved on. |",
+        "| `*` | Everything else joined the great `/dev/null` in the sky. |",
+    ]
+
+
 def _generate_customization_report(
     cfg: Config,
     *,
@@ -4062,8 +4230,12 @@ def _generate_customization_report(
 
     # -- Generate tree and glossary (filtered to show post-removal state) -----
     if do_nuke:
-        tree_block = "*Repository contents nuked — empty directory.*"
-        glossary_lines = ["*No files remain after nuke.*"]
+        tree_block = _generate_nuke_tree()
+        glossary_lines = _generate_nuke_glossary()
+    elif do_flatten:
+        flat_removed = removed_paths | {"src"}
+        tree_block = _build_repo_tree_flattened(flat_removed, cfg.package_name)
+        glossary_lines = _build_file_glossary_filtered(flat_removed)
     elif removed_paths:
         tree_block = _build_repo_tree_filtered(removed_paths)
         glossary_lines = _build_file_glossary_filtered(removed_paths)
@@ -4658,94 +4830,46 @@ def apply_from_config(
             color="cyan",
             pulse=True,
         )
+        bar._start_pulse()
 
-        # Estimate text replacements by scanning without writing
+        # ── Collect results while bar is visible ──
         modified = apply_replacements(replacements, show_progress=False, dry_run=True)
         total_subs = sum(modified.values())
         n_files = len(modified)
         bar.update("text replacements")
 
-        # Check what *would* happen for rename / license
         renamed = cfg.package_name != TEMPLATE_PACKAGE_NAME
         license_changed = cfg.license_id != "apache-2.0"
 
-        # Preview summary — what would change
-        lbl_w = 20  # label column width for alignment
-        print(
-            f"    {c.cyan(sym['arrow'])} {c.bold('Text replacements'):{lbl_w}s} "
-            f"{c.cyan(str(total_subs))} replacement(s) across "
-            f"{c.cyan(str(n_files))} file(s) would be made"
-        )
-        print()
+        # Small delay between instant steps so pulse animation fills smoothly
+        _step_pause = 0.12
 
         if renamed:
+            time.sleep(_step_pause)
             bar.update("package rename")
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Package rename'):{lbl_w}s} "
-                f"src/{TEMPLATE_PACKAGE_NAME}/ {sym['arrow']} "
-                f"{c.cyan(f'src/{cfg.package_name}/')}"
-            )
-            print()
-
         if license_changed:
+            time.sleep(_step_pause)
             bar.update("license")
-            name = LICENSE_CHOICES[cfg.license_id]["name"]
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('License'):{lbl_w}s} "
-                f"would switch to {c.cyan(str(name))}"
-            )
-            print()
-
         if cfg.strip_dirs:
+            time.sleep(_step_pause)
             bar.update("strip dirs")
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Strip'):{lbl_w}s} "
-                f"{c.cyan(str(len(cfg.strip_dirs)))} optional item(s) would be removed"
-            )
-            print()
-
         if cfg.private_repo:
+            time.sleep(_step_pause)
             bar.update("private repo")
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Private repo'):{lbl_w}s} "
-                f"{c.cyan('community files would be stripped')}"
-            )
-            print()
-
         if cfg.template_cleanup:
+            time.sleep(_step_pause)
             bar.update("template cleanup")
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Template cleanup'):{lbl_w}s} "
-                f"{c.cyan(str(len(cfg.template_cleanup)))} item(s) would be cleaned"
-            )
-            print()
-
         if enable_workflows:
+            time.sleep(_step_pause)
             bar.update("workflows")
-            repo_slug = f"{cfg.github_user}/{cfg.project_name}"
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Workflows'):{lbl_w}s} "
-                f"repo slug would be set to {c.cyan(repo_slug)}"
-            )
-            print()
-
         if do_flatten:
+            time.sleep(_step_pause)
             bar.update("flatten layout")
-            print(
-                f"    {c.cyan(sym['arrow'])} {c.bold('Flat layout'):{lbl_w}s} "
-                f"{c.cyan('would convert to flat layout')}"
-            )
-            print()
-
         if do_nuke:
+            time.sleep(_step_pause)
             bar.update("nuke")
-            print(
-                f"    {c.yellow('!')} {c.bold('Nuke'):{lbl_w}s} "
-                f"{c.yellow('would delete all repository contents')}"
-            )
-            print()
 
-        # Generate preview report
+        time.sleep(_step_pause)
         bar.update("report")
         elapsed = time.monotonic() - start_time
         report_path = _write_customization_report(
@@ -4758,6 +4882,74 @@ def apply_from_config(
             report_mode="Preview (dry-run)",
         )
         bar.finish(vanish=True)
+
+        # ── Preview summary — what would change ──
+        lbl_w = 20  # label column width for alignment
+        print(
+            f"    {c.cyan(sym['arrow'])} {c.bold('Text replacements'):{lbl_w}s} "
+            f"{c.cyan(str(total_subs))} replacement(s) across "
+            f"{c.cyan(str(n_files))} file(s) would be made"
+        )
+        print()
+
+        if renamed:
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Package rename'):{lbl_w}s} "
+                f"src/{TEMPLATE_PACKAGE_NAME}/ {sym['arrow']} "
+                f"{c.cyan(f'src/{cfg.package_name}/')}"
+            )
+            print()
+
+        if license_changed:
+            name = LICENSE_CHOICES[cfg.license_id]["name"]
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('License'):{lbl_w}s} "
+                f"would switch to {c.cyan(str(name))}"
+            )
+            print()
+
+        if cfg.strip_dirs:
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Strip'):{lbl_w}s} "
+                f"{c.cyan(str(len(cfg.strip_dirs)))} optional item(s) would be removed"
+            )
+            print()
+
+        if cfg.private_repo:
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Private repo'):{lbl_w}s} "
+                f"{c.cyan('community files would be stripped')}"
+            )
+            print()
+
+        if cfg.template_cleanup:
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Template cleanup'):{lbl_w}s} "
+                f"{c.cyan(str(len(cfg.template_cleanup)))} item(s) would be cleaned"
+            )
+            print()
+
+        if enable_workflows:
+            repo_slug = f"{cfg.github_user}/{cfg.project_name}"
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Workflows'):{lbl_w}s} "
+                f"repo slug would be set to {c.cyan(repo_slug)}"
+            )
+            print()
+
+        if do_flatten:
+            print(
+                f"    {c.cyan(sym['arrow'])} {c.bold('Flat layout'):{lbl_w}s} "
+                f"{c.cyan('would convert to flat layout')}"
+            )
+            print()
+
+        if do_nuke:
+            print(
+                f"    {c.yellow('!')} {c.bold('Nuke'):{lbl_w}s} "
+                f"{c.yellow('would delete all repository contents')}"
+            )
+            print()
 
         # ── Completion summary ──
         print(f"  {c.dim(sym['sep'] * 54)}")

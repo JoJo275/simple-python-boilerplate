@@ -657,8 +657,11 @@ class UI:
             cmd, desc = entry
             if i > 0:
                 print()
+            # Use dotted separator (·) to distinguish from solid box lines
+            dot = "\u00b7" if self._use_unicode else "."
+            sep_str = (f"{dot} " * ((len(desc) + 1) // 2))[: len(desc)]
             print(f"      {self._themed(desc)}")
-            print(f"      {self.c.dim(self.h_line * len(desc))}")
+            print(f"      {self.c.dim(sep_str)}")
             print(f"        {self.c.bold(self._command_styled(cmd))}")
 
     # ── Spacing convenience ─────────────────────────────────────
