@@ -24,8 +24,10 @@ Subcommands and flags::
 
     show                     Show installed and latest versions (default)
       --offline              Skip querying PyPI for latest versions
+      --dry-run              Write preview report to dep-versions-report.md
     update-comments          Update inline version comments in pyproject.toml
                              and requirements*.txt files
+      --dry-run              Preview without modifying files; writes report
     upgrade                  Upgrade dependencies via pip
       [package]              Package to upgrade (omit to upgrade all)
       [version]              Target version (omit to upgrade to latest)
@@ -37,9 +39,11 @@ Usage::
 
     python scripts/dep_versions.py                       # Show all dep versions
     python scripts/dep_versions.py show --offline        # Skip PyPI check
+    python scripts/dep_versions.py show --dry-run        # Show + write report
     python scripts/dep_versions.py update-comments       # Sync comments with installed
+    python scripts/dep_versions.py update-comments --dry-run  # Preview comment changes
     python scripts/dep_versions.py upgrade               # Upgrade ALL deps to latest
-    python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades
+    python scripts/dep_versions.py upgrade --dry-run     # Preview upgrades + report
     python scripts/dep_versions.py upgrade ruff           # Upgrade ruff to latest
     python scripts/dep_versions.py upgrade ruff 0.9.0    # Upgrade ruff to specific version
 
@@ -59,7 +63,6 @@ import re
 import subprocess  # nosec B404
 import sys
 import tomllib
-import warnings
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import metadata as pkg_metadata
 from importlib.metadata import version as pkg_version
@@ -70,13 +73,26 @@ from _colors import Colors
 from _imports import find_repo_root, import_sibling
 from _ui import UI
 
-ProgressBar = import_sibling("_progress").ProgressBar
+_progress = import_sibling("_progress")
+ProgressBar = _progress.ProgressBar
+Spinner = _progress.Spinner
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 SCRIPT_VERSION = "1.5.0"
+
+
+def _clickable_path(path: Path) -> str:
+    """Return a terminal-clickable file path using OSC 8 hyperlinks."""
+    c = Colors()
+    name = str(path.name)
+    if sys.stdout.isatty():
+        uri = path.resolve().as_uri()
+        return f"\033]8;;{uri}\033\\{c.cyan(name)}\033]8;;\033\\"
+    return c.cyan(name)
+
 
 # Theme color for this script's dashboard output.
 THEME = "blue"
@@ -103,19 +119,33 @@ def _get_req_files() -> list[Path]:
 
 
 def _warn_if_no_venv() -> None:
-    """Emit a warning if running outside a virtual environment.
+    """Print a prominent warning banner if running outside a virtual environment.
 
     Installing or upgrading packages outside a venv risks polluting
     the global Python installation.  This project convention is to
     always use a Hatch-managed environment.
     """
     if sys.prefix == sys.base_prefix:
-        warnings.warn(
-            "You are running outside a virtual environment. "
-            "Upgrading packages here will modify the global Python "
-            "installation. Consider using 'hatch shell' first.",
-            stacklevel=2,
+        c = Colors()
+        sym = (
+            "\u26a0"
+            if sys.stdout.encoding and "utf" in sys.stdout.encoding.lower()
+            else "!"
         )
+        border = c.yellow("\u2500" * 60)
+        print()
+        print(f"  {border}")
+        print(
+            f"  {c.yellow(c.bold(f'  {sym}  WARNING: No virtual environment detected'))}"
+        )
+        print(f"  {border}")
+        print(
+            f"  {c.yellow('  Upgrading packages here will modify the global Python')}"
+        )
+        print(f"  {c.yellow('  installation. Consider running:')}")
+        print(f"  {c.bold(c.cyan('    hatch shell'))}")
+        print(f"  {border}")
+        print()
 
 
 def _installed_version(pkg: str) -> str | None:
@@ -289,9 +319,15 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
     seen.clear()
 
     if check_latest:
-        bar = ProgressBar(total=len(all_deps), label="Querying PyPI", color="cyan")
+        bar = ProgressBar(
+            total=len(all_deps), label="Querying PyPI", color="cyan", pulse=True
+        )
+        bar._start_pulse()  # start pulse immediately
+        spinner = None
     else:
         bar = None
+        spinner = Spinner("Collecting packages", color="cyan")
+        spinner.start()
 
     for group, raw in all_deps:
         name = _normalise_name(raw)
@@ -305,6 +341,8 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
 
         if bar is not None:
             bar.update(name)
+        elif spinner is not None:
+            spinner.update(name)
 
         rows.append(
             {
@@ -318,7 +356,9 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
         )
 
     if bar is not None:
-        bar.finish()
+        bar.finish(vanish=True)
+    elif spinner is not None:
+        spinner.finish()
 
     return rows
 
@@ -331,7 +371,7 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
 
     w_name = max((len(r["name"] or "") for r in rows), default=10)
     w_group = max((len(r["group"] or "") for r in rows), default=10)
-    w_spec = max((len(r["specifier"] or "") for r in rows), default=10)
+    w_spec = min(max((len(r["specifier"] or "") for r in rows), default=10), 30)
     w_inst = max((len(r["installed"] or "-") for r in rows), default=9)
     w_lat = max((len(r["latest"] or "-") for r in rows), default=6)
 
@@ -352,6 +392,9 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
         inst = r["installed"] or "-"
         lat = r["latest"] or "-"
         name = r["name"] or ""
+        spec = r["specifier"] or ""
+        if len(spec) > w_spec:
+            spec = spec[: w_spec - 1] + "\u2026"
         # Colorize upgradable rows
         if upgradable:
             name = c.yellow(name)
@@ -361,7 +404,7 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
             [
                 (name, w_name),
                 (r["group"] or "", w_group),
-                (r["specifier"] or "", w_spec),
+                (spec, w_spec),
                 (inst, w_inst),
                 (lat, w_lat),
                 (flag, 8),
@@ -375,18 +418,6 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     ui.info_line(
         f"{len(rows)} package(s) across {len(groups)} group(s)"
         + (f", {upgradable_count} upgradable" if upgradable_count else "")
-    )
-
-    # ── Recommended Scripts ──
-    ui.recommended_scripts(
-        [
-            "repo_sauron",
-            "env_inspect",
-            "repo_doctor",
-            "env_doctor",
-            "doctor",
-        ],
-        preamble="Scripts that expand on dependency and project information.",
     )
 
 
@@ -694,6 +725,124 @@ def upgrade_all(rows: list[dict[str, str | None]]) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Dry-run report generation
+# ---------------------------------------------------------------------------
+
+_REPORT_OUTPUT = ROOT / "dep-versions-report.md"
+
+
+def _generate_dry_run_report(
+    rows: list[dict[str, str | None]],
+    command: str,
+) -> Path:
+    """Write a Markdown dry-run report to ``dep-versions-report.md``.
+
+    Includes a summary table, a dependency tree showing what would
+    change, and details per group.  Returns the output path.
+    """
+    import datetime
+
+    now = datetime.datetime.now(tz=datetime.UTC)
+    upgradable = [r for r in rows if r["upgradable"] == "yes"]
+    groups = sorted({r["group"] for r in rows if r.get("group")})
+
+    lines: list[str] = []
+    w = lines.append  # shorthand
+
+    w("# Dependency Versions \u2014 Dry-Run Preview")
+    w("")
+    w("<!-- Auto-generated by dep_versions.py \u2014 do not edit manually. -->")
+    w("")
+    w("| **Report type** | Dry-Run Preview |")
+    w("| --- | --- |")
+    w(f"| **Generated by** | `dep_versions.py` v{SCRIPT_VERSION} |")
+    w(f"| **Timestamp** | {now.strftime('%Y-%m-%d %H:%M:%S UTC')} |")
+    w(f"| **Command** | `{command}` |")
+    w(f"| **Total packages** | {len(rows)} |")
+    w(f"| **Upgradable** | {len(upgradable)} |")
+    w(f"| **Groups** | {', '.join(groups)} |")
+    w("")
+    w(
+        "> **Preview only** \u2014 no files were modified. "
+        "Re-run without `--dry-run` to apply."
+    )
+    w("")
+    w("---")
+    w("")
+    w("## All Dependencies")
+    w("")
+    w("| Package | Group | Specifier | Installed | Latest | Upgrade? |")
+    w("| :--- | :--- | :--- | :--- | :--- | :---: |")
+    for r in rows:
+        up = "\u2b06\ufe0f" if r["upgradable"] == "yes" else ""
+        w(
+            f"| {r['name']} | {r['group']} | `{r['specifier']}` "
+            f"| {r['installed'] or '-'} | {r['latest'] or '-'} | {up} |"
+        )
+    w("")
+
+    if upgradable:
+        w("---")
+        w("")
+        w("## Upgradable Packages")
+        w("")
+        w("| Package | Installed | Latest | Delta |")
+        w("| :--- | :--- | :--- | :--- |")
+        for r in upgradable:
+            w(
+                f"| **{r['name']}** | {r['installed']} "
+                f"| {r['latest']} | `{r['installed']}` \u2192 `{r['latest']}` |"
+            )
+        w("")
+
+    w("---")
+    w("")
+    w("## Virtual Dependency Tree")
+    w("")
+    w("```")
+    w("pyproject.toml")
+    for g_idx, group in enumerate(groups):
+        g_rows = [r for r in rows if r["group"] == group]
+        is_last_group = g_idx == len(groups) - 1
+        branch = "\u2514" if is_last_group else "\u251c"
+        w(f"{branch}\u2500\u2500 [{group}]")
+        for r_idx, r in enumerate(g_rows):
+            is_last = r_idx == len(g_rows) - 1
+            prefix = "    " if is_last_group else "\u2502   "
+            connector = "\u2514" if is_last else "\u251c"
+            marker = " \u2b06" if r["upgradable"] == "yes" else ""
+            ver = r["installed"] or "?"
+            w(f"{prefix}{connector}\u2500\u2500 {r['name']} ({ver}){marker}")
+    w("```")
+    w("")
+    w("---")
+    w("")
+    w(
+        f"*Generated by `dep_versions.py` v{SCRIPT_VERSION} on "
+        f"{now.strftime('%Y-%m-%d')}*"
+    )
+    w("")
+
+    _REPORT_OUTPUT.write_text("\n".join(lines), encoding="utf-8")
+    return _REPORT_OUTPUT
+
+
+def _print_recommended_scripts() -> None:
+    """Print the recommended scripts section (called at end of every command)."""
+    ui = UI(title="Dependency Versions", version=SCRIPT_VERSION, theme=THEME)
+    ui.recommended_scripts(
+        [
+            "repo_sauron",
+            "env_inspect",
+            "repo_doctor",
+            "env_doctor",
+            "doctor",
+        ],
+        preamble="Scripts that expand on dependency and project information.",
+    )
+
+
+# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -727,15 +876,25 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip querying PyPI for latest versions (faster).",
     )
+    show_p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Write a preview report to dep-versions-report.md.",
+    )
 
     # -- update-comments --
-    sub.add_parser(
+    uc_p = sub.add_parser(
         "update-comments",
         help=(
             "Update inline version comments in pyproject.toml and "
             "requirements*.txt files.  Adds descriptions and versions "
             "to lines that have no comment."
         ),
+    )
+    uc_p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview what would change without modifying files; writes dep-versions-report.md.",
     )
 
     # -- upgrade --
@@ -781,6 +940,7 @@ def main() -> int:
 
     # Default to "show" when no subcommand given
     command = args.command or "show"
+    dry_run = getattr(args, "dry_run", False)
 
     ui = UI(
         title="Dependency Versions",
@@ -794,45 +954,65 @@ def main() -> int:
         rows = collect_report(check_latest=not offline)
         if not rows:
             print("  No dependencies found in pyproject.toml.")
-            return
+            _print_recommended_scripts()
+            print()
+            return 0
         print_report(rows)
+
+        if dry_run:
+            report_path = _generate_dry_run_report(
+                rows, f"dep_versions show{'  --offline' if offline else ''} --dry-run"
+            )
+            _check = c.green("\u2713")
+            _link = _clickable_path(report_path)
+            print(f"\n  {_check} Report written to {_link}")
 
     elif command == "update-comments":
         rows = collect_report(check_latest=False)
         if not rows:
             print("  No dependencies found in pyproject.toml.")
-            return
+            _print_recommended_scripts()
+            print()
+            return 0
         print_report(rows)
 
-        # ---- pyproject.toml ----
-        count = update_comments(rows)
-        if count:
-            _check = "\u2713"
-            print(
-                f"\n  {c.green(_check)} Updated"
-                f" {c.green(str(count))} comment(s)"
-                f" in pyproject.toml"
+        if dry_run:
+            report_path = _generate_dry_run_report(
+                rows, "dep_versions update-comments --dry-run"
             )
+            _check = c.green("\u2713")
+            _link = _clickable_path(report_path)
+            print(f"\n  {_check} Report written to {_link}")
+            print(f"  {c.dim('No files were modified (dry-run).')}")
         else:
-            print(f"\n  {c.dim('pyproject.toml: no changes needed.')}")
-
-        # ---- requirements*.txt ----
-        req_results = update_requirements_comments()
-        for fname, n in req_results.items():
-            if n:
+            # ---- pyproject.toml ----
+            count = update_comments(rows)
+            if count:
                 _check = "\u2713"
                 print(
-                    f"  {c.green(_check)} Updated"
-                    f" {c.green(str(n))} comment(s)"
-                    f" in {fname}"
+                    f"\n  {c.green(_check)} Updated"
+                    f" {c.green(str(count))} comment(s)"
+                    f" in pyproject.toml"
                 )
             else:
-                print(f"  {c.dim(f'{fname}: no changes needed.')}")
+                print(f"\n  {c.dim('pyproject.toml: no changes needed.')}")
+
+            # ---- requirements*.txt ----
+            req_results = update_requirements_comments()
+            for fname, n in req_results.items():
+                if n:
+                    _check = "\u2713"
+                    print(
+                        f"  {c.green(_check)} Updated"
+                        f" {c.green(str(n))} comment(s)"
+                        f" in {fname}"
+                    )
+                else:
+                    print(f"  {c.dim(f'{fname}: no changes needed.')}")
 
     elif command == "upgrade":
         pkg = getattr(args, "package", None)
         ver = getattr(args, "version", None)
-        dry_run = getattr(args, "dry_run", False)
 
         # Warn if running outside a virtual environment
         _warn_if_no_venv()
@@ -855,32 +1035,65 @@ def main() -> int:
                 latest = _latest_version(normalised)
                 installed = _installed_version(normalised)
                 print(f"  [dry-run] {normalised}: {installed} -> {latest or '?'}")
+                # Generate single-package report
+                single_row = [
+                    {
+                        "group": "upgrade",
+                        "name": normalised,
+                        "specifier": normalised,
+                        "installed": installed,
+                        "latest": latest,
+                        "upgradable": "yes" if installed != latest else "",
+                    }
+                ]
+                report_path = _generate_dry_run_report(
+                    single_row, f"dep_versions upgrade {pkg} --dry-run"
+                )
+                _check = c.green("\u2713")
+                _link = _clickable_path(report_path)
+                print(f"\n  {_check} Report written to {_link}")
             else:
                 success = upgrade_package(normalised, ver)
-                return 0 if success else 1
+                if not success:
+                    return 1
         else:
             # Upgrade all
             rows = collect_report(check_latest=True)
             if not rows:
                 print("  No dependencies found.")
-                return
+                _print_recommended_scripts()
+                print()
+                return 0
             print_report(rows)
 
             upgradable = [r for r in rows if r["upgradable"] == "yes"]
             if not upgradable:
                 _msg = "\u2713 All dependencies are up to date."
                 print(f"\n  {c.green(_msg)}")
-                return
+                _print_recommended_scripts()
+                print()
+                return 0
 
             if dry_run:
                 print(
                     f"\n  {c.yellow('[dry-run]')} {c.yellow(str(len(upgradable)))} package(s) would be upgraded:\n"
                 )
+                max_name = max(len(r["name"] or "") for r in upgradable)
+                max_inst = max(len(r["installed"] or "") for r in upgradable)
                 for r in upgradable:
+                    name = (r["name"] or "").ljust(max_name)
+                    inst = (r["installed"] or "").rjust(max_inst)
                     print(
-                        f"    {c.cyan(r['name'] or '')}: {r['installed']} -> {c.green(r['latest'] or '?')}"
+                        f"    {c.cyan(name)}  {inst} -> {c.green(r['latest'] or '?')}"
                     )
-                print("\n  Run without --dry-run to install.")
+                report_path = _generate_dry_run_report(
+                    rows, "dep_versions upgrade --dry-run"
+                )
+                _check = c.green("\u2713")
+                _link = _clickable_path(report_path)
+                print(f"\n  {_check} Report written to {_link}")
+                print(f"  {c.dim('Run without --dry-run to install.')}")
+
             else:
                 print(f"\n{c.bold(f'Upgrading {len(upgradable)} package(s)...')}\n")
                 count = upgrade_all(rows)
@@ -916,6 +1129,7 @@ def main() -> int:
                 if n:
                     print(f"  Updated {n} comment(s) in {fname}")
 
+    _print_recommended_scripts()
     print()
     return 0
 
