@@ -159,6 +159,11 @@ class Spacing:
         kv_compact: If True, key-value lines are printed without
             any inter-line gap (default).  If False, a blank line
             is inserted between each pair.
+        progress_pulse: If True, progress bars should use smooth
+            pulse animation between ``update()`` calls.  Scripts
+            reference this when creating :class:`ProgressBar` instances.
+        command_wrap: If True, long command / value text is soft-wrapped
+            to fit the terminal width using :meth:`wrap_value`.
     """
 
     def __init__(
@@ -173,6 +178,8 @@ class Spacing:
         label_width: int = 22,
         kv_gutter: int = 1,
         kv_compact: bool = True,
+        progress_pulse: bool = False,
+        command_wrap: bool = True,
     ) -> None:
         self.section_above = section_above
         self.section_below = section_below
@@ -183,6 +190,8 @@ class Spacing:
         self.label_width = label_width
         self.kv_gutter = kv_gutter
         self.kv_compact = kv_compact
+        self.progress_pulse = progress_pulse
+        self.command_wrap = command_wrap
 
     @property
     def pad(self) -> str:
@@ -396,6 +405,8 @@ class UI:
         print(f"    {label + ':':{width}s} {value}")
         if hint:
             print(f"    {'':{width}s} {self.c.dim(hint)}")
+        for _ in range(self.spacing.kv_gap):
+            print()
 
     def status_line(
         self,
