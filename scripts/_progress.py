@@ -41,6 +41,7 @@ import logging
 import shutil
 import sys
 import threading
+import time
 
 from _colors import supports_unicode as _supports_unicode
 
@@ -159,10 +160,18 @@ class ProgressBar:
         self._color_code = _BAR_COLORS.get(resolved_color, "") if resolved_color else ""
         # Pulse mode: keep a subtle animation running between update()
         # calls so the bar looks alive even during long-running steps.
+        # The bar estimates step duration from observed timings and
+        # smoothly advances the fill toward the next step boundary,
+        # recalculating speed as it learns how long each step takes.
         self._pulse = pulse and self._interactive
         self._pulse_thread: threading.Thread | None = None
         self._pulse_stop = threading.Event()
-        self._pulse_offset = 0
+        self._pulse_lock = threading.Lock()
+        # Smooth-fill state: tracks a fractional position that the
+        # background thread advances between update() calls.
+        self._virtual_current: float = 0.0
+        self._step_start: float = time.monotonic()
+        self._avg_step_time: float = 1.0  # initial guess (seconds)
         # CI logging: In non-interactive environments (CI pipelines like
         # GitHub Actions, Jenkins, etc.) there is no TTY, so progress bars
         # are invisible — the runner just captures text logs.  Setting
@@ -196,11 +205,30 @@ class ProgressBar:
         self._pulse_thread.start()
 
     def _pulse_loop(self) -> None:
-        """Background loop that redraws with a shimmer effect."""
+        """Background loop that smoothly advances the bar between steps.
+
+        Estimates the time until the next ``update()`` call based on
+        the running average of observed step durations, then advances
+        ``_virtual_current`` at a pace that would reach roughly 90 %
+        of the way to the next integer step by the estimated time.
+        If the step takes longer than expected, the bar slows to a
+        crawl so it never overshoots.
+        """
         while not self._pulse_stop.is_set():
-            self._pulse_offset += 1
-            self._draw("")
-            self._pulse_stop.wait(0.15)
+            with self._pulse_lock:
+                elapsed = time.monotonic() - self._step_start
+                est = self._avg_step_time
+                base = float(self.current)
+                # How far into the next step we think we are (0.0-1.0)
+                # Asymptotically approach 0.95 so we never overshoot
+                progress_frac = min(elapsed / est, 1.0) if est > 0 else 0.0
+                # Ease-out curve: fast start, slows near the target
+                eased = 1.0 - (1.0 - progress_frac) ** 2
+                target = base + eased * 0.95
+                # Never exceed total
+                self._virtual_current = min(target, float(self.total))
+            self._draw_smooth()
+            self._pulse_stop.wait(0.05)
 
     def update(self, item_name: str = "") -> None:
         """Advance by one step and redraw.
@@ -208,7 +236,15 @@ class ProgressBar:
         The counter is capped at ``total`` to prevent bar overflow if
         ``update()`` is called more times than expected.
         """
-        self.current = min(self.current + 1, max(self.total, 1))
+        now = time.monotonic()
+        with self._pulse_lock:
+            step_time = now - self._step_start
+            if self.current > 0 and step_time > 0.001:
+                # Exponential moving average (alpha=0.3) for step time
+                self._avg_step_time = 0.3 * step_time + 0.7 * self._avg_step_time
+            self._step_start = now
+            self.current = min(self.current + 1, max(self.total, 1))
+            self._virtual_current = float(self.current)
         if not self._interactive:
             # Emit periodic log messages in non-interactive mode (CI)
             if self._log_interval > 0 and self.current % self._log_interval == 0:
@@ -240,28 +276,57 @@ class ProgressBar:
         bar_width = max(width - overhead, 10)
 
         filled = int(bar_width * self.current / self.total) if self.total > 0 else 0
-        empty_count = bar_width - filled
         filled_str = self._fill * filled
-        empty_str = self._empty * empty_count
-
-        # Pulse: bouncing highlight in the empty portion for continuous movement
-        if self._pulse and empty_count > 1:
-            cycle = (empty_count - 1) * 2
-            if cycle > 0:
-                pos = self._pulse_offset % cycle
-                if pos >= empty_count:
-                    pos = cycle - pos
-                pos = max(0, min(pos, empty_count - 1))
-                highlight = "\u2593" if _supports_unicode() else "="
-                chars = list(self._empty * empty_count)
-                chars[pos] = highlight
-                empty_str = "".join(chars)
+        empty_str = self._empty * (bar_width - filled)
 
         if self._color_code and filled_str:
             filled_str = f"\033[{self._color_code}m{filled_str}\033[0m"
         bar = filled_str + empty_str
 
         line = f"\r{prefix}{self._lb}{bar}{self._rb}  {counter}  {display_name}"
+        sys.stdout.write(line.ljust(width))
+        sys.stdout.flush()
+
+    def _draw_smooth(self) -> None:
+        """Draw using the fractional ``_virtual_current`` for smooth fill."""
+        width = _terminal_width()
+        with self._pulse_lock:
+            v_cur = self._virtual_current
+            actual = self.current
+        pct = int(v_cur / self.total * 100) if self.total > 0 else 0
+        pct = min(pct, 100)
+        counter = f"{actual}/{self.total} ({pct:>3}%)"
+        prefix = f"{self.label}  "
+
+        overhead = len(prefix) + len(self._lb) + len(self._rb) + len(counter) + 6
+        bar_width = max(width - overhead, 10)
+
+        filled_f = bar_width * v_cur / self.total if self.total > 0 else 0.0
+        filled = int(filled_f)
+        remainder = filled_f - filled
+
+        # Sub-character fill using partial block characters
+        partial = ""
+        if remainder > 0.001 and filled < bar_width:
+            if _supports_unicode():
+                # Use block elements for sub-character precision
+                blocks = [" ", "\u2591", "\u2592", "\u2593", "\u2588"]
+                idx = int(remainder * (len(blocks) - 1))
+                partial = blocks[idx]
+            else:
+                partial = "." if remainder > 0.3 else ""
+            empty_count = bar_width - filled - (1 if partial else 0)
+        else:
+            empty_count = bar_width - filled
+
+        filled_str = self._fill * filled + partial
+        empty_str = self._empty * max(empty_count, 0)
+
+        if self._color_code and filled_str:
+            filled_str = f"\033[{self._color_code}m{filled_str}\033[0m"
+        bar = filled_str + empty_str
+
+        line = f"\r{prefix}{self._lb}{bar}{self._rb}  {counter}"
         sys.stdout.write(line.ljust(width))
         sys.stdout.flush()
 
@@ -277,6 +342,8 @@ class ProgressBar:
         if self._pulse_thread is not None:
             self._pulse_thread.join(timeout=1.0)
             self._pulse_thread = None
+        with self._pulse_lock:
+            self._virtual_current = float(self.current)
         if self._interactive:
             if vanish:
                 sys.stdout.write("\r" + " " * _terminal_width() + "\r")
