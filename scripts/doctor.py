@@ -60,7 +60,7 @@ from _doctor_common import (
     get_version,
 )
 from _imports import find_repo_root, import_sibling
-from _ui import UI
+from _ui import UI, Spacing
 
 _progress = import_sibling("_progress")
 Spinner = _progress.Spinner
@@ -565,7 +565,6 @@ def format_plain(
     )
 
     lines: list[str] = []
-    kv_width = 28  # consistent label column width
 
     def _colorize_value(key: str, val: str) -> str:
         """Apply color to a value based on its content."""
@@ -592,13 +591,19 @@ def format_plain(
         lines.append(color_fn(f"  {ui.bl}{border}{ui.br}"))
         lines.append("")
 
-    def _kv(label: str, value: str, *, key: str = "") -> None:
+    def _kv(label: str, value: str, *, key: str = "", width: int = 22) -> None:
         """Append a key-value line to lines with proper alignment."""
         colored_val = _colorize_value(key or label, value)
         # Pad the raw label text first, then apply dim styling so ANSI
         # codes don't interfere with column alignment.
-        padded_label = (label + ":").ljust(kv_width)
-        lines.append(f"    {c.dim(padded_label)} {colored_val}")
+        padded_label = (label + ":").ljust(width)
+        # Wrap long values so they don't exceed terminal width.
+        wrapped = Spacing.wrap_value(
+            colored_val,
+            indent=4,
+            label_width=width,
+        )
+        lines.append(f"    {c.dim(padded_label)} {wrapped}")
 
     # -- Human-friendly section labels --
     _section_labels: dict[str, str] = {
@@ -622,6 +627,12 @@ def format_plain(
     for section, data in info.items():
         display_name = _section_labels.get(section, section.upper())
 
+        # Compute per-section label width from actual keys.
+        if isinstance(data, dict):
+            sec_width = Spacing.auto_label_width(list(data.keys()))
+        else:
+            sec_width = 22
+
         # Problems section gets special color treatment
         if section == "problems":
             has_issues = isinstance(data, dict) and "status" not in data
@@ -633,7 +644,7 @@ def format_plain(
 
         if isinstance(data, dict):
             for key, value in data.items():
-                _kv(key, str(value), key=key)
+                _kv(key, str(value), key=key, width=sec_width)
         else:
             lines.append(f"    {data}")
 

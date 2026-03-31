@@ -29,16 +29,18 @@ Usage::
 from __future__ import annotations
 
 import re
+import shutil
+import textwrap
 import tomllib
 from collections.abc import Callable
 from typing import ClassVar
 
-from _colors import Colors, supports_unicode, unicode_symbols
+from _colors import Colors, strip_ansi, supports_unicode, unicode_symbols
 from _imports import find_repo_root
 
 __all__ = ["RECOMMENDED_SCRIPTS", "UI", "Spacing"]
 
-SCRIPT_VERSION = "1.3.0"
+SCRIPT_VERSION = "1.4.0"
 
 # ---------------------------------------------------------------------------
 # Shared recommended-scripts registry
@@ -143,11 +145,20 @@ class Spacing:
     Attributes:
         section_above: Blank lines before a section header.
         section_below: Blank lines after a section header.
-        kv_gap: Blank lines between key-value groups.
+        kv_gap: Blank lines between key-value pairs.  ``0`` (default)
+            prints them back-to-back (compact); ``1`` adds a blank line
+            between each pair (airy).
         block_gap: Blank lines between major blocks (e.g. after a table).
         indent: Number of spaces for primary indentation.
         nested_indent: Number of spaces for nested indentation.
         label_width: Default column width for key-value label alignment.
+            Use :meth:`auto_label_width` to compute from actual keys.
+        kv_gutter: Number of spaces between the label column and the
+            value column.  Increase for more breathing room; decrease
+            to keep output tight.
+        kv_compact: If True, key-value lines are printed without
+            any inter-line gap (default).  If False, a blank line
+            is inserted between each pair.
     """
 
     def __init__(
@@ -160,6 +171,8 @@ class Spacing:
         indent: int = 4,
         nested_indent: int = 6,
         label_width: int = 22,
+        kv_gutter: int = 1,
+        kv_compact: bool = True,
     ) -> None:
         self.section_above = section_above
         self.section_below = section_below
@@ -168,6 +181,8 @@ class Spacing:
         self.indent = indent
         self.nested_indent = nested_indent
         self.label_width = label_width
+        self.kv_gutter = kv_gutter
+        self.kv_compact = kv_compact
 
     @property
     def pad(self) -> str:
@@ -178,6 +193,74 @@ class Spacing:
     def nested_pad(self) -> str:
         """Nested indent string."""
         return " " * self.nested_indent
+
+    @staticmethod
+    def auto_label_width(
+        labels: list[str],
+        *,
+        min_width: int = 14,
+        max_width: int = 38,
+        extra: int = 2,
+    ) -> int:
+        """Compute an optimal label column width from a list of labels.
+
+        Finds the longest label (plus colon suffix), adds *extra* padding
+        characters, and clamps to ``[min_width, max_width]``.
+
+        Args:
+            labels: Key strings (without trailing colon).
+            min_width: Floor for the returned width.
+            max_width: Ceiling for the returned width.
+            extra: Extra padding chars beyond the longest label.
+
+        Returns:
+            Computed label width in characters.
+        """
+        if not labels:
+            return min_width
+        longest = max(len(lab) + 1 for lab in labels)  # +1 for ':'
+        return max(min_width, min(longest + extra, max_width))
+
+    @staticmethod
+    def wrap_value(
+        value: str,
+        *,
+        indent: int,
+        label_width: int,
+        gutter: int = 1,
+        max_width: int | None = None,
+    ) -> str:
+        """Soft-wrap a long value string to fit within the terminal.
+
+        The first line is returned as-is (it will be placed after the
+        label by the caller).  Continuation lines are indented so text
+        aligns under the first character of the value column.
+
+        Args:
+            value: The raw value string to wrap.
+            indent: Leading spaces before the label (e.g. 4).
+            label_width: Width of the formatted label column.
+            gutter: Spaces between label and value columns.
+            max_width: Available terminal width.  Defaults to
+                ``shutil.get_terminal_size().columns``.
+
+        Returns:
+            The wrapped string, ready to print (no leading indent —
+            the caller prepends its own).
+        """
+        if max_width is None:
+            max_width = shutil.get_terminal_size().columns
+        # How much room is left for the value on each line?
+        prefix_len = indent + label_width + gutter
+        avail = max_width - prefix_len
+        if avail < 20:
+            # Terminal too narrow to wrap meaningfully — return raw.
+            return value
+        lines = textwrap.wrap(value, width=avail, break_on_hyphens=False)
+        if not lines:
+            return value
+        continuation_pad = " " * prefix_len
+        return ("\n" + continuation_pad).join(lines)
 
 
 class UI:
@@ -364,8 +447,6 @@ class UI:
         line_parts = []
         for i, (text, w) in enumerate(columns):
             styled = self._themed(text) if themed else self.c.dim(text)
-            from _colors import strip_ansi
-
             visible_len = len(strip_ansi(styled))
             if i < len(columns) - 1:
                 padding = max(w - visible_len, 0)
@@ -391,8 +472,6 @@ class UI:
         parts = []
         for i, (text, w) in enumerate(cells):
             # Pad based on visible length (strip ANSI for measurement)
-            from _colors import strip_ansi
-
             visible_len = len(strip_ansi(text))
             # Skip right-padding on the last column to avoid line wrapping
             if i < len(cells) - 1:
