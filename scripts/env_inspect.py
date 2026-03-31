@@ -1067,7 +1067,9 @@ def print_env_info(
                         ]
                     )
                 # Separation line between each entry point for clarity
-                ui.separator(width=cmd_col + target_col + 1)
+                sep_w = cmd_col + target_col + 1
+                sep_line = ("· " * ((sep_w + 1) // 2))[:sep_w]
+                print(f"    {c.dim(sep_line)}")
             # How to remove entry points
             ui.blank()
             ui.info_line(c.bold("Removing an entry point:"))
