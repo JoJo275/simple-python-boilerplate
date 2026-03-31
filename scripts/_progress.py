@@ -198,7 +198,7 @@ class ProgressBar:
     def _pulse_loop(self) -> None:
         """Background loop that redraws with a shimmer effect."""
         while not self._pulse_stop.is_set():
-            self._pulse_offset = (self._pulse_offset + 1) % 4
+            self._pulse_offset += 1
             self._draw("")
             self._pulse_stop.wait(0.15)
 
@@ -240,8 +240,23 @@ class ProgressBar:
         bar_width = max(width - overhead, 10)
 
         filled = int(bar_width * self.current / self.total) if self.total > 0 else 0
+        empty_count = bar_width - filled
         filled_str = self._fill * filled
-        empty_str = self._empty * (bar_width - filled)
+        empty_str = self._empty * empty_count
+
+        # Pulse: bouncing highlight in the empty portion for continuous movement
+        if self._pulse and empty_count > 1:
+            cycle = (empty_count - 1) * 2
+            if cycle > 0:
+                pos = self._pulse_offset % cycle
+                if pos >= empty_count:
+                    pos = cycle - pos
+                pos = max(0, min(pos, empty_count - 1))
+                highlight = "\u2593" if _supports_unicode() else "="
+                chars = list(self._empty * empty_count)
+                chars[pos] = highlight
+                empty_str = "".join(chars)
+
         if self._color_code and filled_str:
             filled_str = f"\033[{self._color_code}m{filled_str}\033[0m"
         bar = filled_str + empty_str
@@ -250,18 +265,22 @@ class ProgressBar:
         sys.stdout.write(line.ljust(width))
         sys.stdout.flush()
 
-    def finish(self, message: str = "") -> None:
+    def finish(self, message: str = "", *, vanish: bool = False) -> None:
         """Complete the bar and move to a new line.
 
         Args:
             message: Optional final message to display (replaces the bar line).
+            vanish: If True, clear the bar line entirely instead of
+                leaving it on screen (like :class:`Spinner` behaviour).
         """
         self._pulse_stop.set()
         if self._pulse_thread is not None:
             self._pulse_thread.join(timeout=1.0)
             self._pulse_thread = None
         if self._interactive:
-            if message:
+            if vanish:
+                sys.stdout.write("\r" + " " * _terminal_width() + "\r")
+            elif message:
                 width = _terminal_width()
                 sys.stdout.write(f"\r{message}".ljust(width) + "\n")
             else:
