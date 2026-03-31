@@ -1256,7 +1256,7 @@ def run_checks(
         if r["group"] == "core":
             print(
                 f"  [{_icon(r['status'], use_color=use_color)}]"
-                f" {c.dim(r['name'] + ':')} {r['message']}"
+                f" {c.cyan(r['name'] + ':')} {r['message']}"
             )
 
     # Dev tool checks
@@ -1272,7 +1272,7 @@ def run_checks(
         for r in extended:
             print(
                 f"  [{_icon(r['status'], use_color=use_color)}]"
-                f" {c.dim(r['name'] + ':')} {r['message']}"
+                f" {c.cyan(r['name'] + ':')} {r['message']}"
             )
 
     # Summary
