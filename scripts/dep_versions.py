@@ -1076,15 +1076,17 @@ def main() -> int:
 
             if dry_run:
                 print(
-                    f"\n  {c.yellow('[dry-run]')} {c.yellow(str(len(upgradable)))} package(s) would be upgraded:\n"
+                    f"\n  {c.yellow('[dry-run]')} {c.yellow(str(len(upgradable)))}"
+                    " package(s) would be upgraded:\n"
                 )
                 max_name = max(len(r["name"] or "") for r in upgradable)
                 max_inst = max(len(r["installed"] or "") for r in upgradable)
                 for r in upgradable:
-                    name = (r["name"] or "").ljust(max_name)
+                    padded_name = (r["name"] or "").ljust(max_name + 2)
                     inst = (r["installed"] or "").rjust(max_inst)
                     print(
-                        f"    {c.cyan(name)}  {inst} -> {c.green(r['latest'] or '?')}"
+                        f"    {c.cyan(padded_name)}"
+                        f" {inst} -> {c.green(r['latest'] or '?')}"
                     )
                 report_path = _generate_dry_run_report(
                     rows, "dep_versions upgrade --dry-run"
