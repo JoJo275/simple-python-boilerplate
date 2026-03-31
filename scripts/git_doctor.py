@@ -1337,6 +1337,29 @@ def get_contributors_count() -> int:
     return len([line for line in out.splitlines() if line.strip()])
 
 
+def get_top_contributors(limit: int = 5) -> list[dict[str, object]]:
+    """Return the top *limit* contributors by commit count.
+
+    Each entry is ``{"name": str, "commits": int}``.
+    """
+    code, out, _ = _run_git(["shortlog", "-sn", "--all", "--no-merges"])
+    if code != 0 or not out:
+        return []
+    result: list[dict[str, object]] = []
+    for line in out.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        match = re.match(r"(\d+)\s+(.*)", line)
+        if match:
+            result.append(
+                {"name": match.group(2).strip(), "commits": int(match.group(1))}
+            )
+        if len(result) >= limit:
+            break
+    return result
+
+
 def get_commit_frequency() -> dict[str, int]:
     """Return commit counts per day for the last 14 days."""
     code, out, _ = _run_git(
@@ -2655,6 +2678,7 @@ def _collect_info(
         ("commit_count", get_commit_count),
         ("repo_age", get_repo_age),
         ("contributors", get_contributors_count),
+        ("top_contributors", get_top_contributors),
         ("working_tree", get_working_tree_status),
         ("release_please_branches", find_release_please_branches),
         ("release_system", detect_release_system),
@@ -2750,6 +2774,7 @@ def run(
     commit_count: int = info["commit_count"]  # type: ignore[assignment]
     repo_age: str = info["repo_age"]  # type: ignore[assignment]
     contributors: int = info["contributors"]  # type: ignore[assignment]
+    top_contributors: list[dict[str, object]] = info["top_contributors"]  # type: ignore[assignment]
     working_tree: dict[str, int] = info["working_tree"]  # type: ignore[assignment]
     rp_branches: list[str] = info["release_please_branches"]  # type: ignore[assignment]
     release_system: dict = info.get("release_system", {})  # type: ignore[assignment]
@@ -3031,6 +3056,38 @@ def run(
         avg = total_recent / len(commit_freq) if commit_freq else 0
         print()
         print(f"    {c.dim(f'Total: {total_recent} commits, avg {avg:.1f}/day')}")
+
+    # ── Top 5 Contributors ──
+    if top_contributors:
+        _section("Top Contributors (by commit count)")
+        print(f"    {c.dim('All-time commit counts excluding merge commits')}")
+        print()
+        max_contrib = max(int(e["commits"]) for e in top_contributors)
+        # Determine name column width from longest contributor name
+        name_w = max(len(str(e["name"])) for e in top_contributors)
+        name_w = min(max(name_w, 10), 30)
+        for idx, entry in enumerate(top_contributors):
+            name = str(entry["name"])
+            commits = int(entry["commits"])  # type: ignore[arg-type]
+            bar_len = int((commits / max_contrib) * 30) if max_contrib > 0 else 0
+            inner = bar_char * bar_len if bar_len > 0 else ""
+            bar = (
+                c.green(f"{bar_left}{inner}{bar_right}")
+                if bar_len > 0
+                else c.dim(bar_left + bar_right)
+            )
+            display_name = (
+                name[: name_w - 1] + sym["ellip"] if len(name) > name_w else name
+            )
+            print(f"    {display_name:{name_w}s}  {bar} {commits}")
+            # Blank line between bars for visual separation (skip after last)
+            if idx < len(top_contributors) - 1:
+                print()
+        total_all = sum(int(e["commits"]) for e in top_contributors)  # type: ignore[arg-type]
+        print()
+        print(
+            f"    {c.dim(f'Total from top {len(top_contributors)}: {total_all} commits')}"
+        )
 
     # ── File Change Summary — current branch (last 5 commits) ──
     if file_changes and any(file_changes.values()):
