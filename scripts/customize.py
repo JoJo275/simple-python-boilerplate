@@ -1580,7 +1580,9 @@ def apply_replacements(
             label="Scanning files",
             log_interval=20,
             color="cyan",
+            pulse=True,
         )
+        bar._start_pulse()  # start smooth animation immediately
 
     for path in eligible:
         rel = path.relative_to(ROOT)

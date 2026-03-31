@@ -71,7 +71,7 @@ from pathlib import Path
 from _colors import Colors
 from _imports import find_repo_root
 from _progress import Spinner
-from _ui import UI
+from _ui import UI, Spacing
 
 log = logging.getLogger(__name__)
 
@@ -727,6 +727,7 @@ def print_env_info(
         version=SCRIPT_VERSION,
         theme=THEME,
         no_color=no_color,
+        spacing=Spacing(kv_gap=1, progress_pulse=True, command_wrap=True),
     )
     ui.header()
     ui.blank()
@@ -739,7 +740,6 @@ def print_env_info(
     if show_all or section == "python":
         py = info["python"]
         ui.section("Python")
-        ui.blank()
         ui.info_line(
             "Core Python runtime info. Verify the version matches your project's"
         )
@@ -774,7 +774,6 @@ def print_env_info(
     if show_all or section == "python-installs":
         py_installs = info.get("python_installations", [])
         ui.section(f"Python Installations ({len(py_installs)})")
-        ui.blank()
         ui.info_line("All Python installations found on your system. Duplicate")
         ui.info_line("installations can cause confusion about which Python is used.")
         ui.blank()
@@ -848,7 +847,6 @@ def print_env_info(
     if show_all or section == "git":
         git = info["git"]
         ui.section("Git")
-        ui.blank()
         ui.info_line("Git is required for version control and hatch-vcs versioning.")
         ui.blank()
         if git["available"]:
@@ -861,7 +859,6 @@ def print_env_info(
     if show_all or section == "venv":
         py = info["python"]
         ui.section("Virtual Environment")
-        ui.blank()
         ui.info_line("Shows whether you're inside a virtual environment.")
         ui.info_line("Working inside a venv prevents polluting the global Python.")
         ui.blank()
@@ -874,14 +871,12 @@ def print_env_info(
             ui.kv("Base prefix", py["base_prefix"])
         else:
             ui.kv("Status", c.yellow("Not in a virtualenv"))
-            ui.blank()
             ui.info_line(f"Run '{env_cmd}' to enter the dev environment.")
 
     # ── Hatch / Build System ──
     if show_all and info.get("hatch"):
         hatch = info["hatch"]
         ui.section("Hatch")
-        ui.blank()
         ui.info_line("Hatch manages environments and builds.")
         print(
             f"    {c.dim('Use')}"
@@ -891,7 +886,6 @@ def print_env_info(
         ui.blank()
         ui.kv("Version", hatch.get("version", "unknown"))
         ui.kv("Path", hatch.get("path", "unknown"))
-        ui.blank()
         # Show build backend dynamically
         build_backend = info.get("build_backend", "")
         if build_backend:
@@ -908,7 +902,6 @@ def print_env_info(
         duplicate_pkgs = info.get("duplicate_packages", {})
 
         ui.section(f"Installed Packages ({len(packages)})")
-        ui.blank()
         ui.info_line("All packages in the current environment, grouped by install")
         ui.info_line(
             "location. Run "
@@ -996,7 +989,6 @@ def print_env_info(
     if show_all or section == "entrypoints":
         eps = info["entry_points"]
         ui.section(f"Entry Points ({len(eps)})")
-        ui.blank()
         ui.info_line("Console commands registered by installed packages. These are")
         ui.info_line("the CLI tools available in your environment. If your package")
         ui.info_line("defines [project.scripts] in pyproject.toml, its commands")
@@ -1019,23 +1011,32 @@ def print_env_info(
             ui.info_line(c.dim("system where this Python installation is on PATH."))
         ui.blank()
         if eps:
-            ui.table_header(
-                [("Command", 28), ("Target", 46)],
-                themed=True,
+            ep_label_width = Spacing.auto_label_width(
+                [ep["name"] for ep in eps],
+                min_width=20,
+                max_width=36,
             )
             for ep in eps:
-                name_display = ep["name"]
-                if len(name_display) > 27:
-                    name_display = name_display[:24] + "..."
-                target_display = ep["value"]
-                if len(target_display) > 45:
-                    target_display = target_display[:42] + "..."
-                ui.table_row(
-                    [
-                        (c.cyan(name_display), 28),
-                        (c.magenta(target_display), 46),
-                    ]
-                )
+                target_raw = ep["value"]
+                if ui.spacing.command_wrap:
+                    wrapped = Spacing.wrap_value(
+                        target_raw,
+                        indent=ui.spacing.indent,
+                        label_width=ep_label_width,
+                        gutter=ui.spacing.kv_gutter,
+                    )
+                    # Colorize each line separately for proper terminal rendering
+                    colored_lines = []
+                    for line in wrapped.split("\n"):
+                        stripped = line.lstrip()
+                        pad = line[: len(line) - len(stripped)]
+                        colored_lines.append(
+                            pad + c.magenta(stripped) if stripped else line
+                        )
+                    target_display = "\n".join(colored_lines)
+                else:
+                    target_display = c.magenta(target_raw)
+                ui.kv(ep["name"], target_display, width=ep_label_width)
             # How to remove entry points
             ui.blank()
             ui.info_line(c.bold("Removing an entry point:"))
@@ -1066,7 +1067,6 @@ def print_env_info(
     if show_all or section == "build-tools":
         build_tools = info.get("build_tools", [])
         ui.section(f"Build & Environment Tools ({len(build_tools)})")
-        ui.blank()
         ui.info_line("Build tools, environment managers, and package installers found")
         ui.info_line("on PATH. Verify the expected tool is available and up to date.")
         ui.blank()
@@ -1094,7 +1094,6 @@ def print_env_info(
         py_support = info.get("python_support")
         if py_support is not None:
             ui.section("Python Version Support")
-            ui.blank()
             ui.info_line(
                 "Cross-checks pyproject.toml, classifiers, env manager matrix,"
             )
@@ -1106,26 +1105,19 @@ def print_env_info(
             sources = py_support.get("sources", {})
             if sources.get("requires-python"):
                 ui.kv("requires-python", sources["requires-python"])
-                ui.blank()
             if sources.get("classifiers"):
                 ui.kv("Classifiers", sources["classifiers"])
-                ui.blank()
             # Show env manager matrix dynamically
             if sources.get("hatch_matrix"):
                 ui.kv("Hatch matrix", sources["hatch_matrix"])
-                ui.blank()
             if sources.get("tox_matrix"):
                 ui.kv("Tox matrix", sources["tox_matrix"])
-                ui.blank()
             if sources.get("nox_matrix"):
                 ui.kv("Nox matrix", sources["nox_matrix"])
-                ui.blank()
             if sources.get("ci_matrix"):
                 ui.kv("CI matrix", sources["ci_matrix"])
-                ui.blank()
             if py_support.get("code_min_version"):
                 ui.kv("Code min version", py_support["code_min_version"])
-                ui.blank()
             if py_support["ok"]:
                 ui.status_line("check", "All version sources consistent", "green")
             else:
@@ -1150,7 +1142,6 @@ def print_env_info(
             label += f", {dup_count} duplicate{'s' if dup_count != 1 else ''}"
         label += ")"
         ui.section(label)
-        ui.blank()
         ui.info_line("Directories on your system PATH. Duplicates waste lookup time.")
         ui.blank()
         print(f"    {ui._themed(c.bold('Directory:'))}")
@@ -1203,7 +1194,6 @@ def print_env_info(
     if show_all or section == "system":
         sys_info = info.get("system", {})
         ui.section("System Environment")
-        ui.blank()
         ui.info_line("System and environment details relevant to Python development.")
         ui.blank()
         ui.kv("OS", f"{sys_info.get('os', '?')} {sys_info.get('os_release', '')}")

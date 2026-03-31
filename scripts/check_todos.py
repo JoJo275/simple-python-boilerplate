@@ -288,7 +288,9 @@ def find_todos(
         candidates.append((path, is_known_text))
 
     bar = (
-        ProgressBar(total=len(candidates), label="Scanning files", color="cyan")
+        ProgressBar(
+            total=len(candidates), label="Scanning files", color="cyan", pulse=True
+        )
         if show_progress
         else None
     )

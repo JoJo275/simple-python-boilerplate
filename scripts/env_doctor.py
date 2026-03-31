@@ -1214,7 +1214,8 @@ def run_checks(
     total = _total_check_count()
     bar: ProgressBar | None = None
     if not output_json:
-        bar = ProgressBar(total=total, label="Checking", color="green")
+        bar = ProgressBar(total=total, label="Checking", color="green", pulse=True)
+        bar._start_pulse()  # start smooth animation immediately
 
     def _on_progress(name: str) -> None:
         if bar is not None:
