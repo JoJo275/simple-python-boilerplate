@@ -1250,7 +1250,7 @@ class TestRateLimitBailOut:
         assert _wv_mod._rate_limited is True
 
     def test_rate_limit_warning_logged_only_once(
-        self, caplog: pytest.LogCaptureFixture
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """The rate-limit warning should appear exactly once, not per call."""
         import email.message
@@ -1265,16 +1265,13 @@ class TestRateLimitBailOut:
             hdrs,
             None,
         )
-        with (
-            patch("urllib.request.urlopen", side_effect=exc),
-            caplog.at_level("WARNING"),
-        ):
+        with patch("urllib.request.urlopen", side_effect=exc):
             _wv_mod._gh_api("https://api.github.com/test1")
             _wv_mod._gh_api("https://api.github.com/test2")
             _wv_mod._gh_api("https://api.github.com/test3")
 
-        rate_warnings = [r for r in caplog.records if "rate limit" in r.message.lower()]
-        assert len(rate_warnings) == 1
+        captured = capsys.readouterr()
+        assert captured.err.count("rate limit") == 1
 
     def test_cached_api_still_returns_cache_when_rate_limited(
         self, tmp_path: Path

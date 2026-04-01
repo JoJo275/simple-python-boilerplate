@@ -5311,6 +5311,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
         return 1
 
     cfg = config_from_args(args)
+    dry = args.dry_run
 
     # Plan and show
     replacements = plan_replacements(cfg)
@@ -5322,7 +5323,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
     # Step 1: Strip optional directories (before rename so paths still match)
     if cfg.strip_dirs:
         print("\nStripping optional directories...")
-        strip_directories(cfg.strip_dirs)
+        strip_directories(cfg.strip_dirs, dry_run=dry)
 
     # Step 1b: Private repo cleanup
     if cfg.private_repo:
@@ -5330,6 +5331,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
         strip_directories(
             list(PRIVATE_REPO_STRIP.keys()),
             strippable=PRIVATE_REPO_STRIP,
+            dry_run=dry,
         )
 
     # Step 2: Text replacements across all files
@@ -5337,6 +5339,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
     modified = apply_replacements(
         replacements,
         show_progress=not args.quiet,
+        dry_run=dry,
     )
     total = sum(modified.values())
     n_files = len(modified)
@@ -5347,12 +5350,12 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
 
     # Step 3: Rename package directory
     print("\nPackage directory...")
-    if not rename_package_dir(cfg):
+    if not rename_package_dir(cfg, dry_run=dry):
         print("  (no rename needed)")
 
     # Step 4: License
     print("\nLicense...")
-    if not apply_license(cfg):
+    if not apply_license(cfg, dry_run=dry):
         print("  (keeping Apache-2.0)")
 
     # Step 5: Template cleanup
@@ -5362,6 +5365,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
             cfg.template_cleanup,
             cfg,
             files_only_keys=cfg.template_cleanup_files_only or None,
+            dry_run=dry,
         )
     else:
         print("\nTemplate cleanup: none")

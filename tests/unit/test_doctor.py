@@ -176,13 +176,13 @@ class TestFormatPlain:
 
     def test_contains_header(self) -> None:
         output = format_plain(SAMPLE_INFO)
-        assert "TIMESTAMP" in output
+        assert "Timestamp" in output
 
     def test_contains_section_names(self) -> None:
         output = format_plain(SAMPLE_INFO)
-        assert "TIMESTAMP" in output
-        assert "SYSTEM" in output
-        assert "TOOLS" in output
+        assert "Timestamp" in output
+        assert "System Information" in output
+        assert "Tool Versions" in output
 
     def test_contains_values(self) -> None:
         output = format_plain(SAMPLE_INFO)
