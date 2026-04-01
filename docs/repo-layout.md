@@ -40,12 +40,20 @@ simple-python-boilerplate/
 │
 ├── docs/                       # Project documentation
 │   ├── adr/                    # Architecture Decision Records
+│   ├── blueprints/             # Proposed design shapes
 │   ├── design/                 # Architecture and database design
 │   ├── development/            # Developer guides
+│   ├── explorations/           # Early-stage idea evaluation
 │   ├── guide/                  # Getting-started, troubleshooting
+│   ├── implementation-plans/   # Step-by-step execution details
 │   ├── notes/                  # Personal learning notes
 │   ├── reference/              # API reference (mkdocstrings)
 │   ├── templates/              # Reusable file templates
+│   │   # Design lifecycle (optional):
+│   │   #   idea/problem → explorations/
+│   │   #   proposed design → blueprints/
+│   │   #   decision locked in → adr/
+│   │   #   build steps → implementation-plans/
 │   ├── index.md                # MkDocs homepage
 │   ├── labels.md               # GitHub label catalog
 │   ├── release-policy.md       # Versioning and release policy
@@ -171,6 +179,9 @@ See [workflows.md](workflows.md) for full workflow documentation.
 | `CONTRIBUTING.md` | Contribution guide     | Contributors lack guidance     |
 | `docs/`           | Detailed documentation | Missing context for developers |
 | `docs/adr/`       | Decision records       | Lost architectural context     |
+| `docs/explorations/` | Early-stage idea evaluation | Lost exploration context |
+| `docs/blueprints/` | Proposed design shapes | Lost design context |
+| `docs/implementation-plans/` | Execution details | Lost implementation context |
 | `CHANGELOG.md`    | Version history        | No release notes               |
 
 ### Development Experience
