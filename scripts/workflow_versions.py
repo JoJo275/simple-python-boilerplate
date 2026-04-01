@@ -132,6 +132,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -200,6 +201,10 @@ _rate_limit: dict[str, int | None] = {"remaining": None}
 # and suppresses duplicate warning messages.
 _rate_limited: bool = False
 
+# Active progress bar — set by scan_workflows() so _gh_api() can vanish
+# the bar before printing rate-limit warnings.
+_active_bar: ProgressBar | None = None
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -245,11 +250,16 @@ def _gh_api(url: str) -> dict[str, Any] | list[Any] | None:
             is_rate_limit = remaining is not None and remaining == "0"
             if is_rate_limit and not _rate_limited:
                 _rate_limited = True
-                logger.warning(
-                    "GitHub API rate limit reached."
-                    " Set GITHUB_TOKEN env var for 5,000 req/hr"
-                    " (current: 60/hr unauthenticated)."
-                    " Skipping remaining uncached API calls."
+                # Vanish active progress bar before printing
+                if _active_bar is not None:
+                    _active_bar.finish(vanish=True)
+                print(
+                    f"\n  {_colors.yellow(_colors.bold('WARNING:'))}"
+                    f" GitHub API rate limit reached."
+                    f" Set {_colors.cyan('GITHUB_TOKEN')} env var for 5,000 req/hr"
+                    f" (current: 60/hr unauthenticated)."
+                    f" Skipping remaining uncached API calls.",
+                    file=sys.stderr,
                 )
             elif not is_rate_limit:
                 logger.warning("GitHub API 403 for %s (not rate-limit)", url)
@@ -622,10 +632,22 @@ def scan_workflows(
     seen_shas: dict[str, str | None] = {}  # "action@SHA" -> resolved tag
     seen_latest: dict[str, str | None] = {}  # repo_slug -> latest tag
 
-    use_spinner = resolve_tags or check_latest
-    spinner = Spinner("Scanning actions", color="cyan") if use_spinner else None
+    global _active_bar
 
-    for wf in sorted(WORKFLOWS_DIR.glob("*.yml")):
+    wf_files = sorted(WORKFLOWS_DIR.glob("*.yml"))
+    use_bar = resolve_tags or check_latest
+    bar: ProgressBar | None = None
+    if use_bar and wf_files:
+        bar = ProgressBar(
+            total=len(wf_files),
+            label="  Scanning",
+            color="cyan",
+            pulse=True,
+        )
+        _active_bar = bar
+        bar._start_pulse()
+
+    for wf in wf_files:
         try:
             text = wf.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -643,9 +665,6 @@ def scan_workflows(
             sha = m.group("ref")
             trail = m.group("trail").strip()
             slug = _repo_slug(action)
-
-            if spinner is not None:
-                spinner.update(slug)
 
             # Extract existing comment tag and detect description
             comment_tag: str | None = None
@@ -720,8 +739,13 @@ def scan_workflows(
                 }
             )
 
-    if spinner is not None:
-        spinner.finish()
+        # Advance progress per file (API calls make some files slow)
+        if bar is not None and not _rate_limited:
+            bar.update(wf.name)
+
+    if bar is not None and not _rate_limited:
+        bar.finish(vanish=True)
+    _active_bar = None
 
     return rows
 
@@ -740,18 +764,37 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
     ui = UI(title="Workflow Action Versions", version=SCRIPT_VERSION, theme=THEME)
     has_latest = any(r.get("latest_tag") for r in rows)
 
-    w_file = max(len(r["file"] or "") for r in rows)
-    w_action = max(len(r["action"] or "") for r in rows)
-    w_ctag = max((len(r["comment_tag"] or "-") for r in rows), default=7)
-    w_rtag = max((len(r["resolved_tag"] or "-") for r in rows), default=8)
+    # +1 gap prevents columns from visually running together;
+    # cap version columns at 14 to avoid one outlier bloating the table;
+    # ensure each column is at least as wide as its header label
+    _VER_CAP = 14
+    w_file = max(len(r["file"] or "") for r in rows) + 1
+    w_file = max(w_file, len("File") + 1)
+    w_action = max(len(r["action"] or "") for r in rows) + 1
+    w_action = max(w_action, len("Action") + 1)
+    w_ctag = (
+        min(max((len(r["comment_tag"] or "-") for r in rows), default=7), _VER_CAP) + 1
+    )
+    w_ctag = max(w_ctag, len("Comment") + 1)
+    w_rtag = (
+        min(max((len(r["resolved_tag"] or "-") for r in rows), default=8), _VER_CAP) + 1
+    )
+    w_rtag = max(w_rtag, len("Resolved") + 1)
 
     ui.section("Actions")
 
     if has_latest:
-        w_ltag = max(
-            (len(r["latest_tag"] or "-") for r in rows),
-            default=6,
+        w_ltag = (
+            min(
+                max(
+                    (len(r["latest_tag"] or "-") for r in rows),
+                    default=6,
+                ),
+                _VER_CAP,
+            )
+            + 1
         )
+        w_ltag = max(w_ltag, len("Latest") + 1)
         ui.table_header(
             [
                 ("File", w_file),
@@ -760,7 +803,8 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 ("Resolved", w_rtag),
                 ("Latest", w_ltag),
                 ("Upgrade?", 8),
-            ]
+            ],
+            themed=True,
         )
     else:
         w_ltag = 0
@@ -771,19 +815,35 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 ("Comment", w_ctag),
                 ("Resolved", w_rtag),
                 ("Stale?", 6),
-            ]
+            ],
+            themed=True,
         )
 
     for r in rows:
         ctag = r["comment_tag"] or "-"
         rtag = r["resolved_tag"] or "-"
+        # Truncate long version strings to fit capped columns
+        if len(ctag) > _VER_CAP:
+            ctag = ctag[: _VER_CAP - 1] + "\u2026"
+        if len(rtag) > _VER_CAP:
+            rtag = rtag[: _VER_CAP - 1] + "\u2026"
         file_raw = r["file"] or ""
         action_raw = r["action"] or ""
         file_col = _colors.dim(file_raw)
         action_col = _colors.cyan(action_raw)
+        ctag_display = _colors.dim(ctag)
+
+        # Color the resolved tag: green if matches comment, red if stale
+        stale_val = r.get("stale") or ""
+        if stale_val in ("yes", "missing"):
+            rtag_display = _colors.red(rtag)
+        else:
+            rtag_display = _colors.green(rtag)
 
         if has_latest:
             ltag = r.get("latest_tag") or "-"
+            if len(ltag) > _VER_CAP:
+                ltag = ltag[: _VER_CAP - 1] + "\u2026"
             is_upgradable = r.get("upgradable") == "yes"
             uflag = _colors.yellow("^") if is_upgradable else ""
 
@@ -796,8 +856,8 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 [
                     (file_col, w_file),
                     (action_col, w_action),
-                    (ctag, w_ctag),
-                    (rtag, w_rtag),
+                    (ctag_display, w_ctag),
+                    (rtag_display, w_rtag),
                     (ltag_display, w_ltag),
                     (uflag, 8),
                 ]
@@ -819,8 +879,8 @@ def print_report(rows: list[dict[str, str | None]]) -> None:
                 [
                     (file_col, w_file),
                     (action_col, w_action),
-                    (ctag, w_ctag),
-                    (rtag, w_rtag),
+                    (ctag_display, w_ctag),
+                    (rtag_display, w_rtag),
                     (flag, 6),
                 ]
             )
@@ -1224,13 +1284,13 @@ def main() -> int:
     )
 
     # Initialize color support based on CLI flags
-    _colors = Colors(enabled=args.color)
+    _colors = Colors() if args.color is None else Colors(enabled=args.color)
 
     ui = UI(
         title="Workflow Action Versions",
         version=SCRIPT_VERSION,
         theme=THEME,
-        no_color=not args.color,
+        no_color=args.color is False,
     )
     if not quiet:
         use_json = (
@@ -1359,7 +1419,10 @@ def main() -> int:
         dry_run = getattr(args, "dry_run", False)
 
         if dry_run:
-            logger.info("%s No files will be modified.", _colors.yellow("[DRY RUN]"))
+            print(
+                f"\n  {_colors.yellow(_colors.bold('[DRY RUN]'))}"
+                f" No files will be modified.\n"
+            )
 
         if action_arg:
             # Upgrade a specific action
@@ -1384,12 +1447,12 @@ def main() -> int:
                     return 1
 
             current = matching[0].get("resolved_tag") or matching[0].get("comment_tag")
-            print(f"  {_colors.cyan(slug)}: {current} -> {_colors.green(target)}")
+            print(f"\n  {_colors.cyan(slug)}: {current} -> {_colors.green(target)}")
 
             if dry_run:
                 files = {r["file"] for r in matching}
                 print(
-                    f"  Would update {len(matching)} line(s) in {len(files)} file(s)."
+                    f"\n  Would update {len(matching)} line(s) in {len(files)} file(s).\n"
                 )
             else:
                 count = upgrade_action(action_arg, target, rows)
@@ -1421,15 +1484,20 @@ def main() -> int:
 
             if dry_run:
                 print(
-                    f"\n  {_colors.yellow('[DRY RUN]')} {len(unique)} action(s) would be upgraded:"
+                    f"\n  {_colors.yellow(_colors.bold('[DRY RUN]'))}"
+                    f" {len(unique)} action(s) would be upgraded:\n"
                 )
+                # Compute column width for vertical alignment
+                slug_w = max(len(_repo_slug(r["action"] or "")) for r in unique) + 1
                 for r in unique:
-                    slug = _repo_slug(r["action"] or "")
+                    s = _repo_slug(r["action"] or "")
                     current = r.get("resolved_tag") or r.get("comment_tag") or "?"
                     latest = r.get("latest_tag") or "?"
                     print(
-                        f"    {_colors.cyan(slug)}: {current} -> {_colors.green(latest)}"
+                        f"    {_colors.cyan(f'{s:<{slug_w}}')}"
+                        f" {current} -> {_colors.green(latest)}"
                     )
+                print()
             else:
                 logger.info("Upgrading %s action(s)", _colors.yellow(str(len(unique))))
                 count = upgrade_all_actions(rows)
@@ -1442,7 +1510,11 @@ def main() -> int:
 
     # Display remaining API rate limit
     if _rate_limit["remaining"] is not None:
-        logger.info("GitHub API rate limit remaining: %s", _rate_limit["remaining"])
+        print(
+            f"\n  {_colors.dim('GitHub API rate limit remaining:')} "
+            f"{_colors.cyan(str(_rate_limit['remaining']))}"
+        )
+        print()
 
     # ── Recommended Scripts ──
     if not quiet:

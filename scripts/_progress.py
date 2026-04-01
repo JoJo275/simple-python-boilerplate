@@ -38,6 +38,7 @@ Usage::
 from __future__ import annotations
 
 import logging
+import math
 import shutil
 import sys
 import threading
@@ -211,20 +212,25 @@ class ProgressBar:
         the running average of observed step durations, then advances
         ``_virtual_current`` at a pace that would reach roughly 90 %
         of the way to the next integer step by the estimated time.
-        If the step takes longer than expected, the bar slows to a
-        crawl so it never overshoots.
+        If the step takes longer than expected, the bar continues
+        creeping forward logarithmically so it never visually stalls.
         """
         while not self._pulse_stop.is_set():
             with self._pulse_lock:
                 elapsed = time.monotonic() - self._step_start
                 est = self._avg_step_time
                 base = float(self.current)
-                # How far into the next step we think we are (0.0-1.0)
-                # Asymptotically approach 0.95 so we never overshoot
-                progress_frac = min(elapsed / est, 1.0) if est > 0 else 0.0
-                # Ease-out curve: fast start, slows near the target
-                eased = 1.0 - (1.0 - progress_frac) ** 2
-                target = base + eased * 0.95
+                ratio = elapsed / est if est > 0 else 0.0
+                if ratio <= 1.0:
+                    # Normal zone: ease-out curve toward 0.90
+                    eased = 1.0 - (1.0 - ratio) ** 2
+                    advance = eased * 0.90
+                else:
+                    # Overtime zone: keep creeping via log curve
+                    # At 2x expected → ~0.93, at 5x → ~0.96, at 20x → ~0.98
+                    overtime = ratio - 1.0
+                    advance = 0.90 + 0.09 * (1.0 - 1.0 / (1.0 + math.log1p(overtime)))
+                target = base + advance
                 # Never exceed total
                 self._virtual_current = min(target, float(self.total))
             self._draw_smooth()
