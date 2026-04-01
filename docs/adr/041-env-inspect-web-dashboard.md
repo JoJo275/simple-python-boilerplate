@@ -247,14 +247,16 @@ tiered collection, per-collector timeouts, and independent testing.
 
 ## Implementation
 
-- [scripts/_env_collectors/](../../scripts/_env_collectors/) — Shared data-collection module
-- [tools/dev-tools/env-dashboard/app.py](../../tools/dev-tools/env-dashboard/app.py) — FastAPI app factory
-- [tools/dev-tools/env-dashboard/collector.py](../../tools/dev-tools/env-dashboard/collector.py) — Caching adapter
-- [tools/dev-tools/env-dashboard/api.py](../../tools/dev-tools/env-dashboard/api.py) — JSON API endpoints
-- [tools/dev-tools/env-dashboard/routes.py](../../tools/dev-tools/env-dashboard/routes.py) — HTML route handlers
-- [tools/dev-tools/env-dashboard/export.py](../../tools/dev-tools/env-dashboard/export.py) — Static HTML export
-- [tools/dev-tools/env-dashboard/templates/](../../tools/dev-tools/env-dashboard/templates/) — Jinja2 templates
-- [tools/dev-tools/env-dashboard/static/](../../tools/dev-tools/env-dashboard/static/) — CSS, JS, images
+Planned file locations (not yet created):
+
+- `scripts/_env_collectors/` — Shared data-collection module
+- `tools/dev-tools/env-dashboard/app.py` — FastAPI app factory
+- `tools/dev-tools/env-dashboard/collector.py` — Caching adapter
+- `tools/dev-tools/env-dashboard/api.py` — JSON API endpoints
+- `tools/dev-tools/env-dashboard/routes.py` — HTML route handlers
+- `tools/dev-tools/env-dashboard/export.py` — Static HTML export
+- `tools/dev-tools/env-dashboard/templates/` — Jinja2 templates
+- `tools/dev-tools/env-dashboard/static/` — CSS, JS, images
 - [pyproject.toml](../../pyproject.toml) — `dashboard` dependency group and Hatch env
 - [Taskfile.yml](../../Taskfile.yml) — `dashboard:serve` task
 

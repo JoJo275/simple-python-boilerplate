@@ -12,8 +12,8 @@ One-paragraph description of what is being built and why.
 
 Link to the blueprint and/or ADR that this plan executes:
 
-- [Blueprint NNN: Title](../blueprints/NNN-title.md)
-- [ADR NNN: Title](../adr/NNN-title.md)
+- Blueprint NNN: Title (`../blueprints/NNN-title.md`)
+- ADR NNN: Title (`../adr/NNN-title.md`)
 
 ## Prerequisites
 
@@ -77,6 +77,6 @@ How to deploy or activate the changes.
 
 ## References
 
-- [Blueprint NNN: Title](../blueprints/NNN-title.md)
-- [ADR NNN: Title](../adr/NNN-title.md)
+- Blueprint NNN: Title (`../blueprints/NNN-title.md`)
+- ADR NNN: Title (`../adr/NNN-title.md`)
 - [Related issue](https://example.com)
