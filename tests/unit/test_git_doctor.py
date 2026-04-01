@@ -952,6 +952,7 @@ class TestRun:
                     "commit_count": 10,
                     "repo_age": "1 month ago",
                     "contributors": 1,
+                    "top_contributors": [],
                     "working_tree": {
                         "staged": 0,
                         "modified": 0,
@@ -1014,6 +1015,7 @@ class TestRun:
                     "commit_count": 10,
                     "repo_age": "1 month ago",
                     "contributors": 1,
+                    "top_contributors": [],
                     "working_tree": {
                         "staged": 0,
                         "modified": 0,
