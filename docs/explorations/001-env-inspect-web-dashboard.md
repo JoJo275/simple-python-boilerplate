@@ -139,17 +139,20 @@ delete the directory without affecting the core package.
 tools/
 └── env-dashboard/
     ├── __init__.py
-    ├── app.py              ← Entry point: starts local server
+    ├── app.py              ← Entry point: starts Uvicorn server
     ├── collector.py        ← Gathers env data (extracted from env_inspect.py)
     ├── routes.py           ← Route handlers, returns rendered templates
     ├── static/
     │   ├── css/
-    │   │   └── style.css   ← Dashboard styles
+    │   │   ├── pico.min.css  ← Vendored Pico CSS base
+    │   │   └── style.css     ← Dashboard overrides and custom properties
     │   ├── js/
-    │   │   └── htmx.min.js ← Vendored htmx (no CDN dependency)
-    │   └── img/            ← Optional: icons, favicon
+    │   │   ├── htmx.min.js   ← Vendored htmx (~14 KB)
+    │   │   ├── alpine.min.js ← Vendored Alpine.js (~15 KB)
+    │   │   └── chart.min.js  ← Vendored Chart.js (~65 KB, load only where needed)
+    │   └── img/              ← Optional: icons, favicon
     ├── templates/
-    │   ├── base.html       ← Layout shell (nav, footer, htmx script)
+    │   ├── base.html       ← Layout shell (nav, footer, script tags)
     │   ├── index.html      ← Main dashboard page
     │   └── partials/       ← htmx-swappable fragments
     │       ├── python.html
@@ -187,10 +190,18 @@ as-is — the web app is an alternative view of the same data.
   Yes, FastAPI _is_ the backend — it handles HTTP routing, serves the
   Jinja2 templates, and exposes the data-collection endpoints. No
   separate "backend" is needed beyond it.
+- **Uvicorn** as the ASGI server. Uvicorn is the standard way to run
+  FastAPI/Starlette apps — lightweight, fast, pure-Python, and supports
+  `--reload` for development. It's the default recommendation in the
+  FastAPI docs and adds no conceptual overhead. Install it alongside
+  FastAPI (often via `fastapi[standard]` which bundles Uvicorn). For a
+  local dev tool the built-in Uvicorn invocation (`uvicorn app:app
+  --reload --host 127.0.0.1 --port 8000`) is all you need — no process
+  manager, no Gunicorn, no reverse proxy.
 - Alternatively, Python stdlib `http.server` works for a zero-dependency
   start, but if routing gets beyond ~5 routes or you want async data
-  collection (fetching slow package info without blocking), FastAPI or
-  Starlette earns its keep quickly.
+  collection (fetching slow package info without blocking), FastAPI +
+  Uvicorn earns its keep quickly.
 - **Jinja2** for templating — already available via MkDocs dependency.
   Add as an explicit optional dependency in `pyproject.toml` under a
   `[project.optional-dependencies] dashboard` group.
@@ -198,22 +209,38 @@ as-is — the web app is an alternative view of the same data.
 
 ### Frontend
 
+### Frontend
+
 - **htmx** (vendored, ~14 KB): handles lazy-loading of slow sections
   (e.g., outdated package checks), refresh-in-place, and expand/collapse
   without writing JS handlers.
+- **Alpine.js** (vendored, ~15 KB min+gzip): tiny reactive JS framework
+  for client-side state that htmx doesn't cover — search/filter input
+  binding, toggle/accordion state, tab switching, dropdown menus. Uses
+  declarative HTML attributes (`x-data`, `x-show`, `x-on`) so it reads
+  like htmx and requires no build step. Alpine and htmx complement each
+  other cleanly: htmx owns server communication, Alpine owns local UI
+  state. Only reach for Alpine when the interaction is purely client-side
+  and doesn't need a server round-trip.
+- **Chart.js** (vendored or CDN, ~65 KB min+gzip): canvas-based charting
+  library for data visualisations where tables aren't enough — e.g.,
+  package distribution by location (pie/doughnut), dependency freshness
+  over time (bar), Python version coverage matrix (horizontal bar), or
+  PATH entry counts. Simple API, sensible defaults, responsive out of the
+  box. Only include Chart.js on pages/sections that actually render a
+  chart — don't load it globally if most sections are pure tables.
 - **CSS**: Custom stylesheet. Start with a clean, minimal design. CSS
   custom properties for theming.  Consider classless CSS frameworks
   (Pico CSS, Simple.css, MVP.css) as a starting base — they style
   semantic HTML with zero class annotations and weigh <10 KB.
-- **Minimal JS**: Only for behaviour that htmx can't handle (e.g.,
-  client-side table sorting/filtering via a tiny vanilla JS snippet,
-  copy-to-clipboard). No framework, no build step, no npm. **Use minimal
-  JavaScript unless it adds a feature or idea worth having** — one of the
-  reasons a web app makes sense here is the amount of information to
-  display is too heavy for a terminal view, but the interactivity budget
-  should stay small. If a feature can be done with htmx attributes or
-  CSS, do it that way. Only reach for JS when there is no alternative
-  (e.g., client-side search filtering, clipboard API).
+- **Minimal additional JS**: Only for behaviour that htmx + Alpine can't
+  handle (e.g., clipboard API for copy-to-clipboard). No framework, no
+  build step, no npm. **Use minimal JavaScript unless it adds a feature
+  or idea worth having** — one of the reasons a web app makes sense here
+  is the amount of information to display is too heavy for a terminal
+  view, but the interactivity budget should stay small. If a feature can
+  be done with htmx attributes, Alpine directives, or CSS, do it that
+  way.
 
 ### Sections (mirroring env_inspect.py)
 
@@ -239,9 +266,47 @@ as-is — the web app is an alternative view of the same data.
 - **Refresh button per section:** `hx-get="/section/packages"
   hx-target="#packages"` — re-collect and re-render just that section.
 - **Expand/collapse details:** Package list grouped by location, each
-  group collapsible.
-- **Search/filter:** Client-side JS filter for package tables (vanilla,
-  ~20 lines).
+  group collapsible. Alpine.js `x-show` / `x-data` handles the toggle
+  state client-side — no server round-trip needed.
+- **Search/filter:** Alpine.js `x-model` on an input bound to a filtered
+  list — instant client-side filtering across package tables (~10 lines
+  of Alpine directives, zero custom JS).
+- **Chart rendering:** Chart.js canvases for visual sections (package
+  distribution, PATH entry counts). Alpine.js `x-init` can trigger chart
+  initialisation when the section loads via htmx.
+
+### Technology Stack Summary
+
+All tools for the web dashboard in one table. "Vendored" means checked
+into the repo as a single file — no CDN dependency, no npm, no build
+step.
+
+| Tool | Category | What It Does | Why Use It Here |
+| :--- | :------- | :----------- | :-------------- |
+| **FastAPI** | Backend — framework | ASGI web framework: routing, dependency injection, async endpoints | Clean route declarations, native async (critical for slow subprocess calls), auto OpenAPI docs for the REST-like section endpoints, Jinja2 integration built-in |
+| **Uvicorn** | Backend — server | ASGI server that runs the FastAPI app | The standard FastAPI server; lightweight, fast, pure-Python; `--reload` for dev; hardcode `--host 127.0.0.1` for local-only binding |
+| **Jinja2** | Backend — templating | Server-side HTML template rendering with inheritance and partials | Already a transitive dep (MkDocs); proven and well-documented; partials map 1:1 to htmx fragment endpoints; `autoescape=True` for safe rendering of arbitrary env-var values |
+| **htmx** | Frontend — interactivity | HTML-over-the-wire: AJAX, lazy-loading, partial page updates via HTML attributes | SPA-like UX with zero JS framework overhead; lazy-load slow sections, refresh-in-place, swap HTML fragments; ~14 KB vendored; no build step |
+| **Alpine.js** | Frontend — client-side state | Minimal reactive JS framework for local UI interactions | Client-side search/filter binding, toggle/accordion state, tab switching, dropdown menus; ~15 KB vendored; declarative HTML attributes (`x-data`, `x-show`, `x-model`) — reads like htmx; no build step |
+| **Chart.js** | Frontend — data visualisation | Canvas-based charting library (bar, pie, doughnut, line, etc.) | Visual graphs for package distribution by location, dependency freshness, Python version coverage, PATH entry counts; ~65 KB min+gzip; simple API, responsive, good defaults; only load on pages that render charts |
+| **Pico CSS** | Frontend — styling | Classless CSS framework for semantic HTML | Clean typography, tables, cards, dark/light mode with zero class annotations; <10 KB; styles `<table>`, `<article>`, `<nav>` directly; rapid prototyping without writing CSS from scratch |
+| **Custom CSS** | Frontend — styling | Project-specific dashboard styles and theming | CSS custom properties for colour theming, dashboard grid layouts, status-colour tokens (green/amber/red for health indicators), overrides on top of Pico CSS base |
+| **djLint** | Tooling — linting | Jinja/HTML template linter and formatter | Catches unclosed tags, malformed Jinja blocks, attribute ordering issues; single Python package (`pip install djlint`), no Node.js; add as pre-commit hook when templates exceed ~20 files |
+| **Prettier** | Tooling — formatting | Code formatter for CSS (already in project) | Already available via pre-commit; extend existing file patterns to cover `.css` files — trivial config change |
+| **Biome** | Tooling — linting | Fast JS linter and formatter (Rust binary) | Single binary, zero npm dep; add when JS exceeds ~200 lines or spans multiple files; handles JS + JSON + CSS in one tool |
+
+### Additional Recommendations
+
+Tools not in the core stack but worth considering as the dashboard
+evolves:
+
+| Tool | Category | What It Does | When to Add |
+| :--- | :------- | :----------- | :---------- |
+| **htmx SSE extension** | Frontend — real-time | Server-Sent Events via htmx attributes | If you want live-updating sections (e.g., auto-refresh on file changes); FastAPI/Starlette support SSE natively; htmx has a built-in SSE extension |
+| **orjson** | Backend — performance | Fast JSON serialisation (Rust-backed) | Only if the `/api/` JSON endpoints become a bottleneck; the stdlib `json` module is fine for a local tool |
+| **python-multipart** | Backend — forms | Multipart form data parsing for FastAPI | Only if you ever add a form (e.g., a search box that POSTs); currently not needed since the dashboard is read-only |
+| **Heroicons / Lucide** | Frontend — icons | SVG icon sets | Small inline SVGs for status indicators (check, warning, error), nav icons, section headers; copy individual SVGs into templates — no icon font, no sprite sheet |
+| **favicon** | Frontend — branding | `.ico` or `.svg` favicon | Minor polish; a simple Python-themed SVG favicon avoids the browser's default blank tab icon |
 
 ## Linting and Formatting for Additional Languages
 
@@ -412,10 +477,10 @@ incrementally.
 
 - **`tools/` vs `devtools/` vs another directory name?** — `tools/`
   is concise and clear yet generic enough for future developer tools.
-- **FastAPI vs Starlette vs stdlib?** — FastAPI is the likely choice
-  (async, clean routing, auto OpenAPI docs). Starlette if you want less
-  magic. Stdlib `http.server` only if you want zero dependencies and
-  are sure routing stays trivial (≤5 routes).
+- ~~**FastAPI vs Starlette vs stdlib?**~~ — **Decided: FastAPI + Uvicorn.**
+  FastAPI for async routing, Jinja2 integration, and auto OpenAPI docs.
+  Uvicorn as the ASGI server (`uvicorn app:app --reload --host
+  127.0.0.1`). No process manager needed for a local dev tool.
 - **Should `gather_env_info()` be extracted into a shared library
   module?** — Currently it's in `scripts/env_inspect.py`. Could move
   the data-collection logic to `src/simple_python_boilerplate/env/` or
@@ -426,6 +491,14 @@ incrementally.
 - **Static HTML export as a secondary feature?** — Render the same
   templates to a standalone HTML file for sharing. Low effort if
   the template design is clean.
+- **Vendor vs CDN for Alpine.js and Chart.js?** — Vendoring (checking
+  the minified files into `static/js/`) is consistent with the htmx
+  approach and avoids CDN dependency. Trade-off: slightly larger repo,
+  but the combined size is ~95 KB — negligible.
+- **Chart.js scope** — Which sections actually benefit from charts vs.
+  tables? Candidates: package distribution by location (pie), PATH
+  entry counts (bar), Python version matrix (horizontal bar). Avoid
+  charts-for-the-sake-of-charts.
 
 ## Next Steps
 
@@ -443,6 +516,11 @@ incrementally.
 - [scripts/env_doctor.py](../../scripts/env_doctor.py) — Complementary
   diagnostic tool (checks rules, not state)
 - [htmx documentation](https://htmx.org/docs/)
+- [Alpine.js documentation](https://alpinejs.dev/)
+- [Chart.js documentation](https://www.chartjs.org/docs/)
+- [Uvicorn documentation](https://www.uvicorn.org/)
+- [FastAPI documentation](https://fastapi.tiangolo.com/)
 - [Jinja2 documentation](https://jinja.palletsprojects.com/)
+- [Pico CSS documentation](https://picocss.com/docs)
 - [ADR 036: Diagnostic tooling strategy](../adr/036-diagnostic-tooling-strategy.md)
 - [ADR 031: Script conventions](../adr/031-script-conventions.md)
