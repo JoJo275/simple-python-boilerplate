@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft | Under Review | Accepted | Superseded by [Blueprint NNN](NNN-name.md)
+Draft | Under Review | Accepted | Superseded by Blueprint NNN (`NNN-name.md`)
 
 ## Summary
 
@@ -12,7 +12,7 @@ One-paragraph description of the proposed design.
 
 Link to the exploration that led to this blueprint:
 
-- [Exploration NNN: Title](../explorations/NNN-title.md)
+- Exploration NNN: Title (`../explorations/NNN-title.md`)
 
 ## Proposed Architecture
 
@@ -72,6 +72,6 @@ workflow or user experience.
 
 ## References
 
-- [Exploration NNN: Title](../explorations/NNN-title.md)
-- [Related ADR](../adr/NNN-related.md)
+- Exploration NNN: Title (`../explorations/NNN-title.md`)
+- Related ADR (`../adr/NNN-related.md`)
 - [External documentation](https://example.com)

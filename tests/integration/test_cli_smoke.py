@@ -66,10 +66,13 @@ class TestVersionEntryPoint:
 class TestDoctorEntryPoint:
     """Smoke tests for the ``spb-doctor`` entry point."""
 
-    def test_doctor_runs(self, capsys: pytest.CaptureFixture[str]) -> None:
+    def test_doctor_runs(
+        self, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Doctor command should complete without errors."""
         from simple_python_boilerplate.main import doctor
 
+        monkeypatch.setattr("sys.argv", ["spb-doctor"])
         doctor()
 
         captured = capsys.readouterr()

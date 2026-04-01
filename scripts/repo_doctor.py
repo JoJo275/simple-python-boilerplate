@@ -71,6 +71,7 @@ from __future__ import annotations
 import argparse
 import ast
 import logging
+import os
 import random
 import re
 import shutil
@@ -685,8 +686,9 @@ _CONFLICT_RE = re.compile(r"^(<{7}|={7}|>{7})\s", re.MULTILINE)
 def _iter_py_files(root: Path) -> list[Path]:
     """Yield all ``.py`` files under *root*, skipping common artifact dirs."""
     results: list[Path] = []
-    for dirpath, dirnames, filenames in root.walk():
+    for dirpath_str, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in _SKIP_DIRS]
+        dirpath = Path(dirpath_str)
         results.extend(dirpath / f for f in filenames if f.endswith(".py"))
     return results
 
