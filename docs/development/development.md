@@ -12,6 +12,30 @@ This guide covers developer tools and workflows for contributing to this project
 
 ---
 
+## Idea Development Lifecycle
+
+Non-trivial changes follow this lifecycle from idea to implementation.
+Skip stages that don't apply — small changes can go straight to an ADR
+or implementation plan.
+
+```
+idea/problem        →  explorations/           Early-stage evaluation
+proposed design     →  blueprints/             Structural design shape
+decision locked in  →  adr/                    Permanent decision record
+build steps         →  implementation-plans/   Step-by-step execution
+```
+
+| Stage | Directory | Purpose | When to Use |
+| :---- | :-------- | :------ | :---------- |
+| **Explore** | [`docs/explorations/`](../explorations/) | Evaluate whether an idea is worth pursuing. Weigh alternatives, risks, and tradeoffs. | New idea surfaces; scope/cost is unclear; multiple options need comparison |
+| **Design** | [`docs/blueprints/`](../blueprints/) | Define the structural shape of an approved idea. Components, repo layout, tooling impact. | Exploration concluded with "proceed"; design spans multiple files/modules |
+| **Decide** | [`docs/adr/`](../adr/) | Lock in the decision with context and consequences. Permanent project record. | Decision is hard to reverse, affects multiple areas, or needs future context |
+| **Build** | [`docs/implementation-plans/`](../implementation-plans/) | Step-by-step execution plan with file-level detail, sequencing, and verification. | Work spans multiple phases/sessions; sequencing matters; checklist needed |
+
+Each directory has a README with detailed guidance and a template to copy.
+
+---
+
 ## Common Workflows
 
 ### Running Tests
