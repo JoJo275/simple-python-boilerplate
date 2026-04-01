@@ -23,6 +23,15 @@ Each ADR follows the structure defined in [template.md](template.md):
 
 To create a new ADR, copy `template.md` to `NNN-short-title.md` and fill it in.
 
+## Lifecycle
+
+```
+idea/problem → explorations/
+proposed design → blueprints/
+decision locked in → adr/              (this directory)
+build steps → implementation-plans/
+```
+
 ## When to Write an ADR
 
 Write an ADR when a decision:

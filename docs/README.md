@@ -10,9 +10,12 @@ Project documentation organized by topic.
 | Directory / File                       | Description                            |
 | -------------------------------------- | -------------------------------------- |
 | [adr/](adr/)                           | Architecture Decision Records          |
+| [blueprints/](blueprints/)             | Proposed design shapes                 |
 | [design/](design/)                     | Architecture and database design       |
 | [development/](development/)           | Developer guides and setup             |
+| [explorations/](explorations/)         | Early-stage idea evaluation            |
 | [guide/](guide/)                       | User-facing guides and troubleshooting |
+| [implementation-plans/](implementation-plans/) | Step-by-step execution details |
 | [notes/](notes/)                       | Personal notes and scratchpad          |
 | [reference/](reference/)               | API and configuration reference        |
 | [templates/](templates/)               | Reusable file templates                |
@@ -24,6 +27,22 @@ Project documentation organized by topic.
 | [sbom.md](sbom.md)                     | Software Bill of Materials             |
 | [tooling.md](tooling.md)               | Tooling overview and rationale         |
 | [workflows.md](workflows.md)           | GitHub Actions workflows reference     |
+
+## Design Lifecycle
+
+For non-trivial changes, use this optional workflow to move from idea to
+implementation:
+
+```
+idea/problem → explorations/
+proposed design → blueprints/
+decision locked in → adr/
+build steps → implementation-plans/
+```
+
+See each directory's README for when to write that kind of document.
+Skip stages that don't apply — small changes can go straight to an ADR
+or implementation plan.
 
 ## Quick Links
 
