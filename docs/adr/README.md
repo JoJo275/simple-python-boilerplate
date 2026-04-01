@@ -87,6 +87,7 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [038](038-vscode-workspace-configuration-strategy.md) | VS Code workspace configuration strategy                           | Accepted |
 | [039](039-developer-onboarding-automation.md)         | Developer onboarding automation (bootstrap and customize)          | Accepted |
 | [040](040-v1-release-readiness.md)                    | v1.0 release readiness checklist                                   | Accepted |
+| [041](041-env-inspect-web-dashboard.md)               | Environment inspection web dashboard                               | Accepted |
 
 ## Archive
 

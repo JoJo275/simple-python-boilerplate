@@ -65,4 +65,4 @@ Number sequentially (001, 002, ...) to maintain order.
 
 | #   | Title                                                                  | Status |
 | :-- | :--------------------------------------------------------------------- | :----- |
-| 001 | [Environment inspection web dashboard](001-env-inspect-web-dashboard.md) | Draft  |
+| 001 | [Environment inspection web dashboard](001-env-inspect-web-dashboard.md) | Concluded — Proceed |
