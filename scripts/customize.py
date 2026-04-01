@@ -2697,13 +2697,14 @@ def config_from_args(args: argparse.Namespace) -> Config:
 # ---------------------------------------------------------------------------
 
 
-def enable_workflows_only(repo_slug: str) -> int:
+def enable_workflows_only(repo_slug: str, *, dry_run: bool = False) -> int:
     """Enable all workflows by replacing the YOURNAME/YOURREPO placeholder.
 
     This is a quick operation that only touches workflow files and related docs.
 
     Args:
         repo_slug: The GitHub repository slug (e.g., 'myorg/myproject').
+        dry_run: If ``True``, report changes without writing files.
 
     Returns:
         Exit code: 0 on success, 1 on error.
@@ -2731,7 +2732,7 @@ def enable_workflows_only(repo_slug: str) -> int:
     print(f"Enabling workflows with repo slug: {repo_slug}")
     print()
 
-    modified = apply_replacements(replacements, show_progress=True)
+    modified = apply_replacements(replacements, show_progress=True, dry_run=dry_run)
 
     c = Colors()
     sym = unicode_symbols()
@@ -5206,7 +5207,7 @@ def main() -> int:
 
     # Handle --enable-workflows as a standalone operation
     if args.enable_workflows:
-        return enable_workflows_only(args.enable_workflows)
+        return enable_workflows_only(args.enable_workflows, dry_run=args.dry_run)
 
     # Handle --export-config as a standalone operation (explicit flag)
     if args.export_config:
