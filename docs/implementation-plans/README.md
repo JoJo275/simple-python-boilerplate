@@ -61,3 +61,7 @@ Number sequentially (001, 002, ...) to maintain order.
 | :-- | :-------------------------------- | :----- |
 | 001 | [Title](001-short-description.md) | Draft  |
 -->
+
+| #   | Title                                                                    | Status |
+| :-- | :----------------------------------------------------------------------- | :----- |
+| 001 | [Environment inspection web dashboard](001-env-inspect-web-dashboard.md) | Draft  |

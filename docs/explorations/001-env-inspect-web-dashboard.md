@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft
+Concluded — Proceed
 
 ## Problem Statement
 
@@ -210,8 +210,6 @@ as-is — the web app is an alternative view of the same data.
   Add as an explicit optional dependency in `pyproject.toml` under a
   `[project.optional-dependencies] dashboard` group.
 - Data collection reuses `gather_env_info()` from `env_inspect.py`.
-
-### Frontend
 
 ### Frontend
 
@@ -508,11 +506,14 @@ incrementally.
 
 ## Next Steps
 
-- [ ] Create a blueprint in `docs/blueprints/` with detailed component
-      design and template wireframes
-- [ ] Draft an ADR for the `tools/dev-tools/` directory convention
+- [x] Create a blueprint in `docs/blueprints/` with detailed component
+      design and template wireframes →
+      [Blueprint 001](../blueprints/001-env-inspect-web-dashboard.md)
+- [x] Draft an ADR for the `tools/dev-tools/` directory convention →
+      [ADR 041](../adr/041-env-inspect-web-dashboard.md)
 - [ ] Prototype: standalone `app.py` that calls `gather_env_info()` and
-      renders a single-page Jinja template
+      renders a single-page Jinja template →
+      [Implementation Plan 001](../implementation-plans/001-env-inspect-web-dashboard.md)
 
 ## References
 
