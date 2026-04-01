@@ -46,6 +46,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
 from pathlib import Path
 
+# TODO (template users): remove try/except once requires-python >= 3.11 is guaranteed
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:  # pragma: no cover
@@ -199,7 +200,7 @@ def _check_pyproject(root: Path) -> dict[str, str]:
     try:
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         result["parseable"] = "yes"
-    except Exception as exc:
+    except (OSError, ValueError) as exc:
         result["parseable"] = f"no ({exc!s})"
         return result
 
@@ -231,7 +232,7 @@ def _check_python_compat(root: Path) -> dict[str, str]:
 
     try:
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-    except Exception:
+    except (OSError, ValueError):
         result["status"] = "cannot parse pyproject.toml"
         return result
 

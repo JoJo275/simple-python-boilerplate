@@ -98,6 +98,38 @@ RECOMMENDED_SCRIPTS: dict[str, tuple[str, str]] = {
         "python scripts/clean.py",
         "Remove build artifacts and caches",
     ),
+    "archive_todos": (
+        "python scripts/archive_todos.py",
+        "Archive resolved TODO comments",
+    ),
+    "apply_labels": (
+        "python scripts/apply_labels.py",
+        "Apply GitHub labels from JSON definitions",
+    ),
+    "changelog_check": (
+        "python scripts/changelog_check.py",
+        "Validate changelog format and entries",
+    ),
+    "check_known_issues": (
+        "python scripts/check_known_issues.py",
+        "Verify known-issues status and links",
+    ),
+    "check_todos": (
+        "python scripts/check_todos.py",
+        "Scan codebase for TODO/FIXME comments",
+    ),
+    "generate_command_reference": (
+        "python scripts/generate_command_reference.py",
+        "Auto-generate CLI command reference docs",
+    ),
+    "test_containerfile": (
+        "python scripts/test_containerfile.py",
+        "Validate Containerfile build and structure",
+    ),
+    "test_docker_compose": (
+        "python scripts/test_docker_compose.py",
+        "Validate docker-compose configuration",
+    ),
 }
 
 # ---------------------------------------------------------------------------

@@ -62,7 +62,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
+import os  # TODO (template users): replace os.walk() with Path.walk() when requires-python >= 3.12
 import platform
 import shutil
 import subprocess  # nosec B404

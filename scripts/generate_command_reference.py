@@ -249,7 +249,7 @@ def _parse_entry_points() -> list[tuple[str, str]]:
 
     try:
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-    except Exception:
+    except (OSError, ValueError):
         return []
 
     scripts = data.get("project", {}).get("scripts", {})

@@ -28,6 +28,7 @@ import shutil
 import subprocess  # nosec B404
 from pathlib import Path
 
+# TODO (template users): remove try/except once requires-python >= 3.11 is guaranteed
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:  # pragma: no cover
@@ -197,7 +198,7 @@ def read_pyproject(root: Path) -> dict[str, object] | None:
         return None
     try:
         return tomllib.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    except (OSError, ValueError):
         return None
 
 
