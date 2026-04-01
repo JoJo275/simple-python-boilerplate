@@ -4089,11 +4089,14 @@ def _run_repo_doctor(*, dry_run: bool = False) -> bool:
             cwd=str(ROOT),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=30,
         )
         if result.returncode == 0:
             # Count warnings in output
-            warn_count = result.stdout.count("WARN") + result.stdout.count("\u26a0")
+            stdout = result.stdout or ""
+            warn_count = stdout.count("WARN") + stdout.count("\u26a0")
             if warn_count > 0:
                 print(
                     f"  {c.yellow(sym['warn'])} Health check: "
@@ -5373,7 +5376,7 @@ def _run_non_interactive(args: argparse.Namespace) -> int:
 
     # Post-customization health check
     print(f"\n{c.bold('Health check...')}")
-    _run_repo_doctor()
+    _run_repo_doctor(dry_run=dry)
 
     print()
     print(f"  {c.dim(sym['sep'] * 50)}")
