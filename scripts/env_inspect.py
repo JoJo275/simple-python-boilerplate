@@ -240,7 +240,7 @@ def _inspect_path() -> list[dict]:
 
     for dir_path in path_dirs:
         # Normalize for duplicate detection (case-insensitive on Windows)
-        normalized = os.path.normcase(os.path.normpath(dir_path))
+        normalized = str(Path(dir_path).resolve()).casefold()
         is_duplicate = normalized in seen
         seen.add(normalized)
 

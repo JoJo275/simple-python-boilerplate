@@ -81,6 +81,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+# TODO (template users): remove try/except once requires-python >= 3.11 is guaranteed
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:  # pragma: no cover
@@ -267,7 +268,7 @@ def _toml_has_path(root: Path, rel: str, dotted: str) -> tuple[bool, str]:
 
     try:
         data = tomllib.loads(target.read_text(encoding="utf-8"))
-    except Exception as exc:
+    except (OSError, ValueError) as exc:
         return False, f"Could not parse TOML: {exc!s}"
 
     cur: Any = data
