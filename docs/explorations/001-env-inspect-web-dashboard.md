@@ -137,42 +137,46 @@ delete the directory without affecting the core package.
 
 ```
 tools/
-└── env-dashboard/
-    ├── __init__.py
-    ├── app.py              ← Entry point: starts Uvicorn server
-    ├── collector.py        ← Gathers env data (extracted from env_inspect.py)
-    ├── routes.py           ← Route handlers, returns rendered templates
-    ├── static/
-    │   ├── css/
-    │   │   ├── pico.min.css  ← Vendored Pico CSS base
-    │   │   └── style.css     ← Dashboard overrides and custom properties
-    │   ├── js/
-    │   │   ├── htmx.min.js   ← Vendored htmx (~14 KB)
-    │   │   ├── alpine.min.js ← Vendored Alpine.js (~15 KB)
-    │   │   └── chart.min.js  ← Vendored Chart.js (~65 KB, load only where needed)
-    │   └── img/              ← Optional: icons, favicon
-    ├── templates/
-    │   ├── base.html       ← Layout shell (nav, footer, script tags)
-    │   ├── index.html      ← Main dashboard page
-    │   └── partials/       ← htmx-swappable fragments
-    │       ├── python.html
-    │       ├── git.html
-    │       ├── venv.html
-    │       ├── packages.html
-    │       ├── entrypoints.html
-    │       ├── build_tools.html
-    │       ├── python_support.html
-    │       ├── path.html
-    │       ├── python_installs.html
-    │       └── system.html
-    └── README.md           ← Usage, development instructions
+└── dev-tools/
+    └── env-dashboard/
+        ├── __init__.py
+        ├── app.py              ← Entry point: starts Uvicorn server
+        ├── collector.py        ← Gathers env data (extracted from env_inspect.py)
+        ├── routes.py           ← Route handlers, returns rendered templates
+        ├── static/
+        │   ├── css/
+        │   │   ├── pico.min.css  ← Vendored Pico CSS base
+        │   │   └── style.css     ← Dashboard overrides and custom properties
+        │   ├── js/
+        │   │   ├── htmx.min.js   ← Vendored htmx (~14 KB)
+        │   │   ├── alpine.min.js ← Vendored Alpine.js (~15 KB)
+        │   │   └── chart.min.js  ← Vendored Chart.js (~65 KB, load only where needed)
+        │   └── img/              ← Optional: icons, favicon
+        ├── templates/
+        │   ├── base.html       ← Layout shell (nav, footer, script tags)
+        │   ├── index.html      ← Main dashboard page
+        │   └── partials/       ← htmx-swappable fragments
+        │       ├── python.html
+        │       ├── git.html
+        │       ├── venv.html
+        │       ├── packages.html
+        │       ├── entrypoints.html
+        │       ├── build_tools.html
+        │       ├── python_support.html
+        │       ├── path.html
+        │       ├── python_installs.html
+        │       └── system.html
+        └── README.md           ← Usage, development instructions
 ```
 
-**Why `tools/` and not `scripts/`?** `scripts/` is for single-file CLI
-utilities. This is a multi-file application with its own templates, static
-assets, and internal structure. A `tools/` directory clearly separates
-multi-file developer tools from single-file scripts. If `tools/` feels
-heavy, `devtools/env-dashboard/` is another option.
+**Why `tools/dev-tools/` and not `scripts/`?** `scripts/` is for
+single-file CLI utilities. The env-dashboard is a multi-file application
+with its own templates, static assets, and internal structure. The
+`tools/dev-tools/` path makes the purpose explicit — this is a template
+repo, so clarity matters more than brevity. Template users scanning the
+repo tree immediately understand what lives here. The extra nesting also
+leaves room for sibling directories under `tools/` (e.g., `tools/ci/`,
+`tools/release/`) without overloading one flat folder.
 
 **Data sharing with `env_inspect.py`:** The `collector.py` module can
 import and reuse the gathering functions from `env_inspect.py` (which
@@ -475,8 +479,10 @@ incrementally.
 
 ## Open Questions
 
-- **`tools/` vs `devtools/` vs another directory name?** — `tools/`
-  is concise and clear yet generic enough for future developer tools.
+- ~~**`tools/` vs `devtools/` vs another directory name?**~~ —
+  **Decided: `tools/dev-tools/`.** Explicit naming for a template repo
+  where clarity beats brevity. Each dev tool gets its own subdirectory
+  (e.g., `tools/dev-tools/env-dashboard/`).
 - ~~**FastAPI vs Starlette vs stdlib?**~~ — **Decided: FastAPI + Uvicorn.**
   FastAPI for async routing, Jinja2 integration, and auto OpenAPI docs.
   Uvicorn as the ASGI server (`uvicorn app:app --reload --host
@@ -504,10 +510,9 @@ incrementally.
 
 - [ ] Create a blueprint in `docs/blueprints/` with detailed component
       design and template wireframes
-- [ ] Draft an ADR for the `tools/` directory convention
+- [ ] Draft an ADR for the `tools/dev-tools/` directory convention
 - [ ] Prototype: standalone `app.py` that calls `gather_env_info()` and
       renders a single-page Jinja template
-- [ ] Decide on the `tools/` directory name and document in the ADR
 
 ## References
 
