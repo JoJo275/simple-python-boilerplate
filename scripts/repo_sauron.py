@@ -176,7 +176,7 @@ _SCRIPT_EXTENSIONS = {".py", ".sh", ".bash", ".zsh", ".ps1", ".rb", ".pl"}
 # Patterns for test files
 _TEST_DIRS = {"tests", "test", "spec"}
 _TEST_PREFIXES = ("test_", "conftest")
-_TEST_SUFFIXES = ("_test.py",)
+_TEST_SUFFIXES = tuple(f"_test{ext}" for ext in _CODE_EXTENSIONS)
 
 # Extensions considered "documentation" files
 _DOC_EXTENSIONS = {".md", ".rst", ".txt"}
@@ -440,6 +440,7 @@ def _collect_file_stats() -> dict:
     binary_file_count = 0
     found_code_extensions: set[str] = set()
     found_script_extensions: set[str] = set()
+    found_test_extensions: set[str] = set()
     all_file_paths: set[str] = set()
 
     for dirpath, dirnames, filenames in os.walk(ROOT):
@@ -484,9 +485,12 @@ def _collect_file_stats() -> dict:
             fname_lower = fname.lower()
             is_test = any(part in _TEST_DIRS for part in rel_parts)
             is_test = is_test or any(fname_lower.startswith(p) for p in _TEST_PREFIXES)
-            is_test = is_test or any(fname_lower.endswith(s) for s in _TEST_SUFFIXES)
-            if is_test and ext == ".py":
+            is_test = is_test or any(
+                fname_lower.endswith(f"_test{ext}") for ext in _CODE_EXTENSIONS
+            )
+            if is_test and ext in _CODE_EXTENSIONS:
                 test_file_count += 1
+                found_test_extensions.add(ext)
 
             # Simple binary detection: non-text extensions
             text_exts = {
@@ -566,6 +570,7 @@ def _collect_file_stats() -> dict:
         "binary_file_count": binary_file_count,
         "found_code_extensions": sorted(found_code_extensions),
         "found_script_extensions": sorted(found_script_extensions),
+        "found_test_extensions": sorted(found_test_extensions),
         "all_file_paths": all_file_paths,
     }
 
@@ -1174,11 +1179,32 @@ def _format_size(size_bytes: int) -> str:
 # ---------------------------------------------------------------------------
 
 
+_BADGE_COLORS: dict[str, str] = {
+    "blue": "#007ec6",
+    "brightgreen": "#4c1",
+    "green": "#3c1",
+    "yellow": "#dfb317",
+    "orange": "#fe7d37",
+    "red": "#e05d44",
+    "purple": "#9f52e0",
+    "lightgrey": "#9f9f9f",
+}
+
+
 def _md_badge(label: str, value: str, color: str = "blue") -> str:
-    """Generate a shields.io-style static badge in Markdown."""
-    label_enc = label.replace(" ", "%20").replace("-", "--")
-    value_enc = value.replace(" ", "%20").replace("-", "--")
-    return f"![{label}](https://img.shields.io/badge/{label_enc}-{value_enc}-{color})"
+    """Generate a shields.io Markdown image badge.
+
+    Encodes the label and value for shields.io's URL format:
+    dashes → ``--``, underscores → ``__``, spaces → ``_``.
+    """
+
+    def _encode(text: str) -> str:
+        return text.replace("-", "--").replace("_", "__").replace(" ", "_")
+
+    encoded_label = _encode(label)
+    encoded_value = _encode(value)
+    url = f"https://img.shields.io/badge/{encoded_label}-{encoded_value}-{color}"
+    return f"![{label} {value}]({url})"
 
 
 # ---------------------------------------------------------------------------
@@ -1278,30 +1304,33 @@ def generate_markdown(stats: dict) -> str:
     lines.append("")
 
     # ── Badges ──
-    lines.append(_md_badge("total files", str(file_stats["total_files"]), "blue"))
-    lines.append(
+    badges: list[str] = []
+    badges.append(_md_badge("total files", str(file_stats["total_files"]), "blue"))
+    badges.append(
         _md_badge("size", _format_size(file_stats["total_size_bytes"]), "green")
     )
     if git_stats.get("available"):
-        lines.append(
+        badges.append(
             _md_badge(
                 "total repo commits", str(git_stats.get("total_commits", 0)), "orange"
             )
         )
-        lines.append(
+        badges.append(
             _md_badge("contributors", str(git_stats.get("author_count", 0)), "purple")
         )
-    lines.append(
+    badges.append(
         _md_badge(
             "code files", str(file_stats.get("code_file_count", 0)), "brightgreen"
         )
     )
-    lines.append(
+    badges.append(
         _md_badge("script files", str(file_stats.get("script_file_count", 0)), "yellow")
     )
-    lines.append(
+    badges.append(
         _md_badge("test files", str(file_stats.get("test_file_count", 0)), "red")
     )
+    # Badges on one line separated by spaces (shields.io images render inline)
+    lines.append(" ".join(badges))
     lines.append("")
 
     # ── Table of Contents ──
@@ -1352,9 +1381,13 @@ def generate_markdown(stats: dict) -> str:
         )
         + ".  "
     )
+    found_test_exts = file_stats.get("found_test_extensions", [".py"])
+    test_ext_list = (
+        ", ".join(f"`{e}`" for e in found_test_exts) if found_test_exts else "`.py`"
+    )
     lines.append(
-        "> **Test files** are `.py` files inside `tests/`/`test/` dirs, "
-        "or matching `test_*`/`*_test.py`/`conftest.py` patterns."
+        f"> **Test files** are {test_ext_list} files inside `tests/`/`test/` dirs, "
+        "or matching `test_*`/`*_test` patterns."
     )
     lines.append("")
     lines.append("| Metric | Value |")
