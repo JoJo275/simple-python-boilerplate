@@ -1,12 +1,12 @@
 <!-- WORKING COPY — edit freely, this does NOT affect .github/PULL_REQUEST_TEMPLATE.md -->
 <!-- Use this file to draft your PR description before pasting it into GitHub. -->
-<!-- Suggested branch rename: feat/developer-tooling-overhaul -->
+<!-- Suggested branch rename: feat/developer-tooling-and-docs -->
 <!--
   Suggested PR titles (must use conventional commit format — type: description):
 
   Full titles:
-    feat: overhaul developer tooling, diagnostics, and documentation
-    feat: enhance scripts, tests, docs, and VS Code config for v1.0 readiness
+    feat: Add developer tooling scripts, UI framework, and documentation enhancements
+    feat: Add repo-sauron, env-inspect, repo-doctor improvements, and doc lifecycle templates
 
   Available prefixes:
     feat:     — new feature or capability
@@ -22,7 +22,7 @@
     revert:   — reverts a previous commit
 -->
 
-<!-- Suggested labels: enhancement, documentation, developer-experience, scripts, tests -->
+<!-- Suggested labels: enhancement, documentation, scripts -->
 
 <!--
   ╔══════════════════════════════════════════════════════════════╗
@@ -40,143 +40,105 @@
 
 ## Description
 
-Major overhaul of developer tooling, diagnostics, documentation, container
-support, and test coverage across 116 files (+13,053 / -1,955 lines) —
-bringing the template to v1.0 release readiness.
+Large batch of developer tooling improvements, new scripts, a shared UI framework for script output, and documentation enhancements including a full idea-development lifecycle (explorations, blueprints, implementation plans).
 
 **What changes you made:**
 
-- **`git_doctor.py`** — major rewrite: git config reference export
-  (`--export-config`), auto-apply (`--apply-recommended`), branch
-  characteristics, commit activity charts, file change summaries,
-  fetch/prune at startup, column-header config display, improved
-  status overview
-- **`workflow_versions.py`** — rate-limit handling overhaul: early
-  bail-out on 403, single warning instead of spam, summary of skipped
-  actions, GitHub token setup guide in docstring
-- **`customize.py`** — added missing container files to STRIPPABLE,
-  corrected advanced-workflows count, added drift TODOs
-- **Container tooling** — new `test_containerfile.py`,
-  `test_docker_compose.py`, shared `_container_common.py`, bash
-  equivalents, `devcontainer-build.yml` workflow
-- **Documentation** — major expansion of `USING_THIS_TEMPLATE.md`
-  (containers, VS Code config, LLM-assisted setup note, editor/git
-  handling, git configuration); new `branch-workflows.md`,
-  `scripts.md` reference; 5 new ADRs (036-040); enhanced
-  troubleshooting, learning notes, release docs
-- **Tests** — new test suites for customize (interactive + unit),
-  workflow_versions (rate-limit), test_containerfile,
-  test_docker_compose; expanded existing test files
-- **VS Code** — updated `.vscode/settings.json`, expanded
-  `.code-workspace` with extension recommendations
-- **CI/CD** — SHA-pinned action updates across ~20 workflow files,
-  new `devcontainer-build.yml`, updated `repo_doctor.d/` rules
-- **Security** — enhanced SECURITY.md with PGP setup instructions
+- **New scripts:** `repo_sauron.py` (comprehensive repo analysis with Markdown report), `env_inspect.py` (environment inspection), `env_doctor.py` (environment health checks), `doctor.py` (unified doctor entry point)
+- **UI framework:** Added `_ui.py`, `_colors.py`, `_progress.py` shared modules for consistent, color-coded terminal output with progress bars and hyperlinks across all scripts
+- **Customization script:** Added dry-run mode, input validation (GitHub usernames, authors, CLI prefixes, descriptions), and report generation (`customize-report.md`, `customize-config.md`)
+- **repo_doctor.py:** Major enhancements — more health checks, improved output formatting, UTF-8 encoding fixes for Windows
+- **Pre-commit hooks:** Added `auto_chmod_scripts.py` and `check_local_imports.py` custom hooks
+- **CI:** New `smoke-test.yml` workflow
+- **Documentation:** ADR 041 (env-inspect web dashboard), exploration/blueprint/implementation-plan for the dashboard, idea development lifecycle docs, templates for each doc stage
+- **Dependency reporting:** New `dep_versions.py` script and `dep-versions-report.md`
+- **Windows fixes:** UTF-8 reconfiguration for stdout/stderr across scripts
+- **Tests:** New/updated tests for `_ui.py`, `customize`, `doctor`, `workflow_versions`, `git_doctor`
 
 **Why you made them:**
 
-The template had gaps in developer experience: limited diagnostics,
-sparse container testing, no rate-limit handling in workflow_versions,
-incomplete test coverage for scripts, and documentation that didn't
-cover containers or VS Code config. This PR fills those gaps for a
-complete, well-documented v1.0 release.
+The template's developer experience needed stronger introspection and diagnostic tooling. Scripts lacked consistent output formatting, and there was no structured process for evolving ideas from exploration to implementation. Windows users hit encoding errors in script output.
 
 ## Related Issue
 
-N/A — accumulated improvements toward v1.0 release readiness
-(see ADR 040).
+N/A — iterative improvement of template developer tooling and documentation structure.
 
 ## Type of Change
 
-- [x] 🐛 Bug fix (non-breaking change that fixes an issue)
+- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
 - [x] ✨ New feature (non-breaking change that adds functionality)
 - [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - [x] 📚 Documentation update
-- [x] 🔧 Refactor (no functional changes)
+- [ ] 🔧 Refactor (no functional changes)
 - [x] 🧪 Test update
 
 ## How to Test
 
 **Steps:**
 
-1. Run `python scripts/git_doctor.py` — verify status overview, config
-   table with column headers, and health checks
-2. Run `python scripts/workflow_versions.py show --filter stale` — verify
-   no rate-limit spam (if unauthenticated, one warning then skip)
-3. Run `python scripts/customize.py --dry-run` — verify container files
-   appear in STRIPPABLE listing
-4. Open the project in VS Code as a workspace — verify settings and
-   extension recommendations load
+1. Run the new scripts to verify they produce expected output
+2. Run existing tests to confirm nothing is broken
+3. Check that dry-run modes work without modifying files
 
 **Test command(s):**
 
 ```bash
-# Full test suite
+# Run all tests
 task test
 
-# New/modified test files
-pytest tests/unit/test_customize.py tests/unit/test_customize_interactive.py -v
-pytest tests/unit/test_workflow_versions.py -v
-pytest tests/unit/test_test_containerfile.py tests/unit/test_test_docker_compose.py -v
+# Run specific new/changed test files
+hatch run pytest tests/unit/test_ui.py -v
+hatch run pytest tests/unit/test_customize_interactive.py -v
+hatch run pytest tests/unit/test_doctor.py -v
+hatch run pytest tests/unit/test_workflow_versions.py -v
 
-# Verify scripts parse cleanly
-python -c "import ast, pathlib; [ast.parse(f.read_text('utf-8')) for f in pathlib.Path('scripts').glob('*.py')]"
+# Verify scripts run
+hatch run python scripts/env_inspect.py
+hatch run python scripts/repo_sauron.py
+hatch run python scripts/doctor.py
+hatch run python scripts/dep_versions.py
+
+# Lint check
+task lint
+task typecheck
 ```
 
 **Screenshots / Demo (if applicable):**
 
-<!-- Add screenshots of workflow_versions rate-limit handling, git_doctor output -->
+<!-- Add screenshots, GIFs, or video links showing the new script output -->
 
 ## Risk / Impact
 
-**Risk level:** Low
+**Risk level:** Medium
 
-**What could break:** `git_doctor.py` is the largest change — output
-formatting regressions affect DX but not production code or CI gates.
-`workflow_versions.py` rate-limit changes are purely additive (cached
-responses still work). VS Code settings are additive and only apply when
-opening the workspace file.
+**What could break:**
+- New pre-commit hooks (`auto_chmod_scripts`, `check_local_imports`) could flag files in forks that were previously passing
+- UTF-8 reconfiguration on Windows could have side effects in edge-case terminal environments
+- `repo_sauron.py` and `repo_doctor.py` read many files — performance may vary on large repos
 
 **Rollback plan:** Revert this PR
-
-## Dependencies (if applicable)
-
-None — all changes are self-contained within this repository.
-
-## Breaking Changes / Migrations (if applicable)
-
-None. All changes are additive. Existing scripts retain their CLI
-interfaces. No config migrations needed.
 
 ## Checklist
 
 - [x] My code follows the project's style guidelines
-- [x] I have performed a self-review of my code
+- [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [x] I have made corresponding changes to the documentation
 - [ ] No new warnings (or explained in Additional Notes)
 - [x] I have added tests that prove my fix is effective or that my feature works
-- [x] Relevant tests pass locally (or explained in Additional Notes)
-- [x] No security concerns introduced (or flagged for review)
-- [x] No performance regressions expected (or flagged for review)
+- [ ] Relevant tests pass locally (or explained in Additional Notes)
+- [ ] No security concerns introduced (or flagged for review)
+- [ ] No performance regressions expected (or flagged for review)
 
 ## Reviewer Focus (Optional)
 
-- **`scripts/workflow_versions.py`** — review the rate-limit bail-out
-  logic in `_gh_api()` and the docstring token setup guide for accuracy
-- **`scripts/customize.py`** — verify STRIPPABLE paths match actual repo
-  files (path integrity tests catch this, but a visual check is good)
-- **`docs/USING_THIS_TEMPLATE.md`** — review the new LLM-assisted setup
-  note and container sections for clarity
-- **New test files** — check that mocked boundaries are reasonable and
-  tests aren't testing implementation details
+- **`scripts/_ui.py` / `_colors.py` / `_progress.py`** — These are the shared UI modules used by all scripts. Review the API surface and consistency.
+- **Customization dry-run logic** in `scripts/customize.py` — Verify the dry-run flag correctly prevents all file writes.
+- **Windows UTF-8 handling** — The `sys.stdout`/`sys.stderr` reconfiguration in `_ui.py` and `repo_doctor.py`. Confirm this doesn't break non-Windows environments.
+- **50 commits** — This branch accumulated many incremental changes. Consider whether it should be squash-merged to keep main history clean.
 
 ## Additional Notes
 
-- This branch has ~20 commits across 116 files. Consider squash-merging
-  to keep main's history clean.
-- `git-config-reference.md` and `test-config-ref.md` are auto-generated —
-  don't review their content line-by-line.
-- The `workflow_versions.py` token guide recommends fine-grained tokens
-  scoped to public-repo metadata only — verify this matches GitHub's
-  current token UI.
+- 85 files changed, ~19,100 insertions, ~1,300 deletions across 50 commits
+- The env-inspect web dashboard (ADR 041, blueprint, exploration, implementation plan) is **documentation only** — no dashboard code is included in this PR
+- Generated reports (`repo-sauron-report.md`, `customize-config.md`, `customize-report.md`, `dep-versions-report.md`, `coverage.json`) are checked in as reference artifacts; consider whether these should be gitignored instead
