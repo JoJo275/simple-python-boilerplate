@@ -150,6 +150,7 @@ nav:
       - Issue Templates: templates/issue_templates/README.md
   - Notes:
       - Learning: notes/learning.md
+      - Learning — Web Apps: notes/learning-web-apps.md
       - Resources (Links): notes/resources_links.md
       - Resources (Written): notes/resources_written.md
       - Tool Comparison: notes/tool-comparison.md
