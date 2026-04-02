@@ -78,6 +78,10 @@ RUN python -m pip install --no-cache-dir /tmp/*.whl \
 
 USER app
 
+# Basic health check — override in docker-compose or orchestrator as needed
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import simple_python_boilerplate" || exit 1
+
 # Healthcheck — uncomment if this becomes an HTTP service:
 # HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 #   CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

@@ -25,7 +25,7 @@ hint = "Add requires-python = '>=3.11' (or your floor) under [project]."
 [[rule]]
 type = "toml_has_path"
 path = "pyproject.toml"
-toml_path = "project.version"
+toml_path = "project.version|project.dynamic"
 level = "info"
 category = "packaging"
 impact = "No static version in [project]; if using dynamic versioning make sure the backend supports it."

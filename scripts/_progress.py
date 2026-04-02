@@ -197,6 +197,15 @@ class ProgressBar:
     def __exit__(self, *_: object) -> None:
         self.finish()
 
+    def start_pulse(self) -> None:
+        """Start the background pulse animation thread.
+
+        Call this when you need smooth animation without using the
+        context-manager interface.  Safe to call multiple times —
+        subsequent calls are no-ops if the thread is already running.
+        """
+        self._start_pulse()
+
     def _start_pulse(self) -> None:
         """Start the background pulse animation thread."""
         if self._pulse_thread is not None:

@@ -162,7 +162,7 @@ def main() -> int:
     created = updated = up_to_date = 0
     failures: list[str] = []
     bar = ProgressBar(total=total, label="Applying labels", color="magenta", pulse=True)
-    bar._start_pulse()  # start smooth animation immediately
+    bar.start_pulse()  # start smooth animation immediately
 
     for lab in labels:
         name = lab["name"]

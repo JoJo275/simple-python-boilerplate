@@ -302,7 +302,7 @@ Key architectural decisions are documented in [ADRs](../adr/README.md):
 | [005](../adr/005-ruff-for-linting-formatting.md)   | Ruff for linting + formatting            |
 | [006](../adr/006-pytest-for-testing.md)            | pytest for testing                       |
 | [007](../adr/007-mypy-for-type-checking.md)        | mypy for type checking (strict)          |
-| [008](../adr/008-pre-commit-hooks.md)              | Pre-commit hooks (45 across 4 stages)    |
+| [008](../adr/008-pre-commit-hooks.md)              | Pre-commit hooks (47 across 4 stages)    |
 | [009](../adr/009-conventional-commits.md)          | Conventional Commits                     |
 | [011](../adr/011-repository-guard-pattern.md)      | Repository guard pattern                 |
 | [012](../adr/012-multi-layer-security-scanning.md) | Multi-layer security scanning            |

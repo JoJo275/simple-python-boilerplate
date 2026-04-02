@@ -32,6 +32,7 @@ Portability:
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import logging
 from pathlib import Path
@@ -287,42 +288,38 @@ def find_todos(
             continue
         candidates.append((path, is_known_text))
 
-    bar = (
+    bar: ProgressBar | contextlib.nullcontext[None] = (
         ProgressBar(
             total=len(candidates), label="Scanning files", color="cyan", pulse=True
         )
         if show_progress
-        else None
+        else contextlib.nullcontext()
     )
-    if bar:
-        bar.__enter__()
 
-    for path, is_known_text in candidates:
-        try:
-            text = path.read_text(encoding="utf-8", errors="ignore")
-        except (OSError, PermissionError):
-            if bar:
-                bar.update()
-            continue
-        # Skip files that look binary (contain null bytes in first 8KB)
-        if not is_known_text and "\x00" in text[:8192]:
-            if bar:
-                bar.update()
-            continue
+    with bar as active_bar:
+        for path, is_known_text in candidates:
+            try:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            except (OSError, PermissionError):
+                if active_bar:
+                    active_bar.update()
+                continue
+            # Skip files that look binary (contain null bytes in first 8KB)
+            if not is_known_text and "\x00" in text[:8192]:
+                if active_bar:
+                    active_bar.update()
+                continue
 
-        files_scanned += 1
-        if bar:
-            bar.update(str(path.relative_to(root)))
-        matches = []
-        for i, line in enumerate(text.splitlines(), start=1):
-            if pattern_lower in line.lower():
-                matches.append((i, line.rstrip()))
+            files_scanned += 1
+            if active_bar:
+                active_bar.update(str(path.relative_to(root)))
+            matches = []
+            for i, line in enumerate(text.splitlines(), start=1):
+                if pattern_lower in line.lower():
+                    matches.append((i, line.rstrip()))
 
-        if matches:
-            results[path] = matches
-
-    if bar:
-        bar.__exit__(None, None, None)
+            if matches:
+                results[path] = matches
     log.debug("Scanned %d file(s)", files_scanned)
     return results, files_scanned
 

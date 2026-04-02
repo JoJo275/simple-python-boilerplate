@@ -401,6 +401,7 @@ strict = true  # Enable all strict type checking options
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
 skips = ["B101"]  # Skip assert warnings (asserts are fine outside production code)
+targets = ["src"]
 
 # -- deptry (dependency hygiene) --
 # Only scans src/ for imports.  Dev/test/docs/extras groups are CLI tools —

@@ -645,7 +645,7 @@ def scan_workflows(
             pulse=True,
         )
         _active_bar = bar
-        bar._start_pulse()
+        bar.start_pulse()
 
     for wf in wf_files:
         try:

@@ -196,7 +196,7 @@ scripts/
 
 tools/
 └── dev-tools/
-    └── env-dashboard/
+    └── env_dashboard/
         ├── __init__.py
         ├── app.py              ← Entry point: starts Uvicorn server
         ├── collector.py        ← Wraps _env_collectors, caching, tier selection
@@ -206,11 +206,18 @@ tools/
         ├── export.py           ← Static HTML export logic
         ├── static/
         │   ├── css/
-        │   │   ├── pico.min.css  ← Vendored Pico CSS base
-        │   │   └── style.css     ← Dashboard overrides and custom properties
+        │   │   ├── pico.min.css  ← Vendored Pico CSS minified (production)
+        │   │   └── style.min.css ← Custom properties minified (production)
         │   ├── js/
-        │   │   ├── htmx.min.js   ← Vendored htmx (~14 KB)
-        │   │   └── alpine.min.js ← Vendored Alpine.js (~15 KB)
+        │   │   ├── htmx.min.js   ← Vendored htmx minified (~14 KB, production)
+        │   │   └── alpine.min.js ← Vendored Alpine.js minified (~15 KB, production)
+        │   ├── vendor/           ← Readable (unminified) versions for debugging
+        │   │   ├── css/
+        │   │   │   ├── pico.css   ← Readable Pico CSS source
+        │   │   │   └── style.css ← Readable custom styles source
+        │   │   └── js/
+        │   │       ├── htmx.js    ← Readable htmx source
+        │   │       └── alpine.js  ← Readable Alpine.js source
         │   └── img/
         │       └── favicon.svg   ← Simple Python-themed SVG
         ├── templates/
@@ -236,7 +243,7 @@ tools/
 ```
 
 **Why `tools/dev-tools/` and not `scripts/`?** `scripts/` is for
-single-file CLI utilities. The env-dashboard is a multi-file application
+single-file CLI utilities. The env_dashboard is a multi-file application
 with its own templates, static assets, and internal structure. The
 `tools/dev-tools/` path makes the purpose explicit — this is a template
 repo, so clarity matters more than brevity. Template users scanning the
