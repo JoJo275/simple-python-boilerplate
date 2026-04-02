@@ -71,8 +71,8 @@
 </section>
 {% endif %}
 
-{# --- Section cards grid --- #}
-<section class="sections-grid" id="sections-grid">
+{# --- Section cards --- #}
+<div class="sections-list" id="sections-list">
     {% for name, data in sections.items() %}
     {% if name != "insights" %}
     <article class="section-card"
@@ -100,10 +100,10 @@
     </article>
     {% endif %}
     {% endfor %}
-</section>
+</div>
 
 {# --- Raw JSON viewer (collapsed) --- #}
-<details class="json-viewer-details">
+<details class="json-viewer-details" id="raw-json">
     <summary>Raw JSON</summary>
     <div class="json-viewer">
         <button class="outline copy-btn" @click="copyValue(JSON.stringify({{ report|tojson }}, null, 2))">

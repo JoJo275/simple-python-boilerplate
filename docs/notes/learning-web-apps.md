@@ -119,6 +119,65 @@ Other Python application servers:
 production you'd use Uvicorn behind a process manager (like Gunicorn with
 Uvicorn workers) or a reverse proxy (like Nginx).
 
+#### What Are Ports?
+
+A **port** is a number (0–65535) that identifies a specific service on a
+machine. Think of it like apartment numbers in a building: the IP address is
+the building's street address, and the port is the apartment number.
+
+```text
+http://127.0.0.1:8000
+      ─────────  ────
+      IP address  port
+```
+
+**Why ports exist:** A computer can run many network services simultaneously
+(web server, database, email). The OS uses ports to route incoming traffic to
+the correct program. When you open `http://127.0.0.1:8000`, your browser
+connects to the program listening on port 8000 of your local machine.
+
+**Port ranges:**
+
+| Range         | Name          | Description                                      |
+| ------------- | ------------- | ------------------------------------------------ |
+| 0–1023        | Well-known    | Reserved for standard services (80=HTTP, 443=HTTPS, 22=SSH). Need admin/root to use. |
+| 1024–49151    | Registered    | Assigned to specific apps (3306=MySQL, 5432=PostgreSQL, 8080=alt HTTP). |
+| 49152–65535   | Dynamic       | Used by OS for temporary outgoing connections.    |
+
+**Only one program can listen on a given port at a time.** If you try to start
+two servers on port 8000, the second one fails with "Address already in use."
+
+#### Why We Use Port 8000
+
+Port 8000 is a convention for local development web servers:
+
+- **Not port 80** (standard HTTP) — that requires admin/root privileges on
+  most OSes, and your machine may already have something on port 80.
+- **Not port 443** (HTTPS) — requires SSL certificates and admin privileges.
+- **8000 and 8080** are the de facto "development server" ports. Most
+  frameworks default to one of these: Django uses 8000, many Java servers
+  use 8080, Vite uses 5173, Next.js uses 3000.
+- **It's arbitrary** — you could use any unused port above 1023. We use 8000
+  because it's conventional, easy to remember, and unlikely to conflict.
+
+To use a different port, change the `port=` argument in `uvicorn.run()`:
+
+```python
+uvicorn.run("app:app", host="127.0.0.1", port=9000)  # Now at http://127.0.0.1:9000
+```
+
+#### How to Choose a Port
+
+1. **Start with the framework default** (8000 for FastAPI/Django, 3000 for
+   Node.js, etc.) — other developers expect these conventions.
+2. **Check if it's in use:** run `netstat -ano | findstr :8000` (Windows) or
+   `lsof -i :8000` (macOS/Linux).
+3. **Avoid well-known ports** (0–1023) unless you're running a "real" service.
+4. **Avoid ports used by other tools** on your machine (e.g., 5432 if you run
+   PostgreSQL, 3306 for MySQL).
+5. **Pick something memorable** if you run multiple dev servers: dashboard on
+   8000, API on 8001, docs on 8002, etc.
+
 ### 3. Template Engine (Jinja2)
 
 The **template engine** generates HTML dynamically by combining HTML templates

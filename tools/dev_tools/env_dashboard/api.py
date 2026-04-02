@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import signal
 import time
 
 from fastapi import APIRouter, Query
@@ -103,3 +105,14 @@ def _parse_tier(value: str) -> object:
         if t.value == value_lower:
             return t
     return Tier.STANDARD
+
+
+@router.post("/shutdown")
+async def api_shutdown() -> JSONResponse:
+    """Gracefully shut down the dashboard server.
+
+    Security: only listens on 127.0.0.1 so only local users can trigger this.
+    Sends SIGINT to the current process (same as pressing Ctrl+C).
+    """
+    os.kill(os.getpid(), signal.SIGINT)
+    return JSONResponse({"status": "shutting_down"})
