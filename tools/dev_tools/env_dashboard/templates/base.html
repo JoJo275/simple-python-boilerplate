@@ -12,70 +12,116 @@
 <body hx-headers='{"Accept": "text/html"}' x-data="dashboard()" x-init="init()">
 
     {# --- Top nav bar --- #}
-    <nav class="dashboard-nav">
-        <ul>
-            <li><strong>&#x1f50d; Env Dashboard</strong></li>
-        </ul>
-        <ul>
-            <li>
-                <input type="search" placeholder="Search sections..."
-                       x-model="searchQuery"
-                       @input.debounce.200ms="filterSections()"
-                       aria-label="Search sections">
-            </li>
-            <li>
-                <details class="dropdown">
-                    <summary role="button" class="outline secondary">Redact: <span x-text="redactLevel"></span></summary>
-                    <ul>
-                        <li><a href="#" @click.prevent="setRedact('none')">None</a></li>
-                        <li><a href="#" @click.prevent="setRedact('secrets')">Secrets</a></li>
-                        <li><a href="#" @click.prevent="setRedact('pii')">PII</a></li>
-                        <li><a href="#" @click.prevent="setRedact('paranoid')">Paranoid</a></li>
-                    </ul>
-                </details>
-            </li>
-            <li>
-                <label class="hide-empty-toggle">
-                    <input type="checkbox" role="switch" x-model="hideEmpty" @change="filterSections()">
-                    Hide empty
-                </label>
-            </li>
-            <li>
-                <button class="outline secondary" @click="refreshScan()" :aria-busy="scanning">
-                    &#x21bb; Refresh
-                </button>
-            </li>
-            <li>
-                <details class="dropdown">
-                    <summary role="button" class="outline">Export</summary>
-                    <ul>
-                        <li><a :href="'/api/export.json?redact=' + redactLevel">JSON</a></li>
-                        <li><a :href="'/export.html?redact=' + redactLevel">HTML</a></li>
-                    </ul>
-                </details>
-            </li>
-            <li>
-                <button class="outline contrast theme-toggle" @click="toggleTheme()" aria-label="Toggle theme">
-                    <span x-show="theme === 'light'">&#x1f319;</span>
-                    <span x-show="theme === 'dark'">&#x2600;&#xfe0f;</span>
-                </button>
-            </li>
-        </ul>
+    <nav class="dashboard-topbar">
+        <div class="topbar-left">
+            <strong class="topbar-title">&#x1f50d; Env Dashboard</strong>
+        </div>
+        <div class="topbar-center">
+            <input type="search" placeholder="Search sections..."
+                   x-model="searchQuery"
+                   @input.debounce.200ms="filterSections()"
+                   aria-label="Search sections">
+        </div>
+        <div class="topbar-right">
+            <details class="dropdown">
+                <summary role="button" class="outline secondary btn-sm">Redact: <span x-text="redactLevel"></span></summary>
+                <ul>
+                    <li><a href="#" @click.prevent="setRedact('none')">None</a></li>
+                    <li><a href="#" @click.prevent="setRedact('secrets')">Secrets</a></li>
+                    <li><a href="#" @click.prevent="setRedact('pii')">PII</a></li>
+                    <li><a href="#" @click.prevent="setRedact('paranoid')">Paranoid</a></li>
+                </ul>
+            </details>
+            <label class="hide-empty-toggle">
+                <input type="checkbox" role="switch" x-model="hideEmpty" @change="filterSections()">
+                Hide empty
+            </label>
+            <button class="outline secondary btn-sm" @click="refreshScan()" :aria-busy="scanning">
+                &#x21bb; Refresh
+            </button>
+            <details class="dropdown">
+                <summary role="button" class="outline btn-sm">Export</summary>
+                <ul>
+                    <li><a :href="'/api/export.json?redact=' + redactLevel">JSON</a></li>
+                    <li><a :href="'/export.html?redact=' + redactLevel">HTML</a></li>
+                </ul>
+            </details>
+            <button class="outline contrast theme-toggle btn-sm" @click="toggleTheme()" aria-label="Toggle theme">
+                <span x-show="theme === 'light'">&#x1f319;</span>
+                <span x-show="theme === 'dark'">&#x2600;&#xfe0f;</span>
+            </button>
+        </div>
     </nav>
 
-    {# --- Page content --- #}
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
+    {# --- Layout: sidebar + main content --- #}
+    <div class="dashboard-layout">
+        {# --- Left sidebar navigation --- #}
+        <aside class="dashboard-sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">Overview</div>
+                    <a href="#summary-bar" class="sidebar-link active" @click="setActiveLink($event)">
+                        <span class="sidebar-icon">&#x1f4ca;</span> Summary
+                    </a>
+                    {% if warnings %}
+                    <a href="#warnings-panel" class="sidebar-link" @click="setActiveLink($event)">
+                        <span class="sidebar-icon">&#x26a0;&#xfe0f;</span> Warnings
+                        <span class="sidebar-badge">{{ warnings|length }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-heading">Sections</div>
+                    {% for name, data in sections.items() %}
+                    {% if name != "insights" %}
+                    <a href="#section-{{ name }}" class="sidebar-link" @click="setActiveLink($event)"
+                       x-show="isSectionVisible('{{ name }}')">
+                        <span class="sidebar-icon">&#x1f4c1;</span>
+                        {{ name|replace("_", " ")|title }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="sidebar-section sidebar-bottom">
+                    <a href="#raw-json" class="sidebar-link" @click="setActiveLink($event)">
+                        <span class="sidebar-icon">&#x1f4dd;</span> Raw JSON
+                    </a>
+                    <button class="shutdown-btn" @click="shutdownServer()">
+                        <span class="sidebar-icon">&#x23fb;</span> Shutdown Server
+                    </button>
+                </div>
+            </nav>
+        </aside>
+
+        {# --- Main content area --- #}
+        <main class="dashboard-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 
     {# --- Footer --- #}
-    <footer class="container dashboard-footer">
+    <footer class="dashboard-footer">
         <small>
             Environment Dashboard &middot; Local-only dev tool &middot;
             Schema v{{ meta.schema_version|default("1.0") }}
             {% if meta.timestamp %} &middot; Last scan: {{ meta.timestamp }}{% endif %}
         </small>
     </footer>
+
+    {# --- Shutdown confirmation modal --- #}
+    <dialog id="shutdown-dialog" class="shutdown-dialog">
+        <article>
+            <header>
+                <h3>Shutdown Server?</h3>
+            </header>
+            <p>This will stop the dashboard server. You'll need to run
+               <code>hatch run dashboard:serve</code> again to restart it.</p>
+            <footer>
+                <button class="outline secondary" onclick="document.getElementById('shutdown-dialog').close()">Cancel</button>
+                <button class="shutdown-confirm-btn" @click="confirmShutdown()">Shutdown</button>
+            </footer>
+        </article>
+    </dialog>
 
     {# --- Scripts --- #}
     <script src="/static/js/htmx.min.js"></script>
@@ -98,6 +144,9 @@
                     this.theme = 'dark';
                 }
                 document.documentElement.setAttribute('data-theme', this.theme);
+
+                // Highlight sidebar link on scroll
+                this.observeSections();
             },
 
             toggleTheme() {
@@ -108,7 +157,6 @@
 
             setRedact(level) {
                 this.redactLevel = level;
-                // Reload the page with new redact level
                 window.location.search = '?redact=' + level;
             },
 
@@ -124,19 +172,63 @@
                 });
             },
 
+            isSectionVisible(name) {
+                const query = this.searchQuery.toLowerCase();
+                if (!query) return true;
+                return name.toLowerCase().includes(query);
+            },
+
+            setActiveLink(event) {
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+            },
+
+            observeSections() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.id;
+                            document.querySelectorAll('.sidebar-link').forEach(l => {
+                                l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+                            });
+                        }
+                    });
+                }, { rootMargin: '-20% 0px -60% 0px' });
+
+                document.querySelectorAll('.section-card, #summary-bar, #warnings-panel').forEach(el => {
+                    observer.observe(el);
+                });
+            },
+
             async refreshScan() {
                 this.scanning = true;
                 try {
                     const resp = await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
                     if (resp.ok) {
-                        // Reload all section partials via htmx
                         htmx.trigger(document.body, 'scan-complete');
-                        // Reload page to get fresh data
                         window.location.reload();
                     }
                 } finally {
                     this.scanning = false;
                 }
+            },
+
+            shutdownServer() {
+                document.getElementById('shutdown-dialog').showModal();
+            },
+
+            async confirmShutdown() {
+                document.getElementById('shutdown-dialog').close();
+                try {
+                    await fetch('/api/shutdown', { method: 'POST' });
+                } catch (e) {
+                    // Expected — server dies before responding
+                }
+                document.body.innerHTML = '<div class="shutdown-message">' +
+                    '<h2>&#x23fb; Server Stopped</h2>' +
+                    '<p>The dashboard server has been shut down.</p>' +
+                    '<p>Run <code>hatch run dashboard:serve</code> to restart.</p>' +
+                    '</div>';
             },
 
             copyValue(text) {
