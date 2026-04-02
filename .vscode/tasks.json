@@ -94,6 +94,14 @@
       "detail": "Build documentation (strict mode)"
     },
     {
+      "label": "dashboard:serve",
+      "type": "shell",
+      "command": "hatch run dashboard:serve",
+      "isBackground": true,
+      "problemMatcher": [],
+      "detail": "Start environment inspection dashboard (http://127.0.0.1:8000)"
+    },
+    {
       "label": "build",
       "type": "shell",
       "command": "hatch build",

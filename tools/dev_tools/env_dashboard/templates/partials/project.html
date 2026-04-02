@@ -1,0 +1,48 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    {{ kv_row("Repository Root", data.repo_root, copyable=true) }}
+</table>
+
+{% if data.lockfiles %}
+<h5>Lockfiles</h5>
+<ul class="list-compact">
+    {% for f in data.lockfiles %}
+    <li class="mono">{{ f }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="muted">No lockfiles detected.</p>
+{% endif %}
+
+{% if data.config_files %}
+<h5>Config Files</h5>
+<ul class="list-compact">
+    {% for f in data.config_files %}
+    <li class="mono">{{ f }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if data.build_tools %}
+<h5>Build Tools</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Tool</th><th>Available</th></tr>
+    </thead>
+    <tbody>
+        {% for tool in data.build_tools %}
+        <tr>
+            <td>{{ tool.name }}</td>
+            <td>
+                {% if tool.available %}
+                    <span class="badge badge-pass">&#x2713;</span>
+                {% else %}
+                    <span class="badge">&#x2717;</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

@@ -1,0 +1,47 @@
+{# Reusable macros for section partials #}
+
+{# Key-value row with optional copy button #}
+{% macro kv_row(label, value, copyable=false) %}
+<tr>
+    <td class="kv-label">{{ label|replace("_", " ")|title }}</td>
+    <td class="kv-value">
+        {% if value is none or value == "" %}
+            <span class="muted">—</span>
+        {% elif value is sameas true %}
+            <span class="badge badge-pass">Yes</span>
+        {% elif value is sameas false %}
+            <span class="badge">No</span>
+        {% elif value is string and value.startswith("***") %}
+            <span class="redacted">{{ value }}</span>
+        {% else %}
+            <span>{{ value }}</span>
+            {% if copyable %}
+            <button class="copy-btn outline secondary" @click="copyValue('{{ value|e }}')" title="Copy">&#x1f4cb;</button>
+            {% endif %}
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
+
+{# Status badge #}
+{% macro status_badge(value, pass_text="pass", warn_text="warn", fail_text="fail") %}
+{% if value == "pass" or value is sameas true %}
+    <span class="badge badge-pass">{{ pass_text }}</span>
+{% elif value == "warn" %}
+    <span class="badge badge-warn">{{ warn_text }}</span>
+{% elif value == "fail" or value is sameas false %}
+    <span class="badge badge-fail">{{ fail_text }}</span>
+{% else %}
+    <span class="badge badge-info">{{ value }}</span>
+{% endif %}
+{% endmacro %}
+
+{# Section header with optional count #}
+{% macro section_header(title, count=none) %}
+<div class="partial-header">
+    <strong>{{ title }}</strong>
+    {% if count is not none %}
+    <span class="badge">{{ count }}</span>
+    {% endif %}
+</div>
+{% endmacro %}

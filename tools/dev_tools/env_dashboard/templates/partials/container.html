@@ -1,0 +1,54 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">Container Detected</td>
+        <td class="kv-value">
+            {% if data.detected %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">Docker</td>
+        <td class="kv-value">
+            {% if data.docker %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">CI System</td>
+        <td class="kv-value">
+            {% if data.ci %}
+                <span class="badge badge-info">{{ data.ci }}</span>
+            {% else %}
+                <span class="muted">not detected</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">WSL</td>
+        <td class="kv-value">
+            {% if data.wsl %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">Cloud Provider</td>
+        <td class="kv-value">
+            {% if data.cloud %}
+                <span class="badge badge-info">{{ data.cloud }}</span>
+            {% else %}
+                <span class="muted">not detected</span>
+            {% endif %}
+        </td>
+    </tr>
+</table>

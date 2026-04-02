@@ -133,6 +133,9 @@ docs = [
     "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
     "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
 ]
+dashboard = [
+    "fastapi[standard]>=0.115",  # Web framework + Uvicorn for env dashboard
+]
 
 # ============================================================================
 # HATCH CONFIG
@@ -187,6 +190,15 @@ features = ["docs"]
 [tool.hatch.envs.docs.scripts]
 serve = "mkdocs serve {args}"
 build = "mkdocs build --strict {args}"
+
+# ── Dashboard environment — local-only env inspection web UI ──
+# Usage:
+#   hatch run dashboard:serve   # Start dashboard at http://127.0.0.1:8000
+[tool.hatch.envs.dashboard]
+features = ["dashboard"]
+
+[tool.hatch.envs.dashboard.scripts]
+serve = "python -m tools.dev_tools.env_dashboard.app {args}"
 
 # ── Test matrix — run tests across multiple Python versions ───
 # Usage:
@@ -407,10 +419,10 @@ targets = ["src"]
 # Only scans src/ for imports.  Dev/test/docs/extras groups are CLI tools —
 # they're not imported in source code, so we tell deptry they're dev deps.
 [tool.deptry]
-extend_exclude = ["scripts", "experiments", "docs", "site"]
+extend_exclude = ["scripts", "experiments", "docs", "site", "tools"]
 # Tell deptry which [project.optional-dependencies] groups are dev/tool deps
 # so it doesn't flag them as DEP002 ("defined but not used in src/").
-pep621_dev_dependency_groups = ["test", "dev", "extras", "docs"]
+pep621_dev_dependency_groups = ["test", "dev", "extras", "docs", "dashboard"]
 # DEP004: the dev group references "simple-python-boilerplate[test]" (self),
 # which makes deptry think self-imports are "dev dependency used in src/".
 ignore = ["DEP004"]

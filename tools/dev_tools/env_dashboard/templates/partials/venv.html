@@ -1,0 +1,40 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">Active</td>
+        <td class="kv-value">
+            {% if data.active %}
+                <span class="badge badge-pass">Yes</span>
+            {% else %}
+                <span class="badge badge-warn">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    {{ kv_row("Prefix", data.prefix, copyable=true) }}
+    {{ kv_row("Base Prefix", data.base_prefix, copyable=true) }}
+    {{ kv_row("VIRTUAL_ENV", data.virtual_env) }}
+    {{ kv_row("CONDA_ENV", data.conda_env) }}
+    {{ kv_row("HATCH_ENV", data.hatch_env) }}
+</table>
+
+{% if data.hatch %}
+<h5>Hatch</h5>
+<table class="kv-table">
+    {{ kv_row("Available", data.hatch.available) }}
+    {% if data.hatch.path %}
+    {{ kv_row("Path", data.hatch.path, copyable=true) }}
+    {% endif %}
+    {% if data.hatch.version %}
+    {{ kv_row("Version", data.hatch.version) }}
+    {% endif %}
+</table>
+
+{% if data.hatch.environments %}
+<h5>Hatch Environments</h5>
+<details>
+    <summary>Show environments</summary>
+    <pre><code>{{ data.hatch.environments|tojson(indent=2) if data.hatch.environments is mapping else data.hatch.environments }}</code></pre>
+</details>
+{% endif %}
+{% endif %}
