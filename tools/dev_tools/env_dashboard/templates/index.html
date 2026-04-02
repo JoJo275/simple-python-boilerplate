@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+{# --- Summary bar --- #}
+<section class="summary-bar" id="summary-bar">
+    <div class="summary-item">
+        <span class="summary-label">OS</span>
+        <span class="summary-value">{{ summary.os|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Host</span>
+        <span class="summary-value">{{ summary.hostname|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Python</span>
+        <span class="summary-value">{{ summary.python_version|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Shell</span>
+        <span class="summary-value">{{ summary.shell|default("—") }}</span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Git</span>
+        <span class="summary-value">
+            {% if summary.git_repo_detected %}
+                <span class="badge badge-pass">detected</span>
+            {% else %}
+                <span class="badge badge-warn">not found</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Container</span>
+        <span class="summary-value">
+            {% if summary.container_detected %}
+                <span class="badge badge-info">yes</span>
+            {% else %}
+                <span class="badge">no</span>
+            {% endif %}
+        </span>
+    </div>
+    <div class="summary-item">
+        <span class="summary-label">Warnings</span>
+        <span class="summary-value">
+            {% if summary.warnings_count|default(0) > 0 %}
+                <span class="badge badge-warn">{{ summary.warnings_count }}</span>
+            {% else %}
+                <span class="badge badge-pass">0</span>
+            {% endif %}
+        </span>
+    </div>
+</section>
+
+{# --- Warnings panel --- #}
+{% if warnings %}
+<section class="warnings-panel" id="warnings-panel">
+    <h3>&#x26a0;&#xfe0f; Warnings ({{ warnings|length }})</h3>
+    <div class="warning-list">
+        {% for w in warnings %}
+        <div class="warning-item warning-{{ w.severity|default('warn') }}">
+            <span class="warning-icon">
+                {% if w.severity == "fail" %}&#x274c;{% elif w.severity == "info" %}&#x2139;&#xfe0f;{% else %}&#x26a0;&#xfe0f;{% endif %}
+            </span>
+            <span class="warning-text">{{ w.message }}</span>
+            {% if w.section %}
+            <a href="#section-{{ w.section }}" class="warning-link">{{ w.section }}</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{# --- Section cards grid --- #}
+<section class="sections-grid" id="sections-grid">
+    {% for name, data in sections.items() %}
+    {% if name != "insights" %}
+    <article class="section-card"
+             id="section-{{ name }}"
+             data-section-name="{{ name }}"
+             data-empty="{{ 'true' if not data else 'false' }}"
+             hx-get="/section/{{ name }}?redact={{ redact_level }}"
+             hx-trigger="load, scan-complete from:body"
+             hx-swap="innerHTML"
+             hx-indicator="#spinner-{{ name }}">
+        <header>
+            <h4>{{ name|replace("_", " ")|title }}</h4>
+            <span id="spinner-{{ name }}" class="htmx-indicator spinner" aria-busy="true"></span>
+            <button class="outline secondary section-refresh"
+                    hx-get="/section/{{ name }}?redact={{ redact_level }}"
+                    hx-target="#section-{{ name }}"
+                    hx-swap="innerHTML"
+                    aria-label="Refresh {{ name }}">
+                &#x21bb;
+            </button>
+        </header>
+        <div class="section-loading">
+            <span aria-busy="true">Loading...</span>
+        </div>
+    </article>
+    {% endif %}
+    {% endfor %}
+</section>
+
+{# --- Raw JSON viewer (collapsed) --- #}
+<details class="json-viewer-details">
+    <summary>Raw JSON</summary>
+    <div class="json-viewer">
+        <button class="outline copy-btn" @click="copyValue(JSON.stringify({{ report|tojson }}, null, 2))">
+            Copy JSON
+        </button>
+        <pre><code>{{ report|tojson(indent=2) }}</code></pre>
+    </div>
+</details>
+{% endblock %}

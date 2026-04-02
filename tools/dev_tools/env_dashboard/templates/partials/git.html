@@ -1,0 +1,47 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    {{ kv_row("Git Available", data.available) }}
+    {{ kv_row("Repository Detected", data.repo_detected) }}
+    {% if data.version %}
+    {{ kv_row("Version", data.version) }}
+    {% endif %}
+    {% if data.path %}
+    {{ kv_row("Git Path", data.path, copyable=true) }}
+    {% endif %}
+    {% if data.branch is defined %}
+    {{ kv_row("Branch", data.branch, copyable=true) }}
+    {% endif %}
+    {% if data.dirty is defined %}
+    <tr>
+        <td class="kv-label">Working Tree</td>
+        <td class="kv-value">
+            {% if data.dirty %}
+                <span class="badge badge-warn">dirty</span>
+            {% else %}
+                <span class="badge badge-pass">clean</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endif %}
+    {% if data.stash_count is defined %}
+    {{ kv_row("Stash Count", data.stash_count) }}
+    {% endif %}
+</table>
+
+{% if data.remotes %}
+<h5>Remotes</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Name</th><th>URL</th></tr>
+    </thead>
+    <tbody>
+        {% for remote in data.remotes %}
+        <tr>
+            <td>{{ remote.name }}</td>
+            <td class="mono">{{ remote.url }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}

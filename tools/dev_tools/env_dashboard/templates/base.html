@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Environment Dashboard{% endblock %}</title>
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block head %}{% endblock %}
+</head>
+<body hx-headers='{"Accept": "text/html"}' x-data="dashboard()" x-init="init()">
+
+    {# --- Top nav bar --- #}
+    <nav class="dashboard-nav">
+        <ul>
+            <li><strong>&#x1f50d; Env Dashboard</strong></li>
+        </ul>
+        <ul>
+            <li>
+                <input type="search" placeholder="Search sections..."
+                       x-model="searchQuery"
+                       @input.debounce.200ms="filterSections()"
+                       aria-label="Search sections">
+            </li>
+            <li>
+                <details class="dropdown">
+                    <summary role="button" class="outline secondary">Redact: <span x-text="redactLevel"></span></summary>
+                    <ul>
+                        <li><a href="#" @click.prevent="setRedact('none')">None</a></li>
+                        <li><a href="#" @click.prevent="setRedact('secrets')">Secrets</a></li>
+                        <li><a href="#" @click.prevent="setRedact('pii')">PII</a></li>
+                        <li><a href="#" @click.prevent="setRedact('paranoid')">Paranoid</a></li>
+                    </ul>
+                </details>
+            </li>
+            <li>
+                <label class="hide-empty-toggle">
+                    <input type="checkbox" role="switch" x-model="hideEmpty" @change="filterSections()">
+                    Hide empty
+                </label>
+            </li>
+            <li>
+                <button class="outline secondary" @click="refreshScan()" :aria-busy="scanning">
+                    &#x21bb; Refresh
+                </button>
+            </li>
+            <li>
+                <details class="dropdown">
+                    <summary role="button" class="outline">Export</summary>
+                    <ul>
+                        <li><a :href="'/api/export.json?redact=' + redactLevel">JSON</a></li>
+                        <li><a :href="'/export.html?redact=' + redactLevel">HTML</a></li>
+                    </ul>
+                </details>
+            </li>
+            <li>
+                <button class="outline contrast theme-toggle" @click="toggleTheme()" aria-label="Toggle theme">
+                    <span x-show="theme === 'light'">&#x1f319;</span>
+                    <span x-show="theme === 'dark'">&#x2600;&#xfe0f;</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    {# --- Page content --- #}
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# --- Footer --- #}
+    <footer class="container dashboard-footer">
+        <small>
+            Environment Dashboard &middot; Local-only dev tool &middot;
+            Schema v{{ meta.schema_version|default("1.0") }}
+            {% if meta.timestamp %} &middot; Last scan: {{ meta.timestamp }}{% endif %}
+        </small>
+    </footer>
+
+    {# --- Scripts --- #}
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/alpine.min.js" defer></script>
+    <script>
+    function dashboard() {
+        return {
+            searchQuery: '',
+            redactLevel: '{{ redact_level|default("secrets") }}',
+            hideEmpty: false,
+            scanning: false,
+            theme: 'light',
+
+            init() {
+                // Restore theme preference
+                const saved = localStorage.getItem('dashboard-theme');
+                if (saved) {
+                    this.theme = saved;
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.theme = 'dark';
+                }
+                document.documentElement.setAttribute('data-theme', this.theme);
+            },
+
+            toggleTheme() {
+                this.theme = this.theme === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.theme);
+                localStorage.setItem('dashboard-theme', this.theme);
+            },
+
+            setRedact(level) {
+                this.redactLevel = level;
+                // Reload the page with new redact level
+                window.location.search = '?redact=' + level;
+            },
+
+            filterSections() {
+                const query = this.searchQuery.toLowerCase();
+                document.querySelectorAll('.section-card').forEach(card => {
+                    const name = (card.dataset.sectionName || '').toLowerCase();
+                    const text = (card.textContent || '').toLowerCase();
+                    const matchesSearch = !query || name.includes(query) || text.includes(query);
+                    const isEmpty = card.dataset.empty === 'true';
+                    const matchesEmpty = !this.hideEmpty || !isEmpty;
+                    card.style.display = (matchesSearch && matchesEmpty) ? '' : 'none';
+                });
+            },
+
+            async refreshScan() {
+                this.scanning = true;
+                try {
+                    const resp = await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
+                    if (resp.ok) {
+                        // Reload all section partials via htmx
+                        htmx.trigger(document.body, 'scan-complete');
+                        // Reload page to get fresh data
+                        window.location.reload();
+                    }
+                } finally {
+                    this.scanning = false;
+                }
+            },
+
+            copyValue(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Brief visual feedback handled by CSS
+                });
+            }
+        };
+    }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

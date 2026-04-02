@@ -1,0 +1,34 @@
+{% from "partials/_macros.html" import kv_row %}
+
+<table class="kv-table">
+    <tr>
+        <td class="kv-label">DNS Resolution</td>
+        <td class="kv-value">
+            {% if data.dns_resolves %}
+                <span class="badge badge-pass">OK</span>
+            {% else %}
+                <span class="badge badge-fail">Failed</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="kv-label">Outbound HTTPS</td>
+        <td class="kv-value">
+            {% if data.outbound_https %}
+                <span class="badge badge-pass">OK</span>
+            {% else %}
+                <span class="badge badge-fail">Failed</span>
+            {% endif %}
+        </td>
+    </tr>
+    {{ kv_row("Hostname", data.hostname) }}
+</table>
+
+{% if data.proxy %}
+<h5>Proxy Settings</h5>
+<table class="kv-table">
+    {{ kv_row("HTTP Proxy", data.proxy.http_proxy or "not set") }}
+    {{ kv_row("HTTPS Proxy", data.proxy.https_proxy or "not set") }}
+    {{ kv_row("No Proxy", data.proxy.no_proxy or "not set") }}
+</table>
+{% endif %}
