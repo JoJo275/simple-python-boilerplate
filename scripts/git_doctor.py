@@ -5691,6 +5691,7 @@ def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> in
     # Confirm
     print()
     print(f"  Branch to create: {c.bold(c.green(branch_name))}")
+    print()
     confirm = _prompt("Proceed? (Y/n)", default="Y")
     if confirm.lower() not in ("y", "yes", ""):
         print(f"\n  {c.dim('Cancelled.')}")
@@ -5741,6 +5742,89 @@ def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> in
         print()
         print(f"  {c.dim('No changes made (dry run).')}")
         print()
+
+        # ── Command / Status Table (dry run) ──
+        dry_results = [(desc, cmd, True, "", "") for desc, _args, cmd in steps]
+        cmd_col_w = max(len(cmd) for _, cmd, *_ in dry_results) + 2
+        hdr_cmd = "Command"
+        hdr_sts = "Status"
+        cmd_col_w = max(cmd_col_w, len(hdr_cmd) + 2)
+        sts_col_w = 10
+        tbl_border = f"    +{h_line * (cmd_col_w + 2)}+{h_line * (sts_col_w + 2)}+"
+        print(c.cyan(f"  {tl}{section_border}{tr}"))
+        print(f"  {c.cyan(vl)} {c.bold('Command Results (dry run)')}")
+        print(c.cyan(f"  {bl}{section_border}{br}"))
+        print()
+        print(tbl_border)
+        hdr_cmd_padded = hdr_cmd + " " * (cmd_col_w - len(hdr_cmd))
+        hdr_sts_padded = hdr_sts + " " * (sts_col_w - len(hdr_sts))
+        print(f"    {vl} {c.bold(hdr_cmd_padded)} {vl} {c.bold(hdr_sts_padded)} {vl}")
+        print(tbl_border)
+        for _desc, cmd, *_ in dry_results:
+            styled_cmd = c.cyan(cmd)
+            cmd_pad = " " * (cmd_col_w - len(cmd))
+            sts_text = "pending"
+            styled_sts = c.dim(sts_text)
+            sts_pad = " " * (sts_col_w - len(sts_text))
+            print(f"    {vl} {styled_cmd}{cmd_pad} {vl} {styled_sts}{sts_pad} {vl}")
+        print(tbl_border)
+        print()
+
+        # ── Glaring ready banner (dry run) ──
+        banner_text = " READY FOR COMMITS ON NEW BRANCH "
+        banner_pad = (58 - len(banner_text)) // 2
+        banner_fill = h_double * banner_pad
+        print()
+        print(c.bold(c.green(f"  {tl_d}{h_double * 60}{tr_d}")))
+        print(
+            c.bold(
+                c.green(
+                    f"  {vl_d}{banner_fill}{banner_text}{banner_fill}"
+                    f"{h_double * (60 - 2 * banner_pad - len(banner_text))}{vl_d}"
+                )
+            )
+        )
+        print(c.bold(c.green(f"  {bl_d}{h_double * 60}{br_d}")))
+        print()
+        print(f"    {c.dim('(banner shown on successful run)')}")
+        print()
+
+        # ── Next steps ──
+        print(f"    {c.bold('Next steps:')}")
+        print(
+            f"      {dot} Run {c.cyan('python scripts/git_doctor.py --new-branch')} "
+            f"(without --dry-run) to execute"
+        )
+        print(
+            f"      {dot} Start making {c.cyan('conventional commits')} "
+            f"(e.g. feat:, fix:, docs:)"
+        )
+        print(
+            f"      {dot} When ready, open a {c.cyan('Pull Request')} "
+            f"targeting {c.cyan('main')}"
+        )
+        print()
+
+        # ── Recommended Scripts (dry run) ──
+        _nb_ui = UI(
+            title="New Branch",
+            version=SCRIPT_VERSION,
+            theme=THEME,
+            no_color=not use_color,
+        )
+        _nb_ui.recommended_scripts(
+            [
+                "git_doctor",
+                "repo_doctor",
+                "env_doctor",
+                "doctor",
+                "env_inspect",
+                "check_python_support",
+            ],
+            preamble="Scripts that complement branch workflows.",
+        )
+        print()
+
         return 0
 
     failed = False
@@ -5766,6 +5850,41 @@ def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> in
     code, final_branch, _ = _run_git(["branch", "--show-current"])
     _code2, status_out, _ = _run_git(["status", "-sb"])
 
+    # ── Command / Status Table ──
+    print(c.cyan(f"  {tl}{section_border}{tr}"))
+    print(f"  {c.cyan(vl)} {c.bold('Command Results')}")
+    print(c.cyan(f"  {bl}{section_border}{br}"))
+    print()
+
+    # Calculate column widths for aligned table
+    cmd_col_w = max(len(cmd) for _, cmd, *_ in results) + 2
+    hdr_cmd = "Command"
+    hdr_sts = "Status"
+    cmd_col_w = max(cmd_col_w, len(hdr_cmd) + 2)
+    sts_col_w = 10
+    tbl_border = f"    +{h_line * (cmd_col_w + 2)}+{h_line * (sts_col_w + 2)}+"
+    print(tbl_border)
+    hdr_cmd_padded = hdr_cmd + " " * (cmd_col_w - len(hdr_cmd))
+    hdr_sts_padded = hdr_sts + " " * (sts_col_w - len(hdr_sts))
+    print(f"    {vl} {c.bold(hdr_cmd_padded)} {vl} {c.bold(hdr_sts_padded)} {vl}")
+    print(tbl_border)
+    for _desc, cmd, ok, _out, err_msg in results:
+        if err_msg == "skipped":
+            sts_text = "skipped"
+            styled_sts = c.dim(sts_text)
+        elif ok:
+            sts_text = "success"
+            styled_sts = c.green(sts_text)
+        else:
+            sts_text = "failed"
+            styled_sts = c.red(sts_text)
+        styled_cmd = c.cyan(cmd)
+        cmd_pad = " " * (cmd_col_w - len(cmd))
+        sts_pad = " " * (sts_col_w - len(sts_text))
+        print(f"    {vl} {styled_cmd}{cmd_pad} {vl} {styled_sts}{sts_pad} {vl}")
+    print(tbl_border)
+    print()
+
     # ── Summary ──
     print(c.cyan(f"  {tl}{section_border}{tr}"))
     print(f"  {c.cyan(vl)} {c.bold('Summary')}")
@@ -5782,21 +5901,25 @@ def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> in
         print(f"    {dot} Status:  {c.dim(status_out.splitlines()[0])}")
     print()
 
-    # Command log with descriptions
-    print(f"    {c.bold('Commands executed:')}")
-    for desc, cmd, ok, _out, err_msg in results:
-        icon = (
-            c.green(check)
-            if ok
-            else (c.red(cross) if err_msg != "skipped" else c.dim("-"))
+    # ── Glaring ready-for-commits banner ──
+    if not failed:
+        banner_text = " READY FOR COMMITS ON NEW BRANCH "
+        banner_pad = (58 - len(banner_text)) // 2
+        banner_fill = h_double * banner_pad
+        print()
+        print(c.bold(c.green(f"  {tl_d}{h_double * 60}{tr_d}")))
+        print(
+            c.bold(
+                c.green(
+                    f"  {vl_d}{banner_fill}{banner_text}{banner_fill}"
+                    f"{h_double * (60 - 2 * banner_pad - len(banner_text))}{vl_d}"
+                )
+            )
         )
-        print(f"      {icon} {c.cyan(cmd)}")
-        print(f"        {c.dim(desc)}")
-        if not ok and err_msg and err_msg != "skipped":
-            print(f"        {c.red(err_msg)}")
+        print(c.bold(c.green(f"  {bl_d}{h_double * 60}{br_d}")))
+        print()
 
     # ── Recommendations ──
-    print()
     print(f"    {c.bold('Next steps:')}")
     print(
         f"      {dot} Run {c.cyan('python scripts/git_doctor.py')} or "
@@ -5809,6 +5932,26 @@ def create_new_branch(*, color: bool | None = None, dry_run: bool = False) -> in
     print(
         f"      {dot} When ready, open a {c.cyan('Pull Request')} "
         f"targeting {c.cyan('main')}"
+    )
+    print()
+
+    # ── Recommended Scripts ──
+    _nb_ui = UI(
+        title="New Branch",
+        version=SCRIPT_VERSION,
+        theme=THEME,
+        no_color=not use_color,
+    )
+    _nb_ui.recommended_scripts(
+        [
+            "git_doctor",
+            "repo_doctor",
+            "env_doctor",
+            "doctor",
+            "env_inspect",
+            "check_python_support",
+        ],
+        preamble="Scripts that complement branch workflows.",
     )
     print()
 

@@ -29,7 +29,7 @@ tokens, SSH keys, cloud credentials, cookies, auth headers, `.env`
 secrets, and optionally usernames/hostnames before any data reaches
 the UI or an export.
 
-Lives in `tools/dev-tools/env-dashboard/` outside the distributed
+Lives in `tools/dev-tools/env_dashboard/` outside the distributed
 package.
 
 ## Origin
@@ -479,7 +479,7 @@ scripts/
 
 tools/
 └── dev-tools/
-    └── env-dashboard/
+    └── env_dashboard/
         ├── __init__.py
         ├── app.py                ← FastAPI app factory + Uvicorn entrypoint
         ├── collector.py          ← Wraps _env_collectors, caching, tier selection
@@ -489,11 +489,18 @@ tools/
         ├── export.py             ← Static HTML export logic
         ├── static/
         │   ├── css/
-        │   │   ├── pico.min.css  ← Vendored Pico CSS (~10 KB)
-        │   │   └── style.css     ← Custom properties, layout, status colours
+        │   │   ├── pico.min.css  ← Vendored Pico CSS minified (~10 KB, production)
+        │   │   └── style.min.css ← Custom properties minified (production)
         │   ├── js/
-        │   │   ├── htmx.min.js   ← Vendored (~14 KB)
-        │   │   └── alpine.min.js ← Vendored (~15 KB)
+        │   │   ├── htmx.min.js   ← Vendored minified (~14 KB, production)
+        │   │   └── alpine.min.js ← Vendored minified (~15 KB, production)
+        │   ├── vendor/           ← Readable (unminified) versions for debugging
+        │   │   ├── css/
+        │   │   │   ├── pico.css   ← Readable Pico CSS source
+        │   │   │   └── style.css ← Readable custom styles source
+        │   │   └── js/
+        │   │       ├── htmx.js    ← Readable htmx source
+        │   │       └── alpine.js  ← Readable Alpine.js source
         │   └── img/
         │       └── favicon.svg   ← Simple Python-themed SVG
         ├── templates/
@@ -578,14 +585,14 @@ explicitly via `fastapi[standard]`.
 features = ["dashboard"]
 
 [tool.hatch.envs.dashboard.scripts]
-serve = "python -m tools.dev-tools.env-dashboard.app"
+serve = "python -m tools.dev_tools.env_dashboard.app"
 ```
 
 ### Taskfile shortcut
 
 ```yaml
 dashboard:serve:
-  desc: Start the env-dashboard web UI
+  desc: Start the env_dashboard web UI
   cmds:
     - hatch run dashboard:serve
 ```
@@ -603,7 +610,7 @@ task dashboard:serve
 # or
 hatch run dashboard:serve
 # or directly
-python -m tools.dev-tools.env-dashboard.app
+python -m tools.dev_tools.env_dashboard.app
 ```
 
 Opens `http://127.0.0.1:8000` in the default browser (or prints the URL).

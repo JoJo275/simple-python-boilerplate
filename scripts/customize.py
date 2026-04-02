@@ -1621,7 +1621,7 @@ def apply_replacements(
             color="cyan",
             pulse=True,
         )
-        bar._start_pulse()  # start smooth animation immediately
+        bar.start_pulse()  # start smooth animation immediately
 
     for path in eligible:
         rel = path.relative_to(ROOT)
@@ -2409,7 +2409,7 @@ def print_plan(cfg: Config, replacements: list[Replacement]) -> None:
         color="cyan",
         pulse=True,
     )
-    plan_bar._start_pulse()
+    plan_bar.start_pulse()
     eligible_count = len(_collect_eligible_files())
     plan_bar.update("file scan")
     time.sleep(0.12)
@@ -4825,7 +4825,7 @@ def apply_from_config(
             color="cyan",
             pulse=True,
         )
-        bar._start_pulse()
+        bar.start_pulse()
 
         # ── Collect results while bar is visible ──
         modified = apply_replacements(replacements, show_progress=False, dry_run=True)

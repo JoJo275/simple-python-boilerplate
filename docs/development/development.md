@@ -269,7 +269,7 @@ Tools I found helpful during development:
 <!-- TODO (template users): If you add or remove hooks from
      .pre-commit-config.yaml, update the hook table below and ADR 008. -->
 
-This project ships with a comprehensive `.pre-commit-config.yaml` (46 hooks
+This project ships with a comprehensive `.pre-commit-config.yaml` (47 hooks
 across 4 stages — see [ADR 008](../adr/008-pre-commit-hooks.md) for the full
 inventory). To activate them:
 

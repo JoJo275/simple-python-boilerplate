@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Version is set by hatch-vcs from git tags at build/install time.
 # The _version.py file is auto-generated and gitignored.
 # The fallback below is updated by release-please in its Release PR.

@@ -244,7 +244,7 @@ def _iter_files_under(root: Path, rel: str) -> list[Path]:
 
 def _file_contains_regex(root: Path, rel: str, pattern: str) -> bool:
     """Return ``True`` if any file at or beneath *rel* matches *pattern*."""
-    rx = re.compile(pattern)
+    rx = re.compile(pattern, re.MULTILINE)
     for filepath in _iter_files_under(root, rel):
         try:
             text = filepath.read_text(encoding="utf-8", errors="ignore")
@@ -257,6 +257,9 @@ def _file_contains_regex(root: Path, rel: str, pattern: str) -> bool:
 
 def _toml_has_path(root: Path, rel: str, dotted: str) -> tuple[bool, str]:
     """Check for a dotted key path in a TOML file.
+
+    Supports ``|`` separated alternatives — the check passes if ANY
+    alternative path exists (e.g. ``"project.version|project.dynamic"``).
 
     Returns:
         A tuple of ``(ok, note)`` where *note* is non-empty on parse failure.
@@ -272,12 +275,15 @@ def _toml_has_path(root: Path, rel: str, dotted: str) -> tuple[bool, str]:
     except (OSError, ValueError) as exc:
         return False, f"Could not parse TOML: {exc!s}"
 
-    cur: Any = data
-    for part in dotted.split("."):
-        if not isinstance(cur, dict) or part not in cur:
-            return False, ""
-        cur = cur[part]
-    return True, ""
+    for alternative in dotted.split("|"):
+        cur: Any = data
+        for part in alternative.strip().split("."):
+            if not isinstance(cur, dict) or part not in cur:
+                break
+            cur = cur[part]
+        else:
+            return True, ""
+    return False, ""
 
 
 def _matches_deletion(rule_path: str, rule_kind: str, deleted_path: str) -> bool:
@@ -758,11 +764,18 @@ def _check_merge_conflict_markers(root: Path) -> list[Warning]:
 
 
 def _check_future_annotations(root: Path) -> list[Warning]:
-    """Flag ``.py`` files under ``src/`` missing ``from __future__ import annotations``."""
+    """Flag ``.py`` files under ``src/`` missing ``from __future__ import annotations``.
+
+    Also warns when the import appears *after* the first local/relative
+    import, since it must be active before any annotation is evaluated.
+    """
     warnings: list[Warning] = []
     src_dir = root / "src"
     if not src_dir.is_dir():
         return warnings
+    marker = "from __future__ import annotations"
+    # Matches ``from .foo`` or ``from _bar`` — typical local/private imports.
+    _local_import_re = re.compile(r"^\s*from\s+[._]")
     for py_file in _iter_py_files(src_dir):
         try:
             text = py_file.read_text(encoding="utf-8", errors="ignore")
@@ -771,8 +784,20 @@ def _check_future_annotations(root: Path) -> list[Warning]:
         # Skip empty or near-empty files (e.g. __init__.py stubs, one-liners)
         if len(text.strip()) < 50:
             continue
-        if "from __future__ import annotations" not in text:
-            rel = py_file.relative_to(root).as_posix()
+        rel = py_file.relative_to(root).as_posix()
+        lines = text.splitlines()
+        marker_line: int | None = None
+        first_local_line: int | None = None
+        for idx, line in enumerate(lines):
+            if marker in line and marker_line is None:
+                marker_line = idx
+            if (
+                _local_import_re.match(line)
+                and marker not in line
+                and first_local_line is None
+            ):
+                first_local_line = idx
+        if marker_line is None:
             warnings.append(
                 Warning(
                     rule=Rule(
@@ -784,6 +809,20 @@ def _check_future_annotations(root: Path) -> list[Warning]:
                         hint="Add 'from __future__ import annotations' at the top of the file.",
                     ),
                     message=f"Missing future annotations: {rel}",
+                )
+            )
+        elif first_local_line is not None and marker_line > first_local_line:
+            warnings.append(
+                Warning(
+                    rule=Rule(
+                        type="future_annotations",
+                        path=rel,
+                        level="warning",
+                        category="python",
+                        impact="'from __future__ import annotations' appears after a local import — annotations evaluated before the future import won't use PEP 604 syntax.",
+                        hint="Move 'from __future__ import annotations' above all local imports.",
+                    ),
+                    message=f"Future annotations import too late: {rel}",
                 )
             )
     return warnings

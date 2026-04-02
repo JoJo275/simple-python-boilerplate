@@ -322,7 +322,7 @@ def collect_report(*, check_latest: bool = True) -> list[dict[str, str | None]]:
         bar = ProgressBar(
             total=len(all_deps), label="Querying PyPI", color="cyan", pulse=True
         )
-        bar._start_pulse()  # start pulse immediately
+        bar.start_pulse()  # start pulse immediately
         spinner = None
     else:
         bar = None
