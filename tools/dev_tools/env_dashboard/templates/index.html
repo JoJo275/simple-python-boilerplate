@@ -54,7 +54,13 @@
         <span class="summary-value">
             <span class="freshness-dot" :class="freshnessClass"></span>
             <span x-text="ageLabel"></span>
+            <button class="freshness-refresh-btn" @click="refreshScan()" title="Refresh data">↻</button>
         </span>
+        <div class="stale-banner" x-show="freshnessClass === 'stale'" x-cloak x-transition>
+            <span class="stale-banner-icon">⚠</span>
+            Data may not reflect current state
+            <button class="stale-banner-action" @click="refreshScan()">Refresh now</button>
+        </div>
     </div>
 </section>
 
@@ -85,24 +91,26 @@
     <article class="section-card"
              id="section-{{ name }}"
              data-section-name="{{ name }}"
-             data-empty="{{ 'true' if not data else 'false' }}"
-             hx-get="/section/{{ name }}?redact={{ redact_level }}"
-             hx-trigger="load, scan-complete from:body"
-             hx-swap="innerHTML"
-             hx-indicator="#spinner-{{ name }}">
+             data-empty="{{ 'true' if not data else 'false' }}">
         <header>
             <h4>{{ name|replace("_", " ")|title }}</h4>
             <span id="spinner-{{ name }}" class="htmx-indicator spinner" aria-busy="true"></span>
             <button class="outline secondary section-refresh"
                     hx-get="/section/{{ name }}?redact={{ redact_level }}"
-                    hx-target="#section-{{ name }}"
+                    hx-target="#section-body-{{ name }}"
                     hx-swap="innerHTML"
                     aria-label="Refresh {{ name }}">
                 Refresh
             </button>
         </header>
-        <div class="section-loading">
-            <span aria-busy="true">Loading...</span>
+        <div class="section-card-body" id="section-body-{{ name }}"
+             hx-get="/section/{{ name }}?redact={{ redact_level }}"
+             hx-trigger="load, scan-complete from:body"
+             hx-swap="innerHTML"
+             hx-indicator="#spinner-{{ name }}">
+            <div class="section-loading">
+                <span aria-busy="true">Loading...</span>
+            </div>
         </div>
     </article>
     {% endif %}
@@ -113,7 +121,7 @@
 <details class="json-viewer-details" id="raw-json">
     <summary>Raw JSON</summary>
     <div class="json-viewer">
-        <button class="outline copy-btn" @click="copyValue(JSON.stringify({{ report|tojson }}, null, 2))">
+        <button class="copy-btn copy-btn-labeled" @click="copyClip($event, JSON.stringify({{ report|tojson }}, null, 2))">
             Copy JSON
         </button>
         <pre><code>{{ report|tojson(indent=2) }}</code></pre>
