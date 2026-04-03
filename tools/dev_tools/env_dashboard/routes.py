@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 
-from tools.dev_tools.env_dashboard.collector import get_report
+from tools.dev_tools.env_dashboard.collector import get_report_async
 from tools.dev_tools.env_dashboard.export import render_export
 from tools.dev_tools.env_dashboard.redact import parse_redact_param
 
@@ -21,7 +21,7 @@ async def index(
     """Dashboard home page."""
     tier_enum = _parse_tier(tier)
     redact_level = parse_redact_param(redact)
-    report = get_report(tier=tier_enum, redact_level=redact_level)
+    report = await get_report_async(tier=tier_enum, redact_level=redact_level)
 
     templates = request.app.state.templates
     return templates.TemplateResponse(
@@ -48,7 +48,7 @@ async def section_partial(
     """Render a single section as an htmx partial."""
     tier_enum = _parse_tier(tier)
     redact_level = parse_redact_param(redact)
-    report = get_report(tier=tier_enum, redact_level=redact_level)
+    report = await get_report_async(tier=tier_enum, redact_level=redact_level)
     sections = report.get("sections", {})
     section_data = sections.get(name, {})
 
@@ -85,7 +85,7 @@ async def export_html(
     """Self-contained HTML export (no JS, inline CSS)."""
     tier_enum = _parse_tier(tier)
     redact_level = parse_redact_param(redact, export=True)
-    report = get_report(tier=tier_enum, redact_level=redact_level)
+    report = await get_report_async(tier=tier_enum, redact_level=redact_level)
 
     templates = request.app.state.templates
     html = render_export(templates, report, redact_level.value)

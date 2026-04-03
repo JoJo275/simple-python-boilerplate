@@ -5,6 +5,10 @@ Security:
     - Jinja2 autoescape=True (XSS prevention).
     - Read-only — no system mutations.
 
+Performance:
+    - Background cache warmup at startup so first page load is instant.
+    - Collector runs in thread pool (non-blocking async event loop).
+
 Usage::
 
     python -m tools.dev_tools.env_dashboard.app
@@ -15,7 +19,10 @@ Usage::
 from __future__ import annotations
 
 import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -34,6 +41,19 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[Any]:
+    """Warm the collector cache on startup so the first page load is fast."""
+    import asyncio
+
+    from tools.dev_tools.env_dashboard.collector import warmup_cache
+
+    # Background warmup — don't delay server readiness
+    task = asyncio.create_task(warmup_cache())
+    yield
+    task.cancel()
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
     app = FastAPI(
@@ -41,6 +61,7 @@ def create_app() -> FastAPI:
         description="Local-only environment inspection dashboard",
         docs_url=None,  # Disable Swagger UI for local tool
         redoc_url=None,
+        lifespan=_lifespan,
     )
 
     # Mount static files

@@ -3,6 +3,10 @@
 {% block content %}
 {# --- Summary bar --- #}
 <section class="summary-bar" id="summary-bar">
+    <div class="section-help-container">
+        <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What is this section?">?</button>
+        <div class="section-help-tooltip">Quick overview of your environment: OS, Python version, git status, and data freshness. Red badges indicate issues.</div>
+    </div>
     <div class="summary-item">
         <span class="summary-label">OS</span>
         <span class="summary-value">{{ summary.os|default("—") }}</span>
@@ -67,24 +71,62 @@
 {# --- Warnings panel --- #}
 {% if warnings %}
 <section class="warnings-panel" id="warnings-panel">
-    <h3>Warnings ({{ warnings|length }})</h3>
+    <h3>
+        Warnings ({{ warnings|length }})
+        <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+            <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What are warnings?">?</button>
+            <span class="section-help-tooltip">Issues found in your environment. Click a warning to see details and recommended actions. Severity: red = critical, amber = should fix, blue = informational.</span>
+        </span>
+    </h3>
     <div class="warning-list">
         {% for w in warnings %}
-        <div class="warning-item warning-{{ w.severity|default('warn') }}">
-            <span class="warning-icon">
-                {% if w.severity == "fail" %}&times;{% elif w.severity == "info" %}i{% else %}!{% endif %}
-            </span>
-            <span class="warning-text">{{ w.message }}</span>
-            {% if w.section %}
-            <a href="#section-{{ w.section }}" class="warning-link">{{ w.section }}</a>
+        <details class="warning-item warning-{{ w.severity|default('warn') }}">
+            <summary class="warning-summary">
+                <span class="warning-icon">
+                    {% if w.severity == "fail" %}&times;{% elif w.severity == "info" %}i{% else %}!{% endif %}
+                </span>
+                <span class="warning-text">{{ w.message }}</span>
+                {% if w.section %}
+                <a href="#section-{{ w.section }}" class="warning-link" onclick="event.stopPropagation()">{{ w.section }}</a>
+                {% endif %}
+            </summary>
+            {% if w.hint or w.action %}
+            <div class="warning-details">
+                {% if w.hint %}
+                <div class="warning-hint">
+                    <span class="warning-detail-label">Why this matters:</span> {{ w.hint }}
+                </div>
+                {% endif %}
+                {% if w.action %}
+                <div class="warning-action">
+                    <span class="warning-detail-label">Action:</span> {{ w.action }}
+                </div>
+                {% endif %}
+            </div>
             {% endif %}
-        </div>
+        </details>
         {% endfor %}
     </div>
 </section>
 {% endif %}
 
 {# --- Section cards --- #}
+{# Section help descriptions — concise explanations shown on hover/click #}
+{% set section_help = {
+    "system": "OS, architecture, hostname, and kernel details for your machine.",
+    "runtimes": "Detected language runtimes (Python, Node, etc.) and their versions.",
+    "path": "Analysis of your PATH environment variable: order, duplicates, and dead entries.",
+    "git": "Git repo status: branch, remote, dirty state, and recent commits.",
+    "venv": "Virtual environment detection and configuration details.",
+    "packages": "Python packages installed in the current environment.",
+    "project": "Project structure: repo root, lockfiles, config files, and build tools.",
+    "project_commands": "Available CLI commands and task runner shortcuts for this project.",
+    "pip_environments": "All detected Python/pip environments with their installed packages.",
+    "network": "DNS resolution and outbound HTTPS connectivity checks.",
+    "filesystem": "Disk usage, temp directory status, and file system writability.",
+    "container": "Container runtime and CI environment detection.",
+    "security": "Security scan: secret env vars, insecure PATH entries, SSH key exposure."
+} %}
 <div class="sections-list" id="sections-list">
     {% for name, data in sections.items() %}
     {% if name != "insights" %}
@@ -93,7 +135,15 @@
              data-section-name="{{ name }}"
              data-empty="{{ 'true' if not data else 'false' }}">
         <header>
-            <h4>{{ name|replace("_", " ")|title }}</h4>
+            <h4>
+                {{ name|replace("_", " ")|title }}
+                {% if name in section_help %}
+                <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+                    <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What is {{ name|replace('_', ' ') }}?">?</button>
+                    <span class="section-help-tooltip">{{ section_help[name] }}</span>
+                </span>
+                {% endif %}
+            </h4>
             <span id="spinner-{{ name }}" class="htmx-indicator spinner" aria-busy="true"></span>
             <button class="outline secondary section-refresh"
                     hx-get="/section/{{ name }}?redact={{ redact_level }}"
