@@ -380,7 +380,7 @@ body::after {
     flex: 1;
     margin-left: var(--sidebar-width);
     padding: var(--gap-lg);
-    max-width: calc(100vw - var(--sidebar-width) - 2 * var(--gap-lg));
+    max-width: 1100px;
     min-width: 0;
     overflow-x: auto;
     box-sizing: border-box;
@@ -776,17 +776,17 @@ body::after {
 
 /* ========== Shutdown dialog — creative style ========== */
 .shutdown-dialog {
-    border: none;
+    border: 1px solid var(--color-accent);
     border-radius: 16px;
     background: linear-gradient(135deg, rgba(20, 22, 30, 0.97), rgba(10, 12, 18, 0.99));
     box-shadow:
-        0 0 0 1px var(--color-accent),
         0 0 40px var(--color-accent-glow),
         0 24px 80px rgba(0, 0, 0, 0.6);
     overflow: hidden;
     animation: dialogSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     color: #e2e8f0;
     max-width: 420px;
+    width: 90vw;
     padding: 0;
 }
 
@@ -818,12 +818,15 @@ body::after {
     box-shadow: none;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+    border-radius: 16px;
 }
 
 .shutdown-dialog article header {
     background: linear-gradient(90deg, var(--color-accent-dim), transparent);
     border-bottom: 1px solid rgba(168, 85, 247, 0.15);
     padding: 1.25rem 1.5rem 1rem;
+    margin: 0;
 }
 
 .shutdown-dialog article header h3 {
@@ -857,6 +860,7 @@ body::after {
     padding: 1rem 1.5rem 1.25rem;
     border-top: 1px solid rgba(255, 255, 255, 0.04);
     background: rgba(0, 0, 0, 0.15);
+    margin: 0;
 }
 
 .shutdown-dialog .outline.secondary {
@@ -993,6 +997,38 @@ body::after {
 .mono {
     word-break: break-all;
     overflow-wrap: break-word;
+}
+
+/* ========== Freshness indicator ========== */
+.freshness-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.freshness-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 0.3rem;
+    vertical-align: middle;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.freshness-dot.fresh {
+    background: var(--color-pass);
+    box-shadow: 0 0 6px var(--color-pass);
+}
+
+.freshness-dot.aging {
+    background: var(--color-warn);
+    box-shadow: 0 0 6px var(--color-warn);
+}
+
+.freshness-dot.stale {
+    background: var(--color-fail);
+    box-shadow: 0 0 6px var(--color-fail);
 }
 
 /* ========== Responsive ========== */

@@ -320,5 +320,39 @@
     }
     </script>
     {% block scripts %}{% endblock %}
+    <script>
+    /* Freshness indicator — ticks every second, shows data age */
+    function freshness(timestamp) {
+        return {
+            scanTime: timestamp ? new Date(timestamp) : new Date(),
+            ageSeconds: 0,
+            ageLabel: 'just now',
+            freshnessClass: 'fresh',
+            _interval: null,
+
+            startTick() {
+                this.tick();
+                this._interval = setInterval(() => this.tick(), 1000);
+            },
+
+            tick() {
+                this.ageSeconds = Math.floor((Date.now() - this.scanTime.getTime()) / 1000);
+                if (this.ageSeconds < 5) {
+                    this.ageLabel = 'just now';
+                    this.freshnessClass = 'fresh';
+                } else if (this.ageSeconds < 60) {
+                    this.ageLabel = this.ageSeconds + 's ago';
+                    this.freshnessClass = this.ageSeconds < 30 ? 'fresh' : 'aging';
+                } else if (this.ageSeconds < 3600) {
+                    this.ageLabel = Math.floor(this.ageSeconds / 60) + 'm ago';
+                    this.freshnessClass = 'stale';
+                } else {
+                    this.ageLabel = Math.floor(this.ageSeconds / 3600) + 'h ago';
+                    this.freshnessClass = 'stale';
+                }
+            }
+        };
+    }
+    </script>
 </body>
 </html>

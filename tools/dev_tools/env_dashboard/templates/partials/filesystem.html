@@ -6,7 +6,7 @@
 <p class="badge badge-fail">Error: {{ data.disk.error }}</p>
 {% else %}
 <table class="kv-table">
-    {{ kv_row("Path", data.disk.path) }}
+    {{ kv_row("Path", data.disk.path, copyable=true) }}
     {{ kv_row("Total", "%.1f GB"|format(data.disk.total_gb|default(0))) }}
     {{ kv_row("Used", "%.1f GB"|format(data.disk.used_gb|default(0))) }}
     {{ kv_row("Free", "%.1f GB"|format(data.disk.free_gb|default(0))) }}
@@ -41,7 +41,9 @@
             {% else %}
                 <span class="badge badge-fail">not writable</span>
             {% endif %}
-            <small class="mono">{{ dir_info.path|default("") }}</small>
+            <small class="mono">{{ dir_info.path|default("") }}
+                {% if dir_info.path %}<button class="copy-btn" @click="copyClip($event, '{{ dir_info.path|e }}')" title="Copy to clipboard"></button>{% endif %}
+            </small>
         </td>
     </tr>
     {% endfor %}

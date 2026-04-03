@@ -25,7 +25,7 @@
         {% for entry in data.entries %}
         <tr class="{% if not entry.exists %}row-fail{% elif entry.duplicate %}row-warn{% endif %}">
             <td>{{ loop.index }}</td>
-            <td class="mono">{{ entry.path }}</td>
+            <td class="mono">{{ entry.path }} <button class="copy-btn" @click="copyClip($event, '{{ entry.path|e }}')" title="Copy to clipboard"></button></td>
             <td>
                 {% if entry.exists %}
                     <span class="badge badge-pass"><span class="check-icon"></span></span>

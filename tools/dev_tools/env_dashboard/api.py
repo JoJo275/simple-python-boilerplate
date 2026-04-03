@@ -112,7 +112,23 @@ async def api_shutdown() -> JSONResponse:
     """Gracefully shut down the dashboard server.
 
     Security: only listens on 127.0.0.1 so only local users can trigger this.
-    Sends SIGINT to the current process (same as pressing Ctrl+C).
+
+    On Windows with Uvicorn's ``--reload``, SIGINT only kills the worker
+    process; the reloader respawns it.  ``CTRL_C_EVENT`` signals the
+    entire console process group (reloader + worker), matching Ctrl+C.
     """
-    os.kill(os.getpid(), signal.SIGINT)
+    import asyncio
+    import sys
+
+    async def _delayed_shutdown() -> None:
+        """Small delay so the JSON response reaches the client first."""
+        await asyncio.sleep(0.3)
+        if sys.platform == "win32":
+            os.kill(0, signal.CTRL_C_EVENT)
+        else:
+            # Kill parent (reloader) then self.
+            os.kill(os.getppid(), signal.SIGINT)
+            os.kill(os.getpid(), signal.SIGINT)
+
+    asyncio.get_running_loop().create_task(_delayed_shutdown())
     return JSONResponse({"status": "shutting_down"})

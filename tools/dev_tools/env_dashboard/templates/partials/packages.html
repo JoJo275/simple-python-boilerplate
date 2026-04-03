@@ -18,7 +18,7 @@
         <tbody>
             {% for pkg in pkgs %}
             <tr>
-                <td class="mono">{{ pkg.name }}</td>
+                <td class="mono">{{ pkg.name }} <button class="copy-btn" @click="copyClip($event, '{{ pkg.name|e }}')" title="Copy to clipboard"></button></td>
                 <td>{{ pkg.version }}</td>
                 <td><small>{{ pkg.summary|default("") }}</small></td>
             </tr>
@@ -37,7 +37,7 @@
         <tbody>
             {% for pkg in data.packages %}
             <tr>
-                <td class="mono">{{ pkg.name }}</td>
+                <td class="mono">{{ pkg.name }} <button class="copy-btn" @click="copyClip($event, '{{ pkg.name|e }}')" title="Copy to clipboard"></button></td>
                 <td>{{ pkg.version }}</td>
                 <td><small>{{ pkg.location|default("") }}</small></td>
             </tr>

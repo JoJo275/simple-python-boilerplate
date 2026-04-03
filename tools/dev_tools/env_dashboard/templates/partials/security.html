@@ -10,7 +10,7 @@
     <tbody>
         {% for item in data.secret_env_vars %}
         <tr class="row-warn">
-            <td class="mono">{{ item.name }}</td>
+            <td class="mono">{{ item.name }} <button class="copy-btn" @click="copyClip($event, '{{ item.name|e }}')" title="Copy to clipboard"></button></td>
             <td><span class="badge badge-warn">{{ item.pattern }}</span></td>
         </tr>
         {% endfor %}
@@ -30,7 +30,7 @@
     <tbody>
         {% for item in data.insecure_path_entries %}
         <tr class="row-fail">
-            <td class="mono">{{ item.path }}</td>
+            <td class="mono">{{ item.path }} <button class="copy-btn" @click="copyClip($event, '{{ item.path|e }}')" title="Copy to clipboard"></button></td>
             <td><span class="badge badge-fail">{{ item.issue }}</span></td>
         </tr>
         {% endfor %}
