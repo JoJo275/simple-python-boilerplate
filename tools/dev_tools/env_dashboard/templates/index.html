@@ -54,12 +54,12 @@
 {# --- Warnings panel --- #}
 {% if warnings %}
 <section class="warnings-panel" id="warnings-panel">
-    <h3>&#x26a0;&#xfe0f; Warnings ({{ warnings|length }})</h3>
+    <h3>Warnings ({{ warnings|length }})</h3>
     <div class="warning-list">
         {% for w in warnings %}
         <div class="warning-item warning-{{ w.severity|default('warn') }}">
             <span class="warning-icon">
-                {% if w.severity == "fail" %}&#x274c;{% elif w.severity == "info" %}&#x2139;&#xfe0f;{% else %}&#x26a0;&#xfe0f;{% endif %}
+                {% if w.severity == "fail" %}&times;{% elif w.severity == "info" %}i{% else %}!{% endif %}
             </span>
             <span class="warning-text">{{ w.message }}</span>
             {% if w.section %}
@@ -91,7 +91,7 @@
                     hx-target="#section-{{ name }}"
                     hx-swap="innerHTML"
                     aria-label="Refresh {{ name }}">
-                &#x21bb;
+                Refresh
             </button>
         </header>
         <div class="section-loading">

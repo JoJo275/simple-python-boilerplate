@@ -14,7 +14,7 @@
     {# --- Top nav bar --- #}
     <nav class="dashboard-topbar">
         <div class="topbar-left">
-            <strong class="topbar-title">&#x1f50d; Env Dashboard</strong>
+            <strong class="topbar-title">Env Dashboard</strong>
         </div>
         <div class="topbar-center">
             <input type="search" placeholder="Search sections..."
@@ -32,13 +32,16 @@
                     <li><a href="#" @click.prevent="setRedact('paranoid')">Paranoid</a></li>
                 </ul>
             </details>
+            <div class="topbar-separator"></div>
             <label class="hide-empty-toggle">
                 <input type="checkbox" role="switch" x-model="hideEmpty" @change="filterSections()">
                 Hide empty
             </label>
+            <div class="topbar-separator"></div>
             <button class="outline secondary btn-sm" @click="refreshScan()" :aria-busy="scanning">
-                &#x21bb; Refresh
+                Refresh
             </button>
+            <div class="topbar-separator"></div>
             <details class="dropdown">
                 <summary role="button" class="outline btn-sm">Export</summary>
                 <ul>
@@ -46,9 +49,25 @@
                     <li><a :href="'/export.html?redact=' + redactLevel">HTML</a></li>
                 </ul>
             </details>
-            <button class="outline contrast theme-toggle btn-sm" @click="toggleTheme()" aria-label="Toggle theme">
-                <span x-show="theme === 'light'">&#x1f319;</span>
-                <span x-show="theme === 'dark'">&#x2600;&#xfe0f;</span>
+            <div class="topbar-separator"></div>
+            <details class="dropdown">
+                <summary role="button" class="outline btn-sm" aria-label="Theme">
+                    <span x-text="activeThemeLabel"></span>
+                </summary>
+                <ul>
+                    <template x-for="t in themes" :key="t.id">
+                        <li>
+                            <a href="#" @click.prevent="setTheme(t.id)">
+                                <span class="theme-swatch" :style="'background:' + t.swatch"></span>
+                                <span x-text="t.label"></span>
+                            </a>
+                        </li>
+                    </template>
+                </ul>
+            </details>
+            <button class="outline contrast theme-toggle btn-sm" @click="toggleLightDark()" aria-label="Toggle light/dark">
+                <span x-show="mode === 'light'" x-cloak>Dark</span>
+                <span x-show="mode === 'dark'" x-cloak>Light</span>
             </button>
         </div>
     </nav>
@@ -60,12 +79,12 @@
             <nav class="sidebar-nav">
                 <div class="sidebar-section">
                     <div class="sidebar-heading">Overview</div>
-                    <a href="#summary-bar" class="sidebar-link active" @click="setActiveLink($event)">
-                        <span class="sidebar-icon">&#x1f4ca;</span> Summary
+                    <a href="#summary-bar" class="sidebar-link active" @click="scrollToSection($event, 'summary-bar')">
+                        <span class="sidebar-icon">&bull;</span> Summary
                     </a>
                     {% if warnings %}
-                    <a href="#warnings-panel" class="sidebar-link" @click="setActiveLink($event)">
-                        <span class="sidebar-icon">&#x26a0;&#xfe0f;</span> Warnings
+                    <a href="#warnings-panel" class="sidebar-link" @click="scrollToSection($event, 'warnings-panel')">
+                        <span class="sidebar-icon">&bull;</span> Warnings
                         <span class="sidebar-badge">{{ warnings|length }}</span>
                     </a>
                     {% endif %}
@@ -74,20 +93,20 @@
                     <div class="sidebar-heading">Sections</div>
                     {% for name, data in sections.items() %}
                     {% if name != "insights" %}
-                    <a href="#section-{{ name }}" class="sidebar-link" @click="setActiveLink($event)"
+                    <a href="#section-{{ name }}" class="sidebar-link" @click="scrollToSection($event, 'section-{{ name }}')"
                        x-show="isSectionVisible('{{ name }}')">
-                        <span class="sidebar-icon">&#x1f4c1;</span>
+                        <span class="sidebar-icon">&bull;</span>
                         {{ name|replace("_", " ")|title }}
                     </a>
                     {% endif %}
                     {% endfor %}
                 </div>
                 <div class="sidebar-section sidebar-bottom">
-                    <a href="#raw-json" class="sidebar-link" @click="setActiveLink($event)">
-                        <span class="sidebar-icon">&#x1f4dd;</span> Raw JSON
+                    <a href="#raw-json" class="sidebar-link" @click="scrollToSection($event, 'raw-json')">
+                        <span class="sidebar-icon">&bull;</span> Raw JSON
                     </a>
                     <button class="shutdown-btn" @click="shutdownServer()">
-                        <span class="sidebar-icon">&#x23fb;</span> Shutdown Server
+                        Shutdown Server
                     </button>
                 </div>
             </nav>
@@ -133,26 +152,53 @@
             redactLevel: '{{ redact_level|default("secrets") }}',
             hideEmpty: false,
             scanning: false,
-            theme: 'light',
+            mode: 'light',
+            activeTheme: 'purple',
 
-            init() {
-                // Restore theme preference
-                const saved = localStorage.getItem('dashboard-theme');
-                if (saved) {
-                    this.theme = saved;
-                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    this.theme = 'dark';
-                }
-                document.documentElement.setAttribute('data-theme', this.theme);
+            themes: [
+                { id: 'purple',    label: 'Purple',    swatch: '#a855f7' },
+                { id: 'lime',      label: 'Lime',      swatch: '#84cc16' },
+                { id: 'blue',      label: 'Blue',      swatch: '#3b82f6' },
+                { id: 'orange',    label: 'Orange',    swatch: '#f97316' },
+                { id: 'teal',      label: 'Teal',      swatch: '#14b8a6' },
+                { id: 'rose',      label: 'Rose',      swatch: '#f43f5e' },
+                { id: 'slate',     label: 'Slate',     swatch: '#64748b' },
+            ],
 
-                // Highlight sidebar link on scroll
-                this.observeSections();
+            get activeThemeLabel() {
+                const t = this.themes.find(t => t.id === this.activeTheme);
+                return t ? t.label : 'Theme';
             },
 
-            toggleTheme() {
-                this.theme = this.theme === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', this.theme);
-                localStorage.setItem('dashboard-theme', this.theme);
+            init() {
+                const savedMode = localStorage.getItem('dashboard-mode');
+                if (savedMode) {
+                    this.mode = savedMode;
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    this.mode = 'dark';
+                }
+                document.documentElement.setAttribute('data-theme', this.mode);
+
+                const savedTheme = localStorage.getItem('dashboard-accent');
+                if (savedTheme) {
+                    this.activeTheme = savedTheme;
+                }
+                document.documentElement.setAttribute('data-accent', this.activeTheme);
+
+                this.observeSections();
+                this.bindSectionClicks();
+            },
+
+            toggleLightDark() {
+                this.mode = this.mode === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', this.mode);
+                localStorage.setItem('dashboard-mode', this.mode);
+            },
+
+            setTheme(id) {
+                this.activeTheme = id;
+                document.documentElement.setAttribute('data-accent', id);
+                localStorage.setItem('dashboard-accent', id);
             },
 
             setRedact(level) {
@@ -178,9 +224,35 @@
                 return name.toLowerCase().includes(query);
             },
 
-            setActiveLink(event) {
+            scrollToSection(event, id) {
+                event.preventDefault();
                 document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
                 event.currentTarget.classList.add('active');
+                const el = document.getElementById(id);
+                if (!el) return;
+                const rect = el.getBoundingClientRect();
+                const viewH = window.innerHeight;
+                const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                const targetY = window.scrollY + rect.top - topbarH - (viewH - topbarH - rect.height) / 2;
+                window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                el.classList.add('section-focus');
+                setTimeout(() => el.classList.remove('section-focus'), 1200);
+            },
+
+            bindSectionClicks() {
+                document.addEventListener('click', (e) => {
+                    const card = e.target.closest('.section-card, .summary-bar, .warnings-panel');
+                    if (!card || e.target.closest('a, button, input, details, .copy-btn')) return;
+                    const id = card.id;
+                    if (!id) return;
+                    const rect = card.getBoundingClientRect();
+                    const viewH = window.innerHeight;
+                    const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
+                    const targetY = window.scrollY + rect.top - topbarH - (viewH - topbarH - rect.height) / 2;
+                    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    card.classList.add('section-focus');
+                    setTimeout(() => card.classList.remove('section-focus'), 1200);
+                });
             },
 
             observeSections() {
