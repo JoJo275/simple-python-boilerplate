@@ -80,11 +80,11 @@
                 <div class="sidebar-section">
                     <div class="sidebar-heading">Overview</div>
                     <a href="#summary-bar" class="sidebar-link active" @click="scrollToSection($event, 'summary-bar')">
-                        <span class="sidebar-icon">&bull;</span> Summary
+                        <span class="sidebar-icon"></span> Summary
                     </a>
                     {% if warnings %}
                     <a href="#warnings-panel" class="sidebar-link" @click="scrollToSection($event, 'warnings-panel')">
-                        <span class="sidebar-icon">&bull;</span> Warnings
+                        <span class="sidebar-icon"></span> Warnings
                         <span class="sidebar-badge">{{ warnings|length }}</span>
                     </a>
                     {% endif %}
@@ -95,7 +95,7 @@
                     {% if name != "insights" %}
                     <a href="#section-{{ name }}" class="sidebar-link" @click="scrollToSection($event, 'section-{{ name }}')"
                        x-show="isSectionVisible('{{ name }}')">
-                        <span class="sidebar-icon">&bull;</span>
+                        <span class="sidebar-icon"></span>
                         {{ name|replace("_", " ")|title }}
                     </a>
                     {% endif %}
@@ -103,7 +103,7 @@
                 </div>
                 <div class="sidebar-section sidebar-bottom">
                     <a href="#raw-json" class="sidebar-link" @click="scrollToSection($event, 'raw-json')">
-                        <span class="sidebar-icon">&bull;</span> Raw JSON
+                        <span class="sidebar-icon"></span> Raw JSON
                     </a>
                     <button class="shutdown-btn" @click="shutdownServer()">
                         Shutdown Server
@@ -306,6 +306,14 @@
             copyValue(text) {
                 navigator.clipboard.writeText(text).then(() => {
                     // Brief visual feedback handled by CSS
+                });
+            },
+
+            copyClip(event, text) {
+                const btn = event.currentTarget;
+                navigator.clipboard.writeText(text).then(() => {
+                    btn.classList.add('copied');
+                    setTimeout(() => btn.classList.remove('copied'), 1200);
                 });
             }
         };

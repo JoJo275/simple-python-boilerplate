@@ -28,9 +28,9 @@
             <td class="mono">{{ entry.path }}</td>
             <td>
                 {% if entry.exists %}
-                    <span class="badge badge-pass">&#x2713;</span>
+                    <span class="badge badge-pass"><span class="check-icon"></span></span>
                 {% else %}
-                    <span class="badge badge-fail">&#x2717;</span>
+                    <span class="badge badge-fail"><span class="x-icon"></span></span>
                 {% endif %}
             </td>
             <td>{{ entry.executable_count|default(0) }}</td>
