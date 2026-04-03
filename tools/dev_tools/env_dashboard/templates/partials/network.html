@@ -21,7 +21,7 @@
             {% endif %}
         </td>
     </tr>
-    {{ kv_row("Hostname", data.hostname) }}
+    {{ kv_row("Hostname", data.hostname, copyable=true) }}
 </table>
 
 {% if data.proxy %}

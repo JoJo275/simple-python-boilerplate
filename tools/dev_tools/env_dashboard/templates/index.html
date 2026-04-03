@@ -49,6 +49,13 @@
             {% endif %}
         </span>
     </div>
+    <div class="summary-item freshness-indicator" x-data="freshness('{{ meta.timestamp|default('') }}')" x-init="startTick()">
+        <span class="summary-label">Data Age</span>
+        <span class="summary-value">
+            <span class="freshness-dot" :class="freshnessClass"></span>
+            <span x-text="ageLabel"></span>
+        </span>
+    </div>
 </section>
 
 {# --- Warnings panel --- #}
