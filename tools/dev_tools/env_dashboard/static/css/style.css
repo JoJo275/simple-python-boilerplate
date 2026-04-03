@@ -311,7 +311,7 @@ body::after {
     border-left-color: var(--color-accent);
 }
 
-/* Nav indicator: diamond shapes instead of dots */
+/* Nav indicator: nested diamond shapes */
 .sidebar-icon {
     width: 6px;
     height: 6px;
@@ -324,6 +324,21 @@ body::after {
     font-size: 0;
     line-height: 0;
     display: inline-block;
+    position: relative;
+}
+
+/* Inner diamond decoration */
+.sidebar-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2.5px;
+    height: 2.5px;
+    background: transparent;
+    border-radius: 0.5px;
+    transform: translate(-50%, -50%);
+    transition: all 0.2s ease;
 }
 
 .sidebar-link:hover .sidebar-icon {
@@ -331,9 +346,18 @@ body::after {
     box-shadow: 0 0 6px var(--color-accent-glow);
 }
 
+.sidebar-link:hover .sidebar-icon::after {
+    background: var(--color-accent-glow);
+}
+
 .sidebar-link.active .sidebar-icon {
-    background: var(--color-accent);
+    background: transparent;
+    border-color: var(--color-accent);
     box-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+.sidebar-link.active .sidebar-icon::after {
+    background: var(--color-accent);
 }
 
 .sidebar-badge {
@@ -673,6 +697,28 @@ body::after {
     color: var(--color-pass);
 }
 
+/* Copy button with visible text label (e.g. Raw JSON) */
+.copy-btn-labeled {
+    font-size: 0.72rem;
+    opacity: 0.6;
+    gap: 0.35rem;
+    color: var(--color-text-muted);
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+
+.copy-btn-labeled:hover {
+    opacity: 1;
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.copy-btn-labeled.copied {
+    color: var(--color-pass);
+    border-color: var(--color-pass);
+}
+
 /* ========== Loading / spinner ========== */
 .htmx-indicator {
     display: none;
@@ -995,8 +1041,8 @@ body::after {
 }
 
 .mono {
-    word-break: break-all;
-    overflow-wrap: break-word;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 /* ========== Freshness indicator ========== */
@@ -1029,6 +1075,121 @@ body::after {
 .freshness-dot.stale {
     background: var(--color-fail);
     box-shadow: 0 0 6px var(--color-fail);
+}
+
+/* ========== Path table — wider path column ========== */
+.path-table {
+    table-layout: fixed;
+}
+
+.path-table th,
+.path-table td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.path-table th:nth-child(1),
+.path-table td:nth-child(1) {
+    width: 2.5rem;
+    min-width: 2rem;
+    max-width: 3rem;
+    text-align: center;
+}
+
+.path-table th:nth-child(2),
+.path-table td:nth-child(2) {
+    width: auto;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    text-overflow: clip;
+    overflow: visible;
+}
+
+.path-table th:nth-child(3),
+.path-table td:nth-child(3) {
+    width: 4rem;
+    text-align: center;
+}
+
+.path-table th:nth-child(4),
+.path-table td:nth-child(4) {
+    width: 5.5rem;
+    text-align: center;
+}
+
+.path-table th:nth-child(5),
+.path-table td:nth-child(5) {
+    width: 4rem;
+    text-align: center;
+}
+
+/* ========== Freshness refresh button ========== */
+.freshness-refresh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 0.3rem;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.freshness-refresh-btn:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: var(--color-accent-dim);
+}
+
+/* ========== Stale data banner ========== */
+.stale-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+    padding: 0.35rem 0.6rem;
+    margin-top: var(--gap-sm);
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--color-warn);
+    animation: stale-slide-in 0.3s ease;
+}
+
+@keyframes stale-slide-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.stale-banner-icon {
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+.stale-banner-action {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--color-warn);
+    border-radius: 3px;
+    color: var(--color-warn);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.stale-banner-action:hover {
+    background: color-mix(in srgb, var(--color-warn) 20%, transparent);
 }
 
 /* ========== Responsive ========== */
