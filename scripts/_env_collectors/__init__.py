@@ -44,7 +44,9 @@ def _discover_collectors() -> list[type[BaseCollector]]:
     from _env_collectors.network import NetworkCollector
     from _env_collectors.packages import PackagesCollector
     from _env_collectors.path_analysis import PathAnalysisCollector
+    from _env_collectors.pip_environments import PipEnvironmentsCollector
     from _env_collectors.project import ProjectCollector
+    from _env_collectors.project_commands import ProjectCommandsCollector
     from _env_collectors.runtimes import RuntimesCollector
     from _env_collectors.security import SecurityCollector
     from _env_collectors.system import SystemCollector
@@ -55,8 +57,10 @@ def _discover_collectors() -> list[type[BaseCollector]]:
         RuntimesCollector,
         PathAnalysisCollector,
         ProjectCollector,
+        ProjectCommandsCollector,
         GitInfoCollector,
         VenvCollector,
+        PipEnvironmentsCollector,
         PackagesCollector,
         NetworkCollector,
         FilesystemCollector,
