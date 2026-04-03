@@ -16,7 +16,7 @@
         {% else %}
             <span>{{ value }}</span>
             {% if copyable %}
-            <button class="copy-btn outline secondary" @click="copyValue('{{ value|e }}')" title="Copy">Copy</button>
+            <button class="copy-btn" @click="copyClip($event, '{{ value|e }}')" title="Copy to clipboard"></button>
             {% endif %}
         {% endif %}
     </td>
