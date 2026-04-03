@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import re
 import signal
+import subprocess  # nosec B404
+import sys
 import time
+from typing import Any
 
 from fastapi import APIRouter, Query
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from tools.dev_tools.env_dashboard.collector import (
     get_report,
@@ -105,6 +110,130 @@ def _parse_tier(value: str) -> object:
         if t.value == value_lower:
             return t
     return Tier.STANDARD
+
+
+# --------------------------------------------------------------------------
+# Allowlist for pip operations (security: prevent command injection)
+# --------------------------------------------------------------------------
+_PACKAGE_NAME_RE = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$")
+
+
+def _validate_package_name(name: str) -> bool:
+    """Check that a package name is safe (PEP 508 subset)."""
+    return bool(_PACKAGE_NAME_RE.match(name)) and len(name) <= 200
+
+
+def _validate_python_exe(python_exe: str) -> bool:
+    """Validate that a python executable path looks legitimate."""
+    from pathlib import Path
+
+    p = Path(python_exe)
+    # Must exist + name must start with "python"
+    return p.is_file() and p.name.lower().startswith("python") and ".." not in str(p)
+
+
+async def _stream_pip_command(
+    cmd: list[str],
+) -> Any:
+    """Run a pip command and stream output line by line."""
+
+    async def _generate() -> Any:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+        if proc.stdout:
+            async for line in proc.stdout:
+                text = line.decode("utf-8", errors="replace")
+                yield f"data: {json.dumps({'line': text})}\n\n"
+        returncode = await proc.wait()
+        yield f"data: {json.dumps({'done': True, 'returncode': returncode})}\n\n"
+
+    return _generate()
+
+
+@router.post("/pip/update")
+async def api_pip_update(
+    package: str = Query(...),
+    python_exe: str = Query(default=""),
+) -> StreamingResponse:
+    """Update a pip package via streaming SSE output.
+
+    Security: validates package name + python exe path. Only local access.
+    """
+    if not _validate_package_name(package):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid package name'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    exe = python_exe or sys.executable
+    if not _validate_python_exe(exe):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    cmd = [exe, "-m", "pip", "install", "--upgrade", package]
+    return StreamingResponse(
+        await _stream_pip_command(cmd),
+        media_type="text/event-stream",
+    )
+
+
+@router.post("/pip/uninstall")
+async def api_pip_uninstall(
+    package: str = Query(...),
+    python_exe: str = Query(default=""),
+) -> StreamingResponse:
+    """Uninstall a pip package via streaming SSE output.
+
+    Security: validates package name + python exe path. Only local access.
+    """
+    if not _validate_package_name(package):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid package name'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    exe = python_exe or sys.executable
+    if not _validate_python_exe(exe):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    cmd = [exe, "-m", "pip", "uninstall", "-y", package]
+    return StreamingResponse(
+        await _stream_pip_command(cmd),
+        media_type="text/event-stream",
+    )
+
+
+@router.post("/pip/check-updates")
+async def api_pip_check_updates(
+    python_exe: str = Query(default=""),
+) -> JSONResponse:
+    """Check all outdated packages for a given Python environment."""
+    exe = python_exe or sys.executable
+    if not _validate_python_exe(exe):
+        return JSONResponse({"error": "Invalid Python executable"}, status_code=400)
+
+    try:
+        result = subprocess.run(  # nosec B603
+            [exe, "-m", "pip", "list", "--outdated", "--format=json"],
+            capture_output=True,
+            text=True,
+            timeout=60.0,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            packages = json.loads(result.stdout)
+            return JSONResponse({"outdated": packages})
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+    return JSONResponse({"outdated": []})
 
 
 @router.post("/shutdown")
