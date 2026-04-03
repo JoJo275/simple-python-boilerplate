@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess  # nosec B404
 from typing import Any
 
 from _imports import find_repo_root
@@ -58,25 +59,46 @@ _CONFIG_FILES = [
 ]
 
 _BUILD_TOOLS = [
-    ("Hatch", "hatch"),
-    ("tox", "tox"),
-    ("nox", "nox"),
-    ("Poetry", "poetry"),
-    ("PDM", "pdm"),
-    ("Flit", "flit"),
-    ("pip", "pip"),
-    ("pipx", "pipx"),
-    ("uv", "uv"),
-    ("conda", "conda"),
-    ("mamba", "mamba"),
+    ("Hatch", "hatch", "--version", "pyproject.toml"),
+    ("tox", "tox", "--version", "tox.ini"),
+    ("nox", "nox", "--version", "noxfile.py"),
+    ("Poetry", "poetry", "--version", "pyproject.toml"),
+    ("PDM", "pdm", "--version", "pyproject.toml"),
+    ("Flit", "flit", "--version", "pyproject.toml"),
+    ("pip", "pip", "--version", "requirements.txt"),
+    ("pipx", "pipx", "--version", None),
+    ("uv", "uv", "version", "pyproject.toml"),
+    ("conda", "conda", "--version", None),
+    ("mamba", "mamba", "--version", None),
 ]
+
+
+def _get_tool_version(exe: str, version_flag: str) -> str:
+    """Try to get a tool's version string. Returns empty string on failure."""
+    try:
+        result = subprocess.run(  # nosec B603
+            [exe, version_flag],
+            capture_output=True,
+            text=True,
+            timeout=5.0,
+        )
+        if result.returncode == 0:
+            output = result.stdout.strip() or result.stderr.strip()
+            # Extract version-like pattern from output
+            for part in output.replace(",", " ").split():
+                if part and part[0].isdigit():
+                    return part.rstrip(")")
+            return output[:60] if output else ""
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return ""
 
 
 class ProjectCollector(BaseCollector):
     """Detect project structure, lockfiles, build tools, and config files."""
 
     name = "project"
-    timeout = 5.0
+    timeout = 15.0
 
     @property
     def tier(self):  # type: ignore[override]
@@ -86,10 +108,22 @@ class ProjectCollector(BaseCollector):
         root = find_repo_root()
         lockfiles = [f for f in _LOCKFILES if (root / f).is_file()]
         configs = [f for f in _CONFIG_FILES if (root / f).is_file()]
-        tools = [
-            {"name": name, "available": shutil.which(exe) is not None}
-            for name, exe in _BUILD_TOOLS
-        ]
+        tools = []
+        for name, exe, version_flag, config_file in _BUILD_TOOLS:
+            exe_path = shutil.which(exe)
+            available = exe_path is not None
+            version = _get_tool_version(exe, version_flag) if available else ""
+            tools.append(
+                {
+                    "name": name,
+                    "available": available,
+                    "version": version,
+                    "exe": exe_path or "",
+                    "config_file": config_file
+                    if config_file and (root / config_file).is_file()
+                    else "",
+                }
+            )
 
         return {
             "repo_root": str(root),

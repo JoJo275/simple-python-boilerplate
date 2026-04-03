@@ -105,6 +105,10 @@
                     <a href="#raw-json" class="sidebar-link" @click="scrollToSection($event, 'raw-json')">
                         <span class="sidebar-icon"></span> Raw JSON
                     </a>
+                    <button class="terminal-toggle-btn" :class="terminalOpen ? 'active' : ''" @click="toggleTerminal()">
+                        <span class="terminal-toggle-icon">&#9638;</span>
+                        <span x-text="terminalOpen ? 'Hide Terminal' : 'Show Terminal'"></span>
+                    </button>
                     <button class="shutdown-btn" @click="shutdownServer()">
                         Shutdown Server
                     </button>
@@ -142,14 +146,16 @@
         </article>
     </dialog>
 
-    {# --- Terminal output panel (slides in from right) --- #}
-    <div class="terminal-panel" :class="terminalOpen ? '' : 'hidden'" id="terminal-panel">
+    {# --- Terminal output panel (persistent right side) --- #}
+    <div class="terminal-panel" :class="terminalOpen ? 'visible' : ''" id="terminal-panel">
         <div class="terminal-header">
-            <span class="terminal-title" x-text="terminalTitle"></span>
-            <button class="terminal-close" @click="closeTerminal()" title="Close terminal">&times;</button>
+            <span class="terminal-title" x-text="terminalTitle || 'Server Log'"></span>
+            <div class="terminal-actions">
+                <button class="terminal-clear" @click="clearTerminal()" title="Clear terminal">&#x2715;</button>
+            </div>
         </div>
         <div class="terminal-output" id="terminal-output"></div>
-        <div class="terminal-status" :class="terminalStatusClass" x-text="terminalStatus"></div>
+        <div class="terminal-status" :class="terminalStatusClass" x-text="terminalStatus || 'Connected'"></div>
     </div>
 
     {# --- Scripts --- #}
@@ -171,6 +177,7 @@
             terminalStatus: '',
             terminalStatusClass: '',
             _terminalEventSource: null,
+            _serverLogInterval: null,
 
             themes: [
                 { id: 'purple',    label: 'Purple',    swatch: '#a855f7' },
@@ -202,8 +209,25 @@
                 }
                 document.documentElement.setAttribute('data-accent', this.activeTheme);
 
+                // Restore terminal visibility
+                const savedTerminal = localStorage.getItem('dashboard-terminal');
+                if (savedTerminal === 'open') {
+                    this.terminalOpen = true;
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+                this.startServerLog();
+
                 this.observeSections();
                 this.bindSectionClicks();
+
+                // Close help tooltips when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.section-help-container')) {
+                        document.querySelectorAll('.section-help-container.help-open').forEach(el => {
+                            el.classList.remove('help-open');
+                        });
+                    }
+                });
             },
 
             toggleLightDark() {
@@ -291,9 +315,13 @@
 
             async refreshScan() {
                 this.scanning = true;
+                const ts = new Date().toLocaleTimeString();
+                this._addTerminalLine(`[${ts}] Refreshing scan...`, 'term-info');
                 try {
                     const resp = await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
                     if (resp.ok) {
+                        const ts2 = new Date().toLocaleTimeString();
+                        this._addTerminalLine(`[${ts2}] Scan complete — reloading`, 'term-success');
                         htmx.trigger(document.body, 'scan-complete');
                         window.location.reload();
                     }
@@ -316,8 +344,12 @@
                 document.body.innerHTML = '<div class="shutdown-message">' +
                     '<h2>&#x23fb; Server Stopped</h2>' +
                     '<p>The dashboard server has been shut down.</p>' +
-                    '<p>Run <code>hatch run dashboard:serve</code> to restart.</p>' +
+                    '<p><button class="restart-btn" onclick="location.reload()">&#x25B6; Restart Dashboard</button></p>' +
+                    '<p class="restart-hint">Or run in a terminal:</p>' +
+                    '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
                     '</div>';
+                // Prevent scrollbar from clipping the border
+                document.documentElement.style.overflow = 'hidden';
             },
 
             copyValue(text) {
@@ -341,27 +373,21 @@
                     return;
                 }
 
-                this.terminalOpen = true;
+                // Open terminal if not already open
+                if (!this.terminalOpen) {
+                    this.terminalOpen = true;
+                    localStorage.setItem('dashboard-terminal', 'open');
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+
                 this.terminalTitle = `pip ${action}: ${packageName}`;
                 this.terminalStatus = 'Running...';
                 this.terminalStatusClass = 'running';
 
-                // Adjust main content
-                document.querySelector('.dashboard-main')?.classList.add('terminal-open');
-
                 const outputEl = document.getElementById('terminal-output');
-                outputEl.innerHTML = '';
 
-                const addLine = (text, cls) => {
-                    const line = document.createElement('div');
-                    line.className = 'term-line' + (cls ? ' ' + cls : '');
-                    line.textContent = text;
-                    outputEl.appendChild(line);
-                    outputEl.scrollTop = outputEl.scrollHeight;
-                };
-
-                addLine(`$ pip ${action === 'update' ? 'install --upgrade' : action} ${packageName}`, 'term-info');
-                addLine('', '');
+                this._addTerminalLine('', '');
+                this._addTerminalLine(`$ pip ${action === 'update' ? 'install --upgrade' : action} ${packageName}`, 'term-info');
 
                 // Close any existing SSE connection
                 if (this._terminalEventSource) {
@@ -396,22 +422,22 @@
                                     try {
                                         const data = JSON.parse(line.slice(6));
                                         if (data.error) {
-                                            addLine(`Error: ${data.error}`, 'term-error');
+                                            this._addTerminalLine(`Error: ${data.error}`, 'term-error');
                                             this.terminalStatus = 'Error';
                                             this.terminalStatusClass = 'failed';
                                         } else if (data.done) {
-                                            addLine('', '');
+                                            this._addTerminalLine('', '');
                                             if (data.returncode === 0) {
-                                                addLine(`✓ ${action} completed successfully (exit code 0)`, 'term-success');
+                                                this._addTerminalLine(`✓ ${action} completed successfully (exit code 0)`, 'term-success');
                                                 this.terminalStatus = 'Completed successfully';
                                                 this.terminalStatusClass = 'success';
                                             } else {
-                                                addLine(`✗ ${action} failed (exit code ${data.returncode})`, 'term-error');
+                                                this._addTerminalLine(`✗ ${action} failed (exit code ${data.returncode})`, 'term-error');
                                                 this.terminalStatus = `Failed (exit code ${data.returncode})`;
                                                 this.terminalStatusClass = 'failed';
                                             }
                                         } else if (data.line) {
-                                            addLine(data.line.replace(/\n$/, ''));
+                                            this._addTerminalLine(data.line.replace(/\n$/, ''));
                                         }
                                     } catch (e) {
                                         // Skip malformed SSE lines
@@ -423,7 +449,7 @@
                     };
                     read();
                 }).catch(err => {
-                    addLine(`Connection error: ${err.message}`, 'term-error');
+                    this._addTerminalLine(`Connection error: ${err.message}`, 'term-error');
                     this.terminalStatus = 'Connection error';
                     this.terminalStatusClass = 'failed';
                 });
@@ -431,11 +457,66 @@
 
             closeTerminal() {
                 this.terminalOpen = false;
+                localStorage.setItem('dashboard-terminal', 'closed');
                 document.querySelector('.dashboard-main')?.classList.remove('terminal-open');
                 if (this._terminalEventSource) {
                     this._terminalEventSource.close();
                     this._terminalEventSource = null;
                 }
+            },
+
+            toggleTerminal() {
+                if (this.terminalOpen) {
+                    this.closeTerminal();
+                } else {
+                    this.terminalOpen = true;
+                    localStorage.setItem('dashboard-terminal', 'open');
+                    document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+            },
+
+            clearTerminal() {
+                const outputEl = document.getElementById('terminal-output');
+                if (outputEl) outputEl.innerHTML = '';
+                this._addTerminalLine('Terminal cleared', 'term-info');
+            },
+
+            _addTerminalLine(text, cls) {
+                const outputEl = document.getElementById('terminal-output');
+                if (!outputEl) return;
+                const line = document.createElement('div');
+                line.className = 'term-line' + (cls ? ' ' + cls : '');
+                line.textContent = text;
+                outputEl.appendChild(line);
+                // Keep max 500 lines
+                while (outputEl.children.length > 500) {
+                    outputEl.removeChild(outputEl.firstChild);
+                }
+                outputEl.scrollTop = outputEl.scrollHeight;
+            },
+
+            startServerLog() {
+                const now = new Date().toLocaleTimeString();
+                this._addTerminalLine(`[${now}] Dashboard server connected`, 'term-info');
+
+                // Log htmx events (requests/responses) as server activity
+                document.body.addEventListener('htmx:beforeRequest', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || e.detail.elt?.getAttribute('hx-get') || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    this._addTerminalLine(`[${ts}] GET ${path}`, 'term-info');
+                });
+                document.body.addEventListener('htmx:afterRequest', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || '?';
+                    const status = e.detail.xhr?.status || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    const cls = status >= 400 ? 'term-error' : 'term-success';
+                    this._addTerminalLine(`[${ts}] ${status} ${path}`, cls);
+                });
+                document.body.addEventListener('htmx:responseError', (e) => {
+                    const path = e.detail.pathInfo?.requestPath || '?';
+                    const ts = new Date().toLocaleTimeString();
+                    this._addTerminalLine(`[${ts}] ERROR ${path}: ${e.detail.error || 'request failed'}`, 'term-error');
+                });
             }
         };
     }

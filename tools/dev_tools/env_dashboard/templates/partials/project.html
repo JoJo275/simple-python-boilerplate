@@ -28,7 +28,7 @@
 <h5>Build Tools</h5>
 <table class="kv-table striped">
     <thead>
-        <tr><th>Tool</th><th>Available</th></tr>
+        <tr><th>Tool</th><th>Available</th><th>Version</th><th>Executable</th><th>Config File</th></tr>
     </thead>
     <tbody>
         {% for tool in data.build_tools %}
@@ -41,6 +41,9 @@
                     <span class="badge"><span class="x-icon"></span></span>
                 {% endif %}
             </td>
+            <td class="mono">{{ tool.version|default("—") if tool.available else "—" }}</td>
+            <td class="mono" title="{{ tool.exe|default('') }}">{{ tool.exe|default("—") if tool.available else "—" }}</td>
+            <td class="mono">{{ tool.config_file|default("—") if tool.available and tool.config_file else "—" }}</td>
         </tr>
         {% endfor %}
     </tbody>

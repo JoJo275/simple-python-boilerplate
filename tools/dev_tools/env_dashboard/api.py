@@ -16,7 +16,7 @@ from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from tools.dev_tools.env_dashboard.collector import (
-    get_report,
+    get_report_async,
     invalidate_cache,
 )
 from tools.dev_tools.env_dashboard.redact import parse_redact_param
@@ -28,7 +28,7 @@ router = APIRouter()
 async def api_summary(redact: str | None = Query(default=None)) -> JSONResponse:
     """Top summary bar data only."""
     redact_level = parse_redact_param(redact)
-    report = get_report(redact_level=redact_level)
+    report = await get_report_async(redact_level=redact_level)
     return JSONResponse(report.get("summary", {}))
 
 
@@ -40,7 +40,7 @@ async def api_report(
     """Full scan report (all sections, current tier)."""
     redact_level = parse_redact_param(redact)
     tier_enum = _parse_tier(tier)
-    report = get_report(tier=tier_enum, redact_level=redact_level)
+    report = await get_report_async(tier=tier_enum, redact_level=redact_level)
     return JSONResponse(report)
 
 
@@ -48,7 +48,7 @@ async def api_report(
 async def api_warnings(redact: str | None = Query(default=None)) -> JSONResponse:
     """Warnings panel data only."""
     redact_level = parse_redact_param(redact)
-    report = get_report(redact_level=redact_level)
+    report = await get_report_async(redact_level=redact_level)
     return JSONResponse(report.get("warnings", []))
 
 
@@ -59,7 +59,7 @@ async def api_section(
 ) -> JSONResponse:
     """Single section by name."""
     redact_level = parse_redact_param(redact)
-    report = get_report(redact_level=redact_level)
+    report = await get_report_async(redact_level=redact_level)
     sections = report.get("sections", {})
     if name not in sections:
         return JSONResponse({"error": f"Section '{name}' not found"}, status_code=404)
@@ -75,7 +75,9 @@ async def api_scan(
     invalidate_cache()
     redact_level = parse_redact_param(redact)
     tier_enum = _parse_tier(tier)
-    report = get_report(tier=tier_enum, redact_level=redact_level, force=True)
+    report = await get_report_async(
+        tier=tier_enum, redact_level=redact_level, force=True
+    )
     return JSONResponse(
         {"status": "ok", "timestamp": report.get("meta", {}).get("timestamp")}
     )
@@ -89,7 +91,7 @@ async def api_export_json(
     """Full scan as downloadable JSON (PII-redacted by default)."""
     redact_level = parse_redact_param(redact, export=True)
     tier_enum = _parse_tier(tier)
-    report = get_report(tier=tier_enum, redact_level=redact_level)
+    report = await get_report_async(tier=tier_enum, redact_level=redact_level)
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     filename = f"env-report-{timestamp}.json"

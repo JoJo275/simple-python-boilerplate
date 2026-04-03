@@ -42,6 +42,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": "Not running inside a virtual environment",
                     "section": "venv",
+                    "hint": "Running outside a venv means pip install affects the system Python.",
+                    "action": "Run 'hatch shell' to enter the project virtual environment.",
                 }
             )
 
@@ -53,6 +55,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": "Git working tree is dirty — builds may be non-reproducible",
                     "section": "git",
+                    "hint": "Uncommitted changes mean version tags and builds won't be reproducible.",
+                    "action": "Review changes with 'git status' then commit or stash.",
                 }
             )
 
@@ -65,6 +69,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": f"PATH has {dead} non-existent director{'ies' if dead != 1 else 'y'}",
                     "section": "path",
+                    "hint": "Dead PATH entries slow down command lookup and can cause confusing errors.",
+                    "action": "Remove stale entries from your PATH environment variable.",
                 }
             )
 
@@ -76,6 +82,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "info",
                     "message": f"PATH has {dups} duplicate entr{'ies' if dups != 1 else 'y'}",
                     "section": "path",
+                    "hint": "Duplicate PATH entries are harmless but indicate messy shell config.",
+                    "action": "Clean up duplicate entries in your shell profile (.bashrc, $PROFILE, etc.).",
                 }
             )
 
@@ -88,6 +96,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": f"{len(secret_vars)} secret-like environment variable(s) detected",
                     "section": "security",
+                    "hint": "Environment variables matching secret patterns (API_KEY, TOKEN, etc.) are visible to all processes.",
+                    "action": "Use a .env file or secrets manager instead of exporting secrets in shell config.",
                 }
             )
 
@@ -99,6 +109,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "fail",
                     "message": f"{len(insecure)} insecure PATH entr{'ies' if len(insecure) != 1 else 'y'} found",
                     "section": "security",
+                    "hint": "World-writable directories in PATH allow any user to inject malicious executables.",
+                    "action": "Remove world-writable directories from PATH or fix their permissions (chmod 755).",
                 }
             )
 
@@ -110,6 +122,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "fail",
                     "message": f"{len(ssh)} SSH/private key(s) exposed in environment",
                     "section": "security",
+                    "hint": "Private key paths in environment variables risk accidental exposure in logs or error reports.",
+                    "action": "Use an SSH agent instead of storing key paths in environment variables.",
                 }
             )
 
@@ -123,6 +137,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "fail",
                     "message": f"Disk {pct}% full — installs/builds may fail",
                     "section": "filesystem",
+                    "hint": "Very low disk space will cause pip installs, builds, and test runs to fail.",
+                    "action": "Free disk space: remove old venvs, Docker images, or build artifacts.",
                 }
             )
         elif pct > 80:
@@ -131,6 +147,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": f"Disk {pct}% full — consider freeing space",
                     "section": "filesystem",
+                    "hint": "Getting close to full disk. Builds and installs may start failing soon.",
+                    "action": "Run 'task clean' to remove build caches, or clear Docker/temp files.",
                 }
             )
 
@@ -143,6 +161,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "fail",
                     "message": "Temp directory is not writable",
                     "section": "filesystem",
+                    "hint": "Many tools (pip, pytest, compilers) need a writable temp directory.",
+                    "action": "Check permissions on the TMPDIR/TEMP directory, or set TMPDIR to a writable path.",
                 }
             )
 
@@ -154,6 +174,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": "DNS resolution failed (pypi.org) — package installs may fail",
                     "section": "network",
+                    "hint": "Cannot resolve pypi.org — you may be offline or behind a restrictive firewall.",
+                    "action": "Check your network connection and DNS settings. Try 'nslookup pypi.org'.",
                 }
             )
         elif not network.get("outbound_https", True):
@@ -162,6 +184,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "warn",
                     "message": "DNS works but outbound HTTPS is blocked — package installs may fail",
                     "section": "network",
+                    "hint": "DNS resolves but HTTPS connections are blocked — proxy or firewall issue.",
+                    "action": "Configure pip to use your proxy: pip config set global.proxy http://proxy:port",
                 }
             )
 
@@ -173,6 +197,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "info",
                     "message": f"CI environment detected: {container['ci']}",
                     "section": "container",
+                    "hint": "Running in a CI environment — some local dev features may behave differently.",
+                    "action": "No action needed. CI-specific behavior is expected.",
                 }
             )
         if container.get("wsl"):
@@ -181,6 +207,8 @@ class InsightsCollector(BaseCollector):
                     "severity": "info",
                     "message": "Running under WSL — path behavior differs from native Windows",
                     "section": "container",
+                    "hint": "WSL translates paths between Linux and Windows formats, which can cause issues with some tools.",
+                    "action": "Use Linux-native paths when possible. Access Windows files via /mnt/c/.",
                 }
             )
 

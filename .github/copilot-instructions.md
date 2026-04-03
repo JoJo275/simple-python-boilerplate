@@ -89,6 +89,10 @@ Serve: `hatch run docs:serve`.
 | `docs/.instructions.md` | Documentation conventions |
 | `docs/adr/.instructions.md` | ADR creation procedure |
 | `tests/.instructions.md` | Test conventions |
+| `.github/instructions/dashboard.instructions.md` | Dashboard app conventions (FastAPI, htmx, Alpine.js) |
+| `.github/instructions/dashboard-css.instructions.md` | Dashboard CSS/theme conventions |
+| `.github/instructions/dashboard-templates.instructions.md` | Dashboard Jinja2 template conventions |
+| `.github/instructions/collectors.instructions.md` | Environment data collector conventions |
 
 This file covers **project-wide** rules. Prefer the targeted instruction file for file-type-specific details.
 
