@@ -107,6 +107,9 @@
                     {% endfor %}
                 </div>
                 <div class="sidebar-section sidebar-bottom">
+                    <a href="#quick-actions" class="sidebar-link" @click="scrollToSection($event, 'quick-actions')">
+                        <span class="sidebar-icon"></span> Quick Actions
+                    </a>
                     <a href="#raw-json" class="sidebar-link" @click="scrollToSection($event, 'raw-json')">
                         <span class="sidebar-icon"></span> Raw JSON
                     </a>
@@ -376,8 +379,9 @@
                 document.body.innerHTML = '<div class="shutdown-message">' +
                     '<h2>&#x23fb; Server Stopped</h2>' +
                     '<p>The dashboard server has been shut down.</p>' +
-                    '<p><button class="restart-btn" onclick="location.reload()">&#x25B6; Start Server</button></p>' +
-                    '<p class="restart-hint">Or run in a terminal:</p>' +
+                    '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
+                    '<p class="restart-status" id="restart-status"></p>' +
+                    '<p class="restart-hint">Start the server in a terminal, then click Reconnect:</p>' +
                     '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
                     '<p class="restart-hint" style="margin-top:0.5rem">Or, if using Hatch:</p>' +
                     '<code class="restart-cmd">hatch run dashboard:serve</code>' +
@@ -385,6 +389,12 @@
                 document.documentElement.style.overflow = 'hidden';
                 // Store shutdown state so refresh shows this page
                 sessionStorage.setItem('dashboard-shutdown', 'true');
+                // Start auto-polling for server availability
+                window._reconnectPoll = setInterval(() => {
+                    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); sessionStorage.removeItem('dashboard-shutdown'); window.location.reload(); } })
+                        .catch(() => {});
+                }, 3000);
             },
 
             copyValue(text) {
@@ -680,12 +690,13 @@
                 .then(r => {
                     if (r.ok) {
                         sessionStorage.removeItem(SHUTDOWN_KEY);
-                        // Server is back — full reload
                         window.location.reload();
+                    } else {
+                        showOfflinePage();
                     }
                 })
                 .catch(() => {
-                    // Server still down — handled below
+                    showOfflinePage();
                 });
         }
 
@@ -696,35 +707,57 @@
             }
         });
 
+        // Intercept htmx requests that fail due to server being down
+        document.addEventListener('htmx:sendError', function() {
+            if (!sessionStorage.getItem(SHUTDOWN_KEY)) {
+                sessionStorage.setItem(SHUTDOWN_KEY, 'true');
+                showOfflinePage();
+            }
+        });
+
         function showOfflinePage() {
             document.body.innerHTML = '<div class="shutdown-message">' +
                 '<h2>&#x23fb; Server Stopped</h2>' +
                 '<p>The dashboard server is not running.</p>' +
-                '<p><button class="restart-btn" onclick="attemptReconnect()">&#x25B6; Start Server</button></p>' +
-                '<p class="restart-hint">Or run in a terminal:</p>' +
+                '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
+                '<p class="restart-status" id="restart-status"></p>' +
+                '<p class="restart-hint">Start the server in a terminal, then click Reconnect:</p>' +
                 '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
                 '<p class="restart-hint" style="margin-top:0.5rem">Or, if using Hatch:</p>' +
                 '<code class="restart-cmd">hatch run dashboard:serve</code>' +
                 '</div>';
             document.documentElement.style.overflow = 'hidden';
+            // Start auto-polling for server availability
+            if (!window._reconnectPoll) {
+                window._reconnectPoll = setInterval(() => {
+                    fetch('/api/summary', { method: 'GET', cache: 'no-store' })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); window._reconnectPoll = null; sessionStorage.removeItem(SHUTDOWN_KEY); window.location.reload(); } })
+                        .catch(() => {});
+                }, 3000);
+            }
         }
 
         window.attemptReconnect = function() {
-            const btn = document.querySelector('.restart-btn');
+            const btn = document.getElementById('reconnect-btn');
+            const statusEl = document.getElementById('restart-status');
             if (btn) btn.setAttribute('aria-busy', 'true');
+            if (statusEl) statusEl.textContent = 'Checking for server...';
             fetch('/api/summary', { method: 'GET', cache: 'no-store' })
                 .then(r => {
                     if (r.ok) {
+                        clearInterval(window._reconnectPoll);
+                        window._reconnectPoll = null;
                         sessionStorage.removeItem(SHUTDOWN_KEY);
+                        if (statusEl) statusEl.textContent = 'Server found! Reloading...';
                         window.location.reload();
                     } else {
                         if (btn) btn.setAttribute('aria-busy', 'false');
-                        showOfflinePage();
+                        if (statusEl) { statusEl.textContent = 'Server not available yet. Retrying automatically...'; statusEl.className = 'restart-status restart-status-waiting'; }
                     }
                 })
                 .catch(() => {
                     if (btn) btn.setAttribute('aria-busy', 'false');
-                    showOfflinePage();
+                    if (statusEl) { statusEl.textContent = 'Server not available yet. Retrying automatically...'; statusEl.className = 'restart-status restart-status-waiting'; }
                 });
         };
     })();

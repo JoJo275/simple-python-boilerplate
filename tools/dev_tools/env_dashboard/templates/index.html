@@ -53,6 +53,12 @@
             {% endif %}
         </span>
     </div>
+    <div class="summary-item">
+        <span class="summary-label">Sections</span>
+        <span class="summary-value">
+            <span class="badge">{{ sections|length }}</span>
+        </span>
+    </div>
     <div class="summary-item freshness-indicator" x-data="freshness('{{ meta.timestamp|default('') }}')" x-init="startTick()">
         <span class="summary-label">Data Age</span>
         <span class="summary-value">
@@ -124,7 +130,7 @@
     "pip_environments": "All detected Python/pip environments with their installed packages.",
     "network": "DNS resolution and outbound HTTPS connectivity checks.",
     "filesystem": "Disk usage, temp directory status, and file system writability.",
-    "container": "Container runtime, CI environment detection, and container file inventory.",
+    "container": "Container runtime, CI environment detection, dev containers, and container file inventory.",
     "security": "Security scan: secret env vars, insecure PATH entries, SSH key exposure."
 } %}
 <div class="sections-list" id="sections-list">
@@ -177,4 +183,51 @@
         <pre><code>{{ report|tojson(indent=2) }}</code></pre>
     </div>
 </details>
+
+{# --- Quick Actions panel --- #}
+<section class="section-card" id="quick-actions" data-section-name="quick_actions" data-empty="false">
+    <header>
+        <h4>
+            Quick Actions
+            <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
+                <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What are quick actions?">?</button>
+                <span class="section-help-tooltip">Common commands and shortcuts for this project. Click a command to copy it.</span>
+            </span>
+        </h4>
+    </header>
+    <div class="section-card-body">
+        <div class="quick-actions-grid">
+            <div class="quick-action-card">
+                <span class="quick-action-title">Run Tests</span>
+                <span class="quick-action-desc">Execute the test suite with pytest</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run test')">hatch run test</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Lint &amp; Format</span>
+                <span class="quick-action-desc">Check code quality with Ruff</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run check')">hatch run check</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Type Check</span>
+                <span class="quick-action-desc">Run mypy strict type checking</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run typecheck')">hatch run typecheck</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Serve Docs</span>
+                <span class="quick-action-desc">Live-reload documentation server</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:serve')">hatch run docs:serve</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Security Scan</span>
+                <span class="quick-action-desc">Run Bandit security linter on source</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run bandit -r src/')">hatch run bandit -r src/</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Health Check</span>
+                <span class="quick-action-desc">Run all environment diagnostics</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/doctor.py')">python scripts/doctor.py</code>
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock %}
