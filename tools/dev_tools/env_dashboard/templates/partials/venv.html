@@ -32,9 +32,40 @@
 
 {% if data.hatch.environments %}
 <h5>Hatch Environments</h5>
+{% if data.hatch.environments is mapping %}
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Environment</th><th>Type</th><th>Python</th><th>Features</th><th>Scripts</th></tr>
+    </thead>
+    <tbody>
+        {% for env_name, env_data in data.hatch.environments.items() %}
+        <tr>
+            <td><strong>{{ env_name }}</strong></td>
+            <td>{{ env_data.type|default("virtual") if env_data is mapping else "—" }}</td>
+            <td>{{ env_data.python|default("—") if env_data is mapping else "—" }}</td>
+            <td>
+                {% if env_data is mapping and env_data.features %}
+                <small>{{ env_data.features|join(", ") if env_data.features is iterable and env_data.features is not string else env_data.features }}</small>
+                {% else %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if env_data is mapping and env_data.scripts %}
+                <small>{{ env_data.scripts.keys()|list|join(", ") if env_data.scripts is mapping else env_data.scripts }}</small>
+                {% else %}
+                <span class="muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
 <details>
     <summary>Show environments</summary>
-    <pre><code>{{ data.hatch.environments|tojson(indent=2) if data.hatch.environments is mapping else data.hatch.environments }}</code></pre>
+    <pre><code>{{ data.hatch.environments }}</code></pre>
 </details>
+{% endif %}
 {% endif %}
 {% endif %}

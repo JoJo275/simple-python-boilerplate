@@ -168,7 +168,8 @@
 </div>
 
 {# --- Raw JSON viewer (collapsed) --- #}
-<details class="json-viewer-details" id="raw-json">
+<details class="json-viewer-details" id="raw-json"
+         ontoggle="if(this.open){const t=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height'))||56;setTimeout(()=>window.scrollTo({top:this.getBoundingClientRect().top+window.scrollY-t-12,behavior:'smooth'}),50)}">
     <summary>Raw JSON</summary>
     <div class="json-viewer">
         <button class="copy-btn copy-btn-labeled" @click="copyClip($event, JSON.stringify({{ report|tojson }}, null, 2))">
