@@ -2,14 +2,28 @@
 
 from __future__ import annotations
 
+import pathlib
+
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from tools.dev_tools.env_dashboard.collector import get_report_async
 from tools.dev_tools.env_dashboard.export import render_export
 from tools.dev_tools.env_dashboard.redact import parse_redact_param
 
 router = APIRouter()
+
+_STATIC_DIR = pathlib.Path(__file__).parent / "static"
+
+
+@router.get("/sw.js")
+async def service_worker() -> FileResponse:
+    """Serve service worker from root scope for offline fallback."""
+    return FileResponse(
+        _STATIC_DIR / "sw.js",
+        media_type="application/javascript",
+        headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"},
+    )
 
 
 @router.get("/", response_class=HTMLResponse)

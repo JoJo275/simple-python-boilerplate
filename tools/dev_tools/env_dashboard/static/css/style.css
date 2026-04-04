@@ -530,18 +530,30 @@ body.dialog-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
     font-size: 0.65rem;
     font-weight: 700;
     flex-shrink: 0;
     line-height: 1;
 }
 
-.warning-fail .warning-icon { background: var(--color-fail); color: #fff; }
-.warning-warn .warning-icon { background: var(--color-warn); color: #fff; }
-.warning-info .warning-icon { background: var(--color-info); color: #fff; }
+.warning-fail .warning-icon {
+    background: color-mix(in srgb, var(--color-fail) 15%, transparent);
+    color: var(--color-fail);
+    border: 1px solid color-mix(in srgb, var(--color-fail) 30%, transparent);
+}
+.warning-warn .warning-icon {
+    background: color-mix(in srgb, var(--color-warn) 15%, transparent);
+    color: var(--color-warn);
+    border: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+}
+.warning-info .warning-icon {
+    background: color-mix(in srgb, var(--color-info) 15%, transparent);
+    color: var(--color-info);
+    border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
+}
 
 /* ========== Section cards (stacked, not grid) ========== */
 .sections-list {
@@ -906,7 +918,7 @@ body.dialog-open {
 .shutdown-dialog {
     border: none;
     border-radius: 16px;
-    background: linear-gradient(135deg, rgba(20, 22, 30, 0.97), rgba(10, 12, 18, 0.99));
+    background: transparent;
     box-shadow:
         0 0 40px var(--color-accent-glow),
         0 24px 80px rgba(0, 0, 0, 0.6);
@@ -915,25 +927,25 @@ body.dialog-open {
     color: #e2e8f0;
     max-width: 420px;
     width: 90vw;
-    padding: 0;
+    padding: 2px;
     position: relative;
 }
 
-/* Gradient border via pseudo-element */
+/* Gradient border line via pseudo-element (matches shutdown screen) */
 .shutdown-dialog::before {
     content: '';
     position: absolute;
-    inset: -2px;
-    border-radius: 18px;
+    inset: 0;
+    border-radius: 16px;
     background: linear-gradient(
         135deg,
         var(--color-accent-glow) 0%,
-        var(--color-accent) 30%,
+        var(--color-accent) 25%,
         var(--color-accent-bright) 50%,
-        var(--color-accent) 70%,
+        var(--color-accent) 75%,
         var(--color-accent-glow) 100%
     );
-    z-index: -1;
+    z-index: 0;
     pointer-events: none;
 }
 
@@ -961,13 +973,15 @@ body.dialog-open {
 }
 
 .shutdown-dialog article {
-    background: linear-gradient(135deg, rgba(20, 22, 30, 0.97), rgba(10, 12, 18, 0.99));
+    background: rgba(14, 16, 22, 0.99);
     border: none;
     box-shadow: none;
     margin: 0;
     padding: 0;
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: 14px;
+    position: relative;
+    z-index: 1;
 }
 
 .shutdown-dialog article header {
@@ -1127,15 +1141,48 @@ body.dialog-open {
 }
 
 .shutdown-message .restart-cmd {
-    display: inline-block;
-    margin-top: 0.25rem;
-    padding: 0.3rem 0.8rem;
+    display: block;
+    padding: 0.4rem 0.8rem;
     font-size: 0.78rem;
     background: var(--color-bg-card);
     border: 1px solid var(--color-border);
     border-radius: 4px;
-    color: var(--color-text);
+    color: var(--color-accent-bright);
     user-select: all;
+    font-family: var(--pico-font-family-monospace, monospace);
+}
+
+.shutdown-message .restart-note {
+    margin-top: 1.2rem;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    opacity: 0.8;
+    max-width: 360px;
+}
+
+.shutdown-message .restart-commands {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.shutdown-message .restart-cmd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.shutdown-message .restart-cmd-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    opacity: 0.7;
 }
 
 .shutdown-dialog .shutdown-hint {
@@ -1807,17 +1854,43 @@ details.warning-item > .warning-summary::-webkit-details-marker {
 }
 
 details.warning-item > .warning-summary::after {
-    content: '▸';
-    margin-left: auto;
-    font-size: 0.6rem;
-    color: var(--color-text-muted);
-    transition: transform 0.15s ease;
-    flex-shrink: 0;
-    padding-left: 0.3rem;
+    display: none;
 }
 
-details.warning-item[open] > .warning-summary::after {
+.warning-chevron {
+    margin-left: auto;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.warning-chevron::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-right: 1.5px solid var(--color-accent);
+    border-bottom: 1.5px solid var(--color-accent);
+    transform: rotate(-45deg);
+    margin-left: -1px;
+    transition: border-color 0.2s ease;
+}
+
+details.warning-item:hover .warning-chevron {
+    background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+details.warning-item[open] .warning-chevron {
     transform: rotate(90deg);
+    background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+    border-color: var(--color-accent);
 }
 
 .warning-details {
@@ -2203,14 +2276,48 @@ details.warning-item[open] > .warning-summary::after {
 }
 
 .offline-page .restart-cmd {
-    display: inline-block;
-    margin-top: 0.25rem;
-    padding: 0.3rem 0.8rem;
+    display: block;
+    padding: 0.4rem 0.8rem;
     font-size: 0.78rem;
     background: var(--color-bg-card, #14161e);
     border: 1px solid var(--color-border, #1e2030);
     border-radius: 4px;
+    color: var(--color-accent-bright, #c084fc);
     user-select: all;
+    font-family: var(--pico-font-family-monospace, monospace);
+}
+
+.offline-page .restart-note {
+    margin-top: 1.2rem;
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--color-text-muted, #64748b);
+    opacity: 0.8;
+    max-width: 360px;
+}
+
+.offline-page .restart-commands {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.offline-page .restart-cmd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.offline-page .restart-cmd-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent, #a855f7);
+    opacity: 0.7;
 }
 
 /* ========== Container file detection badges ========== */

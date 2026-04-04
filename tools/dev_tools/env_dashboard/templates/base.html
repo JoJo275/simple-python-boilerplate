@@ -381,10 +381,17 @@
                     '<p>The dashboard server has been shut down.</p>' +
                     '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
                     '<p class="restart-status" id="restart-status"></p>' +
-                    '<p class="restart-hint">Start the server in a terminal, then click Reconnect:</p>' +
+                    '<p class="restart-note">The server must be running for reconnect to work.<br>Start it in a terminal, then click Reconnect or wait for auto-detection.</p>' +
+                    '<div class="restart-commands">' +
+                    '<div class="restart-cmd-block">' +
+                    '<span class="restart-cmd-label">Direct</span>' +
                     '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
-                    '<p class="restart-hint" style="margin-top:0.5rem">Or, if using Hatch:</p>' +
+                    '</div>' +
+                    '<div class="restart-cmd-block">' +
+                    '<span class="restart-cmd-label">Hatch</span>' +
                     '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                    '</div>' +
+                    '</div>' +
                     '</div>';
                 document.documentElement.style.overflow = 'hidden';
                 // Store shutdown state so refresh shows this page
@@ -679,6 +686,11 @@
         });
     });
 
+    /* Register service worker for offline fallback */
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
     /* Offline / server-down detection — show restart page instead of browser error */
     (function() {
         const SHUTDOWN_KEY = 'dashboard-shutdown';
@@ -721,10 +733,17 @@
                 '<p>The dashboard server is not running.</p>' +
                 '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
                 '<p class="restart-status" id="restart-status"></p>' +
-                '<p class="restart-hint">Start the server in a terminal, then click Reconnect:</p>' +
+                '<p class="restart-note">The server must be running for reconnect to work.<br>Start it in a terminal, then click Reconnect or wait for auto-detection.</p>' +
+                '<div class="restart-commands">' +
+                '<div class="restart-cmd-block">' +
+                '<span class="restart-cmd-label">Direct</span>' +
                 '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
-                '<p class="restart-hint" style="margin-top:0.5rem">Or, if using Hatch:</p>' +
+                '</div>' +
+                '<div class="restart-cmd-block">' +
+                '<span class="restart-cmd-label">Hatch</span>' +
                 '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                '</div>' +
+                '</div>' +
                 '</div>';
             document.documentElement.style.overflow = 'hidden';
             // Start auto-polling for server availability
