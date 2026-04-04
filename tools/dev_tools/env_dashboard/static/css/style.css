@@ -215,6 +215,9 @@ body::after {
     padding: 0.2rem 0.55rem;
     font-size: 0.72rem;
     letter-spacing: 0.01em;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* Fix Pico dropdown arrow vertical alignment */
@@ -223,7 +226,8 @@ body::after {
     vertical-align: middle;
     margin-left: 0.3rem;
     margin-bottom: 0;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    line-height: 1;
 }
 
 /* Lock body scroll when shutdown dialog is open */
@@ -636,9 +640,11 @@ body.dialog-open {
 .kv-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: auto;
 }
 
-.kv-table td {
+.kv-table td,
+.kv-table th {
     padding: 0.25rem 0.4rem;
     border-bottom: 1px solid var(--color-border);
     font-size: 0.78rem;
@@ -666,6 +672,39 @@ body.dialog-open {
 
 .kv-table tr:last-child td {
     border-bottom: none;
+}
+
+/* Striped table variant */
+.kv-table.striped tbody tr:nth-child(even) {
+    background: var(--color-accent-dim);
+}
+
+/* Tables with thead should not constrain first-child */
+.kv-table thead + tbody td:first-child,
+.kv-table thead th {
+    white-space: normal;
+    width: auto;
+    min-width: auto;
+    max-width: none;
+}
+
+.kv-table thead th {
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid var(--color-border);
+    padding: 0.35rem 0.4rem;
+    white-space: nowrap;
+}
+
+/* Path cells need wrapping */
+.kv-table .mono small {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    display: inline-block;
+    max-width: 280px;
 }
 
 /* ========== Copy button with clipboard SVG icon ========== */
@@ -876,8 +915,7 @@ body.dialog-open {
     color: #e2e8f0;
     max-width: 420px;
     width: 90vw;
-    padding: 2px;
-    background-clip: padding-box;
+    padding: 0;
     position: relative;
 }
 
@@ -911,8 +949,9 @@ body.dialog-open {
 }
 
 .shutdown-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     animation: backdropFadeIn 0.3s ease;
 }
 
@@ -922,7 +961,7 @@ body.dialog-open {
 }
 
 .shutdown-dialog article {
-    background: transparent;
+    background: linear-gradient(135deg, rgba(20, 22, 30, 0.97), rgba(10, 12, 18, 0.99));
     border: none;
     box-shadow: none;
     margin: 0;
@@ -1856,6 +1895,7 @@ details.warning-item[open] > .warning-summary::after {
     transform: translateX(-50%);
     min-width: 200px;
     max-width: 320px;
+    width: max-content;
     padding: 0.5rem 0.65rem;
     background: linear-gradient(135deg, rgba(20, 22, 30, 0.98), rgba(10, 12, 18, 0.99));
     border: 1px solid var(--color-accent-dim);
@@ -1867,6 +1907,8 @@ details.warning-item[open] > .warning-summary::after {
     z-index: 200;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-accent-dim);
     white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     animation: tooltip-in 0.15s ease;
 }
 
@@ -1895,6 +1937,21 @@ details.warning-item[open] > .warning-summary::after {
     position: absolute;
     top: 0.35rem;
     right: 0.35rem;
+}
+
+/* Clamp tooltips so they don't overflow the viewport edge */
+.summary-bar .section-help-tooltip,
+.section-card header .section-help-tooltip {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.summary-bar .section-help-tooltip::before,
+.section-card header .section-help-tooltip::before {
+    left: auto;
+    right: 12px;
+    margin-left: 0;
 }
 
 .summary-bar {
@@ -2212,4 +2269,90 @@ details.warning-item[open] > .warning-summary::after {
     flex-shrink: 0;
     width: 14px;
     height: 14px;
+}
+
+/* ========== Reconnect / restart status ========== */
+
+.restart-status {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.5rem;
+    min-height: 1.2em;
+}
+
+.restart-status-waiting {
+    color: var(--color-warn);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ========== Packages summary badge row ========== */
+
+.packages-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-bottom: var(--gap-md);
+}
+
+/* ========== Quick Actions Section ========== */
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.6rem;
+}
+
+.quick-action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick-action-card:hover {
+    border-color: var(--color-border-accent);
+    box-shadow: 0 2px 12px var(--color-accent-dim);
+}
+
+.quick-action-title {
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--color-accent-bright);
+}
+
+.quick-action-desc {
+    font-size: 0.72rem;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.quick-action-cmd {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    font-family: var(--pico-font-family-monospace);
+    background: var(--color-accent-dim);
+    border-radius: 4px;
+    color: var(--color-accent-bright);
+    user-select: all;
+    margin-top: 0.15rem;
+}
+
+/* ========== Devcontainer badge ========== */
+
+.devcontainer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    background: color-mix(in srgb, var(--color-info) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-info) 25%, transparent);
+    border-radius: 4px;
+    font-size: 0.72rem;
+    color: var(--color-info);
 }

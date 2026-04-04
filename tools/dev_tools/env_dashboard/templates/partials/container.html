@@ -42,6 +42,16 @@
         </td>
     </tr>
     <tr>
+        <td class="kv-label">Dev Container</td>
+        <td class="kv-value">
+            {% if data.devcontainer %}
+                <span class="badge badge-info">Yes</span>
+            {% else %}
+                <span class="badge">No</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
         <td class="kv-label">Cloud Provider</td>
         <td class="kv-value">
             {% if data.cloud %}

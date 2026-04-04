@@ -53,7 +53,10 @@ class ContainerCollector(BaseCollector):
         # Cloud detection
         cloud = self._detect_cloud(env)
 
-        detected = in_docker or bool(ci_system) or in_wsl or bool(cloud)
+        # VS Code devcontainer detection
+        devcontainer = self._detect_devcontainer(env)
+
+        detected = in_docker or bool(ci_system) or in_wsl or bool(cloud) or devcontainer
 
         # Container file detection in repo
         container_files = self._detect_container_files()
@@ -64,6 +67,7 @@ class ContainerCollector(BaseCollector):
             "ci": ci_system,
             "wsl": in_wsl,
             "cloud": cloud,
+            "devcontainer": devcontainer,
             "container_files": container_files,
         }
 
@@ -100,6 +104,26 @@ class ContainerCollector(BaseCollector):
         return ""
 
     @staticmethod
+    def _detect_devcontainer(env: os._Environ[str]) -> bool:
+        """Detect VS Code Dev Container / GitHub Codespaces environment."""
+        # REMOTE_CONTAINERS is set by VS Code devcontainers
+        if env.get("REMOTE_CONTAINERS") or env.get("REMOTE_CONTAINERS_IPC"):
+            return True
+        # CODESPACES is set in GitHub Codespaces
+        if env.get("CODESPACES"):
+            return True
+        # VSCODE_REMOTE_CONTAINERS_SESSION is set by newer dev container CLI
+        if env.get("VSCODE_REMOTE_CONTAINERS_SESSION"):
+            return True
+        # Check for .devcontainer directory at repo root
+        root = find_repo_root()
+        devcontainer_dir = root / ".devcontainer"
+        if devcontainer_dir.is_dir():
+            return True
+        # Check for single devcontainer.json at repo root
+        return bool((root / ".devcontainer.json").is_file())
+
+    @staticmethod
     def _detect_container_files() -> list[dict[str, Any]]:
         """Detect container-related files in the repo root."""
         root = find_repo_root()
@@ -117,4 +141,42 @@ class ContainerCollector(BaseCollector):
         for name in container_file_names:
             path = root / name
             found.append({"name": name, "exists": path.is_file()})
+
+        # Devcontainer files
+        devcontainer_dir = root / ".devcontainer"
+        found.append(
+            {
+                "name": ".devcontainer/",
+                "exists": devcontainer_dir.is_dir(),
+            }
+        )
+        found.append(
+            {
+                "name": ".devcontainer.json",
+                "exists": (root / ".devcontainer.json").is_file(),
+            }
+        )
+        if devcontainer_dir.is_dir():
+            dc_json = devcontainer_dir / "devcontainer.json"
+            found.append(
+                {
+                    "name": ".devcontainer/devcontainer.json",
+                    "exists": dc_json.is_file(),
+                }
+            )
+            dc_dockerfile = devcontainer_dir / "Dockerfile"
+            found.append(
+                {
+                    "name": ".devcontainer/Dockerfile",
+                    "exists": dc_dockerfile.is_file(),
+                }
+            )
+            dc_compose = devcontainer_dir / "docker-compose.yml"
+            found.append(
+                {
+                    "name": ".devcontainer/docker-compose.yml",
+                    "exists": dc_compose.is_file(),
+                }
+            )
+
         return found
