@@ -1,10 +1,12 @@
-"""Container/CI collector — Docker, CI, WSL, cloud detection, resource limits."""
+"""Container/CI collector — Docker, CI, WSL, cloud detection, container files."""
 
 from __future__ import annotations
 
 import os
 from pathlib import Path
 from typing import Any
+
+from _imports import find_repo_root
 
 from _env_collectors._base import BaseCollector
 
@@ -53,12 +55,16 @@ class ContainerCollector(BaseCollector):
 
         detected = in_docker or bool(ci_system) or in_wsl or bool(cloud)
 
+        # Container file detection in repo
+        container_files = self._detect_container_files()
+
         return {
             "detected": detected,
             "docker": in_docker,
             "ci": ci_system,
             "wsl": in_wsl,
             "cloud": cloud,
+            "container_files": container_files,
         }
 
     @staticmethod
@@ -92,3 +98,23 @@ class ContainerCollector(BaseCollector):
         if env.get("AZURE_SUBSCRIPTION_ID"):
             return "Azure"
         return ""
+
+    @staticmethod
+    def _detect_container_files() -> list[dict[str, Any]]:
+        """Detect container-related files in the repo root."""
+        root = find_repo_root()
+        container_file_names = [
+            "Containerfile",
+            "Dockerfile",
+            "docker-compose.yml",
+            "docker-compose.yaml",
+            "compose.yml",
+            "compose.yaml",
+            ".dockerignore",
+            "container-structure-test.yml",
+        ]
+        found: list[dict[str, Any]] = []
+        for name in container_file_names:
+            path = root / name
+            found.append({"name": name, "exists": path.is_file()})
+        return found

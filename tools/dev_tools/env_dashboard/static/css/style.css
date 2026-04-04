@@ -281,7 +281,7 @@ body::after {
 }
 
 .sidebar-section + .sidebar-section {
-    border-top: 1px solid rgba(168, 85, 247, 0.1);
+    border-top: 1px solid var(--color-border-accent);
     padding-top: var(--gap-sm);
 }
 
@@ -789,6 +789,33 @@ body::after {
     scroll-margin-top: calc(var(--topbar-height) + var(--gap-md));
 }
 
+/* Smooth open/close animation for raw JSON details */
+.json-viewer-details .json-viewer {
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease,
+                padding 0.3s ease;
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.json-viewer-details[open] .json-viewer {
+    max-height: 80vh;
+    opacity: 1;
+    padding-top: var(--gap-sm);
+    padding-bottom: var(--gap-sm);
+}
+
+/* Override for closing animation — keep element visible during close */
+.json-viewer-details.closing .json-viewer {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
 .json-viewer {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-accent);
@@ -862,7 +889,6 @@ body::after {
     z-index: -1;
     pointer-events: none;
 }
-}
 
 @keyframes dialogSlideIn {
     from {
@@ -898,7 +924,7 @@ body::after {
 
 .shutdown-dialog article header {
     background: linear-gradient(90deg, var(--color-accent-dim), transparent);
-    border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+    border-bottom: 1px solid var(--color-border-accent);
     padding: 1.25rem 1.5rem 1rem;
     margin: 0;
 }
@@ -920,7 +946,7 @@ body::after {
 }
 
 .shutdown-dialog article > p code {
-    background: rgba(168, 85, 247, 0.12);
+    background: var(--color-accent-dim);
     color: var(--color-accent-bright);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
@@ -1070,7 +1096,7 @@ body::after {
 }
 
 .shutdown-dialog .shutdown-hint code {
-    background: rgba(168, 85, 247, 0.12);
+    background: var(--color-accent-dim);
     color: var(--color-accent-bright);
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
@@ -1366,9 +1392,21 @@ body::after {
 .pkg-filter input[type="search"] {
     max-width: 300px;
     height: 2rem;
-    padding: 0.2rem 0.6rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.6rem;
     font-size: 0.85rem;
     margin: 0;
+    /* Prevent browser search icon from overlapping text */
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none;
+}
+
+.pkg-filter input[type="search"]::-webkit-search-decoration,
+.pkg-filter input[type="search"]::-webkit-search-cancel-button,
+.pkg-filter input[type="search"]::-webkit-search-results-button,
+.pkg-filter input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .outdated-only-toggle {
@@ -1386,6 +1424,31 @@ body::after {
 
 .pkg-table {
     font-size: 0.85rem;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.pkg-table th:nth-child(1),
+.pkg-table td:nth-child(1) {
+    width: 30%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.pkg-table th:nth-child(2),
+.pkg-table td:nth-child(2) {
+    width: 12%;
+    white-space: nowrap;
+}
+
+.pkg-table th:nth-child(3),
+.pkg-table td:nth-child(3) {
+    width: 12%;
+}
+
+.pkg-table th:nth-child(4),
+.pkg-table td:nth-child(4) {
+    width: auto;
 }
 
 .pkg-table thead th {
@@ -1828,4 +1891,292 @@ details.warning-item[open] > .warning-summary::after {
 .section-help-container.help-open .section-help-btn {
     background: var(--color-accent);
     color: #fff;
+}
+
+/* ========== Update All Button ========== */
+
+.update-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-warn);
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.update-all-btn:hover {
+    background: color-mix(in srgb, var(--color-warn) 20%, transparent);
+    border-color: var(--color-warn);
+}
+
+.update-all-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========== Terminal Bookmark Icon (topbar) ========== */
+
+.terminal-bookmark-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: none;
+    border: 1px solid var(--color-border-accent);
+    border-radius: 4px;
+    color: var(--color-text-sidebar);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.85rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.terminal-bookmark-btn:hover {
+    background: var(--color-accent-dim);
+    border-color: var(--color-accent);
+    color: var(--color-accent-bright);
+}
+
+.terminal-bookmark-btn.active {
+    background: var(--color-accent-dim);
+    border-color: var(--color-accent);
+    color: var(--color-accent-bright);
+}
+
+/* ========== Table path/text overflow fixes ========== */
+
+/* Universal path cell handling for all tables */
+.kv-table .mono,
+.kv-table td .mono,
+.kv-table td.mono {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    display: inline-block;
+}
+
+/* Wider second column in kv-tables by default */
+.kv-table td:last-child {
+    max-width: 0;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+/* Env meta paths */
+.env-meta small.mono {
+    display: block;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    line-height: 1.4;
+}
+
+/* Build tools table */
+.section-card table td.mono {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    max-width: 220px;
+}
+
+/* ========== Topbar search — prevent icon overlap ========== */
+
+.topbar-center input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.topbar-center input[type="search"]::-webkit-search-decoration,
+.topbar-center input[type="search"]::-webkit-search-cancel-button,
+.topbar-center input[type="search"]::-webkit-search-results-button,
+.topbar-center input[type="search"]::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ========== Shutdown & offline screens — theme-aware ========== */
+
+/* Theme-aware shutdown message backgrounds */
+.shutdown-message {
+    color: var(--color-text-muted, #64748b);
+}
+
+.shutdown-message h2 {
+    color: var(--color-accent, #a855f7);
+    text-shadow: 0 0 30px var(--color-accent-glow, rgba(168, 85, 247, 0.35));
+}
+
+.shutdown-message .restart-btn {
+    color: var(--color-bg, #f8f9fc);
+    background: var(--color-accent, #a855f7);
+}
+
+.shutdown-message .restart-btn:hover {
+    box-shadow: 0 0 12px var(--color-accent-glow, rgba(168, 85, 247, 0.35));
+}
+
+.shutdown-message .restart-cmd {
+    background: var(--color-bg-card, #14161e);
+    border: 1px solid var(--color-border, #1e2030);
+}
+
+/* Offline page styling — mirrors shutdown-message */
+.offline-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    color: var(--color-text-muted, #64748b);
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 3px;
+}
+
+.offline-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        var(--color-accent-glow, rgba(168, 85, 247, 0.35)) 0%,
+        var(--color-accent, #a855f7) 25%,
+        var(--color-accent-bright, #c084fc) 50%,
+        var(--color-accent, #a855f7) 75%,
+        var(--color-accent-glow, rgba(168, 85, 247, 0.35)) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.offline-page::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--color-bg, #0c0e14);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.offline-page > * {
+    position: relative;
+    z-index: 1;
+}
+
+.offline-page h2 {
+    color: var(--color-accent, #a855f7);
+    font-size: 1.1rem;
+    text-shadow: 0 0 30px var(--color-accent-glow, rgba(168, 85, 247, 0.35));
+}
+
+.offline-page .restart-btn {
+    margin-top: 0.6rem;
+    padding: 0.5rem 1.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-bg, #f8f9fc);
+    background: var(--color-accent, #a855f7);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s, box-shadow 0.2s;
+}
+
+.offline-page .restart-btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 12px var(--color-accent-glow, rgba(168, 85, 247, 0.35));
+}
+
+.offline-page .restart-hint {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    color: var(--color-text-muted, #64748b);
+}
+
+.offline-page .restart-cmd {
+    display: inline-block;
+    margin-top: 0.25rem;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.78rem;
+    background: var(--color-bg-card, #14161e);
+    border: 1px solid var(--color-border, #1e2030);
+    border-radius: 4px;
+    user-select: all;
+}
+
+/* ========== Container file detection badges ========== */
+
+.container-files-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.container-file-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    background: var(--color-accent-dim);
+    border: 1px solid var(--color-border-accent);
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-family: var(--pico-font-family-monospace);
+}
+
+/* ========== Critical files section ========== */
+
+.critical-files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+}
+
+.critical-file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-family: var(--pico-font-family-monospace);
+    transition: border-color 0.15s ease;
+}
+
+.critical-file-item.found {
+    border-left: 3px solid var(--color-pass);
+}
+
+.critical-file-item.missing {
+    border-left: 3px solid var(--color-text-muted);
+    opacity: 0.6;
+}
+
+.critical-file-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
 }

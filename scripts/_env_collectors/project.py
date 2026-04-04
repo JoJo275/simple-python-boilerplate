@@ -130,4 +130,34 @@ class ProjectCollector(BaseCollector):
             "lockfiles": lockfiles,
             "config_files": configs,
             "build_tools": tools,
+            "critical_files": self._detect_critical_files(root),
         }
+
+    @staticmethod
+    def _detect_critical_files(root: object) -> list[dict[str, object]]:
+        """Detect critical repo files that should exist in a well-maintained project."""
+        from pathlib import Path
+
+        root_path = Path(str(root))
+        critical_names = [
+            "README.md",
+            "LICENSE",
+            "CHANGELOG.md",
+            "CONTRIBUTING.md",
+            "CODE_OF_CONDUCT.md",
+            "SECURITY.md",
+            "pyproject.toml",
+            ".gitignore",
+            ".pre-commit-config.yaml",
+            ".github/workflows",
+        ]
+        result: list[dict[str, object]] = []
+        for name in critical_names:
+            path = root_path / name
+            result.append(
+                {
+                    "name": name,
+                    "exists": path.exists(),
+                }
+            )
+        return result
