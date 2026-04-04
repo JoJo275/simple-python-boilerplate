@@ -148,7 +148,7 @@
             <p><code>python -m tools.dev_tools.env_dashboard.app</code></p>
             <p class="shutdown-hint">Or, if using Hatch: <code>hatch run dashboard:serve</code></p>
             <footer>
-                <button class="outline secondary" onclick="document.getElementById('shutdown-dialog').close()">Cancel</button>
+                <button class="outline secondary" onclick="document.body.classList.remove('dialog-open');document.getElementById('shutdown-dialog').close()">Cancel</button>
                 <button class="shutdown-confirm-btn" @click="confirmShutdown()">Shutdown</button>
             </footer>
         </article>
@@ -282,9 +282,25 @@
                 if (!el) return;
                 const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
                 const targetY = window.scrollY + el.getBoundingClientRect().top - topbarH - 12;
-                window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                this._fastScroll(Math.max(0, targetY), 300);
                 el.classList.add('section-focus');
                 setTimeout(() => el.classList.remove('section-focus'), 1200);
+            },
+
+            /* Fast animated scroll — duration in ms (default 300) */
+            _fastScroll(targetY, duration) {
+                const startY = window.scrollY;
+                const diff = targetY - startY;
+                if (Math.abs(diff) < 1) return;
+                const startTime = performance.now();
+                const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                const step = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    window.scrollTo(0, startY + diff * ease(progress));
+                    if (progress < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
             },
 
             bindSectionClicks() {
@@ -295,7 +311,7 @@
                     if (!id) return;
                     const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
                     const targetY = window.scrollY + card.getBoundingClientRect().top - topbarH - 12;
-                    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    this._fastScroll(Math.max(0, targetY), 300);
                     card.classList.add('section-focus');
                     setTimeout(() => card.classList.remove('section-focus'), 1200);
                 });
@@ -336,10 +352,16 @@
             },
 
             shutdownServer() {
-                document.getElementById('shutdown-dialog').showModal();
+                document.body.classList.add('dialog-open');
+                const dlg = document.getElementById('shutdown-dialog');
+                dlg.showModal();
+                dlg.addEventListener('close', () => {
+                    document.body.classList.remove('dialog-open');
+                }, { once: true });
             },
 
             async confirmShutdown() {
+                document.body.classList.remove('dialog-open');
                 document.getElementById('shutdown-dialog').close();
                 try {
                     await fetch('/api/shutdown', { method: 'POST' });
@@ -593,6 +615,21 @@
     }
 
     /* Smooth close animation for <details> elements (raw JSON) */
+    function _fastScrollGlobal(targetY, duration) {
+        const startY = window.scrollY;
+        const diff = targetY - startY;
+        if (Math.abs(diff) < 1) return;
+        const startTime = performance.now();
+        const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        const step = (now) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            window.scrollTo(0, startY + diff * ease(progress));
+            if (progress < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.json-viewer-details').forEach(details => {
             const summary = details.querySelector('summary');
@@ -604,10 +641,10 @@
                     e.preventDefault();
                     details.classList.add('closing');
 
-                    // Smooth scroll back up to the summary
+                    // Fast scroll back up to the summary
                     const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
                     const targetY = window.scrollY + details.getBoundingClientRect().top - topbarH - 12;
-                    window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                    _fastScrollGlobal(Math.max(0, targetY), 300);
 
                     content.addEventListener('transitionend', function handler() {
                         content.removeEventListener('transitionend', handler);
@@ -621,11 +658,11 @@
                         if (details.open) details.removeAttribute('open');
                     }, 500);
                 } else {
-                    // Opening: let browser open, then scroll into view smoothly
+                    // Opening: let browser open, then scroll into view quickly
                     setTimeout(() => {
                         const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
                         const targetY = window.scrollY + details.getBoundingClientRect().top - topbarH - 12;
-                        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+                        _fastScrollGlobal(Math.max(0, targetY), 300);
                     }, 50);
                 }
             });
