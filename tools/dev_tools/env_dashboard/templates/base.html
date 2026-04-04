@@ -137,8 +137,11 @@
             <header>
                 <h3>Shutdown Server?</h3>
             </header>
-            <p>This will stop the dashboard server. You'll need to run
-               <code>hatch run dashboard:serve</code> again to restart it.</p>
+            <p>This will stop the dashboard server. After shutdown, the page will
+               show a <strong>Start Server</strong> button. You can also restart
+               from a terminal:</p>
+            <p><code>python -m tools.dev_tools.env_dashboard.app</code></p>
+            <p class="shutdown-hint">Or, if using Hatch: <code>hatch run dashboard:serve</code></p>
             <footer>
                 <button class="outline secondary" onclick="document.getElementById('shutdown-dialog').close()">Cancel</button>
                 <button class="shutdown-confirm-btn" @click="confirmShutdown()">Shutdown</button>
@@ -151,7 +154,8 @@
         <div class="terminal-header">
             <span class="terminal-title" x-text="terminalTitle || 'Server Log'"></span>
             <div class="terminal-actions">
-                <button class="terminal-clear" @click="clearTerminal()" title="Clear terminal">&#x2715;</button>
+                <button class="terminal-clear-btn" @click="clearTerminal()" title="Clear terminal">&#x239A;</button>
+                <button class="terminal-close-btn" @click="closeTerminal()" title="Close terminal">&#x2715;</button>
             </div>
         </div>
         <div class="terminal-output" id="terminal-output"></div>
@@ -271,10 +275,8 @@
                 event.currentTarget.classList.add('active');
                 const el = document.getElementById(id);
                 if (!el) return;
-                const rect = el.getBoundingClientRect();
-                const viewH = window.innerHeight;
                 const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
-                const targetY = window.scrollY + rect.top - topbarH - (viewH - topbarH - rect.height) / 2;
+                const targetY = window.scrollY + el.getBoundingClientRect().top - topbarH - 12;
                 window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
                 el.classList.add('section-focus');
                 setTimeout(() => el.classList.remove('section-focus'), 1200);
@@ -286,10 +288,8 @@
                     if (!card || e.target.closest('a, button, input, details, .copy-btn')) return;
                     const id = card.id;
                     if (!id) return;
-                    const rect = card.getBoundingClientRect();
-                    const viewH = window.innerHeight;
                     const topbarH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--topbar-height')) || 56;
-                    const targetY = window.scrollY + rect.top - topbarH - (viewH - topbarH - rect.height) / 2;
+                    const targetY = window.scrollY + card.getBoundingClientRect().top - topbarH - 12;
                     window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
                     card.classList.add('section-focus');
                     setTimeout(() => card.classList.remove('section-focus'), 1200);
@@ -344,9 +344,11 @@
                 document.body.innerHTML = '<div class="shutdown-message">' +
                     '<h2>&#x23fb; Server Stopped</h2>' +
                     '<p>The dashboard server has been shut down.</p>' +
-                    '<p><button class="restart-btn" onclick="location.reload()">&#x25B6; Restart Dashboard</button></p>' +
+                    '<p><button class="restart-btn" onclick="location.reload()">&#x25B6; Start Server</button></p>' +
                     '<p class="restart-hint">Or run in a terminal:</p>' +
                     '<code class="restart-cmd">python -m tools.dev_tools.env_dashboard.app</code>' +
+                    '<p class="restart-hint" style="margin-top:0.5rem">With Hatch:</p>' +
+                    '<code class="restart-cmd">hatch run dashboard:serve</code>' +
                     '</div>';
                 // Prevent scrollbar from clipping the border
                 document.documentElement.style.overflow = 'hidden';

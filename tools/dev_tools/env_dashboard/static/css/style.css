@@ -217,6 +217,13 @@ body::after {
     letter-spacing: 0.01em;
 }
 
+/* Fix Pico dropdown arrow vertical alignment */
+.topbar-right details.dropdown summary::after {
+    vertical-align: middle;
+    margin-left: 0.3rem;
+    margin-bottom: 0.05rem;
+}
+
 .topbar-right .hide-empty-toggle {
     display: flex;
     align-items: center;
@@ -822,18 +829,39 @@ body::after {
 
 /* ========== Shutdown dialog — creative style ========== */
 .shutdown-dialog {
-    border: 1px solid var(--color-accent);
+    border: none;
     border-radius: 16px;
     background: linear-gradient(135deg, rgba(20, 22, 30, 0.97), rgba(10, 12, 18, 0.99));
     box-shadow:
         0 0 40px var(--color-accent-glow),
         0 24px 80px rgba(0, 0, 0, 0.6);
-    overflow: hidden;
+    overflow: visible;
     animation: dialogSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     color: #e2e8f0;
     max-width: 420px;
     width: 90vw;
-    padding: 0;
+    padding: 2px;
+    background-clip: padding-box;
+    position: relative;
+}
+
+/* Gradient border via pseudo-element */
+.shutdown-dialog::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        var(--color-accent-glow) 0%,
+        var(--color-accent) 30%,
+        var(--color-accent-bright) 50%,
+        var(--color-accent) 70%,
+        var(--color-accent-glow) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
+}
 }
 
 @keyframes dialogSlideIn {
@@ -955,28 +983,41 @@ body::after {
     text-align: center;
     color: var(--color-text-muted);
     background: radial-gradient(ellipse at center, var(--color-accent-dim) 0%, transparent 60%);
-    /* Gradient border effect using pseudo-element */
+    /* Gradient border via padding + background layering */
     position: relative;
     overflow: hidden;
     box-sizing: border-box;
+    padding: 3px;
 }
 
 .shutdown-message::before {
     content: '';
     position: absolute;
     inset: 0;
-    border: 2px solid transparent;
-    border-image: linear-gradient(
+    background: linear-gradient(
         135deg,
         var(--color-accent-glow) 0%,
-        var(--color-accent) 30%,
+        var(--color-accent) 25%,
         var(--color-accent-bright) 50%,
-        var(--color-accent) 70%,
+        var(--color-accent) 75%,
         var(--color-accent-glow) 100%
-    ) 1;
+    );
     pointer-events: none;
-    /* Prevent scrollbar from clipping the right border */
-    right: 0;
+    z-index: 0;
+}
+
+.shutdown-message::after {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    background: var(--color-bg, #0c0e14);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.shutdown-message > * {
+    position: relative;
+    z-index: 1;
 }
 
 .shutdown-message h2 {
@@ -1019,6 +1060,21 @@ body::after {
     border-radius: 4px;
     color: var(--color-text);
     user-select: all;
+}
+
+.shutdown-dialog .shutdown-hint {
+    padding: 0 1.5rem 0.25rem;
+    margin: 0;
+    font-size: 0.78rem;
+    color: #6b6e80;
+}
+
+.shutdown-dialog .shutdown-hint code {
+    background: rgba(168, 85, 247, 0.12);
+    color: var(--color-accent-bright);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
 }
 
 /* ========== Footer ========== */
@@ -1420,7 +1476,8 @@ body::after {
     gap: 0.3rem;
 }
 
-.terminal-clear {
+.terminal-clear-btn,
+.terminal-close-btn {
     background: none;
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: #8b949e;
@@ -1431,7 +1488,13 @@ body::after {
     transition: all 0.15s ease;
 }
 
-.terminal-clear:hover {
+.terminal-clear-btn:hover {
+    color: var(--color-accent-bright);
+    border-color: var(--color-border-accent);
+    background: var(--color-accent-dim);
+}
+
+.terminal-close-btn:hover {
     color: #f85149;
     border-color: rgba(248, 81, 73, 0.3);
     background: rgba(248, 81, 73, 0.08);
