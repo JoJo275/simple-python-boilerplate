@@ -53,6 +53,11 @@
         <span class="badge">{{ env.package_count|default(0) }} pkgs</span>
         {% if env.outdated_count|default(0) > 0 %}
         <span class="badge badge-warn">{{ env.outdated_count }} outdated</span>
+        <button class="update-all-btn"
+                @click.stop="updateAllOutdated($el, '{{ env.python_exe|default('')|e }}')"
+                title="Update all outdated packages">
+            &#x21bb; Update All
+        </button>
         {% endif %}
     </summary>
 

@@ -52,3 +52,31 @@
         </td>
     </tr>
 </table>
+
+{% if data.container_files %}
+<h5>Container Files</h5>
+<div class="container-files-list">
+    {% for cf in data.container_files %}
+    {% if cf.exists %}
+    <span class="container-file-badge">
+        <span class="check-icon" style="width:12px;height:12px;color:var(--color-pass)"></span>
+        {{ cf.name }}
+    </span>
+    {% endif %}
+    {% endfor %}
+</div>
+{% set missing_files = data.container_files|selectattr("exists", "equalto", false)|list %}
+{% if missing_files %}
+<details style="margin-top:0.5rem">
+    <summary><small class="muted">Not found ({{ missing_files|length }})</small></summary>
+    <div class="container-files-list" style="margin-top:0.3rem">
+        {% for cf in missing_files %}
+        <span class="container-file-badge" style="opacity:0.5">
+            <span class="x-icon" style="width:12px;height:12px;color:var(--color-text-muted)"></span>
+            {{ cf.name }}
+        </span>
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{% endif %}

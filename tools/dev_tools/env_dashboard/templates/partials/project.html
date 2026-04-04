@@ -49,3 +49,19 @@
     </tbody>
 </table>
 {% endif %}
+
+{% if data.critical_files %}
+<h5>Critical Files</h5>
+<div class="critical-files-grid">
+    {% for cf in data.critical_files %}
+    <div class="critical-file-item {{ 'found' if cf.exists else 'missing' }}">
+        {% if cf.exists %}
+        <span class="check-icon critical-file-icon" style="color:var(--color-pass)"></span>
+        {% else %}
+        <span class="x-icon critical-file-icon" style="color:var(--color-text-muted)"></span>
+        {% endif %}
+        <span>{{ cf.name }}</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

@@ -11,7 +11,7 @@
 {% for location, pkgs in data.packages_by_location.items() %}
 <details {% if loop.first %}open{% endif %}>
     <summary>{{ location }} ({{ pkgs|length }})</summary>
-    <table class="kv-table striped">
+    <table class="kv-table striped pkg-table">
         <thead>
             <tr><th>Package</th><th>Version</th><th>Summary</th></tr>
         </thead>
@@ -30,7 +30,7 @@
 {% elif data.packages %}
 <details open>
     <summary>All Packages ({{ data.packages|length }})</summary>
-    <table class="kv-table striped">
+    <table class="kv-table striped pkg-table">
         <thead>
             <tr><th>Package</th><th>Version</th><th>Location</th></tr>
         </thead>
