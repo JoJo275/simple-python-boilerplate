@@ -95,6 +95,7 @@
                 {% if w.section %}
                 <a href="#section-{{ w.section }}" class="warning-link" onclick="event.stopPropagation()">{{ w.section }}</a>
                 {% endif %}
+                <span class="warning-chevron" aria-hidden="true"></span>
             </summary>
             {% if w.hint or w.action %}
             <div class="warning-details">
