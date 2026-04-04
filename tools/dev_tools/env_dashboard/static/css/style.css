@@ -219,9 +219,16 @@ body::after {
 
 /* Fix Pico dropdown arrow vertical alignment */
 .topbar-right details.dropdown summary::after {
+    display: inline-block;
     vertical-align: middle;
     margin-left: 0.3rem;
-    margin-bottom: 0.05rem;
+    margin-bottom: 0;
+    transform: translateY(-1px);
+}
+
+/* Lock body scroll when shutdown dialog is open */
+body.dialog-open {
+    overflow: hidden;
 }
 
 .topbar-right .hide-empty-toggle {
@@ -806,6 +813,8 @@ body::after {
     opacity: 1;
     padding-top: var(--gap-sm);
     padding-bottom: var(--gap-sm);
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 /* Override for closing animation — keep element visible during close */
@@ -1005,15 +1014,17 @@ body::after {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100vh;
     text-align: center;
     color: var(--color-text-muted);
     background: radial-gradient(ellipse at center, var(--color-accent-dim) 0%, transparent 60%);
     /* Gradient border via padding + background layering */
-    position: relative;
+    position: fixed;
+    inset: 0;
     overflow: hidden;
     box-sizing: border-box;
     padding: 3px;
+    z-index: 9999;
 }
 
 .shutdown-message::before {
@@ -1178,6 +1189,7 @@ body::after {
 .section-card table {
     table-layout: auto;
     width: 100%;
+    border-collapse: collapse;
 }
 
 .mono {
@@ -1219,48 +1231,50 @@ body::after {
 
 /* ========== Path table — wider path column ========== */
 .path-table {
-    table-layout: fixed;
+    table-layout: auto;
+    width: 100%;
 }
 
 .path-table th,
 .path-table td {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.78rem;
+    vertical-align: middle;
 }
 
 .path-table th:nth-child(1),
 .path-table td:nth-child(1) {
     width: 2.5rem;
-    min-width: 2rem;
-    max-width: 3rem;
+    white-space: nowrap;
     text-align: center;
 }
 
 .path-table th:nth-child(2),
 .path-table td:nth-child(2) {
-    width: auto;
     word-break: break-word;
     overflow-wrap: anywhere;
     white-space: normal;
-    text-overflow: clip;
-    overflow: visible;
+    min-width: 150px;
 }
 
 .path-table th:nth-child(3),
 .path-table td:nth-child(3) {
     width: 4rem;
+    white-space: nowrap;
     text-align: center;
 }
 
 .path-table th:nth-child(4),
 .path-table td:nth-child(4) {
     width: 5.5rem;
+    white-space: nowrap;
     text-align: center;
 }
 
 .path-table th:nth-child(5),
 .path-table td:nth-child(5) {
     width: 4rem;
+    white-space: nowrap;
     text-align: center;
 }
 
@@ -1424,7 +1438,7 @@ body::after {
 
 .pkg-table {
     font-size: 0.85rem;
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
 }
 
@@ -1990,7 +2004,26 @@ details.warning-item[open] > .warning-summary::after {
     word-break: break-word;
     overflow-wrap: anywhere;
     white-space: normal;
-    max-width: 220px;
+    max-width: 280px;
+}
+
+/* Build tools / project tables — auto layout for readable columns */
+.section-card .kv-table.striped {
+    table-layout: auto;
+    width: 100%;
+}
+
+.section-card .kv-table.striped th,
+.section-card .kv-table.striped td {
+    padding: 0.3rem 0.5rem;
+    vertical-align: middle;
+    font-size: 0.78rem;
+}
+
+.section-card .kv-table.striped th {
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--color-text-muted);
 }
 
 /* ========== Topbar search — prevent icon overlap ========== */
