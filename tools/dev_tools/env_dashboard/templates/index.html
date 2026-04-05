@@ -5,7 +5,7 @@
 <section class="summary-bar" id="summary-bar">
     <div class="section-help-container">
         <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What is this section?">?</button>
-        <div class="section-help-tooltip">Quick overview of your environment: OS, Python version, git status, and data freshness. Red badges indicate issues.</div>
+        <div class="section-help-tooltip">At-a-glance environment snapshot: OS, Python, git, container status, and data freshness. Red badges need attention. Click Refresh or wait for auto-update to get fresh data.</div>
     </div>
     <div class="summary-item">
         <span class="summary-label">OS</span>
@@ -81,7 +81,7 @@
         Warnings ({{ warnings|length }})
         <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
             <button class="section-help-btn" aria-label="What is this?" onclick="this.parentElement.classList.toggle('help-open')" title="What are warnings?">?</button>
-            <span class="section-help-tooltip">Issues found in your environment. Click a warning to see details and recommended actions. Severity: red = critical, amber = should fix, blue = informational.</span>
+            <span class="section-help-tooltip">Issues detected in your development environment. Click any warning to expand details and recommended fixes. Red = critical (fix now), amber = should fix, blue = informational.</span>
         </span>
     </h3>
     <div class="warning-list">
@@ -120,19 +120,19 @@
 {# --- Section cards --- #}
 {# Section help descriptions — concise explanations shown on hover/click #}
 {% set section_help = {
-    "system": "OS, architecture, hostname, and kernel details for your machine.",
-    "runtimes": "Detected language runtimes (Python, Node, etc.) and their versions.",
-    "path": "Analysis of your PATH environment variable: order, duplicates, and dead entries.",
-    "git": "Git repo status: branch, remote, dirty state, and recent commits.",
-    "venv": "Virtual environment detection and configuration details.",
-    "packages": "Python packages installed in the current environment.",
-    "project": "Project structure: repo root, lockfiles, config files, build tools, and critical files.",
-    "project_commands": "Available CLI commands and task runner shortcuts for this project.",
-    "pip_environments": "All detected Python/pip environments with their installed packages.",
-    "network": "DNS resolution and outbound HTTPS connectivity checks.",
-    "filesystem": "Disk usage, temp directory status, and file system writability.",
-    "container": "Container runtime, CI environment detection, dev containers, and container file inventory.",
-    "security": "Security scan: secret env vars, insecure PATH entries, SSH key exposure."
+    "system": "Machine fundamentals: OS, CPU, architecture, shell, and encoding. Check here first if builds fail on a new machine or CI runner.",
+    "runtimes": "Active Python interpreter and any other detected runtimes. Verify the version matches your project's requires-python constraint.",
+    "path": "Ordered list of directories in your PATH. Flags duplicates and dead entries that can cause wrong binaries to be picked up.",
+    "git": "Repository status: current branch, clean/dirty state, remotes, and stash count. A dirty tree blocks some CI gates.",
+    "venv": "Virtual environment detection: venv, Conda, and Hatch. Development should always happen inside an active venv.",
+    "packages": "Python packages installed in the current environment with versions and install locations.",
+    "project": "Project structure scan: repo root, lockfiles, config files, build tools, and critical files. Missing files are flagged.",
+    "project_commands": "Available CLI commands from Taskfile, pyproject.toml scripts, and other task runners. Click a command to copy it.",
+    "pip_environments": "All detected Python installations and their packages. Shows outdated packages with one-click update.",
+    "network": "DNS and HTTPS connectivity checks. Failures here block pip installs, git pushes, and CI communication.",
+    "filesystem": "Disk space, temp directory, and write permission checks. Low disk or non-writable dirs cause silent build failures.",
+    "container": "Container runtime detection, CI system, WSL, dev containers, and cloud provider. Affects available resources and networking.",
+    "security": "Security scan for leaked secrets in env vars, insecure PATH entries, and exposed SSH keys. Address red items immediately."
 } %}
 <div class="sections-list" id="sections-list">
     {% for name, data in sections.items() %}
@@ -192,7 +192,7 @@
             Quick Actions
             <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
                 <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What are quick actions?">?</button>
-                <span class="section-help-tooltip">Common commands and shortcuts for this project. Click a command to copy it.</span>
+                <span class="section-help-tooltip">Common development commands for this project. Click any command to copy it to your clipboard, then paste into a terminal to run.</span>
             </span>
         </h4>
     </header>

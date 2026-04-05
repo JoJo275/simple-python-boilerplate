@@ -1,18 +1,18 @@
 {% from "partials/_macros.html" import kv_row, status_badge %}
 
 <table class="kv-table">
-    {{ kv_row("OS", data.os, copyable=true) }}
-    {{ kv_row("OS Version", data.os_version) }}
-    {{ kv_row("OS Release", data.os_release) }}
-    {{ kv_row("Kernel", data.kernel) }}
-    {{ kv_row("Architecture", data.architecture) }}
-    {{ kv_row("Hostname", data.hostname) }}
-    {{ kv_row("Username", data.username) }}
-    {{ kv_row("Shell", data.shell, copyable=true) }}
-    {{ kv_row("Working Directory", data.cwd, copyable=true) }}
-    {{ kv_row("Privilege", data.privilege) }}
-    {{ kv_row("Locale", data.locale) }}
-    {{ kv_row("CPU Count", data.cpu_count) }}
-    {{ kv_row("Encoding", data.encoding) }}
-    {{ kv_row("FS Encoding", data.filesystem_encoding) }}
+    {{ kv_row("OS", data.os, copyable=true, hint="Operating system name. Affects package availability and shell behavior.") }}
+    {{ kv_row("OS Version", data.os_version, hint="Specific OS build number. Useful for diagnosing platform-specific bugs.") }}
+    {{ kv_row("OS Release", data.os_release, hint="Major OS release identifier (e.g. 10 for Windows 10).") }}
+    {{ kv_row("Kernel", data.kernel, hint="Kernel version string. Relevant for system calls and container compatibility.") }}
+    {{ kv_row("Architecture", data.architecture, hint="CPU architecture (x86_64, arm64). Must match compiled binary dependencies.") }}
+    {{ kv_row("Hostname", data.hostname, hint="Machine network name. Used in CI logs and remote debugging.") }}
+    {{ kv_row("Username", data.username, hint="Current user running the process. Check permissions if builds fail.") }}
+    {{ kv_row("Shell", data.shell, copyable=true, hint="Default shell. Scripts may behave differently across shells.") }}
+    {{ kv_row("Working Directory", data.cwd, copyable=true, hint="Current directory. Should be the project root for most commands.") }}
+    {{ kv_row("Privilege", data.privilege, hint="Admin/root status. Some installs need elevated privileges.") }}
+    {{ kv_row("Locale", data.locale, hint="System locale setting. Mismatches can cause encoding errors in I/O.") }}
+    {{ kv_row("CPU Count", data.cpu_count, hint="Available CPU cores. Affects parallel test execution and build speed.") }}
+    {{ kv_row("Encoding", data.encoding, hint="Default text encoding. Should be UTF-8 for modern Python projects.") }}
+    {{ kv_row("FS Encoding", data.filesystem_encoding, hint="File system encoding. Affects file path handling on non-UTF-8 systems.") }}
 </table>

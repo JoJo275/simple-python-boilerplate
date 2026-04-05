@@ -226,7 +226,7 @@ body::after {
     vertical-align: middle;
     margin-left: 0.3rem;
     margin-bottom: 0;
-    transform: translateY(-2px);
+    transform: translateY(1px);
     line-height: 1;
 }
 
@@ -566,7 +566,7 @@ body.dialog-open {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-accent);
     border-radius: 6px;
-    overflow: hidden;
+    overflow: visible;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     scroll-margin-top: calc(var(--topbar-height) + var(--gap-md));
     cursor: pointer;
@@ -596,6 +596,7 @@ body.dialog-open {
     padding: var(--gap-sm) var(--gap-md);
     border-bottom: 1px solid var(--color-border-accent);
     background: var(--color-accent-dim);
+    border-radius: 6px 6px 0 0;
 }
 
 .section-card header h4,
@@ -973,7 +974,7 @@ body.dialog-open {
 }
 
 .shutdown-dialog article {
-    background: rgba(14, 16, 22, 0.99);
+    background: #0e1016;
     border: none;
     box-shadow: none;
     margin: 0;
@@ -985,7 +986,7 @@ body.dialog-open {
 }
 
 .shutdown-dialog article header {
-    background: linear-gradient(90deg, var(--color-accent-dim), transparent);
+    background: transparent;
     border-bottom: 1px solid var(--color-border-accent);
     padding: 1.25rem 1.5rem 1rem;
     margin: 0;
@@ -1070,42 +1071,52 @@ body.dialog-open {
     height: 100vh;
     text-align: center;
     color: var(--color-text-muted);
-    background: radial-gradient(ellipse at center, var(--color-accent-dim) 0%, transparent 60%);
-    /* Gradient border via padding + background layering */
+    background: var(--color-bg, #0c0e14);
     position: fixed;
     inset: 0;
     overflow: hidden;
     box-sizing: border-box;
-    padding: 3px;
     z-index: 9999;
 }
 
+/* Purple glow behind content */
 .shutdown-message::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        135deg,
-        var(--color-accent-glow) 0%,
-        var(--color-accent) 25%,
-        var(--color-accent-bright) 50%,
-        var(--color-accent) 75%,
-        var(--color-accent-glow) 100%
-    );
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    height: 500px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center, var(--color-accent-glow) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
+    filter: blur(40px);
 }
 
+/* No full-screen gradient overlay — remove ::after */
 .shutdown-message::after {
-    content: '';
-    position: absolute;
-    inset: 2px;
-    background: var(--color-bg, #0c0e14);
-    pointer-events: none;
-    z-index: 0;
+    display: none;
 }
 
 .shutdown-message > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Content card with border glow */
+.shutdown-message .shutdown-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 2.5rem 3rem;
+    border-radius: 16px;
+    border: 1px solid var(--color-border-accent);
+    background: rgba(14, 16, 22, 0.85);
+    box-shadow: 0 0 60px var(--color-accent-dim), 0 0 120px rgba(0, 0, 0, 0.4);
+    max-width: 440px;
+    width: 90vw;
     position: relative;
     z-index: 1;
 }
@@ -1114,10 +1125,15 @@ body.dialog-open {
     color: var(--color-accent);
     font-size: 1.1rem;
     text-shadow: 0 0 30px var(--color-accent-glow);
+    margin: 0;
+}
+
+.shutdown-message p {
+    margin: 0;
 }
 
 .shutdown-message .restart-btn {
-    margin-top: 0.6rem;
+    margin-top: 0.4rem;
     padding: 0.5rem 1.4rem;
     font-size: 0.85rem;
     font-weight: 600;
@@ -1126,12 +1142,42 @@ body.dialog-open {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: opacity 0.2s, box-shadow 0.2s;
+    transition: opacity 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .shutdown-message .restart-btn:hover {
-    opacity: 0.85;
-    box-shadow: 0 0 12px var(--color-accent-glow);
+    opacity: 0.9;
+    box-shadow: 0 0 20px var(--color-accent-glow);
+    transform: translateY(-1px);
+}
+
+/* Cooler reconnect spinner — orbiting dots */
+.shutdown-message .restart-btn[aria-busy="true"] {
+    pointer-events: none;
+    position: relative;
+    color: transparent;
+}
+
+.shutdown-message .restart-btn[aria-busy="true"]::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--color-bg);
+    border-right: 2px solid var(--color-bg);
+    border-radius: 50%;
+    animation: reconnectSpin 0.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    box-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+@keyframes reconnectSpin {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
 .shutdown-message .restart-hint {
@@ -1144,7 +1190,7 @@ body.dialog-open {
     display: block;
     padding: 0.4rem 0.8rem;
     font-size: 0.78rem;
-    background: var(--color-bg-card);
+    background: rgba(20, 22, 30, 0.6);
     border: 1px solid var(--color-border);
     border-radius: 4px;
     color: var(--color-accent-bright);
@@ -1153,7 +1199,7 @@ body.dialog-open {
 }
 
 .shutdown-message .restart-note {
-    margin-top: 1.2rem;
+    margin-top: 0.8rem;
     font-size: 0.72rem;
     line-height: 1.6;
     color: var(--color-text-muted);
@@ -1164,7 +1210,7 @@ body.dialog-open {
 .shutdown-message .restart-commands {
     display: flex;
     gap: 1rem;
-    margin-top: 1rem;
+    margin-top: 0.6rem;
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -1183,6 +1229,13 @@ body.dialog-open {
     letter-spacing: 0.08em;
     color: var(--color-accent);
     opacity: 0.7;
+}
+
+.shutdown-message .restart-status {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    min-height: 1.2em;
+    margin: 0;
 }
 
 .shutdown-dialog .shutdown-hint {
@@ -1963,25 +2016,26 @@ details.warning-item[open] .warning-chevron {
 .section-help-tooltip {
     display: none;
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    min-width: 200px;
-    max-width: 320px;
+    min-width: 220px;
+    max-width: 340px;
     width: max-content;
-    padding: 0.5rem 0.65rem;
+    padding: 0.55rem 0.75rem;
     background: linear-gradient(135deg, rgba(20, 22, 30, 0.98), rgba(10, 12, 18, 0.99));
     border: 1px solid var(--color-accent-dim);
-    border-radius: 6px;
+    border-radius: 8px;
     color: #c9d1d9;
     font-size: 0.72rem;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.55;
     z-index: 200;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--color-accent-dim);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--color-accent-dim);
     white-space: normal;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    overflow: visible;
     animation: tooltip-in 0.15s ease;
 }
 
@@ -2035,6 +2089,77 @@ details.warning-item[open] .warning-chevron {
 .section-help-container.help-open .section-help-btn {
     background: var(--color-accent);
     color: #fff;
+}
+
+/* ========== Inline Hint Arrows (expandable row hints) ========== */
+
+.kv-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.kv-hint summary {
+    display: inline-flex;
+    align-items: center;
+    list-style: none;
+    cursor: pointer;
+    gap: 0.25rem;
+}
+
+.kv-hint summary::-webkit-details-marker {
+    display: none;
+}
+
+.kv-hint summary::marker {
+    display: none;
+    content: '';
+}
+
+.kv-hint .hint-chevron {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-accent-dim);
+    border: 1px solid var(--color-border-accent);
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+    margin-left: 0.3rem;
+}
+
+.kv-hint .hint-chevron::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-right: 1.5px solid var(--color-accent);
+    border-bottom: 1.5px solid var(--color-accent);
+    transform: translate(-60%, -50%) rotate(-45deg);
+    transition: transform 0.15s ease;
+}
+
+.kv-hint[open] .hint-chevron {
+    background: var(--color-accent-dim);
+    border-color: var(--color-accent);
+}
+
+.kv-hint[open] .hint-chevron::after {
+    transform: translate(-50%, -60%) rotate(45deg);
+}
+
+.kv-hint .hint-text {
+    display: block;
+    padding: 0.3rem 0 0.2rem 0;
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+    animation: warning-expand 0.15s ease;
 }
 
 /* ========== Update All Button ========== */

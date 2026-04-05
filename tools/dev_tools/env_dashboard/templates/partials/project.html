@@ -1,7 +1,7 @@
 {% from "partials/_macros.html" import kv_row %}
 
 <table class="kv-table">
-    {{ kv_row("Repository Root", data.repo_root, copyable=true) }}
+    {{ kv_row("Repository Root", data.repo_root, copyable=true, hint="Top-level directory of the Git repository. All relative paths resolve from here.") }}
 </table>
 
 {% if data.lockfiles %}

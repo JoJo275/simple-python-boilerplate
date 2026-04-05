@@ -2,7 +2,13 @@
 
 <table class="kv-table">
     <tr>
-        <td class="kv-label">Container Detected</td>
+        <td class="kv-label">
+            Container Detected
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Whether the process is running inside a container (Docker, Podman, etc.).</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.detected %}
                 <span class="badge badge-info">Yes</span>
@@ -12,7 +18,13 @@
         </td>
     </tr>
     <tr>
-        <td class="kv-label">Docker</td>
+        <td class="kv-label">
+            Docker
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Whether the Docker daemon is available. Needed for container builds and tests.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.docker %}
                 <span class="badge badge-info">Yes</span>
@@ -22,7 +34,13 @@
         </td>
     </tr>
     <tr>
-        <td class="kv-label">CI System</td>
+        <td class="kv-label">
+            CI System
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Detected CI provider (GitHub Actions, GitLab CI, etc.). Affects available env vars and caching.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.ci %}
                 <span class="badge badge-info">{{ data.ci }}</span>
@@ -32,7 +50,13 @@
         </td>
     </tr>
     <tr>
-        <td class="kv-label">WSL</td>
+        <td class="kv-label">
+            WSL
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Windows Subsystem for Linux. File system performance may differ from native Linux.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.wsl %}
                 <span class="badge badge-info">Yes</span>
@@ -42,7 +66,13 @@
         </td>
     </tr>
     <tr>
-        <td class="kv-label">Dev Container</td>
+        <td class="kv-label">
+            Dev Container
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">VS Code Dev Container or GitHub Codespace. Pre-configured development environment.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.devcontainer %}
                 <span class="badge badge-info">Yes</span>
@@ -52,7 +82,13 @@
         </td>
     </tr>
     <tr>
-        <td class="kv-label">Cloud Provider</td>
+        <td class="kv-label">
+            Cloud Provider
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Detected cloud platform (AWS, Azure, GCP). Affects network and credential handling.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% if data.cloud %}
                 <span class="badge badge-info">{{ data.cloud }}</span>

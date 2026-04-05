@@ -4,14 +4,14 @@
 
 <h5>Active Python</h5>
 <table class="kv-table">
-    {{ kv_row("Version", py.version, copyable=true) }}
-    {{ kv_row("Implementation", py.implementation) }}
-    {{ kv_row("Platform", py.platform) }}
-    {{ kv_row("Architecture", py.architecture) }}
-    {{ kv_row("Executable", py.executable, copyable=true) }}
-    {{ kv_row("Prefix", py.prefix, copyable=true) }}
-    {{ kv_row("In Virtualenv", py.in_venv) }}
-    {{ kv_row("Compiler", py.compiler) }}
+    {{ kv_row("Version", py.version, copyable=true, hint="Python interpreter version in use. Ensure it matches your project's requires-python.") }}
+    {{ kv_row("Implementation", py.implementation, hint="CPython, PyPy, etc. Some packages need CPython-specific C extensions.") }}
+    {{ kv_row("Platform", py.platform, hint="Platform tag used for wheel compatibility checks.") }}
+    {{ kv_row("Architecture", py.architecture, hint="32-bit vs 64-bit. Must match compiled native dependencies.") }}
+    {{ kv_row("Executable", py.executable, copyable=true, hint="Full path to the running Python binary. Verify it points to your venv.") }}
+    {{ kv_row("Prefix", py.prefix, copyable=true, hint="Python installation prefix. Differs from base_prefix inside a virtualenv.") }}
+    {{ kv_row("In Virtualenv", py.in_venv, hint="Whether Python is running inside a virtual environment. Should be Yes for development.") }}
+    {{ kv_row("Compiler", py.compiler, hint="C compiler used to build this Python. Affects C extension compatibility.") }}
 </table>
 
 {% if data.installations %}
