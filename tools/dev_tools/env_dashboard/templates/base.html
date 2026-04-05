@@ -6,7 +6,7 @@
     <title>{% block title %}Environment Dashboard{% endblock %}</title>
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/css/pico.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ meta.timestamp|default('0')|replace(' ', '')|replace(':', '') }}">
     {% block head %}{% endblock %}
 </head>
 <body hx-headers='{"Accept": "text/html"}' x-data="dashboard()" x-init="init()">
@@ -145,11 +145,9 @@
             <header>
                 <h3>Shutdown Server?</h3>
             </header>
-            <p>This will stop the dashboard server. After shutdown, the page will
-               show a <strong>Start Server</strong> button. You can also restart
-               from a terminal:</p>
-            <p><code>python -m tools.dev_tools.env_dashboard.app</code></p>
-            <p class="shutdown-hint">Or, if using Hatch: <code>hatch run dashboard:serve</code></p>
+            <p>The dashboard will stop. Restart with
+               <code>hatch run dashboard:serve</code> or
+               <code>python -m tools.dev_tools.env_dashboard.app</code></p>
             <footer>
                 <button class="outline secondary" onclick="document.body.classList.remove('dialog-open');document.getElementById('shutdown-dialog').close()">Cancel</button>
                 <button class="shutdown-confirm-btn" @click="confirmShutdown()">Shutdown</button>
