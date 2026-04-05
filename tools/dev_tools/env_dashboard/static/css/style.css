@@ -108,41 +108,18 @@ body {
     position: relative;
 }
 
-/* Radial gradient background blurs */
-body::before,
-body::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.35;
-    pointer-events: none;
-    z-index: -1;
-}
-
+/* Body pseudo-elements — unused, suppressed */
 body::before {
-    width: 600px;
-    height: 600px;
-    top: -120px;
-    left: -100px;
-    background: radial-gradient(circle, var(--color-accent-glow) 0%, transparent 70%);
+    display: none !important;
 }
 
 body::after {
-    width: 500px;
-    height: 500px;
-    bottom: -80px;
-    right: -60px;
-    background: radial-gradient(circle, var(--color-accent-glow) 0%, transparent 70%);
-    opacity: 0.2;
+    display: none !important;
 }
 
 [data-theme="dark"] body {
     background: var(--color-bg);
 }
-
-[data-theme="dark"] body::before { opacity: 0.25; }
-[data-theme="dark"] body::after  { opacity: 0.15; }
 
 /* ========== Top navigation bar ========== */
 .dashboard-topbar {
@@ -671,9 +648,10 @@ body.dialog-open {
     color: var(--color-text-muted);
     width: 180px;
     min-width: 120px;
-    max-width: 200px;
+    max-width: 300px;
     padding-right: var(--gap-sm);
     white-space: nowrap;
+    overflow: visible;
 }
 
 .kv-table td:last-child {
@@ -915,37 +893,49 @@ body.dialog-open {
     font-weight: 600;
 }
 
-/* ========== Shutdown dialog — creative style ========== */
+/* ========== Shutdown dialog — clean shape with blurred backdrop ========== */
 .shutdown-dialog {
-    border: none;
-    border-radius: 16px;
-    background: transparent;
-    box-shadow:
-        0 0 40px var(--color-accent-glow),
-        0 24px 80px rgba(0, 0, 0, 0.6);
-    overflow: visible;
-    animation: dialogSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    color: #e2e8f0;
-    max-width: 420px;
-    width: 90vw;
-    padding: 2px;
-    position: relative;
+    border: none !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    animation: dialogSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    color: #e2e8f0 !important;
+    max-width: 560px !important;
+    width: 92vw !important;
+    padding: 2px !important;
+    min-width: auto !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: auto !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-/* Gradient border line via pseudo-element (matches shutdown screen) */
+/* Accent gradient outline via pseudo-element */
 .shutdown-dialog::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 16px;
+    border-radius: 12px;
+    padding: 2px;
     background: linear-gradient(
         135deg,
         var(--color-accent-glow) 0%,
-        var(--color-accent) 25%,
+        var(--color-accent) 30%,
         var(--color-accent-bright) 50%,
-        var(--color-accent) 75%,
+        var(--color-accent) 70%,
         var(--color-accent-glow) 100%
     );
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask-composite: exclude;
     z-index: 0;
     pointer-events: none;
 }
@@ -953,7 +943,7 @@ body.dialog-open {
 @keyframes dialogSlideIn {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.96);
+        transform: translateY(12px) scale(0.97);
     }
     to {
         opacity: 1;
@@ -962,10 +952,10 @@ body.dialog-open {
 }
 
 .shutdown-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    animation: backdropFadeIn 0.3s ease;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: backdropFadeIn 0.25s ease;
 }
 
 @keyframes backdropFadeIn {
@@ -973,92 +963,96 @@ body.dialog-open {
     to { opacity: 1; }
 }
 
-.shutdown-dialog article {
-    background: #0e1016;
-    border: none;
-    box-shadow: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    border-radius: 14px;
-    position: relative;
+.shutdown-dialog > article {
+    background: rgba(14, 16, 22, 0.92) !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 10px !important;
+    position: relative !important;
     z-index: 1;
+    max-width: 560px !important;
+    width: 92vw !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .shutdown-dialog article header {
     background: transparent;
-    border-bottom: 1px solid var(--color-border-accent);
-    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.7rem 1.2rem;
     margin: 0;
 }
 
 .shutdown-dialog article header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.88rem;
     font-weight: 700;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
     color: var(--color-accent-bright);
 }
 
 .shutdown-dialog article > p {
-    padding: 1rem 1.5rem;
+    padding: 0.6rem 1.2rem;
     margin: 0;
-    font-size: 0.85rem;
-    line-height: 1.65;
+    font-size: 0.8rem;
+    line-height: 1.55;
     color: #94a3b8;
 }
 
 .shutdown-dialog article > p code {
     background: var(--color-accent-dim);
     color: var(--color-accent-bright);
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.78rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.73rem;
 }
 
 .shutdown-dialog article footer {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
     justify-content: flex-end;
-    padding: 1rem 1.5rem 1.25rem;
+    padding: 0.6rem 1.2rem;
     border-top: 1px solid rgba(255, 255, 255, 0.04);
-    background: rgba(0, 0, 0, 0.15);
+    background: transparent;
     margin: 0;
 }
 
 .shutdown-dialog .outline.secondary {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #94a3b8;
-    border-radius: 8px;
-    padding: 0.45rem 1.1rem;
+    border-radius: 6px;
+    padding: 0.4rem 1rem;
     font-size: 0.78rem;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
     cursor: pointer;
 }
 
 .shutdown-dialog .outline.secondary:hover {
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
     color: #e2e8f0;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .shutdown-confirm-btn {
     background: linear-gradient(135deg, #ef4444, #dc2626);
     border: none;
     color: white;
-    border-radius: 8px;
-    padding: 0.45rem 1.25rem;
+    border-radius: 6px;
+    padding: 0.4rem 1.1rem;
     font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+    transition: all 0.15s ease;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
 }
 
 .shutdown-confirm-btn:hover {
     background: linear-gradient(135deg, #f87171, #ef4444);
-    box-shadow: 0 0 24px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
     transform: translateY(-1px);
 }
 
@@ -1239,18 +1233,18 @@ body.dialog-open {
 }
 
 .shutdown-dialog .shutdown-hint {
-    padding: 0 1.5rem 0.25rem;
+    padding: 0 1.4rem 0.25rem;
     margin: 0;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: #6b6e80;
 }
 
 .shutdown-dialog .shutdown-hint code {
     background: var(--color-accent-dim);
     color: var(--color-accent-bright);
-    padding: 0.15rem 0.4rem;
+    padding: 0.12rem 0.35rem;
     border-radius: 4px;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
 }
 
 /* ========== Footer ========== */
@@ -1907,7 +1901,8 @@ details.warning-item > .warning-summary::-webkit-details-marker {
 }
 
 details.warning-item > .warning-summary::after {
-    display: none;
+    display: none !important;
+    content: none !important;
 }
 
 .warning-chevron {
@@ -1991,6 +1986,8 @@ details.warning-item[open] .warning-chevron {
     justify-content: center;
     width: 16px;
     height: 16px;
+    min-width: 16px;
+    min-height: 16px;
     padding: 0;
     margin-left: 0.3rem;
     background: var(--color-accent-dim);
@@ -2004,6 +2001,7 @@ details.warning-item[open] .warning-chevron {
     transition: all 0.15s ease;
     line-height: 1;
     flex-shrink: 0;
+    overflow: visible;
 }
 
 .section-help-btn:hover {
@@ -2094,9 +2092,8 @@ details.warning-item[open] .warning-chevron {
 /* ========== Inline Hint Arrows (expandable row hints) ========== */
 
 .kv-hint {
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
+    display: inline;
+    vertical-align: middle;
     cursor: pointer;
     user-select: none;
 }
@@ -2107,6 +2104,13 @@ details.warning-item[open] .warning-chevron {
     list-style: none;
     cursor: pointer;
     gap: 0.25rem;
+    vertical-align: middle;
+}
+
+/* Override Pico's default summary::after chevron for inline hints */
+.kv-hint summary::after {
+    display: none !important;
+    content: none !important;
 }
 
 .kv-hint summary::-webkit-details-marker {
@@ -2119,16 +2123,21 @@ details.warning-item[open] .warning-chevron {
 }
 
 .kv-hint .hint-chevron {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
     border-radius: 50%;
     background: var(--color-accent-dim);
     border: 1px solid var(--color-border-accent);
     position: relative;
     flex-shrink: 0;
-    transition: all 0.15s ease;
-    margin-left: 0.3rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-left: 0.35rem;
+    overflow: visible;
 }
 
 .kv-hint .hint-chevron::after {
@@ -2136,17 +2145,25 @@ details.warning-item[open] .warning-chevron {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     border-right: 1.5px solid var(--color-accent);
     border-bottom: 1.5px solid var(--color-accent);
     transform: translate(-60%, -50%) rotate(-45deg);
-    transition: transform 0.15s ease;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kv-hint summary:hover .hint-chevron {
+    background: var(--color-accent-glow);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 6px var(--color-accent-dim);
+    transform: scale(1.15);
 }
 
 .kv-hint[open] .hint-chevron {
     background: var(--color-accent-dim);
     border-color: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent-dim);
 }
 
 .kv-hint[open] .hint-chevron::after {
@@ -2159,7 +2176,30 @@ details.warning-item[open] .warning-chevron {
     font-size: 0.68rem;
     line-height: 1.45;
     color: var(--color-text-muted);
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 300px;
     animation: warning-expand 0.15s ease;
+}
+
+/* Allow hint text to wrap in label cells */
+.kv-table td:first-child .kv-hint .hint-text {
+    white-space: normal;
+    max-width: 260px;
+}
+
+/* Ensure hint chevrons and help buttons are never clipped */
+.kv-table td:first-child {
+    overflow: visible;
+}
+
+.kv-hint {
+    overflow: visible;
+}
+
+.section-help-container {
+    overflow: visible;
 }
 
 /* ========== Update All Button ========== */
@@ -2587,4 +2627,166 @@ details.warning-item[open] .warning-chevron {
     border-radius: 4px;
     font-size: 0.72rem;
     color: var(--color-info);
+}
+/* ========== Section-card info dropdowns (non-warning) ========== */
+
+/* Style all <details> inside section-card-body — packages, venv, pip envs, etc. */
+.section-card-body > details,
+.section-card-body details.env-details {
+    border: 1px solid var(--color-border-accent);
+    border-radius: 6px;
+    margin-bottom: var(--gap-sm);
+    background: var(--color-bg-card);
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.section-card-body > details:hover,
+.section-card-body details.env-details:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.section-card-body > details[open],
+.section-card-body details.env-details[open] {
+    box-shadow: 0 2px 12px var(--color-accent-dim);
+}
+
+.section-card-body > details > summary,
+.section-card-body details.env-details > summary,
+.section-card-body details.env-details > .env-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    background: var(--color-accent-dim);
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s ease;
+    user-select: none;
+}
+
+.section-card-body > details[open] > summary,
+.section-card-body details.env-details[open] > summary,
+.section-card-body details.env-details[open] > .env-summary {
+    border-bottom-color: var(--color-border-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.section-card-body > details > summary:hover,
+.section-card-body details.env-details > summary:hover,
+.section-card-body details.env-details > .env-summary:hover {
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+/* Hide default marker */
+.section-card-body > details > summary::-webkit-details-marker,
+.section-card-body details.env-details > summary::-webkit-details-marker {
+    display: none;
+}
+
+.section-card-body > details > summary::marker,
+.section-card-body details.env-details > summary::marker {
+    display: none;
+    content: '';
+}
+
+/* Custom animated chevron for section info dropdowns — override Pico's default */
+.section-card-body > details > summary::after,
+.section-card-body details.env-details > summary::after {
+    content: '' !important;
+    display: inline-flex !important;
+    float: none !important;
+    align-items: center;
+    justify-content: center;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px;
+    margin-left: auto !important;
+    margin-inline-start: auto !important;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent) !important;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: rotate(0deg) !important;
+    /* SVG chevron icon */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+    background-size: 12px 12px !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+}
+
+.section-card-body > details:hover > summary::after,
+.section-card-body details.env-details:hover > summary::after {
+    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    background-color: color-mix(in srgb, var(--color-accent) 18%, transparent);
+    box-shadow: 0 0 8px var(--color-accent-dim);
+}
+
+.section-card-body > details[open] > summary::after,
+.section-card-body details.env-details[open] > summary::after {
+    transform: rotate(180deg) !important;
+    background-color: color-mix(in srgb, var(--color-accent) 20%, transparent) !important;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 10px var(--color-accent-dim);
+}
+
+/* Content padding inside opened dropdowns */
+.section-card-body > details > :not(summary),
+.section-card-body details.env-details > :not(summary):not(.env-summary) {
+    padding: var(--gap-sm) 0.6rem;
+    animation: dropdown-expand 0.2s ease;
+}
+
+@keyframes dropdown-expand {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Nested tables inside dropdowns should have no extra border */
+.section-card-body > details table,
+.section-card-body details.env-details table {
+    margin: 0;
+}
+
+/* Don't double-style the kv-hint inline details inside section cards */
+.section-card-body details.kv-hint {
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    background: transparent;
+    overflow: visible;
+    box-shadow: none;
+}
+
+.section-card-body details.kv-hint > summary {
+    background: transparent;
+    border-bottom: none;
+    padding: 0;
+    font-weight: inherit;
+    font-size: inherit;
+    min-height: auto;
+}
+
+.section-card-body details.kv-hint > summary::after {
+    display: none !important;
+    content: none !important;
+}
+
+.section-card-body details.kv-hint > summary::-webkit-details-marker {
+    display: none;
+}
+
+.section-card-body details.kv-hint:hover {
+    border-color: transparent;
+}
+
+.section-card-body details.kv-hint[open] {
+    box-shadow: none;
+}
+
+.section-card-body details.kv-hint > .hint-text {
+    padding: 0.3rem 0 0.2rem 0;
 }
