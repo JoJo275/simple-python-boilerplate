@@ -377,11 +377,12 @@
             _showShutdownPage() {
                 // Preserve theme/accent on <html> so CSS variables still work
                 document.body.innerHTML = '<div class="shutdown-message">' +
+                    '<div class="shutdown-content">' +
                     '<h2>&#x23fb; Server Stopped</h2>' +
                     '<p>The dashboard server has been shut down.</p>' +
-                    '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
+                    '<button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button>' +
                     '<p class="restart-status" id="restart-status"></p>' +
-                    '<p class="restart-note">The server must be running for reconnect to work.<br>Start it in a terminal, then click Reconnect or wait for auto-detection.</p>' +
+                    '<p class="restart-note">Start the server in a terminal, then click Reconnect<br>or wait for auto-detection.</p>' +
                     '<div class="restart-commands">' +
                     '<div class="restart-cmd-block">' +
                     '<span class="restart-cmd-label">Direct</span>' +
@@ -390,6 +391,7 @@
                     '<div class="restart-cmd-block">' +
                     '<span class="restart-cmd-label">Hatch</span>' +
                     '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                    '</div>' +
                     '</div>' +
                     '</div>' +
                     '</div>';
@@ -729,11 +731,12 @@
 
         function showOfflinePage() {
             document.body.innerHTML = '<div class="shutdown-message">' +
+                '<div class="shutdown-content">' +
                 '<h2>&#x23fb; Server Stopped</h2>' +
                 '<p>The dashboard server is not running.</p>' +
-                '<p><button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button></p>' +
+                '<button class="restart-btn" id="reconnect-btn" onclick="attemptReconnect()">&#x25B6; Reconnect</button>' +
                 '<p class="restart-status" id="restart-status"></p>' +
-                '<p class="restart-note">The server must be running for reconnect to work.<br>Start it in a terminal, then click Reconnect or wait for auto-detection.</p>' +
+                '<p class="restart-note">Start the server in a terminal, then click Reconnect<br>or wait for auto-detection.</p>' +
                 '<div class="restart-commands">' +
                 '<div class="restart-cmd-block">' +
                 '<span class="restart-cmd-label">Direct</span>' +
@@ -742,6 +745,7 @@
                 '<div class="restart-cmd-block">' +
                 '<span class="restart-cmd-label">Hatch</span>' +
                 '<code class="restart-cmd">hatch run dashboard:serve</code>' +
+                '</div>' +
                 '</div>' +
                 '</div>' +
                 '</div>';

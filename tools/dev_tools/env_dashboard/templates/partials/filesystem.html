@@ -6,12 +6,18 @@
 <p class="badge badge-fail">Error: {{ data.disk.error }}</p>
 {% else %}
 <table class="kv-table">
-    {{ kv_row("Path", data.disk.path, copyable=true) }}
-    {{ kv_row("Total", "%.1f GB"|format(data.disk.total_gb|default(0))) }}
+    {{ kv_row("Path", data.disk.path, copyable=true, hint="Mount point being measured for disk space.") }}
+    {{ kv_row("Total", "%.1f GB"|format(data.disk.total_gb|default(0)), hint="Total disk capacity on this partition.") }}
     {{ kv_row("Used", "%.1f GB"|format(data.disk.used_gb|default(0))) }}
-    {{ kv_row("Free", "%.1f GB"|format(data.disk.free_gb|default(0))) }}
+    {{ kv_row("Free", "%.1f GB"|format(data.disk.free_gb|default(0)), hint="Available space. Below 5 GB may cause build failures or cache issues.") }}
     <tr>
-        <td class="kv-label">Usage</td>
+        <td class="kv-label">
+            Usage
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">Disk usage percentage. Above 90% is critical — clear caches or build artifacts.</span>
+            </details>
+        </td>
         <td class="kv-value">
             {% set pct = data.disk.percent_used|default(0) %}
             <progress value="{{ pct }}" max="100"></progress>
@@ -52,6 +58,6 @@
 
 {% if data.temp_dir %}
 <table class="kv-table">
-    {{ kv_row("Temp Directory", data.temp_dir, copyable=true) }}
+    {{ kv_row("Temp Directory", data.temp_dir, copyable=true, hint="System temporary directory. Used for pip downloads and build intermediates.") }}
 </table>
 {% endif %}
