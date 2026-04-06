@@ -48,12 +48,30 @@
     <span class="badge badge-info">{{ data.runner_names|default([])|length }} runners</span>
 </div>
 
+{# --- Runner-to-source-file mapping --- #}
+{% set runner_source = {
+    "Taskfile": "Taskfile.yml",
+    "Makefile": "Makefile",
+    "npm": "package.json",
+    "VS Code Task": ".vscode/tasks.json",
+} %}
+
 {# --- Commands by Runner --- #}
 {% for runner_name, commands in data.by_runner|default({})|items %}
+{% set source_file = runner_source.get(runner_name, "") %}
+{% if not source_file %}
+    {# Hatch envs and entry points derive from pyproject.toml #}
+    {% if "Hatch" in runner_name or "Entry Point" in runner_name or "Script" in runner_name %}
+        {% set source_file = "pyproject.toml" %}
+    {% endif %}
+{% endif %}
 <details {% if loop.first %}open{% endif %}>
     <summary>
         <strong>{{ runner_name }}</strong>
         <span class="badge">{{ commands|length }}</span>
+        {% if source_file %}
+        <span class="runner-source-file mono">{{ source_file }}</span>
+        {% endif %}
     </summary>
     <table class="kv-table striped">
         <thead>

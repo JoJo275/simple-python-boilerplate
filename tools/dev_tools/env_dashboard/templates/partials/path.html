@@ -20,6 +20,7 @@
             <th>Executables</th>
             <th>Priority</th>
             <th>Status</th>
+            <th>Remove</th>
         </tr>
     </thead>
     <tbody>
@@ -52,6 +53,9 @@
                 {% else %}
                     <span class="badge badge-pass">ok</span>
                 {% endif %}
+            </td>
+            <td>
+                <button class="path-remove-btn" @click="pathRemove('{{ entry.path|e }}')" title="Remove from User PATH">&times;</button>
             </td>
         </tr>
         {% endfor %}

@@ -90,7 +90,9 @@
                 <th>Package</th>
                 <th>Version</th>
                 <th>Latest</th>
-                <th>Actions</th>
+                <th>Update</th>
+                <th>Uninstall</th>
+                <th>Move</th>
             </tr>
         </thead>
         <tbody>
@@ -109,22 +111,38 @@
                     {% elif pkg.update_available %}
                     <span class="badge badge-warn">update available</span>
                     {% else %}
-                    <span class="muted">—</span>
+                    <span class="muted">up to date</span>
                     {% endif %}
                 </td>
-                <td class="pkg-actions">
+                <td class="pkg-action-cell">
                     {% if pkg.update_available %}
                     <button class="outline secondary btn-xs pip-action-btn"
                             @click="pipAction('update', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}')"
                             title="Update {{ pkg.name }}">
                         Update
                     </button>
+                    {% else %}
+                    <span class="muted">—</span>
                     {% endif %}
+                </td>
+                <td class="pkg-action-cell">
                     <button class="outline btn-xs pip-action-btn pip-uninstall"
                             @click="pipAction('uninstall', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}')"
                             title="Uninstall {{ pkg.name }}">
                         Uninstall
                     </button>
+                </td>
+                <td class="pkg-action-cell">
+                    <select class="pkg-move-select"
+                            @change="if($el.value) { pipAction('move', '{{ pkg.name|e }}', '{{ env.python_exe|default('')|e }}', $el.value); $el.value=''; }"
+                            title="Move {{ pkg.name }} to another environment">
+                        <option value="">Move to…</option>
+                        {% for other_env in data.environments|default([]) %}
+                        {% if other_env.name != env.name and other_env.python_exe %}
+                        <option value="{{ other_env.python_exe|e }}">{{ other_env.name }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
                 </td>
             </tr>
             {% endfor %}
