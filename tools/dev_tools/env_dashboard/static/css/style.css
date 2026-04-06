@@ -474,10 +474,6 @@ body.dialog-open {
     cursor: default;
 }
 
-.warnings-panel .section-guide-body {
-    animation: guide-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .warning-item {
     display: flex;
     align-items: center;
@@ -722,7 +718,11 @@ body.dialog-open {
     color: var(--color-text-muted);
     line-height: 1.6;
     overflow: hidden;
-    animation: guide-expand 0.25s ease;
+}
+
+/* Replay-friendly: animation class added/removed via toggle */
+.section-guide[open] > .section-guide-body {
+    animation: guide-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes guide-expand {
@@ -888,7 +888,7 @@ body.dialog-open {
     background: var(--color-accent-dim);
 }
 
-/* Tables with thead should not constrain first-child or last-child */
+/* Tables with thead are multi-column — reset 2-column kv constraints */
 .kv-table thead + tbody td:first-child,
 .kv-table thead th {
     white-space: normal;
@@ -900,6 +900,7 @@ body.dialog-open {
 .kv-table thead + tbody td:last-child {
     max-width: none;
     width: auto;
+    overflow: visible;
 }
 
 .kv-table thead th {
@@ -1845,31 +1846,31 @@ body.dialog-open {
 
 .pkg-table {
     font-size: 0.85rem;
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
 }
 
 .pkg-table th:nth-child(1),
 .pkg-table td:nth-child(1) {
-    width: 30%;
+    width: 35%;
     word-break: break-word;
     overflow-wrap: anywhere;
 }
 
 .pkg-table th:nth-child(2),
 .pkg-table td:nth-child(2) {
-    width: 12%;
+    width: 15%;
     white-space: nowrap;
 }
 
 .pkg-table th:nth-child(3),
 .pkg-table td:nth-child(3) {
-    width: 12%;
+    width: 15%;
 }
 
 .pkg-table th:nth-child(4),
 .pkg-table td:nth-child(4) {
-    width: auto;
+    width: 35%;
 }
 
 .pkg-table thead th {
@@ -2088,6 +2089,31 @@ body.dialog-open {
 }
 
 /* ========== Project Commands Section ========== */
+
+/* Consistent column widths across all command runner tables */
+#section-body-project_commands .kv-table.striped {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#section-body-project_commands .kv-table.striped th:nth-child(1),
+#section-body-project_commands .kv-table.striped td:nth-child(1) {
+    width: 22%;
+}
+
+#section-body-project_commands .kv-table.striped th:nth-child(2),
+#section-body-project_commands .kv-table.striped td:nth-child(2) {
+    width: 48%;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+#section-body-project_commands .kv-table.striped th:nth-child(3),
+#section-body-project_commands .kv-table.striped td:nth-child(3) {
+    width: 30%;
+    white-space: nowrap;
+}
 
 .cmd-code {
     font-size: 0.8rem;
@@ -2423,7 +2449,7 @@ details.warning-item[open] .warning-chevron {
     position: relative;
     flex-shrink: 0;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-left: 0.35rem;
+    margin-right: 0.35rem;
     overflow: visible;
     transform: translateY(-3px);
 }
@@ -2562,6 +2588,11 @@ details.warning-item[open] .warning-chevron {
     display: inline-block;
 }
 
+/* Multi-column tables (with thead): undo inline-block on td.mono */
+.kv-table:has(thead) td.mono {
+    display: table-cell;
+}
+
 /* Path table cells: undo inline-block to prevent purple bleed and offsets */
 .path-table td.mono.path-cell,
 .path-table td.mono {
@@ -2572,7 +2603,7 @@ details.warning-item[open] .warning-chevron {
     max-width: none;
 }
 
-/* Wider second column in kv-tables by default */
+/* Wider second column in kv-tables by default (2-column only) */
 .kv-table td:last-child {
     max-width: 0;
     width: 100%;
@@ -2583,10 +2614,11 @@ details.warning-item[open] .warning-chevron {
     white-space: normal;
 }
 
-/* Multi-column tables with thead: don't crush last column */
-.kv-table.striped td:last-child {
+/* Multi-column tables (with thead): undo 2-column last-child crush */
+.kv-table:has(thead) td:last-child {
     max-width: none;
     width: auto;
+    overflow: visible;
 }
 
 /* Env meta paths */
@@ -2598,69 +2630,30 @@ details.warning-item[open] .warning-chevron {
     line-height: 1.4;
 }
 
-/* Build tools table */
-.section-card table td.mono {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    white-space: normal;
-    max-width: 280px;
-}
-
-/* Build tools / project tables — auto layout for readable columns */
-.section-card .kv-table.striped {
-    table-layout: fixed;
-    width: 100%;
-}
-
-.section-card .kv-table.striped th,
-.section-card .kv-table.striped td {
-    padding: 0.3rem 0.5rem;
-    vertical-align: middle;
-    font-size: 0.78rem;
-    width: auto;
-    min-width: auto;
-    max-width: none;
+/* Build tools table — executable column truncation */
+.kv-table.build-tools-table td,
+.kv-table.build-tools-table th {
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    vertical-align: middle;
+    padding: 0.3rem 0.5rem;
 }
 
-/* Column widths for the 5-column build tools table */
-.section-card .kv-table.striped th:nth-child(1),
-.section-card .kv-table.striped td:nth-child(1) {
-    width: 12%;
-    white-space: nowrap;
-    font-weight: 600;
-}
-
-.section-card .kv-table.striped th:nth-child(2),
-.section-card .kv-table.striped td:nth-child(2) {
-    width: 10%;
+.kv-table.build-tools-table td:nth-child(2) {
     text-align: center;
-    white-space: nowrap;
 }
 
-.section-card .kv-table.striped th:nth-child(3),
-.section-card .kv-table.striped td:nth-child(3) {
-    width: 10%;
-    white-space: nowrap;
-}
-
-.section-card .kv-table.striped th:nth-child(4),
-.section-card .kv-table.striped td:nth-child(4) {
-    width: 48%;
+/* Executable — show full path, wrap if needed */
+.kv-table.build-tools-table td:nth-child(4) {
     white-space: normal;
     word-break: break-word;
     overflow-wrap: anywhere;
+    overflow: visible;
+    text-overflow: clip;
 }
 
-.section-card .kv-table.striped th:nth-child(5),
-.section-card .kv-table.striped td:nth-child(5) {
-    width: 20%;
-    white-space: nowrap;
-}
-
-.section-card .kv-table.striped th {
-    white-space: nowrap;
+.kv-table.build-tools-table th {
     font-weight: 600;
     color: var(--color-text-muted);
 }
