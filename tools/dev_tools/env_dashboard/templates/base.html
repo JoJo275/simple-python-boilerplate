@@ -420,8 +420,11 @@
 
             /* --- Terminal panel for pip operations --- */
 
-            pipAction(action, packageName, pythonExe) {
+            pipAction(action, packageName, pythonExe, targetExe) {
                 if (action === 'uninstall' && !confirm(`Uninstall ${packageName}?`)) {
+                    return;
+                }
+                if (action === 'move' && !confirm(`Move ${packageName} to the selected environment? This will install it there and uninstall from the current one.`)) {
                     return;
                 }
 
@@ -430,6 +433,34 @@
                     this.terminalOpen = true;
                     localStorage.setItem('dashboard-terminal', 'open');
                     document.querySelector('.dashboard-main')?.classList.add('terminal-open');
+                }
+
+                // Move = install in target then uninstall from source
+                if (action === 'move') {
+                    this.terminalTitle = `pip move: ${packageName}`;
+                    this.terminalStatus = 'Running...';
+                    this.terminalStatusClass = 'running';
+                    this._addTerminalLine('', '');
+                    this._addTerminalLine(`$ Moving ${packageName} → target environment`, 'term-info');
+
+                    // Step 1: install in target
+                    const installParams = new URLSearchParams({ package: packageName, python_exe: targetExe || '' });
+                    fetch(`/api/pip/install?${installParams.toString()}`, { method: 'POST' }).then(() => {
+                        this._addTerminalLine(`Installed ${packageName} in target. Uninstalling from source...`, 'term-info');
+                        // Step 2: uninstall from source
+                        const uninstallParams = new URLSearchParams({ package: packageName, python_exe: pythonExe || '' });
+                        return fetch(`/api/pip/uninstall?${uninstallParams.toString()}`, { method: 'POST' });
+                    }).then(() => {
+                        this._addTerminalLine(`Moved ${packageName} successfully.`, 'term-info');
+                        this.terminalStatus = 'Done';
+                        this.terminalStatusClass = 'success';
+                        this.refreshScan();
+                    }).catch(err => {
+                        this._addTerminalLine(`Error: ${err.message}`, 'term-error');
+                        this.terminalStatus = 'Error';
+                        this.terminalStatusClass = 'failed';
+                    });
+                    return;
                 }
 
                 this.terminalTitle = `pip ${action}: ${packageName}`;
@@ -505,6 +536,24 @@
                     this.terminalStatus = 'Connection error';
                     this.terminalStatusClass = 'failed';
                 });
+            },
+
+            async pathRemove(pathEntry) {
+                if (!confirm(`Remove from User PATH?\n\n${pathEntry}\n\nThis modifies your persistent User PATH (Windows registry). Restart terminals to apply.`)) {
+                    return;
+                }
+                const params = new URLSearchParams({ path_entry: pathEntry });
+                try {
+                    const resp = await fetch(`/api/path/remove?${params.toString()}`, { method: 'POST' });
+                    const data = await resp.json();
+                    if (data.error) {
+                        alert(`Failed: ${data.error}`);
+                    } else {
+                        this.refreshScan();
+                    }
+                } catch (err) {
+                    alert(`Error: ${err.message}`);
+                }
             },
 
             async updateAllOutdated(btnEl, pythonExe) {

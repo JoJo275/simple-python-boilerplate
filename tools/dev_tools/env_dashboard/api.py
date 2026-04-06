@@ -239,6 +239,97 @@ async def api_pip_check_updates(
     return JSONResponse({"outdated": []})
 
 
+# --------------------------------------------------------------------------
+# PATH management (Windows only — modifies User PATH in registry)
+# --------------------------------------------------------------------------
+
+
+def _validate_path_entry(entry: str) -> bool:
+    """Check that a PATH entry looks like a directory path, not an injection."""
+    if not entry or len(entry) > 1024:
+        return False
+    # Block obvious shell metacharacters
+    forbidden = set('";<>|&`$')
+    return not any(c in forbidden for c in entry)
+
+
+@router.post("/path/remove")
+async def api_path_remove(
+    path_entry: str = Query(...),
+) -> JSONResponse:
+    """Remove a directory from the User PATH (Windows registry).
+
+    Security: validates the path string, only modifies HKCU (user-level),
+    and only listens on 127.0.0.1.
+    """
+    import platform
+
+    if platform.system() != "Windows":
+        return JSONResponse(
+            {"error": "PATH removal only supported on Windows"},
+            status_code=501,
+        )
+
+    if not _validate_path_entry(path_entry):
+        return JSONResponse(
+            {"error": "Invalid path entry"},
+            status_code=400,
+        )
+
+    try:
+        import winreg  # nosec B404 — Windows registry access
+
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Environment",
+            0,
+            winreg.KEY_READ | winreg.KEY_WRITE,
+        )
+        try:
+            current_path, reg_type = winreg.QueryValueEx(key, "PATH")
+        except FileNotFoundError:
+            winreg.CloseKey(key)
+            return JSONResponse(
+                {"error": "No User PATH variable found"},
+                status_code=404,
+            )
+
+        entries = [e for e in current_path.split(";") if e.strip()]
+        target = path_entry.strip().lower().rstrip("\\")
+        new_entries = [e for e in entries if e.strip().lower().rstrip("\\") != target]
+
+        if len(new_entries) == len(entries):
+            winreg.CloseKey(key)
+            return JSONResponse(
+                {"error": "Entry not found in User PATH"},
+                status_code=404,
+            )
+
+        new_path = ";".join(new_entries)
+        winreg.SetValueEx(key, "PATH", 0, reg_type, new_path)
+        winreg.CloseKey(key)
+
+        # Update current process PATH so the next scan reflects the change
+        process_path = os.environ.get("PATH", "")
+        process_entries = process_path.split(";")
+        os.environ["PATH"] = ";".join(
+            e for e in process_entries if e.strip().lower().rstrip("\\") != target
+        )
+
+        # Invalidate cache so next scan picks up the change
+        invalidate_cache()
+
+        return JSONResponse(
+            {
+                "status": "ok",
+                "removed": path_entry,
+                "remaining": len(new_entries),
+            }
+        )
+    except OSError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=500)
+
+
 @router.post("/shutdown")
 async def api_shutdown() -> JSONResponse:
     """Gracefully shut down the dashboard server.

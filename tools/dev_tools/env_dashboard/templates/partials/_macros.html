@@ -4,13 +4,15 @@
 {% macro kv_row(label, value, copyable=false, hint="") %}
 <tr>
     <td class="kv-label">
-        {% if hint %}
-        <details class="kv-hint">
-            <summary><span class="hint-chevron"></span></summary>
-            <span class="hint-text">{{ hint }}</span>
-        </details>
-        {% endif %}
-        {{ label|replace("_", " ")|title }}
+        <span class="kv-label-row">
+            {% if hint %}
+            <details class="kv-hint">
+                <summary><span class="hint-chevron"></span></summary>
+                <span class="hint-text">{{ hint }}</span>
+            </details>
+            {% endif %}
+            <span>{{ label|replace("_", " ")|title }}</span>
+        </span>
     </td>
     <td class="kv-value">
         {% if value is none or value == "" %}
