@@ -93,6 +93,8 @@ Serve: `hatch run docs:serve`.
 | `.github/instructions/dashboard-css.instructions.md` | Dashboard CSS/theme conventions |
 | `.github/instructions/dashboard-templates.instructions.md` | Dashboard Jinja2 template conventions |
 | `.github/instructions/collectors.instructions.md` | Environment data collector conventions |
+| `.github/instructions/python.instructions.md` | Python style, imports, type hints, security |
+| `.github/instructions/tests.instructions.md` | pytest conventions, fixtures, coverage |
 
 This file covers **project-wide** rules. Prefer the targeted instruction file for file-type-specific details.
 
