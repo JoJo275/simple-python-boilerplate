@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import re
@@ -255,7 +256,13 @@ async def api_shutdown() -> JSONResponse:
         """Small delay so the JSON response reaches the client first."""
         await asyncio.sleep(0.3)
         if sys.platform == "win32":
-            os.kill(0, signal.CTRL_C_EVENT)
+            # Forcefully terminate the reloader parent process, then self.
+            # CTRL_C_EVENT alone is caught by Uvicorn's reloader which
+            # just restarts the worker instead of exiting.
+            parent_pid = os.getppid()
+            with contextlib.suppress(OSError):
+                os.kill(parent_pid, signal.SIGTERM)
+            os.kill(os.getpid(), signal.SIGTERM)
         else:
             # Kill parent (reloader) then self.
             os.kill(os.getppid(), signal.SIGINT)

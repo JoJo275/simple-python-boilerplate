@@ -6,7 +6,7 @@
     <title>{% block title %}Environment Dashboard{% endblock %}</title>
     <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/static/css/pico.min.css">
-    <link rel="stylesheet" href="/static/css/style.css?v={{ meta.timestamp|default('0')|replace(' ', '')|replace(':', '') }}">
+    <link rel="stylesheet" href="/static/css/style.css?v={{ cache_bust|default('0') }}">
     {% block head %}{% endblock %}
 </head>
 <body hx-headers='{"Accept": "text/html"}' x-data="dashboard()" x-init="init()">
@@ -399,7 +399,7 @@
                 // Start auto-polling for server availability
                 window._reconnectPoll = setInterval(() => {
                     fetch('/api/summary', { method: 'GET', cache: 'no-store' })
-                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); sessionStorage.removeItem('dashboard-shutdown'); window.location.reload(); } })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); sessionStorage.removeItem('dashboard-shutdown'); var s = document.getElementById('restart-status'); if (s) { s.textContent = 'Server found! Reloading...'; s.className = 'restart-status restart-status-found'; } window.location.reload(); } })
                         .catch(() => {});
                 }, 3000);
             },
@@ -752,7 +752,7 @@
             if (!window._reconnectPoll) {
                 window._reconnectPoll = setInterval(() => {
                     fetch('/api/summary', { method: 'GET', cache: 'no-store' })
-                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); window._reconnectPoll = null; sessionStorage.removeItem(SHUTDOWN_KEY); window.location.reload(); } })
+                        .then(r => { if (r.ok) { clearInterval(window._reconnectPoll); window._reconnectPoll = null; sessionStorage.removeItem(SHUTDOWN_KEY); var s = document.getElementById('restart-status'); if (s) { s.textContent = 'Server found! Reloading...'; s.className = 'restart-status restart-status-found'; } window.location.reload(); } })
                         .catch(() => {});
                 }, 3000);
             }
