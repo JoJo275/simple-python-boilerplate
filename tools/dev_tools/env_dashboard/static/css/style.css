@@ -615,6 +615,7 @@ body.dialog-open {
     list-style: none;
     opacity: 0.7;
     transition: opacity 0.15s ease;
+    position: relative;
 }
 
 .section-guide > summary:hover {
@@ -630,14 +631,50 @@ body.dialog-open {
 }
 
 .section-guide > summary::after {
-    content: "▸";
-    font-size: 0.6rem;
+    content: '';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    border-radius: 50%;
+    background: var(--color-accent-dim);
+    border: 1px solid var(--color-border-accent);
     margin-left: auto;
-    transition: transform 0.2s ease;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Chevron arrow inside the circle */
+.section-guide > summary::before {
+    content: '';
+    position: absolute;
+    right: calc(var(--gap-md) + 5px);
+    width: 5px;
+    height: 5px;
+    border-right: 1.5px solid var(--color-accent);
+    border-bottom: 1.5px solid var(--color-accent);
+    transform: rotate(-45deg);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.section-guide > summary:hover::after {
+    background: var(--color-accent-glow);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 6px var(--color-accent-dim);
 }
 
 .section-guide[open] > summary::after {
-    transform: rotate(90deg);
+    background: var(--color-accent-dim);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 8px var(--color-accent-dim);
+}
+
+.section-guide[open] > summary::before {
+    transform: rotate(45deg);
 }
 
 .section-guide[open] > summary {
@@ -683,6 +720,33 @@ body.dialog-open {
     margin-bottom: 0.15rem;
     font-size: 0.72rem;
     line-height: 1.5;
+}
+
+.section-guide-related {
+    margin-top: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-accent) 10%, transparent);
+    font-size: 0.68rem;
+    color: var(--color-text-muted);
+}
+
+.section-guide-related strong {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent-bright);
+    margin-right: 0.3rem;
+}
+
+.section-guide-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.section-guide-link:hover {
+    color: var(--color-accent-bright);
+    text-decoration: underline;
 }
 
 /* ========== Status badges ========== */
@@ -2254,6 +2318,7 @@ details.warning-item[open] .warning-chevron {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-left: 0.35rem;
     overflow: visible;
+    transform: translateY(-1px);
 }
 
 .kv-hint .hint-chevron::after {
