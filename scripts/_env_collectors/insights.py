@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, ClassVar
 
 from _env_collectors._base import BaseCollector
@@ -212,4 +213,131 @@ class InsightsCollector(BaseCollector):
                 }
             )
 
+        # Python version vs requires-python
+        project_cmds = s.get("project_commands", {})
+        project_meta = project_cmds.get("project", {})
+        requires_python = project_meta.get("requires_python", "")
+        py_version = python_info.get("version", "")
+        if (
+            requires_python
+            and py_version
+            and not _version_satisfies(py_version, requires_python)
+        ):
+            warnings.append(
+                {
+                    "severity": "fail",
+                    "message": f"Python {py_version} does not satisfy requires-python '{requires_python}'",
+                    "section": "runtimes",
+                    "hint": "The active Python version doesn't meet the project's minimum version constraint. Builds and tests will fail.",
+                    "action": f"Install a Python version matching '{requires_python}' and activate it (pyenv, hatch, or system package manager).",
+                }
+            )
+
+        # Outdated pip
+        pip_envs = s.get("pip_environments", {})
+        for env in pip_envs.get("environments", []):
+            for pkg in env.get("packages", []):
+                if pkg.get("name", "").lower() == "pip" and pkg.get("update_available"):
+                    current_v = pkg.get("version", "?")
+                    latest_v = pkg.get("latest_version", "?")
+                    warnings.append(
+                        {
+                            "severity": "warn",
+                            "message": f"pip is outdated ({current_v} → {latest_v})",
+                            "section": "packages",
+                            "hint": "An outdated pip may miss dependency resolution improvements and security fixes.",
+                            "action": "Run 'python -m pip install --upgrade pip' inside your venv.",
+                        }
+                    )
+                    break
+            else:
+                continue
+            break
+
+        # Missing critical tools (git, hatch, pre-commit)
+        _check_critical_tools(s, warnings)
+
         return {"warnings": warnings, "count": len(warnings)}
+
+
+def _version_satisfies(version: str, constraint: str) -> bool:
+    """Check if a version string satisfies a requires-python constraint."""
+    match = re.match(r"(\d+)\.(\d+)", version)
+    if not match:
+        return True  # can't parse, assume OK
+    major, minor = int(match.group(1)), int(match.group(2))
+
+    # Parse constraints like ">=3.11", ">=3.11,<4"
+    for part in constraint.split(","):
+        part = part.strip()
+        m = re.match(r"([><=!]+)\s*(\d+)\.(\d+)", part)
+        if not m:
+            continue
+        op, req_maj, req_min = m.group(1), int(m.group(2)), int(m.group(3))
+        ver = (major, minor)
+        req = (req_maj, req_min)
+        if op == ">=" and not (ver >= req):
+            return False
+        if op == ">" and not (ver > req):
+            return False
+        if op == "<=" and not (ver <= req):
+            return False
+        if op == "<" and not (ver < req):
+            return False
+        if op == "==" and ver != req:
+            return False
+        if op == "!=" and ver == req:
+            return False
+    return True
+
+
+def _check_critical_tools(
+    sections: dict[str, Any], warnings: list[dict[str, str]]
+) -> None:
+    """Check whether git, hatch, and pre-commit are available."""
+    git_data = sections.get("git", {})
+    if not git_data.get("available", True):
+        warnings.append(
+            {
+                "severity": "fail",
+                "message": "git is not installed or not on PATH",
+                "section": "git",
+                "hint": "git is required for version control, hatch-vcs versioning, and pre-commit hooks.",
+                "action": "Install git: https://git-scm.com/downloads",
+            }
+        )
+
+    project = sections.get("project", {})
+    build_tools = project.get("build_tools", [])
+    tool_map = {t["name"].lower(): t for t in build_tools if isinstance(t, dict)}
+
+    hatch = tool_map.get("hatch", {})
+    if hatch and not hatch.get("available", True):
+        warnings.append(
+            {
+                "severity": "warn",
+                "message": "Hatch is not installed — cannot manage environments or build",
+                "section": "project",
+                "hint": "This project uses Hatch for environment management, builds, and script running.",
+                "action": "Install Hatch: 'pipx install hatch' or 'pip install hatch'.",
+            }
+        )
+
+    # Check pre-commit: if config exists but tool isn't in PATH
+    config_files = project.get("config_files", [])
+    has_precommit_config = any(
+        ".pre-commit-config.yaml" in str(f) for f in config_files
+    )
+    if has_precommit_config:
+        import shutil
+
+        if not shutil.which("pre-commit"):
+            warnings.append(
+                {
+                    "severity": "warn",
+                    "message": "pre-commit config found but pre-commit is not installed",
+                    "section": "project",
+                    "hint": "This project uses pre-commit for code quality hooks but the tool isn't available.",
+                    "action": "Install pre-commit: 'pipx install pre-commit' or activate the Hatch dev env with 'hatch shell'.",
+                }
+            )

@@ -84,6 +84,53 @@
             <span class="section-help-tooltip">Issues detected in your development environment. Click any warning to expand details and recommended fixes. Red = critical (fix now), amber = should fix, blue = informational.</span>
         </span>
     </h3>
+    <details class="section-guide" onclick="event.stopPropagation()">
+        <summary><span class="section-guide-icon"></span> Guide</summary>
+        <div class="section-guide-body">
+            <p class="section-guide-what">Automated checks that scan your development environment for problems. Warnings surface before they become hard-to-debug build or runtime failures.</p>
+            <div class="section-guide-block section-guide-concepts">
+                <strong>Severity levels</strong>
+                <dl class="section-guide-dl">
+                    <dt>Critical (red ×)</dt>
+                    <dd>Must fix — will cause builds, installs, or tests to fail. Examples: disk full, insecure PATH, unwritable temp directory.</dd>
+                    <dt>Warning (amber !)</dt>
+                    <dd>Should fix — won't break things immediately but indicates problems. Examples: no virtualenv, dirty git tree, dead PATH entries.</dd>
+                    <dt>Info (blue i)</dt>
+                    <dd>Awareness only — nothing to fix, but worth knowing. Examples: CI environment detected, WSL detected, PATH duplicates.</dd>
+                </dl>
+            </div>
+            <div class="section-guide-block">
+                <strong>All checks performed</strong>
+                <ul>
+                    <li><b>Virtualenv active</b> — verifies you're running inside a venv (not system Python).</li>
+                    <li><b>Git clean state</b> — flags uncommitted changes that make builds non-reproducible.</li>
+                    <li><b>PATH dead entries</b> — directories listed in PATH that no longer exist on disk.</li>
+                    <li><b>PATH duplicates</b> — same directory appearing more than once (after normalizing case/slashes).</li>
+                    <li><b>Secret env vars</b> — environment variables matching patterns like API_KEY, TOKEN, SECRET.</li>
+                    <li><b>Insecure PATH dirs</b> — world-writable directories in PATH (malicious executable injection risk).</li>
+                    <li><b>SSH keys in env</b> — private key paths stored in environment variables.</li>
+                    <li><b>Disk space &gt;80%</b> — warns at 80%, critical at 90% (pip/builds will fail).</li>
+                    <li><b>Temp dir writable</b> — verifies the system temp directory is writable.</li>
+                    <li><b>DNS resolution</b> — checks if pypi.org resolves (needed for pip install).</li>
+                    <li><b>HTTPS outbound</b> — verifies outbound HTTPS isn't blocked by proxy/firewall.</li>
+                    <li><b>CI detection</b> — identifies CI environments (GitHub Actions, GitLab CI, etc.).</li>
+                    <li><b>WSL detection</b> — flags when running under Windows Subsystem for Linux.</li>
+                    <li><b>Python version match</b> — checks if Python version satisfies the project's requires-python.</li>
+                    <li><b>Outdated pip</b> — flags when pip itself is significantly out of date.</li>
+                    <li><b>Missing critical tools</b> — checks for git, hatch, and pre-commit availability.</li>
+                </ul>
+            </div>
+            <div class="section-guide-block">
+                <strong>When checks are performed</strong>
+                <ul>
+                    <li><b>On page load</b> — all checks run automatically when the dashboard starts.</li>
+                    <li><b>On refresh</b> — clicking the Refresh button or triggering a scan re-runs all checks with fresh data.</li>
+                    <li><b>Cache window</b> — results are cached for 30 seconds to avoid redundant work. After 30s the next request collects fresh data.</li>
+                    <li><b>Cross-section analysis</b> — the insights engine runs after all other collectors finish, analysing their combined output to derive warnings.</li>
+                </ul>
+            </div>
+        </div>
+    </details>
     <div class="warning-list">
         {% for w in warnings %}
         <details class="warning-item warning-{{ w.severity|default('warn') }}">
@@ -194,7 +241,8 @@
             "Dead entry": "A directory listed in PATH that no longer exists on disk. The system wastes time checking it on every command, and it usually means a program was uninstalled or moved without cleaning up PATH.",
             "Duplicate entry": "The same directory appearing more than once in PATH (after normalizing case and slashes). Only the first occurrence matters — duplicates are wasted lookups and clutter.",
             "Shadowing": "When two PATH directories both contain an executable with the same name (e.g. python). The one in the earlier directory 'shadows' the later one — you get a different binary than expected.",
-            "Priority (High/Mid/Low)": "Entries near the top of PATH (positions 1-3) have highest priority and are checked first. These should be your venv and critical tool directories."
+            "Priority (High/Mid/Low)": "Entries near the top of PATH (positions 1-3) have highest priority and are checked first. These should be your venv and critical tool directories.",
+            "Executables": "The number of runnable programs (.exe, .cmd, .bat, .com on Windows; files with execute permission on Unix) found in that directory. A high count means the directory contains many tools — useful for verifying the right programs are reachable."
         },
         "look_for": [
             "Duplicate entries waste lookup time and can mask shadowing issues.",

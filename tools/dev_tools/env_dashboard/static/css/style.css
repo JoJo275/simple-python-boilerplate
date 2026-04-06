@@ -469,6 +469,15 @@ body.dialog-open {
     font-size: 0.85rem;
 }
 
+/* Ensure the guide inside warnings-panel opens smoothly */
+.warnings-panel .section-guide {
+    cursor: default;
+}
+
+.warnings-panel .section-guide-body {
+    animation: guide-expand 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .warning-item {
     display: flex;
     align-items: center;
@@ -651,12 +660,13 @@ body.dialog-open {
 .section-guide > summary::before {
     content: '';
     position: absolute;
-    right: calc(var(--gap-md) + 5px);
+    right: calc(var(--gap-md) + 5.5px);
+    top: 50%;
     width: 5px;
     height: 5px;
     border-right: 1.5px solid var(--color-accent);
     border-bottom: 1.5px solid var(--color-accent);
-    transform: rotate(-45deg);
+    transform: translateY(-70%) rotate(-45deg);
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1;
 }
@@ -674,7 +684,7 @@ body.dialog-open {
 }
 
 .section-guide[open] > summary::before {
-    transform: rotate(45deg);
+    transform: translateY(-50%) rotate(45deg);
 }
 
 .section-guide[open] > summary {
@@ -704,12 +714,20 @@ body.dialog-open {
 
 .section-guide-icon::after {
     content: 'i';
+    transform: translateY(0.5px);
 }
 
 .section-guide-body {
     padding: 0.5rem var(--gap-md) 0.6rem;
     color: var(--color-text-muted);
     line-height: 1.6;
+    overflow: hidden;
+    animation: guide-expand 0.25s ease;
+}
+
+@keyframes guide-expand {
+    from { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
+    to   { opacity: 1; max-height: 1200px; padding-top: 0.5rem; padding-bottom: 0.6rem; }
 }
 
 .section-guide-what {
@@ -870,13 +888,18 @@ body.dialog-open {
     background: var(--color-accent-dim);
 }
 
-/* Tables with thead should not constrain first-child */
+/* Tables with thead should not constrain first-child or last-child */
 .kv-table thead + tbody td:first-child,
 .kv-table thead th {
     white-space: normal;
     width: auto;
     min-width: auto;
     max-width: none;
+}
+
+.kv-table thead + tbody td:last-child {
+    max-width: none;
+    width: auto;
 }
 
 .kv-table thead th {
@@ -1587,31 +1610,53 @@ body.dialog-open {
     vertical-align: middle;
 }
 
+/* Reset kv-table overrides for all path-table cells */
+.path-table td:first-child {
+    width: 3%;
+    min-width: auto;
+    max-width: none;
+    white-space: nowrap;
+    font-weight: normal;
+    color: inherit;
+}
+
+.path-table td:last-child {
+    max-width: none;
+    width: 5%;
+    overflow: visible;
+    text-overflow: clip;
+}
+
 /* # */
 .path-table th:nth-child(1),
 .path-table td:nth-child(1) {
-    width: 2rem;
+    width: 3%;
     white-space: nowrap;
     text-align: center;
 }
 
-/* Path — takes remaining space */
+/* Path — gets 65% of the table width */
 .path-table th:nth-child(2),
 .path-table td:nth-child(2) {
-    overflow-wrap: anywhere;
-    word-break: break-all;
+    width: 65%;
     white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .path-table td.path-cell {
     font-size: 0.72rem;
     line-height: 1.4;
+    display: table-cell;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
 }
 
 /* Exists */
 .path-table th:nth-child(3),
 .path-table td:nth-child(3) {
-    width: 3.5rem;
+    width: 5%;
     white-space: nowrap;
     text-align: center;
 }
@@ -1619,7 +1664,7 @@ body.dialog-open {
 /* Executables */
 .path-table th:nth-child(4),
 .path-table td:nth-child(4) {
-    width: 5rem;
+    width: 9%;
     white-space: nowrap;
     text-align: center;
 }
@@ -1627,7 +1672,7 @@ body.dialog-open {
 /* Priority */
 .path-table th:nth-child(5),
 .path-table td:nth-child(5) {
-    width: 3.5rem;
+    width: 7%;
     white-space: nowrap;
     text-align: center;
 }
@@ -1635,7 +1680,7 @@ body.dialog-open {
 /* Status */
 .path-table th:nth-child(6),
 .path-table td:nth-child(6) {
-    width: 3.5rem;
+    width: 5%;
     white-space: nowrap;
     text-align: center;
 }
@@ -2154,7 +2199,7 @@ details.warning-item > .warning-summary::after {
     height: 5px;
     border-right: 1.5px solid var(--color-accent);
     border-bottom: 1.5px solid var(--color-accent);
-    transform: rotate(-45deg);
+    transform: rotate(-45deg) translateY(-1px);
     margin-left: -1px;
     transition: border-color 0.2s ease;
 }
@@ -2380,7 +2425,7 @@ details.warning-item[open] .warning-chevron {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     margin-left: 0.35rem;
     overflow: visible;
-    transform: translateY(-1px);
+    transform: translateY(-3px);
 }
 
 .kv-hint .hint-chevron::after {
@@ -2517,6 +2562,16 @@ details.warning-item[open] .warning-chevron {
     display: inline-block;
 }
 
+/* Path table cells: undo inline-block to prevent purple bleed and offsets */
+.path-table td.mono.path-cell,
+.path-table td.mono {
+    display: table-cell;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+    max-width: none;
+}
+
 /* Wider second column in kv-tables by default */
 .kv-table td:last-child {
     max-width: 0;
@@ -2526,6 +2581,12 @@ details.warning-item[open] .warning-chevron {
     word-break: break-word;
     overflow-wrap: anywhere;
     white-space: normal;
+}
+
+/* Multi-column tables with thead: don't crush last column */
+.kv-table.striped td:last-child {
+    max-width: none;
+    width: auto;
 }
 
 /* Env meta paths */
@@ -2547,7 +2608,7 @@ details.warning-item[open] .warning-chevron {
 
 /* Build tools / project tables — auto layout for readable columns */
 .section-card .kv-table.striped {
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
 }
 
@@ -2556,6 +2617,46 @@ details.warning-item[open] .warning-chevron {
     padding: 0.3rem 0.5rem;
     vertical-align: middle;
     font-size: 0.78rem;
+    width: auto;
+    min-width: auto;
+    max-width: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Column widths for the 5-column build tools table */
+.section-card .kv-table.striped th:nth-child(1),
+.section-card .kv-table.striped td:nth-child(1) {
+    width: 12%;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.section-card .kv-table.striped th:nth-child(2),
+.section-card .kv-table.striped td:nth-child(2) {
+    width: 10%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.section-card .kv-table.striped th:nth-child(3),
+.section-card .kv-table.striped td:nth-child(3) {
+    width: 10%;
+    white-space: nowrap;
+}
+
+.section-card .kv-table.striped th:nth-child(4),
+.section-card .kv-table.striped td:nth-child(4) {
+    width: 48%;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.section-card .kv-table.striped th:nth-child(5),
+.section-card .kv-table.striped td:nth-child(5) {
+    width: 20%;
+    white-space: nowrap;
 }
 
 .section-card .kv-table.striped th {
