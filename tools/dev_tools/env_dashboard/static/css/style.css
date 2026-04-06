@@ -128,7 +128,7 @@ body::after {
     left: 0;
     right: 0;
     height: var(--topbar-height);
-    z-index: 100;
+    z-index: 300;
     display: flex;
     align-items: center;
     padding: 0 var(--gap-lg);
@@ -594,6 +594,97 @@ body.dialog-open {
     font-style: italic;
 }
 
+/* ========== Section Guide Panel ========== */
+.section-guide {
+    border-bottom: 1px solid var(--color-border-accent);
+    background: color-mix(in srgb, var(--color-accent) 4%, var(--color-bg-card));
+    font-size: 0.75rem;
+    cursor: default;
+}
+
+.section-guide > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem var(--gap-md);
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--color-accent-bright);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.section-guide > summary:hover {
+    opacity: 1;
+}
+
+.section-guide > summary::-webkit-details-marker {
+    display: none;
+}
+
+.section-guide > summary::marker {
+    content: "";
+}
+
+.section-guide > summary::after {
+    content: "▸";
+    font-size: 0.6rem;
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.section-guide[open] > summary::after {
+    transform: rotate(90deg);
+}
+
+.section-guide[open] > summary {
+    opacity: 1;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+.section-guide-icon {
+    font-size: 0.72rem;
+}
+
+.section-guide-body {
+    padding: 0.5rem var(--gap-md) 0.6rem;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+.section-guide-what {
+    margin: 0 0 0.4rem;
+    color: #c9d1d9;
+}
+
+.section-guide-block {
+    margin-top: 0.35rem;
+}
+
+.section-guide-block strong {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-accent-bright);
+    margin-bottom: 0.2rem;
+}
+
+.section-guide-block ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: disc;
+}
+
+.section-guide-block li {
+    margin-bottom: 0.15rem;
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
 /* ========== Status badges ========== */
 .badge {
     display: inline-flex;
@@ -913,12 +1004,16 @@ body.dialog-open {
     justify-content: center !important;
 }
 
-/* Accent gradient outline via pseudo-element */
+/* Accent gradient outline — on article (content box), not dialog */
 .shutdown-dialog::before {
+    display: none;
+}
+
+.shutdown-dialog > article::before {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 2px;
     background: linear-gradient(
         135deg,
@@ -1079,13 +1174,15 @@ body.dialog-open {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 500px;
-    height: 500px;
+    width: 440px;
+    max-width: 90vw;
+    height: 80px;
     transform: translate(-50%, -50%);
-    background: radial-gradient(ellipse at center, var(--color-accent-glow) 0%, transparent 70%);
+    background: linear-gradient(90deg, transparent, var(--color-accent-glow), transparent);
     pointer-events: none;
     z-index: 0;
-    filter: blur(40px);
+    filter: blur(30px);
+    border-radius: 8px;
 }
 
 /* No full-screen gradient overlay — remove ::after */
@@ -1150,6 +1247,12 @@ body.dialog-open {
     pointer-events: none;
     position: relative;
     color: transparent;
+}
+
+/* Suppress Pico CSS built-in aria-busy spinner (white ::before) */
+.shutdown-message .restart-btn[aria-busy="true"]::before {
+    display: none !important;
+    content: none !important;
 }
 
 .shutdown-message .restart-btn[aria-busy="true"]::after {
@@ -1377,7 +1480,7 @@ body.dialog-open {
 
 .path-table th:nth-child(1),
 .path-table td:nth-child(1) {
-    width: 2.5rem;
+    width: 2rem;
     white-space: nowrap;
     text-align: center;
 }
@@ -1392,21 +1495,21 @@ body.dialog-open {
 
 .path-table th:nth-child(3),
 .path-table td:nth-child(3) {
-    width: 4rem;
+    width: 3rem;
     white-space: nowrap;
     text-align: center;
 }
 
 .path-table th:nth-child(4),
 .path-table td:nth-child(4) {
-    width: 5.5rem;
+    width: 4rem;
     white-space: nowrap;
     text-align: center;
 }
 
 .path-table th:nth-child(5),
 .path-table td:nth-child(5) {
-    width: 4rem;
+    width: 3rem;
     white-space: nowrap;
     text-align: center;
 }
@@ -2018,7 +2121,7 @@ details.warning-item[open] .warning-chevron {
     left: 50%;
     transform: translateX(-50%);
     min-width: 220px;
-    max-width: 340px;
+    max-width: min(420px, 90vw);
     width: max-content;
     padding: 0.55rem 0.75rem;
     background: linear-gradient(135deg, rgba(20, 22, 30, 0.98), rgba(10, 12, 18, 0.99));
@@ -2034,12 +2137,12 @@ details.warning-item[open] .warning-chevron {
     word-wrap: break-word;
     overflow-wrap: break-word;
     overflow: visible;
-    animation: tooltip-in 0.15s ease;
+    animation: tooltip-in 0.15s ease forwards;
 }
 
 @keyframes tooltip-in {
-    from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity: 0; margin-top: -4px; }
+    to   { opacity: 1; margin-top: 0; }
 }
 
 .section-help-tooltip::before {
@@ -2065,17 +2168,30 @@ details.warning-item[open] .warning-chevron {
 }
 
 /* Clamp tooltips so they don't overflow the viewport edge */
-.summary-bar .section-help-tooltip,
-.section-card header .section-help-tooltip {
+.summary-bar .section-help-tooltip {
     left: auto;
     right: 0;
     transform: none;
 }
 
-.summary-bar .section-help-tooltip::before,
-.section-card header .section-help-tooltip::before {
+.summary-bar .section-help-tooltip::before {
     left: auto;
     right: 12px;
+    margin-left: 0;
+}
+
+/* Inline help buttons (section cards, warnings, etc.): extend tooltip rightward */
+.section-card header .section-help-tooltip,
+.warnings-panel .section-help-tooltip {
+    left: 0;
+    right: auto;
+    transform: none;
+}
+
+.section-card header .section-help-tooltip::before,
+.warnings-panel .section-help-tooltip::before {
+    left: 12px;
+    right: auto;
     margin-left: 0;
 }
 
@@ -2179,14 +2295,14 @@ details.warning-item[open] .warning-chevron {
     white-space: normal;
     word-break: break-word;
     overflow-wrap: break-word;
-    max-width: 300px;
+    max-width: min(420px, 60vw);
     animation: warning-expand 0.15s ease;
 }
 
 /* Allow hint text to wrap in label cells */
 .kv-table td:first-child .kv-hint .hint-text {
     white-space: normal;
-    max-width: 260px;
+    max-width: min(420px, 60vw);
 }
 
 /* Ensure hint chevrons and help buttons are never clipped */
@@ -2555,6 +2671,11 @@ details.warning-item[open] .warning-chevron {
 .restart-status-waiting {
     color: var(--color-warn);
     animation: pulse 1.5s ease-in-out infinite;
+}
+
+.restart-status-found {
+    color: var(--color-pass);
+    font-weight: 600;
 }
 
 /* ========== Packages summary badge row ========== */

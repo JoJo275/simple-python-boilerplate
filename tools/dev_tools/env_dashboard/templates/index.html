@@ -134,6 +134,185 @@
     "container": "Container runtime detection, CI system, WSL, dev containers, and cloud provider. Affects available resources and networking.",
     "security": "Security scan for leaked secrets in env vars, insecure PATH entries, and exposed SSH keys. Address red items immediately."
 } %}
+
+{# Section guides — detailed explanations, what to look for, and recommended actions #}
+{% set section_guide = {
+    "system": {
+        "what": "Shows the machine's operating system, CPU architecture, default shell, and locale/encoding settings. This is the foundation every other tool depends on.",
+        "look_for": [
+            "OS and architecture must match your deployment target — cross-platform bugs often start here.",
+            "Shell should be bash/zsh (macOS/Linux) or PowerShell (Windows). If it shows cmd.exe, some scripts may behave differently.",
+            "Encoding should be UTF-8. Non-UTF-8 locales cause crashes in tools that read source files with Unicode characters.",
+            "CPU count affects parallelism in tests (pytest-xdist) and builds."
+        ],
+        "actions": [
+            "If encoding is not UTF-8, set PYTHONUTF8=1 or fix your locale.",
+            "If this is a CI runner, compare these values against your local machine to diagnose 'works on my machine' issues."
+        ]
+    },
+    "runtimes": {
+        "what": "Displays the active Python interpreter version, implementation (CPython/PyPy), architecture, executable path, and whether it's running inside a virtualenv. Also lists all Python installations found on the system.",
+        "look_for": [
+            "Version must satisfy your project's requires-python constraint (check pyproject.toml).",
+            "Architecture (64-bit vs 32-bit) must match compiled native dependencies like numpy or cryptography.",
+            "'In Virtualenv' should be Yes during development — bare system Python risks dependency conflicts.",
+            "If multiple installations are listed, ensure the active one is the one you intend."
+        ],
+        "actions": [
+            "If the version is wrong, activate the correct venv: hatch shell or source .venv/bin/activate.",
+            "If 'In Virtualenv' is No, run hatch shell before installing packages.",
+            "If you see unexpected installations, check your PATH order (see Path section) for shadowing."
+        ]
+    },
+    "path": {
+        "what": "Shows every directory in your system PATH, in order. The first match wins when running commands like python, git, or node — order matters.",
+        "look_for": [
+            "Duplicate entries waste lookup time and can mask shadowing issues.",
+            "Dead/missing directories (marked with a warning) slow down command resolution and indicate stale config.",
+            "Virtualenv bin/Scripts directory should appear early so venv Python takes priority over system Python.",
+            "Windows users: check for both backslash and forward-slash variants of the same path."
+        ],
+        "actions": [
+            "Remove dead entries from your shell profile (.bashrc, .zshrc, or System Environment Variables on Windows).",
+            "If the wrong Python is picked up, reorder PATH so your venv comes first.",
+            "Use 'which python' (Unix) or 'Get-Command python' (PowerShell) to verify resolution."
+        ]
+    },
+    "git": {
+        "what": "Shows git availability, version, current branch, working tree status (clean/dirty), remote configuration, and stash count.",
+        "look_for": [
+            "Branch name — are you on the correct feature branch, or accidentally on main?",
+            "Dirty working tree means uncommitted changes exist. Some CI gates and release tools require a clean tree.",
+            "Stash count — forgotten stashes may contain important work-in-progress.",
+            "Git version — features like init.defaultBranch require git 2.28+."
+        ],
+        "actions": [
+            "If the tree is dirty and you're about to push, commit or stash your changes first.",
+            "If stash count is high, run 'git stash list' to review and drop old stashes.",
+            "If git version is old, update it — some pre-commit hooks and CI features need recent git."
+        ]
+    },
+    "venv": {
+        "what": "Detects whether you're inside a virtual environment and which type: standard venv, Conda, Hatch, or Poetry. Shows the venv path and related environment variables.",
+        "look_for": [
+            "A venv MUST be active during development. Installing packages globally causes version conflicts across projects.",
+            "Venv type should match your project's tooling — this project uses Hatch.",
+            "VIRTUAL_ENV path should point inside your project directory, not some other project."
+        ],
+        "actions": [
+            "If no venv is active, run 'hatch shell' to enter the project's dev environment.",
+            "If VIRTUAL_ENV points to the wrong location, deactivate and re-enter: 'deactivate' then 'hatch shell'.",
+            "Never run pip install outside a venv — use 'hatch run pip install' or activate first."
+        ]
+    },
+    "packages": {
+        "what": "Lists all Python packages installed in the current environment with their versions and install locations (site-packages path).",
+        "look_for": [
+            "Missing packages that your project depends on — check against pyproject.toml [project.dependencies].",
+            "Version mismatches between what's installed and what's declared in requirements or pyproject.toml.",
+            "Packages installed in editable mode (shows as a local path) — your project should be one of these."
+        ],
+        "actions": [
+            "If a dependency is missing, run 'hatch run pip install -e .' to reinstall in editable mode.",
+            "If versions are wrong after a pyproject.toml change, run 'hatch env remove default' then 'hatch shell' to recreate.",
+            "Use the Pip Environments section to check for outdated packages across all Python installations."
+        ]
+    },
+    "project": {
+        "what": "Scans your project structure for expected files: pyproject.toml, README, license, CI config, lockfiles, and other standard project artifacts.",
+        "look_for": [
+            "Missing critical files — a missing pyproject.toml means the build system can't find your project.",
+            "Missing README.md or LICENSE — required for open-source compliance and PyPI publishing.",
+            "Build tool detection — confirms Hatch/Hatchling is properly configured.",
+            "Repository root should match your expectations — wrong root causes import path issues."
+        ],
+        "actions": [
+            "If any critical config file is missing, check if it was accidentally deleted or gitignored.",
+            "If the repo root looks wrong, you may have opened a subdirectory. Reopen from the project root."
+        ]
+    },
+    "project_commands": {
+        "what": "Lists all available development commands gathered from Taskfile.yml, pyproject.toml scripts, and other task runners. Click any command to copy it.",
+        "look_for": [
+            "Familiarize yourself with the available commands — they're shortcuts for common tasks.",
+            "Missing commands may indicate Taskfile.yml is not found or a task runner isn't installed."
+        ],
+        "actions": [
+            "Click a command to copy it, then paste into your terminal.",
+            "Core workflow: 'task check' runs all quality gates (lint + format + typecheck + test).",
+            "Before committing: 'task lint' and 'task fmt' to auto-fix style issues."
+        ]
+    },
+    "pip_environments": {
+        "what": "Discovers all Python installations on your system and shows their installed packages. Highlights outdated packages with available updates.",
+        "look_for": [
+            "Outdated packages with available updates — especially security-related ones (pip, setuptools, certifi).",
+            "Multiple Python installations with conflicting package versions.",
+            "Whether your active environment has all required dependencies at correct versions."
+        ],
+        "actions": [
+            "Click 'Update' on individual packages, or 'Update All' for bulk upgrades.",
+            "Focus on security packages first: pip, setuptools, certifi, urllib3.",
+            "After updating, re-run tests to confirm nothing broke: 'task test'."
+        ]
+    },
+    "network": {
+        "what": "Tests DNS resolution and HTTPS connectivity to key services: PyPI (pip install), GitHub (git push/pull), and general internet access.",
+        "look_for": [
+            "DNS failures mean pip installs and git operations won't work.",
+            "HTTPS failures may indicate a corporate proxy, firewall, or certificate issue.",
+            "Proxy settings — if you're behind a proxy, HTTP_PROXY and HTTPS_PROXY must be set.",
+            "Latency — very slow responses may indicate network problems affecting CI performance."
+        ],
+        "actions": [
+            "If behind a corporate proxy: set HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables.",
+            "If HTTPS fails but DNS works: check your CA certificate bundle (pip config set global.cert /path/to/cert.pem).",
+            "For intermittent failures: check VPN status or switch networks."
+        ]
+    },
+    "filesystem": {
+        "what": "Checks disk space on your project's partition, temp directory write permissions, working directory permissions, and home directory access.",
+        "look_for": [
+            "Disk usage above 90% is critical — builds, pip downloads, and docker layers need free space.",
+            "Non-writable temp dir causes pip, pytest, and build failures with cryptic error messages.",
+            "Non-writable working directory means git and file operations will fail.",
+            "Temp dir path — on some systems, /tmp is a small tmpfs that fills up during large builds."
+        ],
+        "actions": [
+            "If disk is > 90%: run 'task clean' to remove build artifacts, or clear Docker images with 'docker system prune'.",
+            "If temp dir is not writable: check permissions or set TMPDIR to a writable location.",
+            "Monitor free space during CI — runners often have limited disk."
+        ]
+    },
+    "container": {
+        "what": "Detects container runtimes (Docker, Podman), whether you're inside a container, CI system detection, WSL status, and dev container environment.",
+        "look_for": [
+            "Docker/Podman availability — needed for container builds and integration tests.",
+            "'Inside Container' being unexpected — affects file system behavior and network access.",
+            "CI detection — if running in GitHub Actions, some env vars and caching behave differently.",
+            "WSL detection — file system performance across the Windows/Linux boundary is slow."
+        ],
+        "actions": [
+            "If Docker is not available and you need it: install Docker Desktop or Podman.",
+            "In WSL: keep your project files on the Linux filesystem (~/projects/), not /mnt/c/.",
+            "In CI: check that container tests are conditional on runtime availability."
+        ]
+    },
+    "security": {
+        "what": "Scans environment variables for potential leaked secrets, checks for insecure PATH entries (world-writable directories), and looks for exposed SSH keys.",
+        "look_for": [
+            "Leaked secrets in environment variables — tokens, passwords, API keys that shouldn't be in env vars.",
+            "Insecure PATH entries — world-writable directories in PATH allow malicious binary injection.",
+            "Exposed SSH keys — private keys with overly permissive file permissions."
+        ],
+        "actions": [
+            "Red items need immediate attention: rotate any leaked credentials and remove them from your environment.",
+            "For insecure PATH: remove world-writable directories or fix their permissions.",
+            "For SSH keys: run 'chmod 600 ~/.ssh/id_*' to restrict access (Unix) or fix ACLs on Windows.",
+            "Never commit .env files with real secrets — use .env.example with placeholder values instead."
+        ]
+    }
+} %}
 <div class="sections-list" id="sections-list">
     {% for name, data in sections.items() %}
     {% if name != "insights" %}
@@ -160,6 +339,34 @@
                 Refresh
             </button>
         </header>
+        {% if name in section_guide %}
+        <details class="section-guide" onclick="event.stopPropagation()">
+            <summary><span class="section-guide-icon">ℹ</span> Guide</summary>
+            <div class="section-guide-body">
+                <p class="section-guide-what">{{ section_guide[name].what }}</p>
+                {% if section_guide[name].look_for %}
+                <div class="section-guide-block">
+                    <strong>What to look for</strong>
+                    <ul>
+                    {% for item in section_guide[name].look_for %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if section_guide[name].actions %}
+                <div class="section-guide-block">
+                    <strong>Recommended actions</strong>
+                    <ul>
+                    {% for item in section_guide[name].actions %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </details>
+        {% endif %}
         <div class="section-card-body" id="section-body-{{ name }}"
              hx-get="/section/{{ name }}?redact={{ redact_level }}"
              hx-trigger="load, scan-complete from:body"

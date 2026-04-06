@@ -64,13 +64,25 @@ def create_app() -> FastAPI:
         lifespan=_lifespan,
     )
 
-    # Mount static files
+    # Mount static files (no-cache in dev so CSS changes appear immediately)
     static_dir = _HERE / "static"
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+    @app.middleware("http")
+    async def no_cache_static(request: Any, call_next: Any) -> Any:
+        response = await call_next(request)
+        if request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
 
     # Set up Jinja2 templates with autoescape (non-negotiable)
     templates = Jinja2Templates(directory=str(_HERE / "templates"))
     templates.env.autoescape = True
+
+    # Cache-bust ID — unique per server restart so browsers fetch fresh CSS/JS
+    import time
+
+    templates.env.globals["cache_bust"] = str(int(time.time()))
 
     # Store templates on app state for route handlers
     app.state.templates = templates
