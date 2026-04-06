@@ -139,6 +139,11 @@
 {% set section_guide = {
     "system": {
         "what": "Shows the machine's operating system, CPU architecture, default shell, and locale/encoding settings. This is the foundation every other tool depends on.",
+        "key_concepts": {
+            "Architecture (AMD64/ARM64)": "The CPU instruction set. AMD64 is standard x86 64-bit (Intel and AMD). ARM64 is Apple Silicon and some cloud instances. Native dependencies must match.",
+            "Locale / Encoding": "Controls how text is interpreted. UTF-8 is the universal standard. Other encodings (cp1252, latin-1) cause mojibake or crashes when reading source files.",
+            "Shell": "The command interpreter (bash, zsh, PowerShell, cmd.exe). Scripts and task runners depend on specific shell features."
+        },
         "look_for": [
             "OS and architecture must match your deployment target — cross-platform bugs often start here.",
             "Shell should be bash/zsh (macOS/Linux) or PowerShell (Windows). If it shows cmd.exe, some scripts may behave differently.",
@@ -158,6 +163,12 @@
     },
     "runtimes": {
         "what": "Displays the active Python interpreter version, implementation (CPython/PyPy), architecture, executable path, and whether it's running inside a virtualenv. Also lists all Python installations found on the system.",
+        "key_concepts": {
+            "requires-python": "The Python version constraint in pyproject.toml (e.g. >=3.11). If your active Python doesn't satisfy this, builds and installs will fail.",
+            "Implementation (CPython/PyPy)": "CPython is the standard Python. PyPy is a faster alternative but some C extension packages won't install on it.",
+            "Editable install": "Running 'pip install -e .' links your source directly into site-packages. Changes to source files take effect immediately without reinstalling.",
+            "Prefix vs Base Prefix": "In a virtualenv, prefix points to the venv directory while base_prefix points to the system Python. If they're the same, you're not in a venv."
+        },
         "look_for": [
             "Version must satisfy your project's requires-python constraint (check pyproject.toml).",
             "Architecture (64-bit vs 32-bit) must match compiled native dependencies like numpy or cryptography.",
@@ -179,6 +190,12 @@
     },
     "path": {
         "what": "Shows every directory in your system PATH, in order. The first match wins when running commands like python, git, or node — order matters.",
+        "key_concepts": {
+            "Dead entry": "A directory listed in PATH that no longer exists on disk. The system wastes time checking it on every command, and it usually means a program was uninstalled or moved without cleaning up PATH.",
+            "Duplicate entry": "The same directory appearing more than once in PATH (after normalizing case and slashes). Only the first occurrence matters — duplicates are wasted lookups and clutter.",
+            "Shadowing": "When two PATH directories both contain an executable with the same name (e.g. python). The one in the earlier directory 'shadows' the later one — you get a different binary than expected.",
+            "Priority (High/Mid/Low)": "Entries near the top of PATH (positions 1-3) have highest priority and are checked first. These should be your venv and critical tool directories."
+        },
         "look_for": [
             "Duplicate entries waste lookup time and can mask shadowing issues.",
             "Dead/missing directories (marked with a warning) slow down command resolution and indicate stale config.",
@@ -199,6 +216,11 @@
     },
     "git": {
         "what": "Shows git availability, version, current branch, working tree status (clean/dirty), remote configuration, and stash count.",
+        "key_concepts": {
+            "Dirty working tree": "Files have been modified, added, or deleted since the last commit. Some CI gates and tools (like release-please) refuse to run on a dirty tree.",
+            "Detached HEAD": "You're not on any branch — typically after checking out a specific commit or tag. Commits made here can be lost unless you create a branch.",
+            "Stash": "Temporarily shelved changes. Useful for context-switching, but forgotten stashes accumulate and may contain important work."
+        },
         "look_for": [
             "Branch name — are you on the correct feature branch, or accidentally on main?",
             "Dirty working tree means uncommitted changes exist. Some CI gates and release tools require a clean tree.",
@@ -219,6 +241,11 @@
     },
     "venv": {
         "what": "Detects whether you're inside a virtual environment and which type: standard venv, Conda, Hatch, or Poetry. Shows the venv path and related environment variables.",
+        "key_concepts": {
+            "Virtual environment": "An isolated Python installation with its own site-packages. Prevents dependency conflicts between projects. Every project should use one.",
+            "VIRTUAL_ENV": "Environment variable set by the activation script pointing to the venv root. Tools use this to detect and locate the active venv.",
+            "Hatch environment": "Hatch manages venvs automatically based on pyproject.toml. 'hatch shell' creates and activates the default env. 'hatch env remove' deletes it for a clean restart."
+        },
         "look_for": [
             "A venv MUST be active during development. Installing packages globally causes version conflicts across projects.",
             "Venv type should match your project's tooling — this project uses Hatch.",
@@ -238,6 +265,11 @@
     },
     "packages": {
         "what": "Lists all Python packages installed in the current environment with their versions and install locations (site-packages path).",
+        "key_concepts": {
+            "site-packages": "The directory where pip installs packages. Each venv has its own site-packages, isolated from the system and other venvs.",
+            "Editable install (-e)": "A symlink-style install where changes to source code take effect immediately. Your project should appear as editable in the package list.",
+            "Dependency resolution": "pip resolves compatible versions across all dependencies. Version conflicts cause 'ResolutionImpossible' errors — recreating the venv usually fixes this."
+        },
         "look_for": [
             "Missing packages that your project depends on — check against pyproject.toml [project.dependencies].",
             "Version mismatches between what's installed and what's declared in requirements or pyproject.toml.",
@@ -253,6 +285,11 @@
     },
     "project": {
         "what": "Scans your project structure for expected files: pyproject.toml, README, license, CI config, lockfiles, and other standard project artifacts.",
+        "key_concepts": {
+            "pyproject.toml": "The central configuration file for modern Python projects. Defines metadata, dependencies, build system, and tool settings. If missing, pip and hatch can't find your project.",
+            "src/ layout": "Source code lives under src/package_name/ rather than at the repo root. Prevents accidental imports from the working directory instead of the installed package.",
+            "Editable install": "Required for src/ layout development. Without 'pip install -e .', Python can't find your package's modules."
+        },
         "look_for": [
             "Missing critical files — a missing pyproject.toml means the build system can't find your project.",
             "Missing README.md or LICENSE — required for open-source compliance and PyPI publishing.",
@@ -267,6 +304,10 @@
     },
     "project_commands": {
         "what": "Lists all available development commands gathered from Taskfile.yml, pyproject.toml scripts, and other task runners. Click any command to copy it.",
+        "key_concepts": {
+            "Taskfile.yml": "A YAML-based task runner (similar to Make). Defines shortcuts like 'task test', 'task lint', 'task check'. Install with 'go-task' or the standalone binary.",
+            "Quality gates": "The set of checks that must pass before code is accepted: linting (ruff), formatting (ruff format), type checking (mypy), and tests (pytest). 'task check' runs all of them."
+        },
         "look_for": [
             "Familiarize yourself with the available commands — they're shortcuts for common tasks.",
             "Missing commands may indicate Taskfile.yml is not found or a task runner isn't installed."
@@ -281,6 +322,11 @@
     },
     "pip_environments": {
         "what": "Discovers all Python installations on your system and shows their installed packages. Highlights outdated packages with available updates.",
+        "key_concepts": {
+            "Outdated package": "A package where a newer version is available on PyPI. Security-critical packages (pip, setuptools, certifi) should always be kept current.",
+            "System vs venv packages": "System Python has its own packages separate from virtualenv packages. Updating system packages doesn't affect your venv, and vice versa.",
+            "pip audit": "A tool that checks installed packages against known security vulnerabilities. Run via pre-push hook or manually with 'pip-audit'."
+        },
         "look_for": [
             "Outdated packages with available updates — especially security-related ones (pip, setuptools, certifi).",
             "Multiple Python installations with conflicting package versions.",
@@ -299,6 +345,11 @@
     },
     "network": {
         "what": "Tests DNS resolution and HTTPS connectivity to key services: PyPI (pip install), GitHub (git push/pull), and general internet access.",
+        "key_concepts": {
+            "DNS resolution": "Translating hostnames (pypi.org) to IP addresses. If DNS fails, no network tool works — not pip, not git, not browsers.",
+            "HTTPS / TLS": "Encrypted connection to remote servers. Failures usually mean a certificate issue (corporate proxy injecting its own CA) or a firewall blocking traffic.",
+            "Proxy (HTTP_PROXY / HTTPS_PROXY)": "An intermediary server that forwards your requests. Corporate networks often require proxy configuration. NO_PROXY lists hosts that bypass the proxy."
+        },
         "look_for": [
             "DNS failures mean pip installs and git operations won't work.",
             "HTTPS failures may indicate a corporate proxy, firewall, or certificate issue.",
@@ -319,6 +370,11 @@
     },
     "filesystem": {
         "what": "Checks disk space on your project's partition, temp directory write permissions, working directory permissions, and home directory access.",
+        "key_concepts": {
+            "Disk usage threshold": "Above 90% is critical. pip needs temp space for downloads, pytest creates temp dirs for test isolation, and Docker layers consume space during builds.",
+            "Writable temp directory": "Python's tempfile module and pip both write to the system temp dir. If it's full or non-writable, installs and tests fail with misleading errors.",
+            "Build artifacts": "Files generated during build/test cycles: __pycache__, .mypy_cache, .ruff_cache, dist/, *.egg-info. 'task clean' removes them all."
+        },
         "look_for": [
             "Disk usage above 90% is critical — builds, pip downloads, and docker layers need free space.",
             "Non-writable temp dir causes pip, pytest, and build failures with cryptic error messages.",
@@ -338,6 +394,12 @@
     },
     "container": {
         "what": "Detects container runtimes (Docker, Podman), whether you're inside a container, CI system detection, WSL status, and dev container environment.",
+        "key_concepts": {
+            "Container runtime": "Docker or Podman — the engine that builds and runs containers. Required for container-based tests and deployments.",
+            "WSL (Windows Subsystem for Linux)": "A Linux kernel running inside Windows. Great for development but file operations across the Windows/Linux boundary (/mnt/c/) are 5-10x slower than native.",
+            "Dev container": "A VS Code feature that runs your development environment inside a Docker container. Ensures all team members have identical tooling.",
+            "CI environment": "Automated build runners (GitHub Actions, GitLab CI). Behaves differently from local dev: no interactive terminal, limited disk, different network rules."
+        },
         "look_for": [
             "Docker/Podman availability — needed for container builds and integration tests.",
             "'Inside Container' being unexpected — affects file system behavior and network access.",
@@ -358,6 +420,12 @@
     },
     "security": {
         "what": "Scans environment variables for potential leaked secrets, checks for insecure PATH entries (world-writable directories), and looks for exposed SSH keys.",
+        "key_concepts": {
+            "Leaked secret": "A password, token, or API key stored in an environment variable where it might be logged, printed, or committed. Rotate immediately if found.",
+            "World-writable PATH directory": "A directory in PATH where any user can write files. An attacker could place a malicious binary (e.g. a fake 'python') that gets executed instead of the real one.",
+            "SSH key permissions": "Private keys must be readable only by the owner (chmod 600). Overly permissive keys (chmod 644) are rejected by SSH and represent a security risk.",
+            "Secret rotation": "Replacing a compromised credential with a new one and revoking the old one. Must be done immediately after any leak — even if the exposure was brief."
+        },
         "look_for": [
             "Leaked secrets in environment variables — tokens, passwords, API keys that shouldn't be in env vars.",
             "Insecure PATH entries — world-writable directories in PATH allow malicious binary injection.",
@@ -404,9 +472,20 @@
         </header>
         {% if name in section_guide %}
         <details class="section-guide" onclick="event.stopPropagation()">
-            <summary><span class="section-guide-icon">ℹ</span> Guide</summary>
+            <summary><span class="section-guide-icon"></span> Guide</summary>
             <div class="section-guide-body">
                 <p class="section-guide-what">{{ section_guide[name].what }}</p>
+                {% if section_guide[name].key_concepts %}
+                <div class="section-guide-block section-guide-concepts">
+                    <strong>Key concepts</strong>
+                    <dl class="section-guide-dl">
+                    {% for term, defn in section_guide[name].key_concepts.items() %}
+                        <dt>{{ term }}</dt>
+                        <dd>{{ defn }}</dd>
+                    {% endfor %}
+                    </dl>
+                </div>
+                {% endif %}
                 {% if section_guide[name].look_for %}
                 <div class="section-guide-block">
                     <strong>What to look for</strong>

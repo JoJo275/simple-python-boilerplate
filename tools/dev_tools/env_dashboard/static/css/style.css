@@ -683,7 +683,27 @@ body.dialog-open {
 }
 
 .section-guide-icon {
-    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    min-height: 14px;
+    border-radius: 50%;
+    background: var(--color-accent-dim);
+    border: 1px solid var(--color-border-accent);
+    font-size: 0.55rem;
+    font-weight: 700;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--color-accent);
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.section-guide-icon::after {
+    content: 'i';
 }
 
 .section-guide-body {
@@ -720,6 +740,31 @@ body.dialog-open {
     margin-bottom: 0.15rem;
     font-size: 0.72rem;
     line-height: 1.5;
+}
+
+.section-guide-dl {
+    margin: 0;
+    padding: 0;
+}
+
+.section-guide-dl dt {
+    font-weight: 600;
+    font-size: 0.72rem;
+    color: #c9d1d9;
+    margin-top: 0.25rem;
+}
+
+.section-guide-dl dt::before {
+    content: "▸ ";
+    color: var(--color-accent);
+    font-size: 0.6rem;
+}
+
+.section-guide-dl dd {
+    margin: 0 0 0 0.9rem;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
 }
 
 .section-guide-related {
@@ -1531,7 +1576,7 @@ body.dialog-open {
 
 /* ========== Path table — wider path column ========== */
 .path-table {
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
 }
 
@@ -1542,6 +1587,7 @@ body.dialog-open {
     vertical-align: middle;
 }
 
+/* # */
 .path-table th:nth-child(1),
 .path-table td:nth-child(1) {
     width: 2rem;
@@ -1549,31 +1595,47 @@ body.dialog-open {
     text-align: center;
 }
 
+/* Path — takes remaining space */
 .path-table th:nth-child(2),
 .path-table td:nth-child(2) {
-    word-break: break-word;
     overflow-wrap: anywhere;
+    word-break: break-all;
     white-space: normal;
-    min-width: 150px;
 }
 
+.path-table td.path-cell {
+    font-size: 0.72rem;
+    line-height: 1.4;
+}
+
+/* Exists */
 .path-table th:nth-child(3),
 .path-table td:nth-child(3) {
-    width: 3rem;
+    width: 3.5rem;
     white-space: nowrap;
     text-align: center;
 }
 
+/* Executables */
 .path-table th:nth-child(4),
 .path-table td:nth-child(4) {
-    width: 4rem;
+    width: 5rem;
     white-space: nowrap;
     text-align: center;
 }
 
+/* Priority */
 .path-table th:nth-child(5),
 .path-table td:nth-child(5) {
-    width: 3rem;
+    width: 3.5rem;
+    white-space: nowrap;
+    text-align: center;
+}
+
+/* Status */
+.path-table th:nth-child(6),
+.path-table td:nth-child(6) {
+    width: 3.5rem;
     white-space: nowrap;
     text-align: center;
 }
