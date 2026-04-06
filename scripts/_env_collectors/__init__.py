@@ -37,7 +37,11 @@ _TIER_ORDER = {Tier.MINIMAL: 0, Tier.STANDARD: 1, Tier.FULL: 2}
 def _discover_collectors() -> list[type[BaseCollector]]:
     """Import and return all collector classes."""
     # Import each collector module to trigger registration
+    from _env_collectors.ci_cd_status import CiCdStatusCollector
     from _env_collectors.container import ContainerCollector
+    from _env_collectors.dependency_health import DependencyHealthCollector
+    from _env_collectors.disk_workspace import DiskWorkspaceSizeCollector
+    from _env_collectors.docs_status import DocsStatusCollector
     from _env_collectors.filesystem import FilesystemCollector
     from _env_collectors.git_info import GitInfoCollector
     from _env_collectors.insights import InsightsCollector
@@ -45,6 +49,7 @@ def _discover_collectors() -> list[type[BaseCollector]]:
     from _env_collectors.packages import PackagesCollector
     from _env_collectors.path_analysis import PathAnalysisCollector
     from _env_collectors.pip_environments import PipEnvironmentsCollector
+    from _env_collectors.precommit_hooks import PrecommitHooksCollector
     from _env_collectors.project import ProjectCollector
     from _env_collectors.project_commands import ProjectCommandsCollector
     from _env_collectors.runtimes import RuntimesCollector
@@ -66,7 +71,12 @@ def _discover_collectors() -> list[type[BaseCollector]]:
         FilesystemCollector,
         SecurityCollector,
         ContainerCollector,
-        InsightsCollector,
+        PrecommitHooksCollector,
+        CiCdStatusCollector,
+        DependencyHealthCollector,
+        DiskWorkspaceSizeCollector,
+        DocsStatusCollector,
+        InsightsCollector,  # Must be LAST — depends on other sections' data
     ]
 
 

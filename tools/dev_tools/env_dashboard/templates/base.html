@@ -740,6 +740,56 @@
         navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 
+    /* Animated close for section-guide details panels */
+    document.addEventListener('click', (e) => {
+        const summary = e.target.closest('.section-guide > summary');
+        if (!summary) return;
+        const details = summary.parentElement;
+        if (!details.open) return;
+        e.preventDefault();
+        details.classList.add('guide-closing');
+        const body = details.querySelector('.section-guide-body');
+        if (body) {
+            body.addEventListener('animationend', function handler() {
+                body.removeEventListener('animationend', handler);
+                details.classList.remove('guide-closing');
+                details.removeAttribute('open');
+            }, { once: true });
+        }
+        // Fallback if animationend doesn't fire
+        setTimeout(() => {
+            details.classList.remove('guide-closing');
+            if (details.open) details.removeAttribute('open');
+        }, 350);
+    });
+
+    /* Animated close for Quick Actions category dropdowns */
+    document.addEventListener('click', (e) => {
+        const qa = document.getElementById('quick-actions');
+        if (!qa) return;
+        const summary = e.target.closest('#quick-actions .section-card-body > details > summary');
+        if (!summary) return;
+        const details = summary.parentElement;
+        if (!details.open) return;
+        // Already closing — ignore
+        if (details.classList.contains('qa-closing')) return;
+        e.preventDefault();
+        details.classList.add('qa-closing');
+        const content = details.querySelector(':not(summary)');
+        if (content) {
+            content.addEventListener('animationend', function handler() {
+                content.removeEventListener('animationend', handler);
+                details.classList.remove('qa-closing');
+                details.removeAttribute('open');
+            }, { once: true });
+        }
+        // Fallback if animationend doesn't fire
+        setTimeout(() => {
+            details.classList.remove('qa-closing');
+            if (details.open) details.removeAttribute('open');
+        }, 300);
+    });
+
     /* Offline / server-down detection — show restart page instead of browser error */
     (function() {
         const SHUTDOWN_KEY = 'dashboard-shutdown';

@@ -179,7 +179,12 @@
     "network": "DNS and HTTPS connectivity checks. Failures here block pip installs, git pushes, and CI communication.",
     "filesystem": "Disk space, temp directory, and write permission checks. Low disk or non-writable dirs cause silent build failures.",
     "container": "Container runtime detection, CI system, WSL, dev containers, and cloud provider. Affects available resources and networking.",
-    "security": "Security scan for leaked secrets in env vars, insecure PATH entries, and exposed SSH keys. Address red items immediately."
+    "security": "Security scan for leaked secrets in env vars, insecure PATH entries, and exposed SSH keys. Address red items immediately.",
+    "precommit_hooks": "Pre-commit hook inventory: installed stages, hook IDs, repos, and languages. Ensures code quality gates are active before commits reach CI.",
+    "ci_cd_status": "GitHub Actions workflows, triggers, SHA-pinning status, and CI configuration files. Shows your CI/CD pipeline health at a glance.",
+    "dependency_health": "Outdated and vulnerable packages, pip-audit results, and dependency group breakdown. Prioritises security-critical updates.",
+    "disk_workspace": "Workspace size breakdown: cache directories, largest folders, and total file count. Helps reclaim space when builds slow down.",
+    "docs_status": "MkDocs configuration, documentation file inventory, ADR catalog, and broken internal link detection. Keeps docs in sync with code."
 } %}
 
 {# Section guides — detailed explanations, what to look for, and recommended actions #}
@@ -490,6 +495,130 @@
             "World-writable /tmp in PATH — usually safe on Linux but flagged as a potential binary injection vector."
         ],
         "related": ["path"]
+    },
+    "precommit_hooks": {
+        "what": "Displays pre-commit hook configuration: installed stages (pre-commit, commit-msg, pre-push), hook IDs, source repos, and languages. Pre-commit hooks enforce code quality before changes leave your machine.",
+        "key_concepts": {
+            "Stages": "Hooks run at different git lifecycle points: pre-commit (before commit), commit-msg (validate message format), pre-push (before push). Each stage has its own set of hooks.",
+            "SHA-pinned repos": "Hook repositories should be pinned to a specific rev/tag for reproducibility. Unpinned repos can change unexpectedly.",
+            "Local hooks": "Hooks defined in-repo (not from external repos). Useful for project-specific checks like custom linters or validators."
+        },
+        "look_for": [
+            "Pre-commit, commit-msg, and pre-push hooks should all be installed. Missing stages mean gaps in your quality gates.",
+            "Total hook count — this project has ~47 hooks across all stages. Fewer may indicate missing configuration.",
+            "Hook installation status — if a stage shows 'Not installed', run the install command.",
+            "Language distribution — hooks in 'system' language depend on external tools being on PATH."
+        ],
+        "actions": [
+            "Install all hooks: 'pre-commit install && pre-commit install --hook-type commit-msg && pre-commit install --hook-type pre-push'.",
+            "Run all hooks manually: 'pre-commit run --all-files'.",
+            "If a hook fails on every commit, check its config in .pre-commit-config.yaml.",
+            "Update hooks to latest versions: 'pre-commit autoupdate'."
+        ],
+        "common_issues": [
+            "Hooks not installed after clone — run the install command above, or use 'task bootstrap'.",
+            "'Failed to find executable' — the hook's language runtime (node, go, ruby) isn't on PATH."
+        ],
+        "related": ["project", "security"]
+    },
+    "ci_cd_status": {
+        "what": "Lists GitHub Actions workflow files, their triggers (push, PR, schedule), SHA-pinning status, and related CI configuration files (Codecov, Dependabot, release-please).",
+        "key_concepts": {
+            "SHA-pinning": "Using a commit SHA instead of a tag for third-party actions (e.g. actions/checkout@abc123 vs actions/checkout@v4). Prevents supply-chain attacks where a tag is moved to malicious code.",
+            "Workflow triggers": "Events that start a workflow: push, pull_request, schedule, workflow_dispatch (manual), release. Understanding triggers helps debug why a workflow did or didn't run.",
+            "CI gate": "A required check that must pass before merging. Typically includes lint, format, typecheck, and test."
+        },
+        "look_for": [
+            "SHA-pinned percentage — 100% is the target. Non-pinned actions are a supply-chain risk.",
+            "Workflow count — this project has ~36 workflows. Fewer may indicate deleted or missing files.",
+            "Missing CI config files — Codecov, Dependabot, and release-please should all be configured.",
+            "Trigger types — ensure push and pull_request triggers cover your main branch."
+        ],
+        "actions": [
+            "If SHA-pinned percentage is below 100%, update workflows to pin third-party actions to commit SHAs.",
+            "Check failing workflows in the GitHub Actions tab of your repository.",
+            "Run 'actionlint' locally to validate workflow YAML syntax before pushing."
+        ],
+        "common_issues": [
+            "Workflow not triggered — check branch filter patterns in the 'on:' block.",
+            "Action version mismatch — SHA pins must be updated when upgrading to a new major version."
+        ],
+        "related": ["project", "security", "precommit_hooks"]
+    },
+    "dependency_health": {
+        "what": "Shows outdated and vulnerable packages in the current environment. Highlights security-critical packages (pip, setuptools, certifi) separately. Includes pip-audit results if available.",
+        "key_concepts": {
+            "Critical packages": "Security-sensitive packages (pip, setuptools, certifi, urllib3) that should always be current. Outdated versions may have known vulnerabilities.",
+            "pip-audit": "A tool that checks installed packages against the OSV vulnerability database. More reliable than manual version checking.",
+            "Dependency groups": "Optional dependency sets defined in pyproject.toml (dev, test, docs). Each group adds packages for a specific purpose."
+        },
+        "look_for": [
+            "Critical outdated packages — update pip, setuptools, and certifi immediately.",
+            "Vulnerability count — any non-zero value needs investigation.",
+            "Total outdated count — a high number suggests the environment hasn't been updated recently.",
+            "Dependency group coverage — ensure dev, test, and docs groups have the packages you need."
+        ],
+        "actions": [
+            "Update critical packages first: 'pip install --upgrade pip setuptools certifi'.",
+            "Run pip-audit manually: 'pip-audit' to check for known vulnerabilities.",
+            "For bulk updates in Hatch: 'hatch env remove default' then 'hatch shell' to rebuild with latest versions.",
+            "Check pyproject.toml dependency pins if a specific version is required."
+        ],
+        "common_issues": [
+            "pip-audit not installed — 'pip install pip-audit' to enable vulnerability scanning.",
+            "Version conflicts after update — recreate the Hatch env: 'hatch env remove default'."
+        ],
+        "related": ["packages", "pip_environments", "security"]
+    },
+    "disk_workspace": {
+        "what": "Breaks down workspace disk usage by directory. Shows cache sizes (__pycache__, .mypy_cache, .ruff_cache, node_modules), largest directories, and total file count.",
+        "key_concepts": {
+            "Cache directories": "Build artifacts and tool caches that accumulate over time: __pycache__ (compiled bytecode), .mypy_cache (type checker), .ruff_cache (linter), .pytest_cache (test results).",
+            "Clean command": "'task clean' or 'python scripts/clean.py' removes all cache directories and build artifacts. Safe to run — they'll be regenerated on next use.",
+            "Workspace size": "Total size of all tracked and untracked files. Large workspaces slow down IDE indexing, git operations, and backup systems."
+        },
+        "look_for": [
+            "Large cache directories — over 50 MB total suggests it's time to run 'task clean'.",
+            "Unexpected large directories — may contain build artifacts, downloaded data, or forgotten files.",
+            "Total file count — very high counts slow down file watchers and IDE indexing.",
+            ".git directory size — large repos with many commits or binary files have slow clones."
+        ],
+        "actions": [
+            "Run 'task clean' to remove all cache directories and build artifacts.",
+            "If .git is large, consider 'git gc --aggressive' to compact the repository.",
+            "Check for large files that shouldn't be committed: 'git ls-files | xargs du -h | sort -rh | head -20'.",
+            "Add large generated directories to .gitignore if they're being tracked accidentally."
+        ],
+        "common_issues": [
+            "node_modules appearing unexpectedly — check if a package.json was created for a tool like prettier or markdownlint.",
+            "Docker build context too large — add large directories to .dockerignore."
+        ],
+        "related": ["filesystem", "project"]
+    },
+    "docs_status": {
+        "what": "Checks MkDocs configuration, documentation file inventory, Architecture Decision Records (ADRs), and broken internal links within docs/.",
+        "key_concepts": {
+            "MkDocs Material": "The documentation framework used by this project. Config is in mkdocs.yml. Serve locally with 'hatch run docs:serve'.",
+            "ADR (Architecture Decision Record)": "A short document recording a significant architecture decision: context, decision, and consequences. Stored in docs/adr/.",
+            "Broken internal links": "Markdown links pointing to files that don't exist. Causes 404 errors in the built documentation site."
+        },
+        "look_for": [
+            "MkDocs installed and config found — both are needed to build the documentation site.",
+            "Broken link count — any broken links should be fixed before deploying docs.",
+            "ADR count — this project has ~40 ADRs. Fewer may mean some were accidentally deleted.",
+            "Documentation file count — compare against the nav entries in mkdocs.yml to find orphaned pages."
+        ],
+        "actions": [
+            "Serve docs locally: 'hatch run docs:serve' — opens at http://127.0.0.1:8000.",
+            "Build and check for errors: 'hatch run docs:build' (strict mode catches warnings).",
+            "Fix broken links by updating the target path or removing stale references.",
+            "When adding a new doc, update mkdocs.yml nav section to include it."
+        ],
+        "common_issues": [
+            "MkDocs not installed in current env — run 'hatch run docs:serve' (uses the docs Hatch env automatically).",
+            "Broken links from renamed files — use grep to find all references: 'grep -r \"old-filename\" docs/'."
+        ],
+        "related": ["project", "disk_workspace"]
     }
 } %}
 <div class="sections-list" id="sections-list">
@@ -607,21 +736,90 @@
             Quick Actions
             <span class="section-help-container" style="display:inline-block;vertical-align:middle;">
                 <button class="section-help-btn" aria-label="What is this?" onclick="event.stopPropagation();this.parentElement.classList.toggle('help-open')" title="What are quick actions?">?</button>
-                <span class="section-help-tooltip">Common development commands for this project. Click any command to copy it to your clipboard, then paste into a terminal to run.</span>
+                <span class="section-help-tooltip">Development commands and repository scripts. Click any command to copy it, then paste into a terminal. Scripts prefixed with 'python scripts/' are specific to this boilerplate repository.</span>
             </span>
         </h4>
     </header>
+
+    {# --- Guide for Quick Actions --- #}
+    <details class="section-guide" onclick="event.stopPropagation()">
+        <summary><span class="section-guide-icon"></span> Guide</summary>
+        <div class="section-guide-body">
+            <p class="section-guide-what">One-click copy for every development command in this repository. Organised by category: quality gates you run daily, diagnostic scripts for troubleshooting, and maintenance utilities for keeping the repo healthy.</p>
+            <div class="section-guide-block section-guide-concepts">
+                <strong>Key concepts</strong>
+                <dl class="section-guide-dl">
+                    <dt>Hatch commands</dt>
+                    <dd>Commands prefixed with <code>hatch run</code> execute inside the Hatch-managed virtual environment. They work in any repo that uses Hatch.</dd>
+                    <dt>Repository scripts</dt>
+                    <dd>Commands prefixed with <code>python scripts/</code> are custom to this boilerplate project. They will not exist in repos that forked and removed the scripts/ directory.</dd>
+                    <dt>Quality gates</dt>
+                    <dd>The set of checks (lint, format, typecheck, test) that must all pass before code is accepted. <code>hatch run check</code> runs them all in one go.</dd>
+                </dl>
+            </div>
+            <div class="section-guide-block">
+                <strong>What to look for</strong>
+                <ul>
+                    <li>Start with the Quality Gates section — these are the commands you'll use most often.</li>
+                    <li>Use Diagnostics scripts when something isn't working and you need to troubleshoot.</li>
+                    <li>Run Maintenance scripts periodically to keep deps updated and artifacts cleaned.</li>
+                </ul>
+            </div>
+            <div class="section-guide-block">
+                <strong>Common issues</strong>
+                <ul>
+                    <li>Script not found — if you forked this template and removed scripts/, the <code>python scripts/</code> commands won't work.</li>
+                    <li>Hatch not installed — install with <code>pipx install hatch</code> or <code>pip install hatch</code>.</li>
+                    <li>Wrong env — run <code>hatch shell</code> first to activate the dev environment.</li>
+                </ul>
+            </div>
+        </div>
+    </details>
+
     <div class="section-card-body">
+        {# --- Boilerplate scripts warning --- #}
+        <div class="quick-actions-warning">
+            <strong>Note:</strong> Commands under Diagnostics, Maintenance, and CI/Container use custom scripts from this boilerplate's <code>scripts/</code> directory.
+            If this dashboard is running against a different repository, those scripts may not exist.
+        </div>
+
+        {# --- Quality Gates --- #}
+        <h5 style="margin-top: 0;">Quality Gates</h5>
         <div class="quick-actions-grid">
+            <div class="quick-action-card">
+                <span class="quick-action-title">Run All Checks</span>
+                <span class="quick-action-desc">Lint + format + typecheck + test — the full gate</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run check')">hatch run check</code>
+            </div>
             <div class="quick-action-card">
                 <span class="quick-action-title">Run Tests</span>
                 <span class="quick-action-desc">Execute the test suite with pytest</span>
                 <code class="quick-action-cmd" @click="copyClip($event, 'hatch run test')">hatch run test</code>
             </div>
             <div class="quick-action-card">
-                <span class="quick-action-title">Lint &amp; Format</span>
-                <span class="quick-action-desc">Check code quality with Ruff</span>
-                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run check')">hatch run check</code>
+                <span class="quick-action-title">Tests + Coverage</span>
+                <span class="quick-action-desc">Run tests and generate a coverage report</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run test-cov')">hatch run test-cov</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Lint</span>
+                <span class="quick-action-desc">Check code quality with Ruff linter</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run lint')">hatch run lint</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Lint &amp; Auto-fix</span>
+                <span class="quick-action-desc">Fix linting issues automatically</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run lint-fix')">hatch run lint-fix</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Format</span>
+                <span class="quick-action-desc">Apply Ruff code formatting</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run fmt')">hatch run fmt</code>
+            </div>
+            <div class="quick-action-card">
+                <span class="quick-action-title">Format Check</span>
+                <span class="quick-action-desc">Check formatting without applying changes</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run fmt-check')">hatch run fmt-check</code>
             </div>
             <div class="quick-action-card">
                 <span class="quick-action-title">Type Check</span>
@@ -629,21 +827,181 @@
                 <code class="quick-action-cmd" @click="copyClip($event, 'hatch run typecheck')">hatch run typecheck</code>
             </div>
             <div class="quick-action-card">
-                <span class="quick-action-title">Serve Docs</span>
-                <span class="quick-action-desc">Live-reload documentation server</span>
-                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:serve')">hatch run docs:serve</code>
-            </div>
-            <div class="quick-action-card">
                 <span class="quick-action-title">Security Scan</span>
                 <span class="quick-action-desc">Run Bandit security linter on source</span>
                 <code class="quick-action-cmd" @click="copyClip($event, 'hatch run bandit -r src/')">hatch run bandit -r src/</code>
             </div>
             <div class="quick-action-card">
-                <span class="quick-action-title">Health Check</span>
-                <span class="quick-action-desc">Run all environment diagnostics</span>
-                <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/doctor.py')">python scripts/doctor.py</code>
+                <span class="quick-action-title">Pre-commit All</span>
+                <span class="quick-action-desc">Run all pre-commit hooks on all files</span>
+                <code class="quick-action-cmd" @click="copyClip($event, 'hatch run pre-commit run --all-files')">hatch run pre-commit run --all-files</code>
             </div>
         </div>
+
+        {# --- Diagnostics --- #}
+        <details open>
+            <summary><strong>Diagnostics</strong> <span class="badge">7</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Doctor (All)</span>
+                    <span class="quick-action-desc">Unified health check — runs all doctor scripts</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/doctor.py')">python scripts/doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Env Doctor</span>
+                    <span class="quick-action-desc">Development environment health diagnostics</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/env_doctor.py')">python scripts/env_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Git Doctor</span>
+                    <span class="quick-action-desc">Git-focused health check and info dashboard</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/git_doctor.py')">python scripts/git_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Repo Doctor</span>
+                    <span class="quick-action-desc">Repo structure health checker (rule-driven)</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/repo_doctor.py')">python scripts/repo_doctor.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Env Inspector</span>
+                    <span class="quick-action-desc">Environment, packages, and PATH inspection</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/env_inspect.py')">python scripts/env_inspect.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Repo Stats</span>
+                    <span class="quick-action-desc">Repository statistics — file counts, git history, sizes</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/repo_sauron.py')">python scripts/repo_sauron.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check Python Support</span>
+                    <span class="quick-action-desc">Validate Python version consistency across configs</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_python_support.py')">python scripts/check_python_support.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Documentation --- #}
+        <details>
+            <summary><strong>Documentation</strong> <span class="badge">3</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Serve Docs</span>
+                    <span class="quick-action-desc">Live-reload MkDocs development server</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:serve')">hatch run docs:serve</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Build Docs</span>
+                    <span class="quick-action-desc">Build documentation site (strict mode)</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch run docs:build')">hatch run docs:build</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Generate Command Ref</span>
+                    <span class="quick-action-desc">Regenerate docs/reference/commands.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/generate_command_reference.py')">python scripts/generate_command_reference.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Maintenance --- #}
+        <details>
+            <summary><strong>Maintenance</strong> <span class="badge">8</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Bootstrap</span>
+                    <span class="quick-action-desc">One-command setup for fresh clones</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/bootstrap.py')">python scripts/bootstrap.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Clean</span>
+                    <span class="quick-action-desc">Remove build artifacts and caches</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/clean.py')">python scripts/clean.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Dep Versions</span>
+                    <span class="quick-action-desc">Show dependency versions and update status</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/dep_versions.py show')">python scripts/dep_versions.py show</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Workflow Versions</span>
+                    <span class="quick-action-desc">Show SHA-pinned GitHub Actions and versions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/workflow_versions.py')">python scripts/workflow_versions.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Customize Template</span>
+                    <span class="quick-action-desc">Interactive project customization wizard</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/customize.py')">python scripts/customize.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Apply Labels</span>
+                    <span class="quick-action-desc">Apply GitHub labels from JSON definitions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/apply_labels.py')">python scripts/apply_labels.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Archive TODOs</span>
+                    <span class="quick-action-desc">Archive completed TODO items from todo.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/archive_todos.py')">python scripts/archive_todos.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check TODOs</span>
+                    <span class="quick-action-desc">Scan for TODO (template users) comments</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_todos.py')">python scripts/check_todos.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- CI & Container --- #}
+        <details>
+            <summary><strong>CI &amp; Container</strong> <span class="badge">4</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Test Containerfile</span>
+                    <span class="quick-action-desc">Build and validate the container image</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/test_containerfile.py')">python scripts/test_containerfile.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Test Docker Compose</span>
+                    <span class="quick-action-desc">Build and validate the compose stack</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/test_docker_compose.py')">python scripts/test_docker_compose.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Changelog Check</span>
+                    <span class="quick-action-desc">Validate CHANGELOG.md has a current-PR entry</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/changelog_check.py')">python scripts/changelog_check.py</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Check Known Issues</span>
+                    <span class="quick-action-desc">Flag stale Resolved entries in known-issues.md</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'python scripts/check_known_issues.py')">python scripts/check_known_issues.py</code>
+                </div>
+            </div>
+        </details>
+
+        {# --- Hatch Environment --- #}
+        <details>
+            <summary><strong>Hatch Environment</strong> <span class="badge">4</span></summary>
+            <div class="quick-actions-grid">
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Enter Shell</span>
+                    <span class="quick-action-desc">Activate the Hatch dev environment</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch shell')">hatch shell</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Show Envs</span>
+                    <span class="quick-action-desc">List all Hatch environments</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch env show')">hatch env show</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Show Version</span>
+                    <span class="quick-action-desc">Display the current project version</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch version')">hatch version</code>
+                </div>
+                <div class="quick-action-card">
+                    <span class="quick-action-title">Build Package</span>
+                    <span class="quick-action-desc">Build source and wheel distributions</span>
+                    <code class="quick-action-cmd" @click="copyClip($event, 'hatch build')">hatch build</code>
+                </div>
+            </div>
+        </details>
     </div>
 </section>
 {% endblock %}
