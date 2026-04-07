@@ -760,7 +760,7 @@
         setTimeout(() => {
             details.classList.remove('guide-closing');
             if (details.open) details.removeAttribute('open');
-        }, 350);
+        }, 500);
     });
 
     /* Animated close for Quick Actions category dropdowns */
@@ -787,7 +787,41 @@
         setTimeout(() => {
             details.classList.remove('qa-closing');
             if (details.open) details.removeAttribute('open');
-        }, 300);
+        }, 450);
+    });
+
+    /* Universal smooth close animation for all <details> dropdowns */
+    document.addEventListener('click', (e) => {
+        const summary = e.target.closest('details > summary');
+        if (!summary) return;
+        const details = summary.parentElement;
+        if (!details || !details.open) return;
+        // Skip elements already handled by specific handlers
+        if (details.classList.contains('json-viewer-details')) return;
+        if (details.classList.contains('section-guide')) return;
+        if (details.classList.contains('dropdown')) return;
+        if (details.classList.contains('kv-hint')) return;
+        if (details.closest('#quick-actions') && details.closest('.section-card-body')) return;
+        // Skip if already closing
+        if (details.classList.contains('details-closing')) return;
+
+        e.preventDefault();
+        details.classList.add('details-closing');
+
+        // Find the animated content element
+        const content = details.querySelector(':scope > :not(summary)');
+        if (content) {
+            content.addEventListener('animationend', function handler() {
+                content.removeEventListener('animationend', handler);
+                details.classList.remove('details-closing');
+                details.removeAttribute('open');
+            }, { once: true });
+        }
+        // Fallback if animationend doesn't fire
+        setTimeout(() => {
+            details.classList.remove('details-closing');
+            if (details.open) details.removeAttribute('open');
+        }, 450);
     });
 
     /* Offline / server-down detection — show restart page instead of browser error */

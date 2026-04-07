@@ -15,11 +15,13 @@
     {% if data.dirty is defined %}
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Dirty means uncommitted changes exist. Commit or stash before switching branches.</span>
-            </details>
-            Working Tree
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Dirty means uncommitted changes exist. Commit or stash before switching branches.</span>
+                </details>
+                <span>Working Tree</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.dirty %}

@@ -3,11 +3,13 @@
 <table class="kv-table">
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Whether the process is running inside a container (Docker, Podman, etc.).</span>
-            </details>
-            Container Detected
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Whether the process is running inside a container (Docker, Podman, etc.).</span>
+                </details>
+                <span>Container Detected</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.detected %}
@@ -19,11 +21,13 @@
     </tr>
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Whether the Docker daemon is available. Needed for container builds and tests.</span>
-            </details>
-            Docker
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Whether the Docker daemon is available. Needed for container builds and tests.</span>
+                </details>
+                <span>Docker</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.docker %}
@@ -35,11 +39,13 @@
     </tr>
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Detected CI provider (GitHub Actions, GitLab CI, etc.). Affects available env vars and caching.</span>
-            </details>
-            CI System
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Detected CI provider (GitHub Actions, GitLab CI, etc.). Affects available env vars and caching.</span>
+                </details>
+                <span>CI System</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.ci %}
@@ -51,11 +57,13 @@
     </tr>
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Windows Subsystem for Linux. File system performance may differ from native Linux.</span>
-            </details>
-            WSL
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Windows Subsystem for Linux. File system performance may differ from native Linux.</span>
+                </details>
+                <span>WSL</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.wsl %}
@@ -67,11 +75,13 @@
     </tr>
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">VS Code Dev Container or GitHub Codespace. Pre-configured development environment.</span>
-            </details>
-            Dev Container
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">VS Code Dev Container or GitHub Codespace. Pre-configured development environment.</span>
+                </details>
+                <span>Dev Container</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.devcontainer %}
@@ -83,11 +93,13 @@
     </tr>
     <tr>
         <td class="kv-label">
-            <details class="kv-hint">
-                <summary><span class="hint-chevron"></span></summary>
-                <span class="hint-text">Detected cloud platform (AWS, Azure, GCP). Affects network and credential handling.</span>
-            </details>
-            Cloud Provider
+            <span class="kv-label-row">
+                <details class="kv-hint">
+                    <summary><span class="hint-chevron"></span></summary>
+                    <span class="hint-text">Detected cloud platform (AWS, Azure, GCP). Affects network and credential handling.</span>
+                </details>
+                <span>Cloud Provider</span>
+            </span>
         </td>
         <td class="kv-value">
             {% if data.cloud %}

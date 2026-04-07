@@ -341,6 +341,54 @@ def _collect_ram() -> dict[str, Any]:
     return info
 
 
+def _smbios_rank_list() -> list[int | None]:
+    """Parse raw SMBIOS Type 17 entries to extract per-DIMM rank counts.
+
+    WMI's ``Win32_PhysicalMemory.Rank`` is often null on consumer boards.
+    The SMBIOS "Attributes" byte (offset 0x1B in a Type 17 structure,
+    bits 0-3) reliably stores the number of ranks for populated DIMMs.
+
+    Returns a list of rank values for each **populated** memory slot
+    (i.e. entries where the Size field > 0), in SMBIOS enumeration order
+    which matches the WMI module order.
+    """
+    # PowerShell script that reads raw SMBIOS and emits a JSON array of
+    # rank values for populated Type 17 entries.
+    ps_script = (
+        "$b=(Get-CimInstance -Namespace root/WMI "
+        "-ClassName MSSmBios_RawSMBiosTables).SMBiosData;"
+        "$r=@();$i=0;"
+        "while($i -lt $b.Length-4){"
+        "$t=$b[$i];$l=$b[$i+1];"
+        "if($t -eq 17 -and $l -ge 28){"
+        "$sz=[BitConverter]::ToUInt16($b,$i+12);"
+        "if($sz -gt 0){"
+        "$a=$b[$i+27] -band 0x0F;"
+        "$r+=$a"
+        "}};"
+        "$i+=$l;"
+        "while($i -lt $b.Length-1){"
+        "if($b[$i] -eq 0 -and $b[$i+1] -eq 0){$i+=2;break}$i++}};"
+        "ConvertTo-Json @($r)"
+    )
+    try:
+        result = _run_cmd(
+            ["powershell", "-NoProfile", "-Command", ps_script],
+            timeout=10.0,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            import json
+
+            data = json.loads(result.stdout)
+            if isinstance(data, int):
+                return [data]
+            if isinstance(data, list):
+                return [int(v) if v else None for v in data]
+    except (OSError, subprocess.TimeoutExpired, ValueError):
+        pass
+    return []
+
+
 def _ram_windows(info: dict[str, Any]) -> None:
     """Populate RAM info on Windows."""
     # Total/available via os
@@ -380,8 +428,10 @@ def _ram_windows(info: dict[str, Any]) -> None:
                 "-Command",
                 (
                     "Get-CimInstance Win32_PhysicalMemory | "
-                    "Select-Object Capacity, Speed, MemoryType, "
-                    "SMBIOSMemoryType, Manufacturer, BankLabel | ConvertTo-Json"
+                    "Select-Object Capacity, Speed, ConfiguredClockSpeed, "
+                    "MemoryType, SMBIOSMemoryType, Manufacturer, BankLabel, "
+                    "FormFactor, PartNumber, DataWidth, Rank, "
+                    "DeviceLocator | ConvertTo-Json"
                 ),
             ],
             timeout=10.0,
@@ -407,13 +457,30 @@ def _ram_windows(info: dict[str, Any]) -> None:
                 mem_type = mem_type_map.get(
                     smbios_type, f"Type {smbios_type}" if smbios_type else None
                 )
+                form_factor_code = mod.get("FormFactor", 0)
+                form_factor_map = {
+                    0: None,
+                    8: "DIMM",
+                    12: "SO-DIMM",
+                }
+                form_factor = form_factor_map.get(
+                    form_factor_code,
+                    f"FormFactor {form_factor_code}" if form_factor_code else None,
+                )
                 modules.append(
                     {
                         "size_gb": size_gb,
                         "speed_mhz": mod.get("Speed"),
+                        "configured_speed_mhz": mod.get("ConfiguredClockSpeed"),
                         "type": mem_type,
                         "manufacturer": (mod.get("Manufacturer") or "").strip(),
                         "bank": (mod.get("BankLabel") or "").strip(),
+                        "form_factor": form_factor,
+                        "part_number": (mod.get("PartNumber") or "").strip() or None,
+                        "data_width": mod.get("DataWidth"),
+                        "ranks": mod.get("Rank"),
+                        "device_locator": (mod.get("DeviceLocator") or "").strip()
+                        or None,
                     }
                 )
             info["modules"] = modules
@@ -421,6 +488,13 @@ def _ram_windows(info: dict[str, Any]) -> None:
             if modules:
                 info["type"] = modules[0].get("type")
                 info["speed_mhz"] = modules[0].get("speed_mhz")
+
+            # Patch in rank data from raw SMBIOS (WMI Rank is often null)
+            smbios_ranks = _smbios_rank_list()
+            for idx, mod in enumerate(modules):
+                if mod.get("ranks") is None and idx < len(smbios_ranks):
+                    rank_val = smbios_ranks[idx]
+                    mod["ranks"] = rank_val if rank_val else None
     except (OSError, subprocess.TimeoutExpired, ValueError):
         pass
 

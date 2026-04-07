@@ -98,16 +98,32 @@
     <summary><small>Memory Modules ({{ ram.modules|length }})</small></summary>
     <table class="kv-table striped">
         <thead>
-            <tr><th>Bank</th><th>Size</th><th>Speed</th><th>Type</th><th>Manufacturer</th></tr>
+            <tr>
+                <th>Slot</th>
+                <th>Size</th>
+                <th>Type</th>
+                <th>Form</th>
+                <th>Rated Speed</th>
+                <th>Current Speed</th>
+                <th>Ranks</th>
+                <th>Width</th>
+                <th>Manufacturer</th>
+                <th>Part Number</th>
+            </tr>
         </thead>
         <tbody>
             {% for mod in ram.modules %}
             <tr>
-                <td>{{ mod.bank|default("—") }}</td>
+                <td>{{ mod.device_locator or mod.bank|default("—") }}</td>
                 <td>{{ (mod.size_gb ~ " GB") if mod.size_gb else "—" }}</td>
-                <td>{{ (mod.speed_mhz ~ " MHz") if mod.speed_mhz else "—" }}</td>
                 <td>{{ mod.type|default("—") }}</td>
+                <td>{{ mod.form_factor|default("—") }}</td>
+                <td>{{ (mod.speed_mhz ~ " MHz") if mod.speed_mhz else "—" }}</td>
+                <td>{{ (mod.configured_speed_mhz ~ " MHz") if mod.configured_speed_mhz else "—" }}</td>
+                <td>{{ mod.ranks|default("N/A") }}</td>
+                <td>{{ (mod.data_width ~ "-bit") if mod.data_width else "—" }}</td>
                 <td>{{ mod.manufacturer|default("—") }}</td>
+                <td><small class="mono">{{ mod.part_number|default("—") }}</small></td>
             </tr>
             {% endfor %}
         </tbody>
