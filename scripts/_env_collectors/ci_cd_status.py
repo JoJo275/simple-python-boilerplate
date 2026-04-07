@@ -48,20 +48,42 @@ def _parse_workflow_files(repo_root: Path) -> list[dict[str, str]]:
             if name_match:
                 name = name_match.group(1).strip()
 
-            # Extract triggers (on: section)
-            on_match = re.search(r"^on:\s*(.+)$", content, re.MULTILINE)
-            if on_match:
-                trigger_val = on_match.group(1).strip()
-                if trigger_val and trigger_val != "":
-                    triggers = [trigger_val]
+            # Extract triggers from on: section (line-by-line to avoid
+            # regex newline issues with \s matching \n)
+            lines = content.splitlines()
+            in_on_block = False
+            on_indent = -1
+            for raw_line in lines:
+                stripped = raw_line.strip()
 
-            # Multi-line on: block
-            on_block = re.findall(r"^on:\s*\n((?:\s+\w.*\n?)+)", content, re.MULTILINE)
-            if on_block:
-                for line in on_block[0].splitlines():
-                    t = line.strip().rstrip(":")
-                    if t and not t.startswith("#"):
-                        triggers.append(t)
+                if not in_on_block:
+                    if raw_line.startswith("on:"):
+                        rest = raw_line[3:].strip()
+                        if rest:
+                            # Single-line: on: push  or  on: [push, pull_request]
+                            if rest.startswith("["):
+                                triggers = [
+                                    t.strip().strip("'\"")
+                                    for t in rest.strip("[]").split(",")
+                                    if t.strip()
+                                ]
+                            else:
+                                triggers = [rest]
+                            break
+                        in_on_block = True
+                        continue
+                else:
+                    if not stripped or stripped.startswith("#"):
+                        continue
+                    indent = len(raw_line) - len(raw_line.lstrip())
+                    if indent == 0:
+                        break  # End of on: block
+                    if on_indent == -1:
+                        on_indent = indent
+                    if indent == on_indent:
+                        t = stripped.rstrip(":")
+                        if t:
+                            triggers.append(t)
 
             # Count uses: lines (action references)
             action_count = len(re.findall(r"uses:", content))
@@ -83,7 +105,7 @@ def _parse_workflow_files(repo_root: Path) -> list[dict[str, str]]:
                 {
                     "file": f.name,
                     "name": name or f.stem,
-                    "triggers": ", ".join(triggers[:3]) if triggers else "—",
+                    "triggers": triggers[:3] if triggers else [],
                     "actions": action_count,
                     "sha_pinned": sha_pinned,
                     "tag_pinned": tag_pinned,
@@ -125,7 +147,25 @@ class CiCdStatusCollector(BaseCollector):
         repo_root = find_repo_root()
 
         workflows = _parse_workflow_files(repo_root)
-        ci_configs = _detect_ci_configs(repo_root)
+        ci_configs_raw = _detect_ci_configs(repo_root)
+
+        # Transform ci_configs dict to list of dicts for template rendering
+        ci_config_files = {
+            "codecov": ("Codecov", "codecov.yml"),
+            "dependabot": ("Dependabot", ".github/dependabot.yml"),
+            "release_please": ("Release Please", "release-please-config.json"),
+            "renovate": ("Renovate", "renovate.json"),
+            "github_actions": ("GitHub Actions", ".github/workflows/"),
+        }
+        ci_configs = [
+            {
+                "name": ci_config_files[k][0],
+                "file": ci_config_files[k][1],
+                "found": v,
+            }
+            for k, v in ci_configs_raw.items()
+            if k in ci_config_files
+        ]
 
         total_actions = sum(w.get("actions", 0) for w in workflows)
         total_sha = sum(w.get("sha_pinned", 0) for w in workflows)
