@@ -108,10 +108,10 @@ class DiskWorkspaceSizeCollector(BaseCollector):
             total_cache_size += size
             caches.append(
                 {
-                    "name": name,
-                    "count": len(existing),
+                    "path": name,
+                    "file_count": len(existing),
                     "size_bytes": size,
-                    "size_human": _format_size(size),
+                    "size_display": _format_size(size),
                 }
             )
 
@@ -126,9 +126,9 @@ class DiskWorkspaceSizeCollector(BaseCollector):
                 if size > 0:
                     top_dirs.append(
                         {
-                            "name": d.name + "/",
+                            "path": d.name + "/",
                             "size_bytes": size,
-                            "size_human": _format_size(size),
+                            "size_display": _format_size(size),
                             "file_count": _count_files(d),
                         }
                     )
@@ -140,7 +140,7 @@ class DiskWorkspaceSizeCollector(BaseCollector):
         return {
             "caches": caches,
             "total_cache_size": total_cache_size,
-            "total_cache_size_human": _format_size(total_cache_size),
+            "total_cache_size_display": _format_size(total_cache_size),
             "top_directories": top_dirs[:15],
             "total_files": total_files,
             "repo_root": str(repo_root),

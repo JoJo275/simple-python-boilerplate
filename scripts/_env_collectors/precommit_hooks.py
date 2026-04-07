@@ -122,8 +122,8 @@ def _parse_precommit_config(repo_root: Path) -> dict[str, Any]:
                     hooks[-1]["stages"] = stages
                     continue
 
-        # Group by stage
-        by_stage: dict[str, list[str]] = {
+        # Group by stage — store full hook dicts for template access
+        by_stage: dict[str, list[dict[str, Any]]] = {
             "pre-commit": [],
             "commit-msg": [],
             "pre-push": [],
@@ -134,7 +134,7 @@ def _parse_precommit_config(repo_root: Path) -> dict[str, Any]:
             if not stages:
                 stages = ["pre-commit"]  # default stage
             for stage in stages:
-                by_stage.setdefault(stage, []).append(hook["id"])
+                by_stage.setdefault(stage, []).append(hook)
 
         return {
             "found": True,
@@ -170,6 +170,7 @@ class PrecommitHooksCollector(BaseCollector):
             "precommit_available": version is not None,
             "hooks_installed": installed,
             "all_stages_installed": all(installed.values()) if installed else False,
+            "config_found": config.get("found", False),
             "config": config,
             "total_hooks": config.get("total_hooks", 0),
             "by_stage": config.get("by_stage", {}),

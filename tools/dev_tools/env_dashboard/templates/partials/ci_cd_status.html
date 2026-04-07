@@ -53,10 +53,10 @@
                     {% if not wf.triggers %}<span class="muted">—</span>{% endif %}
                 </td>
                 <td>
-                    {% if wf.sha_pinned %}
-                    <span class="badge badge-pass">Yes</span>
-                    {% elif wf.sha_pinned is sameas false %}
-                    <span class="badge badge-warn">No</span>
+                    {% if wf.sha_pinned|default(0) > 0 %}
+                    <span class="badge badge-pass">{{ wf.sha_pinned }}/{{ wf.actions }}</span>
+                    {% elif wf.actions|default(0) > 0 %}
+                    <span class="badge badge-warn">0/{{ wf.actions }}</span>
                     {% else %}
                     <span class="muted">—</span>
                     {% endif %}
