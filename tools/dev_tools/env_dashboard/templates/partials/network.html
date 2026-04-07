@@ -3,11 +3,11 @@
 <table class="kv-table">
     <tr>
         <td class="kv-label">
-            DNS Resolution
             <details class="kv-hint">
                 <summary><span class="hint-chevron"></span></summary>
                 <span class="hint-text">Tests if domain names can be resolved. Failure blocks pip installs and git fetches.</span>
             </details>
+            DNS Resolution
         </td>
         <td class="kv-value">
             {% if data.dns_resolves %}
@@ -19,11 +19,11 @@
     </tr>
     <tr>
         <td class="kv-label">
-            Outbound HTTPS
             <details class="kv-hint">
                 <summary><span class="hint-chevron"></span></summary>
                 <span class="hint-text">Tests connectivity to PyPI/GitHub over HTTPS. Required for package installs and pushes.</span>
             </details>
+            Outbound HTTPS
         </td>
         <td class="kv-value">
             {% if data.outbound_https %}

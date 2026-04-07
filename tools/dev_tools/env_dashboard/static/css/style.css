@@ -601,6 +601,7 @@ body.dialog-open {
 
 /* ========== Section Guide Panel ========== */
 .section-guide {
+    margin: 0;
     border-bottom: 1px solid var(--color-border-accent);
     background: color-mix(in srgb, var(--color-accent) 4%, var(--color-bg-card));
     font-size: 0.75rem;
@@ -3040,91 +3041,6 @@ td.kv-label {
     color: var(--color-text-muted);
 }
 
-/* Guide bar in Quick Actions — match section-card-body dropdown style */
-#quick-actions .section-guide {
-    border: 1px solid var(--color-border-accent);
-    border-radius: 6px;
-    margin: 0 var(--gap-md) var(--gap-sm);
-    background: var(--color-bg-card);
-    overflow: hidden;
-    border-bottom: 1px solid var(--color-border-accent);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-#quick-actions .section-guide:hover {
-    border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-}
-
-#quick-actions .section-guide[open] {
-    box-shadow: 0 2px 12px var(--color-accent-dim);
-}
-
-#quick-actions .section-guide > summary {
-    padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: var(--color-accent-dim);
-    border-bottom: 1px solid transparent;
-    opacity: 1;
-    transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-#quick-actions .section-guide > summary .section-guide-icon {
-    display: none;
-}
-
-#quick-actions .section-guide[open] > summary {
-    border-bottom-color: var(--color-border-accent);
-    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-}
-
-#quick-actions .section-guide > summary:hover {
-    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-    opacity: 1;
-}
-
-#quick-actions .section-guide > summary::after {
-    content: '' !important;
-    display: inline-flex !important;
-    float: none !important;
-    align-items: center;
-    justify-content: center;
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px;
-    margin-left: auto !important;
-    border-radius: 4px;
-    background: color-mix(in srgb, var(--color-accent) 12%, transparent) !important;
-    border: 1px solid color-mix(in srgb, var(--color-accent) 22%, transparent);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: rotate(0deg) !important;
-    flex-shrink: 0;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
-    background-size: 12px 12px !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-}
-
-#quick-actions .section-guide > summary::before {
-    content: none;
-}
-
-#quick-actions .section-guide:hover > summary::after {
-    border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-    background-color: color-mix(in srgb, var(--color-accent) 18%, transparent) !important;
-    box-shadow: 0 0 8px var(--color-accent-dim);
-}
-
-#quick-actions .section-guide[open] > summary::after {
-    transform: rotate(180deg) !important;
-    background-color: color-mix(in srgb, var(--color-accent) 20%, transparent) !important;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 10px var(--color-accent-dim);
-}
-
 /* Smooth open/close for Quick Actions dropdowns */
 #quick-actions .section-card-body > details > :not(summary),
 #quick-actions .section-guide > .section-guide-body {
@@ -3133,10 +3049,6 @@ td.kv-label {
 }
 
 #quick-actions .section-card-body > details.qa-closing > :not(summary) {
-    animation: qa-collapse 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-#quick-actions .section-guide.guide-closing > .section-guide-body {
     animation: qa-collapse 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 

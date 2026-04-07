@@ -12,11 +12,11 @@
     {{ kv_row("Free", "%.1f GB"|format(data.disk.free_gb|default(0)), hint="Available space. Below 5 GB may cause build failures or cache issues.") }}
     <tr>
         <td class="kv-label">
-            Usage
             <details class="kv-hint">
                 <summary><span class="hint-chevron"></span></summary>
                 <span class="hint-text">Disk usage percentage. Above 90% is critical — clear caches or build artifacts.</span>
             </details>
+            Usage
         </td>
         <td class="kv-value">
             {% set pct = data.disk.percent_used|default(0) %}
