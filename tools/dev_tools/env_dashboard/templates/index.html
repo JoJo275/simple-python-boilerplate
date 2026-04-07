@@ -718,19 +718,8 @@
     {% endfor %}
 </div>
 
-{# --- Raw JSON viewer (collapsed) --- #}
-<details class="json-viewer-details" id="raw-json">
-    <summary>Raw JSON</summary>
-    <div class="json-viewer">
-        <button class="copy-btn copy-btn-labeled" @click="copyClip($event, JSON.stringify({{ report|tojson }}, null, 2))">
-            Copy JSON
-        </button>
-        <pre><code>{{ report|tojson(indent=2) }}</code></pre>
-    </div>
-</details>
-
 {# --- Quick Actions panel --- #}
-<section class="section-card" id="quick-actions" data-section-name="quick_actions" data-empty="false">
+<article class="section-card" id="quick-actions" data-section-name="quick_actions" data-empty="false">
     <header>
         <h4>
             Quick Actions
@@ -785,7 +774,7 @@
 
         {# --- Quality Gates --- #}
         <h5 style="margin-top: 0;">Quality Gates</h5>
-        <div class="quick-actions-grid">
+        <div class="quick-actions-grid" style="margin-bottom: var(--gap-lg);">
             <div class="quick-action-card">
                 <span class="quick-action-title">Run All Checks</span>
                 <span class="quick-action-desc">Lint + format + typecheck + test — the full gate</span>
@@ -1003,5 +992,16 @@
             </div>
         </details>
     </div>
-</section>
+</article>
+
+{# --- Raw JSON viewer (collapsed) --- #}
+<details class="json-viewer-details" id="raw-json">
+    <summary>Raw JSON</summary>
+    <div class="json-viewer">
+        <button class="copy-btn copy-btn-labeled" @click="copyClip($event, JSON.stringify({{ report|tojson }}, null, 2))">
+            Copy JSON
+        </button>
+        <pre><code>{{ report|tojson(indent=2) }}</code></pre>
+    </div>
+</details>
 {% endblock %}
