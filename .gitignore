@@ -156,6 +156,9 @@ $RECYCLE.BIN/
 /.data/
 /.local/
 
+# Dashboard server PID file (runtime artifact)
+.dashboard.pid
+
 # =========================================
 # Database files
 # =========================================

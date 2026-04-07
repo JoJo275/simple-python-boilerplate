@@ -132,38 +132,158 @@ def _scan_adrs(repo_root: Path) -> dict[str, Any]:
 
 
 def _check_broken_links(repo_root: Path) -> list[dict[str, str]]:
-    """Basic check for broken internal markdown links."""
+    """Improved check for broken internal markdown links.
+
+    Reduces false positives by handling:
+    - MkDocs directory indexes (``dir/`` → ``dir/index.md`` or ``dir/README.md``)
+    - Auto ``.md`` extension appending (MkDocs convention)
+    - Jinja2 template variables (``{{ var }}``)
+    - Code blocks and inline code (protected from scanning)
+    - Markdown reference-style links
+    - Image links and badges
+    - Anchor-only links and root-relative paths
+    - Links to files outside docs/ resolved relative to repo root
+    """
     docs_dir = repo_root / "docs"
     if not docs_dir.is_dir():
         return []
 
     broken: list[dict[str, str]] = []
+
+    # Pre-compile patterns
+    # Strip fenced code blocks (``` or ~~~) to avoid false positives
+    code_block_re = re.compile(r"^(`{3,}|~{3,}).*?^\1", re.MULTILINE | re.DOTALL)
+    # Strip inline code
+    inline_code_re = re.compile(r"`[^`\n]+`")
+    # Strip HTML comments
+    html_comment_re = re.compile(r"<!--.*?-->", re.DOTALL)
+    # Standard markdown links: [text](target)
+    link_re = re.compile(r"\[([^\]]*)\]\(([^)]+)\)")
+    # Reference-style link definitions: [label]: url
+    ref_link_re = re.compile(r"^\[([^\]]+)\]:\s*(.+)$", re.MULTILINE)
+
+    # Patterns for targets to skip
+    skip_prefixes = (
+        "http://",
+        "https://",
+        "#",
+        "mailto:",
+        "tel:",
+        "{{",
+        "{%",
+        "javascript:",
+    )
+
     try:
         for md_file in docs_dir.rglob("*.md"):
             content = md_file.read_text(encoding="utf-8", errors="replace")
-            # Find relative markdown links
-            for match in re.finditer(r"\[([^\]]*)\]\(([^)]+)\)", content):
-                target = match.group(2)
-                # Skip external URLs, anchors, and template variables
-                if target.startswith(("http", "#", "mailto:", "{{", "/")):
+
+            # Protect code regions from scanning
+            cleaned = code_block_re.sub("", content)
+            cleaned = inline_code_re.sub("", cleaned)
+            cleaned = html_comment_re.sub("", cleaned)
+
+            # Collect all link targets from both inline and reference links
+            link_targets: list[tuple[str, str]] = [
+                (m.group(1), m.group(2)) for m in link_re.finditer(cleaned)
+            ]
+            link_targets.extend(
+                (m.group(1), m.group(2).strip()) for m in ref_link_re.finditer(cleaned)
+            )
+
+            for text, raw_target in link_targets:
+                target = raw_target.strip()
+
+                # Skip external URLs, anchors, templates, etc.
+                if any(target.lower().startswith(p) for p in skip_prefixes):
                     continue
-                # Strip anchor from target
-                target_path = target.split("#")[0]
+                # Skip bare anchor references (e.g., [text](#anchor))
+                if target.startswith("#"):
+                    continue
+                # Skip targets with Jinja2 / template syntax inside
+                if "{{" in target or "{%" in target:
+                    continue
+                # Skip absolute paths (MkDocs resolves these differently)
+                if target.startswith("/"):
+                    continue
+
+                # Strip query string and anchor from target
+                target_path = target.split("?")[0].split("#")[0].strip()
                 if not target_path:
                     continue
+
+                # Resolve relative to the markdown file's directory
                 resolved = (md_file.parent / target_path).resolve()
-                if not resolved.exists():
-                    broken.append(
-                        {
-                            "file": str(md_file.relative_to(repo_root)),
-                            "link": target,
-                            "text": match.group(1)[:40],
-                        }
-                    )
+
+                if _link_target_exists(resolved, repo_root):
+                    continue
+
+                # For links going above docs/ (e.g., ../pyproject.toml),
+                # also try resolving from repo root
+                if target_path.startswith(".."):
+                    # Walk up from the file to see if it exists relative to repo
+                    from_repo = (
+                        repo_root
+                        / "docs"
+                        / md_file.relative_to(docs_dir).parent
+                        / target_path
+                    ).resolve()
+                    if _link_target_exists(from_repo, repo_root):
+                        continue
+
+                broken.append(
+                    {
+                        "file": str(md_file.relative_to(repo_root)),
+                        "link": raw_target,
+                        "text": text[:50],
+                    }
+                )
     except OSError:
         pass
 
-    return broken[:20]  # Limit results
+    return broken[:30]  # Limit results
+
+
+def _link_target_exists(resolved: Path, repo_root: Path) -> bool:
+    """Check if a resolved link target exists with MkDocs-aware fallbacks.
+
+    Handles:
+    - Direct file existence
+    - Directory with index.md or README.md (MkDocs directory indexes)
+    - Missing .md extension (``page`` → ``page.md``)
+    - Path outside the repo (reject — shouldn't resolve there)
+    """
+    # Safety: don't resolve outside repo
+    try:
+        resolved.relative_to(repo_root)
+    except ValueError:
+        return False
+
+    # Direct existence
+    if resolved.exists():
+        return True
+
+    # Try appending .md (MkDocs convention: ``page`` → ``page.md``)
+    if not resolved.suffix and resolved.with_suffix(".md").is_file():
+        return True
+
+    # Directory index fallback: ``dir/`` → ``dir/index.md`` or ``dir/README.md``
+    if resolved.is_dir():
+        if (resolved / "index.md").is_file():
+            return True
+        if (resolved / "README.md").is_file():
+            return True
+
+    # If the resolved path is a directory name without trailing slash,
+    # check if dir/index.md exists
+    dir_path = resolved
+    if not dir_path.suffix and dir_path.is_dir():
+        if (dir_path / "index.md").is_file():
+            return True
+        if (dir_path / "README.md").is_file():
+            return True
+
+    return False
 
 
 class DocsStatusCollector(BaseCollector):

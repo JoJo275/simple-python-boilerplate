@@ -214,6 +214,38 @@ async def api_pip_uninstall(
     )
 
 
+@router.post("/pip/install")
+async def api_pip_install(
+    package: str = Query(...),
+    python_exe: str = Query(default=""),
+) -> StreamingResponse:
+    """Install a pip package via streaming SSE output.
+
+    Used by the "Move to" feature to install a package into a target
+    environment before uninstalling from the source.
+
+    Security: validates package name + python exe path. Only local access.
+    """
+    if not _validate_package_name(package):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid package name'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    exe = python_exe or sys.executable
+    if not _validate_python_exe(exe):
+        return StreamingResponse(
+            iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
+            media_type="text/event-stream",
+        )
+
+    cmd = [exe, "-m", "pip", "install", package]
+    return StreamingResponse(
+        await _stream_pip_command(cmd),
+        media_type="text/event-stream",
+    )
+
+
 @router.post("/pip/check-updates")
 async def api_pip_check_updates(
     python_exe: str = Query(default=""),

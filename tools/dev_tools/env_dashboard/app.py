@@ -9,6 +9,12 @@ Performance:
     - Background cache warmup at startup so first page load is instant.
     - Collector runs in thread pool (non-blocking async event loop).
 
+Port management:
+    - On startup, kills any existing process holding the configured port.
+    - Writes a PID file so stale processes can be cleaned up reliably.
+    - Registers atexit + signal handlers to kill the full process tree
+      (reloader + worker) when the server exits, preventing zombie sockets.
+
 Usage::
 
     python -m tools.dev_tools.env_dashboard.app
@@ -18,6 +24,10 @@ Usage::
 
 from __future__ import annotations
 
+import atexit
+import contextlib
+import os
+import signal
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -30,6 +40,8 @@ from fastapi.templating import Jinja2Templates
 
 _HERE = Path(__file__).resolve().parent
 _REPO_ROOT = _HERE.parents[2]
+_DEFAULT_PORT = 8000
+_PID_FILE = _HERE / ".dashboard.pid"
 
 # Add scripts/ to sys.path so _env_collectors can be imported
 _SCRIPTS_DIR = _REPO_ROOT / "scripts"
@@ -39,6 +51,186 @@ if str(_SCRIPTS_DIR) not in sys.path:
 # Add repo root to sys.path so tools.dev_tools.env_dashboard can be imported
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
+
+
+# ---------------------------------------------------------------------------
+# Port & PID management — prevent zombie sockets on Windows
+# ---------------------------------------------------------------------------
+
+
+def _kill_pid(pid: int, *, tree: bool = False) -> bool:
+    """Kill a single process by PID. Returns True if killed or already gone."""
+    import contextlib
+
+    if sys.platform == "win32":
+        import subprocess  # nosec B404
+
+        cmd = ["taskkill", "/F", "/PID", str(pid)]
+        if tree:
+            cmd.append("/T")
+        with contextlib.suppress(subprocess.SubprocessError, OSError):
+            subprocess.run(cmd, capture_output=True, timeout=5)  # nosec B603
+            return True
+    else:
+        with contextlib.suppress(ProcessLookupError, PermissionError):
+            os.kill(pid, signal.SIGTERM)
+            return True
+    return False
+
+
+def _is_python_process(pid: int) -> bool:
+    """Check if a PID belongs to a Python process (Windows only)."""
+    if sys.platform != "win32":
+        return True  # Assume yes on non-Windows
+    import subprocess  # nosec B404
+
+    try:
+        result = subprocess.run(  # nosec B603 B607
+            ["tasklist", "/FI", f"PID eq {pid}", "/FO", "CSV", "/NH"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return "python" in result.stdout.lower()
+    except (subprocess.SubprocessError, OSError):
+        return False
+
+
+def _kill_port_holders(port: int) -> None:
+    """Find and kill any process listening on *port* (Windows only).
+
+    Uses ``netstat`` to find the owning PID, then ``taskkill /T`` to
+    terminate the entire process tree.  Silently does nothing on
+    non-Windows or if the port is free.
+    """
+    if sys.platform != "win32":
+        return
+
+    import subprocess  # nosec B404
+
+    try:
+        result = subprocess.run(  # nosec B603 B607
+            ["netstat", "-ano"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return
+
+    pids_to_kill: set[int] = set()
+    for line in result.stdout.splitlines():
+        # Look for LISTENING sockets on our port
+        if f":{port} " not in line or "LISTENING" not in line:
+            continue
+        parts = line.split()
+        if parts:
+            try:
+                pids_to_kill.add(int(parts[-1]))
+            except (ValueError, IndexError):
+                continue
+
+    for pid in pids_to_kill:
+        if pid == os.getpid() or pid == os.getppid():
+            continue
+        if not _is_python_process(pid):
+            continue
+        _kill_pid(pid, tree=True)
+        print(f"  Killed stale process {pid} on port {port}")  # noqa: T201
+
+
+def _read_pid_file() -> list[int]:
+    """Read PIDs from the PID file. Returns empty list if missing/invalid."""
+    if not _PID_FILE.is_file():
+        return []
+    try:
+        text = _PID_FILE.read_text(encoding="utf-8").strip()
+        return [int(p) for p in text.splitlines() if p.strip().isdigit()]
+    except (OSError, ValueError):
+        return []
+
+
+def _write_pid_file() -> None:
+    """Write current PID (and parent, if different) to the PID file."""
+    pids = {os.getpid()}
+    ppid = os.getppid()
+    if ppid and ppid != os.getpid():
+        pids.add(ppid)
+    with contextlib.suppress(OSError):
+        _PID_FILE.write_text(
+            "\n".join(str(p) for p in sorted(pids)) + "\n",
+            encoding="utf-8",
+        )
+
+
+def _remove_pid_file() -> None:
+    """Delete the PID file on clean shutdown."""
+    with contextlib.suppress(OSError):
+        _PID_FILE.unlink(missing_ok=True)
+
+
+def _cleanup_stale_processes(port: int) -> None:
+    """Kill stale dashboard processes from a previous run.
+
+    1. Kill PIDs recorded in the PID file (reliable — catches the exact
+       processes from the last session).
+    2. Kill any Python process still listening on *port* (fallback — catches
+       zombie sockets where the PID file was lost).
+    """
+    my_pid = os.getpid()
+    my_ppid = os.getppid()
+
+    # Phase 1: PID file cleanup
+    stale_pids = _read_pid_file()
+    for pid in stale_pids:
+        if pid in (my_pid, my_ppid):
+            continue
+        if not _is_python_process(pid):
+            continue
+        if _kill_pid(pid):
+            print(f"  Killed stale PID {pid} from previous session")  # noqa: T201
+    _remove_pid_file()
+
+    # Phase 2: Port-based cleanup (catches zombies the PID file missed)
+    _kill_port_holders(port)
+
+    # Brief pause to let the OS release the socket
+    if stale_pids or sys.platform == "win32":
+        import time
+
+        time.sleep(0.5)
+
+
+def _register_exit_handlers() -> None:
+    """Register atexit + signal handlers to kill the entire process tree.
+
+    On Windows, Uvicorn's reload mode creates a parent (reloader) and
+    child (worker) process.  When VS Code kills the terminal, only the
+    shell dies — the reloader and worker become orphans whose TCP
+    sockets linger as zombies.
+
+    This function ensures both processes are killed on any exit path:
+    SIGTERM, SIGINT, or normal Python exit.
+    """
+    _write_pid_file()
+    atexit.register(_remove_pid_file)
+
+    def _exit_handler(signum: int, _frame: Any) -> None:
+        """Kill the sibling process (parent or child) then exit."""
+        ppid = os.getppid()
+        pid = os.getpid()
+        _remove_pid_file()
+
+        # Kill the other half of the reloader/worker pair
+        if ppid and ppid != pid and ppid != 1:
+            _kill_pid(ppid)
+
+        # Re-raise as SystemExit so atexit handlers still run
+        raise SystemExit(128 + signum)
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        with contextlib.suppress(OSError, ValueError):
+            signal.signal(sig, _exit_handler)
 
 
 @asynccontextmanager
@@ -104,11 +296,17 @@ def main() -> None:
     """Start the dashboard server."""
     import uvicorn
 
-    print("Starting Environment Dashboard at http://127.0.0.1:8000")  # noqa: T201
+    port = _DEFAULT_PORT
+
+    # Kill any stale processes from a previous session before binding
+    _cleanup_stale_processes(port)
+    _register_exit_handlers()
+
+    print(f"Starting Environment Dashboard at http://127.0.0.1:{port}")  # noqa: T201
     uvicorn.run(
         "tools.dev_tools.env_dashboard.app:app",
         host="127.0.0.1",
-        port=8000,
+        port=port,
         reload=True,
         reload_dirs=[str(_HERE)],
     )

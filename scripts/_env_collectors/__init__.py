@@ -44,6 +44,7 @@ def _discover_collectors() -> list[type[BaseCollector]]:
     from _env_collectors.docs_status import DocsStatusCollector
     from _env_collectors.filesystem import FilesystemCollector
     from _env_collectors.git_info import GitInfoCollector
+    from _env_collectors.hardware import HardwareCollector
     from _env_collectors.insights import InsightsCollector
     from _env_collectors.network import NetworkCollector
     from _env_collectors.packages import PackagesCollector
@@ -59,6 +60,7 @@ def _discover_collectors() -> list[type[BaseCollector]]:
 
     return [
         SystemCollector,
+        HardwareCollector,
         RuntimesCollector,
         PathAnalysisCollector,
         ProjectCollector,
