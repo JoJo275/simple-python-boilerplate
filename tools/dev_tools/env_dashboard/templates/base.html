@@ -29,7 +29,7 @@
             </button>
             <div class="topbar-separator"></div>
             <details class="dropdown">
-                <summary role="button" class="outline secondary btn-sm">Redact: <span x-text="redactLevel"></span></summary>
+                <summary role="button" class="outline secondary btn-sm">Redact:&nbsp;<span x-text="redactLevel"></span></summary>
                 <ul>
                     <li><a href="#" @click.prevent="setRedact('none')">None</a></li>
                     <li><a href="#" @click.prevent="setRedact('secrets')">Secrets</a></li>
@@ -915,6 +915,21 @@
                 });
         };
     })();
+    </script>
+    <script>
+    /* Immediate close animation for memory-modules details */
+    document.addEventListener('click', function(e) {
+        var summary = e.target.closest('.hw-module-details > summary');
+        if (!summary) return;
+        var details = summary.parentElement;
+        if (!details.open) return;
+        e.preventDefault();
+        details.classList.add('closing');
+        setTimeout(function() {
+            details.open = false;
+            details.classList.remove('closing');
+        }, 400);
+    });
     </script>
 </body>
 </html>

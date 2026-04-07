@@ -3309,6 +3309,10 @@ details.warning-item.details-closing .warning-chevron {
 }
 
 /* Memory modules details — compact table without scrollbar */
+.hw-module-details {
+    interpolate-size: allow-keywords;
+}
+
 .hw-module-details .kv-table {
     table-layout: auto;
 }
@@ -3323,6 +3327,39 @@ details.warning-item.details-closing .warning-chevron {
 
 .hw-module-details .kv-table th {
     white-space: nowrap;
+}
+
+/* Override default stiff max-height animation for this details block */
+.section-card-body > details.hw-module-details > :not(summary) {
+    animation: none;
+}
+
+/* Smooth expand / collapse via ::details-content */
+.hw-module-details::details-content {
+    overflow-y: clip;
+    height: 0;
+    opacity: 0;
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease,
+                content-visibility 0.4s allow-discrete;
+}
+
+.hw-module-details[open]:not(.closing)::details-content {
+    height: auto;
+    opacity: 1;
+}
+
+/* Closing state — still [open] but visually collapsing immediately */
+.hw-module-details[open].closing::details-content {
+    height: 0;
+    opacity: 0;
+}
+
+@starting-style {
+    .hw-module-details[open]:not(.closing)::details-content {
+        height: 0;
+        opacity: 0;
+    }
 }
 
 /* Don't double-style the kv-hint inline details inside section cards */
