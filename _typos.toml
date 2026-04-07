@@ -45,6 +45,7 @@ extend-exclude = [
 # aci = "aci"
 BRE = "BRE"    # POSIX Basic Regular Expressions — not a typo
 ERE = "ERE"    # POSIX Extended Regular Expressions — not a typo
+FO = "FO"      # Windows tasklist /FO flag (format output) — not a typo
 certifi = "certifi"  # Python package for Mozilla CA certificates
 datas = "datas"      # Valid in setuptools/packaging contexts
 SHA = "SHA"          # Secure Hash Algorithm

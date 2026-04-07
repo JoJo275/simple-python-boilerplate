@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import platform
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,45 @@ def _get_tier():  # type: ignore[no-untyped-def]
 
         _tier = Tier
     return _tier
+
+
+def _linux_distro_info() -> dict[str, str]:
+    """Read Linux distribution info from /etc/os-release."""
+    info: dict[str, str] = {}
+    os_release = Path("/etc/os-release")
+    if not os_release.is_file():
+        return info
+    try:
+        content = os_release.read_text(encoding="utf-8", errors="replace")
+        for key in ("NAME", "VERSION_ID", "PRETTY_NAME", "ID", "ID_LIKE"):
+            match = re.search(rf'^{key}="?([^"\n]+)"?$', content, re.MULTILINE)
+            if match:
+                info[key.lower()] = match.group(1).strip()
+    except OSError:
+        pass
+    return info
+
+
+def _linux_uptime() -> str | None:
+    """Read system uptime on Linux from /proc/uptime."""
+    uptime_file = Path("/proc/uptime")
+    if not uptime_file.is_file():
+        return None
+    try:
+        raw = uptime_file.read_text(encoding="utf-8").split()[0]
+        seconds = int(float(raw))
+        days, remainder = divmod(seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, _ = divmod(remainder, 60)
+        parts = []
+        if days:
+            parts.append(f"{days}d")
+        if hours:
+            parts.append(f"{hours}h")
+        parts.append(f"{minutes}m")
+        return " ".join(parts)
+    except (OSError, ValueError, IndexError):
+        return None
 
 
 class SystemCollector(BaseCollector):
@@ -57,7 +97,7 @@ class SystemCollector(BaseCollector):
         except Exception:
             locale_str = "unknown"
 
-        return {
+        result: dict[str, Any] = {
             "os": platform.system(),
             "os_version": platform.version(),
             "os_release": platform.release(),
@@ -73,3 +113,25 @@ class SystemCollector(BaseCollector):
             "encoding": sys.getdefaultencoding(),
             "filesystem_encoding": sys.getfilesystemencoding(),
         }
+
+        # Linux-specific fields
+        if sys.platform == "linux":
+            distro = _linux_distro_info()
+            if distro.get("pretty_name"):
+                result["distro"] = distro["pretty_name"]
+            elif distro.get("name"):
+                ver = distro.get("version_id", "")
+                result["distro"] = f"{distro['name']} {ver}".strip()
+            if distro.get("id_like"):
+                result["distro_family"] = distro["id_like"]
+
+            uptime = _linux_uptime()
+            if uptime:
+                result["uptime"] = uptime
+
+            # Kernel release (more specific than platform.release() in some cases)
+            uname = platform.uname()
+            result["kernel_release"] = uname.release
+            result["kernel_version"] = uname.version
+
+        return result
