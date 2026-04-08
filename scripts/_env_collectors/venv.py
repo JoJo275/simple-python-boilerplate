@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess  # nosec B404
 import sys
+from pathlib import Path
 from typing import Any
 
 from _imports import find_repo_root
@@ -38,6 +39,7 @@ class VenvCollector(BaseCollector):
 
     def collect(self) -> dict[str, Any]:
         in_venv = sys.prefix != sys.base_prefix
+        repo_root = find_repo_root()
         info: dict[str, Any] = {
             "active": in_venv,
             "prefix": sys.prefix,
@@ -45,6 +47,7 @@ class VenvCollector(BaseCollector):
             "virtual_env": os.environ.get("VIRTUAL_ENV", ""),
             "conda_env": os.environ.get("CONDA_DEFAULT_ENV", ""),
             "hatch_env": os.environ.get("HATCH_ENV_ACTIVE", ""),
+            "discovered_venvs": self._discover_venvs(repo_root),
         }
 
         # Hatch environment info
@@ -53,6 +56,34 @@ class VenvCollector(BaseCollector):
             info["hatch"] = self._hatch_info(hatch)
 
         return info
+
+    @staticmethod
+    def _discover_venvs(repo_root: Path) -> list[dict[str, Any]]:
+        """Find all virtual environments under repo root (depth 2)."""
+        venvs: list[dict[str, Any]] = []
+        try:
+            for child in sorted(repo_root.iterdir()):
+                if not child.is_dir():
+                    continue
+                cfg = child / "pyvenv.cfg"
+                if cfg.is_file():
+                    venv_info: dict[str, Any] = {
+                        "path": child.name,
+                        "absolute_path": str(child),
+                    }
+                    with contextlib.suppress(OSError):
+                        lines = cfg.read_text(encoding="utf-8").splitlines()
+                        for line in lines:
+                            key, _, val = line.partition("=")
+                            key, val = key.strip(), val.strip()
+                            if key == "version":
+                                venv_info["python_version"] = val
+                            elif key == "prompt":
+                                venv_info["prompt"] = val
+                    venvs.append(venv_info)
+        except OSError:
+            pass
+        return venvs
 
     @staticmethod
     def _hatch_info(hatch: str) -> dict[str, Any]:

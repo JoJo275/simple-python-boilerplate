@@ -4,26 +4,26 @@
 <table class="kv-table">
     {{ kv_row("Total Outdated", data.outdated|default([])|length, hint="Number of installed packages with newer versions available on PyPI.") }}
     {{ kv_row("Critical Outdated", data.critical_outdated|default([])|length, hint="Security-related packages (pip, setuptools, certifi) that are outdated. Update these first.") }}
-    {% if data.audit_available is defined %}
-    {{ kv_row("pip-audit Available", data.audit_available, hint="Whether pip-audit is installed for vulnerability scanning.") }}
+    {% if data.pip_audit_available is defined %}
+    {{ kv_row("pip-audit Available", data.pip_audit_available, hint="Whether pip-audit is installed for vulnerability scanning.") }}
     {% endif %}
 </table>
 
 {# --- Vulnerability audit --- #}
-{% if data.audit_results %}
+{% if data.audit %}
 <h5>Vulnerability Audit</h5>
-{% if data.audit_results.vulnerabilities %}
+{% if data.audit.vulnerabilities %}
 <table class="kv-table striped">
     <thead>
         <tr><th>Package</th><th>Version</th><th>Vulnerability</th><th>Fix</th></tr>
     </thead>
     <tbody>
-        {% for vuln in data.audit_results.vulnerabilities %}
+        {% for vuln in data.audit.vulnerabilities %}
         <tr class="row-fail">
-            <td class="mono">{{ vuln.name }}</td>
+            <td class="mono">{{ vuln.package }}</td>
             <td>{{ vuln.version }}</td>
             <td><span class="badge badge-fail">{{ vuln.id|default("CVE") }}</span></td>
-            <td>{{ vuln.fix|default("—") }}</td>
+            <td>{{ vuln.fix_versions|default("—") }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -31,7 +31,7 @@
 {% else %}
 <p><span class="badge badge-pass">No known vulnerabilities found</span></p>
 {% endif %}
-{% elif data.audit_available is sameas false %}
+{% elif data.pip_audit_available is sameas false %}
 <p class="muted">Install pip-audit for vulnerability scanning: <code>pip install pip-audit</code></p>
 {% endif %}
 
@@ -47,7 +47,7 @@
         <tr class="row-warn">
             <td class="mono">{{ pkg.name }}</td>
             <td>{{ pkg.version }}</td>
-            <td><span class="badge badge-info">{{ pkg.latest }}</span></td>
+            <td><span class="badge badge-info">{{ pkg.latest_version }}</span></td>
         </tr>
         {% endfor %}
     </tbody>
@@ -70,7 +70,7 @@
             <tr>
                 <td class="mono">{{ pkg.name }}</td>
                 <td>{{ pkg.version }}</td>
-                <td>{{ pkg.latest }}</td>
+                <td>{{ pkg.latest_version }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -90,10 +90,10 @@
             <tr><th>Group</th><th>Packages</th></tr>
         </thead>
         <tbody>
-            {% for group in data.dependency_groups %}
+            {% for group_name, group_pkgs in data.dependency_groups.items() %}
             <tr>
-                <td>{{ group.name }}</td>
-                <td><span class="badge">{{ group.count }}</span></td>
+                <td>{{ group_name }}</td>
+                <td><span class="badge">{{ group_pkgs|length }}</span></td>
             </tr>
             {% endfor %}
         </tbody>

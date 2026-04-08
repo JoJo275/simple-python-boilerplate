@@ -26,6 +26,24 @@
     {{ kv_row("HATCH_ENV", data.hatch_env, hint="Hatch environment name. Set when running inside 'hatch shell' or 'hatch run'.") }}
 </table>
 
+{% if data.discovered_venvs %}
+<h5>Discovered Virtual Environments</h5>
+<table class="kv-table striped">
+    <thead>
+        <tr><th>Directory</th><th>Python</th><th>Prompt</th></tr>
+    </thead>
+    <tbody>
+        {% for venv in data.discovered_venvs %}
+        <tr>
+            <td class="mono">{{ venv.path }}</td>
+            <td>{{ venv.python_version|default("—") }}</td>
+            <td>{{ venv.prompt|default("—") }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 {% if data.hatch %}
 <h5>Hatch</h5>
 <table class="kv-table">
