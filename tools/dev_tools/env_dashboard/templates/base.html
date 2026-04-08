@@ -758,7 +758,8 @@
         if (details.classList.contains('details-closing')) return;
 
         // Section-card-body details use ::details-content transition (.closing class)
-        if (details.parentElement && details.parentElement.classList.contains('section-card-body')) {
+        if (details.parentElement && details.parentElement.classList.contains('section-card-body') &&
+            !details.classList.contains('container-not-found')) {
             e.preventDefault();
             details.classList.add('closing');
             setTimeout(function() {

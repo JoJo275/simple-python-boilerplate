@@ -125,7 +125,7 @@
 </div>
 {% set missing_files = data.container_files|selectattr("exists", "equalto", false)|list %}
 {% if missing_files %}
-<details style="margin-top:0.5rem">
+<details class="container-not-found" style="margin-top:0.5rem">
     <summary><small class="muted">Not found ({{ missing_files|length }})</small></summary>
     <div class="container-files-list" style="margin-top:0.3rem">
         {% for cf in missing_files %}

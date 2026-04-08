@@ -12,6 +12,7 @@
     --color-accent-dim: rgba(168, 85, 247, 0.12);
     --color-accent-glow: rgba(168, 85, 247, 0.35);
     --color-accent-bright: #c084fc;
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 
     /* Dashboard colors — light mode */
     --color-bg: #f8f9fc;
@@ -39,6 +40,7 @@
     --color-accent-glow: rgba(168, 85, 247, 0.35);
     --color-accent-bright: #c084fc;
     --color-border-accent: rgba(168, 85, 247, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="lime"] {
@@ -47,6 +49,7 @@
     --color-accent-glow: rgba(132, 204, 22, 0.35);
     --color-accent-bright: #a3e635;
     --color-border-accent: rgba(132, 204, 22, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2384cc16' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="blue"] {
@@ -55,6 +58,7 @@
     --color-accent-glow: rgba(59, 130, 246, 0.35);
     --color-accent-bright: #60a5fa;
     --color-border-accent: rgba(59, 130, 246, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="orange"] {
@@ -63,6 +67,7 @@
     --color-accent-glow: rgba(249, 115, 22, 0.35);
     --color-accent-bright: #fb923c;
     --color-border-accent: rgba(249, 115, 22, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="teal"] {
@@ -71,6 +76,7 @@
     --color-accent-glow: rgba(20, 184, 166, 0.35);
     --color-accent-bright: #2dd4bf;
     --color-border-accent: rgba(20, 184, 166, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314b8a6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="rose"] {
@@ -79,6 +85,7 @@
     --color-accent-glow: rgba(244, 63, 94, 0.35);
     --color-accent-bright: #fb7185;
     --color-border-accent: rgba(244, 63, 94, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f43f5e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 [data-accent="slate"] {
@@ -87,6 +94,7 @@
     --color-accent-glow: rgba(100, 116, 139, 0.35);
     --color-accent-bright: #94a3b8;
     --color-border-accent: rgba(100, 116, 139, 0.18);
+    --chevron-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 
 /* ========== Dark mode overrides ========== */
@@ -2165,15 +2173,15 @@ body.dialog-open {
 /* ========== Project Commands Section ========== */
 
 /* Smooth expand / collapse for all section dropdowns (matches memory module) */
-.section-card-body > details:not(.hw-module-details) {
+.section-card-body > details:not(.hw-module-details):not(.container-not-found) {
     interpolate-size: allow-keywords;
 }
 
-.section-card-body > details:not(.hw-module-details) > :not(summary):not(.env-summary) {
+.section-card-body > details:not(.hw-module-details):not(.container-not-found) > :not(summary):not(.env-summary) {
     animation: none;
 }
 
-.section-card-body > details:not(.hw-module-details)::details-content {
+.section-card-body > details:not(.hw-module-details):not(.container-not-found)::details-content {
     overflow-y: clip;
     height: 0;
     opacity: 0;
@@ -2182,18 +2190,18 @@ body.dialog-open {
                 content-visibility 0.4s allow-discrete;
 }
 
-.section-card-body > details[open]:not(.closing):not(.hw-module-details)::details-content {
+.section-card-body > details[open]:not(.closing):not(.hw-module-details):not(.container-not-found)::details-content {
     height: auto;
     opacity: 1;
 }
 
-.section-card-body > details[open].closing:not(.hw-module-details)::details-content {
+.section-card-body > details[open].closing:not(.hw-module-details):not(.container-not-found)::details-content {
     height: 0;
     opacity: 0;
 }
 
 @starting-style {
-    .section-card-body > details[open]:not(.closing):not(.hw-module-details)::details-content {
+    .section-card-body > details[open]:not(.closing):not(.hw-module-details):not(.container-not-found)::details-content {
         height: 0;
         opacity: 0;
     }
@@ -3006,6 +3014,37 @@ td.kv-label {
     font-family: var(--pico-font-family-monospace);
 }
 
+/* Not-found dropdown — animated open, instant close.
+   Transition is only set in [open] state so the browser
+   animates the expand but snaps shut on close. */
+details.container-not-found {
+    interpolate-size: allow-keywords;
+}
+
+.section-card-body > details.container-not-found > :not(summary) {
+    animation: none;
+}
+
+details.container-not-found::details-content {
+    overflow-y: clip;
+    height: 0;
+    opacity: 0;
+}
+
+details.container-not-found[open]::details-content {
+    height: auto;
+    opacity: 1;
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease;
+}
+
+@starting-style {
+    details.container-not-found[open]::details-content {
+        height: 0;
+        opacity: 0;
+    }
+}
+
 /* ========== Critical files section ========== */
 
 .critical-files-grid {
@@ -3254,8 +3293,8 @@ td.kv-label {
                 box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     transform: rotate(0deg) !important;
     flex-shrink: 0;
-    /* SVG chevron icon */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+    /* Chevron icon — uses --chevron-svg set per accent theme */
+    background-image: var(--chevron-svg) !important;
     background-size: 12px 12px !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
