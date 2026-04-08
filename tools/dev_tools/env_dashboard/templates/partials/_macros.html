@@ -26,7 +26,7 @@
         {% else %}
             <span>{{ value }}</span>
             {% if copyable %}
-            <button class="copy-btn" @click="copyClip($event, '{{ value|e }}')" title="Copy to clipboard"></button>
+            <button class="copy-btn" data-clip="{{ value|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button>
             {% endif %}
         {% endif %}
     </td>

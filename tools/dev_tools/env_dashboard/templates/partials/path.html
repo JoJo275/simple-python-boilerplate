@@ -27,7 +27,7 @@
         {% for entry in data.entries %}
         <tr class="{% if not entry.exists %}row-fail{% elif entry.duplicate %}row-warn{% endif %}">
             <td>{{ loop.index }}</td>
-            <td class="mono path-cell">{{ entry.path }} <button class="copy-btn" @click="copyClip($event, '{{ entry.path|e }}')" title="Copy to clipboard"></button></td>
+            <td class="mono path-cell">{{ entry.path }} <button class="copy-btn" data-clip="{{ entry.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
             <td>
                 {% if entry.exists %}
                     <span class="badge badge-pass"><span class="check-icon"></span></span>
@@ -55,7 +55,7 @@
                 {% endif %}
             </td>
             <td>
-                <button class="path-remove-btn" @click="pathRemove('{{ entry.path|e }}')" title="Remove from User PATH">&times;</button>
+                <button class="path-remove-btn" data-clip="{{ entry.path|e }}" @click="pathRemove($el.dataset.clip)" title="Remove from User PATH">&times;</button>
             </td>
         </tr>
         {% endfor %}

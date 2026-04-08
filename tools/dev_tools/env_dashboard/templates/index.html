@@ -260,11 +260,13 @@
         "actions": [
             "Remove dead entries from your shell profile (.bashrc, .zshrc, or System Environment Variables on Windows).",
             "If the wrong Python is picked up, reorder PATH so your venv comes first.",
-            "Use 'which python' (Unix) or 'Get-Command python' (PowerShell) to verify resolution."
+            "Use 'which python' (Unix) or 'Get-Command python' (PowerShell) to verify resolution.",
+            "If a 'dup' badge appears, the duplicate is usually in your User PATH (System PATH loads first, User appends). Remove the User copy — the System entry already covers it."
         ],
         "common_issues": [
             "Conda base environment injected at the front of PATH — overrides your project's venv. Run 'conda deactivate' first.",
-            "pyenv shims directory missing — pyenv won't intercept python commands without 'pyenv init' in your shell profile."
+            "pyenv shims directory missing — pyenv won't intercept python commands without 'pyenv init' in your shell profile.",
+            "User vs System PATH: Windows merges both into one PATH variable. This table shows the merged result. System entries appear first and take priority. If both contain the same directory, the System entry wins — the User duplicate can be safely removed via System Environment Variables."
         ],
         "related": ["runtimes", "venv", "security"]
     },

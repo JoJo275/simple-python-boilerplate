@@ -47,7 +47,7 @@
         {% for remote in data.remotes %}
         <tr>
             <td>{{ remote.name }}</td>
-            <td class="mono">{{ remote.url }} <button class="copy-btn" @click="copyClip($event, '{{ remote.url|e }}')" title="Copy to clipboard"></button></td>
+            <td class="mono">{{ remote.url }} <button class="copy-btn" data-clip="{{ remote.url|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button></td>
         </tr>
         {% endfor %}
     </tbody>

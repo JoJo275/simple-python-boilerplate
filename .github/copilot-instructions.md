@@ -62,6 +62,19 @@ Key tasks: `task test`, `task lint`, `task fmt`, `task typecheck`, `task check` 
 Utility scripts in `scripts/`. See `scripts/README.md` for inventory,
 `scripts/.instructions.md` for conventions.
 
+### Global Entry Points
+
+21 CLI commands (`spb-*`) defined in `[project.scripts]` in `pyproject.toml`.
+Thin wrappers in `src/simple_python_boilerplate/scripts_cli.py` run bundled
+scripts via subprocess with `SPB_REPO_ROOT` set to CWD, enabling cross-repo
+use via `pipx install .`. See `docs/guide/entry-points.md` for the full list.
+
+### Environment Dashboard
+
+FastAPI + Jinja2 + HTMX + Alpine.js web app in `tools/dev_tools/env_dashboard/`.
+20 plugin-based collectors gather environment data. Start with `spb-dashboard`
+or `hatch run dashboard:serve`. See `docs/guide/dashboard-guide.md`.
+
 ### Documentation
 
 MkDocs Material. See `docs/.instructions.md` and `docs/adr/.instructions.md`.
@@ -78,6 +91,7 @@ Serve: `hatch run docs:serve`.
 | `Containerfile` | Multi-stage container build |
 | `release-please-config.json` | Release automation |
 | `mkdocs-hooks/*.py` | MkDocs build hooks (repo_links, generate_commands, include_templates) |
+| `src/.../scripts_cli.py` | Entry point wrappers for `spb-*` CLI commands |
 | `*.code-workspace` | VS Code settings. **Note:** use relative paths, not `${workspaceFolder}`. |
 
 ### Targeted Instruction Files

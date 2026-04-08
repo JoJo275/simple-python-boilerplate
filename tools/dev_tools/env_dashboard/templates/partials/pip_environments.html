@@ -27,7 +27,7 @@
         <tr>
             <td>{{ inst.version|default("—") }}</td>
             <td class="mono"><small>{{ inst.path }}</small>
-                <button class="copy-btn" @click="copyClip($event, '{{ inst.path|e }}')" title="Copy path"></button>
+                <button class="copy-btn" data-clip="{{ inst.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy path"></button>
             </td>
             <td>{{ inst.source|default("") }}</td>
             <td>
@@ -102,7 +102,7 @@
                 class="{% if pkg.update_available %}pkg-outdated{% endif %}">
                 <td class="mono">
                     {{ pkg.name }}
-                    <button class="copy-btn" @click="copyClip($event, '{{ pkg.name|e }}')" title="Copy name"></button>
+                    <button class="copy-btn" data-clip="{{ pkg.name|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy name"></button>
                 </td>
                 <td>{{ pkg.version }}</td>
                 <td>

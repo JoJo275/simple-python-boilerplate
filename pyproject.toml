@@ -65,6 +65,27 @@ spb = "simple_python_boilerplate.main:main"
 spb-version = "simple_python_boilerplate.main:print_version"
 spb-doctor = "simple_python_boilerplate.main:doctor"
 spb-start = "simple_python_boilerplate.main:start"
+# Script entry points — globally available after `pipx install .`
+# Each command runs the bundled script from the user's current working
+# directory, so it inspects whichever repo you're in.
+spb-git-doctor = "simple_python_boilerplate.scripts_cli:git_doctor"
+spb-env-doctor = "simple_python_boilerplate.scripts_cli:env_doctor"
+spb-repo-doctor = "simple_python_boilerplate.scripts_cli:repo_doctor"
+spb-diag = "simple_python_boilerplate.scripts_cli:doctor_bundle"
+spb-env-inspect = "simple_python_boilerplate.scripts_cli:env_inspect"
+spb-repo-stats = "simple_python_boilerplate.scripts_cli:repo_sauron"
+spb-clean = "simple_python_boilerplate.scripts_cli:clean"
+spb-bootstrap = "simple_python_boilerplate.scripts_cli:bootstrap"
+spb-dep-versions = "simple_python_boilerplate.scripts_cli:dep_versions"
+spb-workflow-versions = "simple_python_boilerplate.scripts_cli:workflow_versions"
+spb-check-todos = "simple_python_boilerplate.scripts_cli:check_todos"
+spb-check-python = "simple_python_boilerplate.scripts_cli:check_python_support"
+spb-changelog-check = "simple_python_boilerplate.scripts_cli:changelog_check"
+spb-apply-labels = "simple_python_boilerplate.scripts_cli:apply_labels"
+spb-archive-todos = "simple_python_boilerplate.scripts_cli:archive_todos"
+spb-customize = "simple_python_boilerplate.scripts_cli:customize"
+spb-check-issues = "simple_python_boilerplate.scripts_cli:check_known_issues"
+spb-dashboard = "simple_python_boilerplate.scripts_cli:dashboard"
 
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]
@@ -219,8 +240,15 @@ cov = "pytest --cov=simple_python_boilerplate --cov-report=term-missing {args}"
 # Include non-Python files in your package (e.g., data files, configs)
 # [tool.hatch.build.targets.wheel]
 # packages = ["src/simple_python_boilerplate"]
-# [tool.hatch.build.targets.wheel.force-include]
-# "data" = "simple_python_boilerplate/data"
+
+# Bundle scripts/ and tools/ into the wheel so entry points can locate them.
+# They are installed under simple_python_boilerplate/_bundled_scripts/ and
+# simple_python_boilerplate/_bundled_tools/ respectively.
+# See src/simple_python_boilerplate/scripts_cli.py for the runner logic.
+[tool.hatch.build.targets.wheel.force-include]
+"scripts" = "simple_python_boilerplate/_bundled_scripts/scripts"
+"tools" = "simple_python_boilerplate/_bundled_tools/tools"
+"repo_doctor.d" = "simple_python_boilerplate/_bundled_scripts/repo_doctor.d"
 
 # Control exactly which files go into the sdist and wheel.
 # NOTE: When both include and exclude match a path, exclude wins.

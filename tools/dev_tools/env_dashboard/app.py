@@ -355,7 +355,9 @@ def main() -> None:
     _cleanup_stale_processes(port)
     _register_exit_handlers()
 
-    print(f"Starting Environment Dashboard at http://127.0.0.1:{port}")  # noqa: T201
+    url = f"http://127.0.0.1:{port}"
+    _print_startup_banner(url, port)
+
     uvicorn.run(
         "tools.dev_tools.env_dashboard.app:app",
         host="127.0.0.1",
@@ -363,6 +365,64 @@ def main() -> None:
         reload=True,
         reload_dirs=[str(_HERE)],
     )
+
+
+def _print_startup_banner(url: str, port: int) -> None:
+    """Print a helpful startup banner with server info and quick links."""
+    import platform
+    import time
+
+    now = time.strftime("%H:%M:%S")
+    py = platform.python_version()
+    os_name = platform.system()
+    separator = "─" * 52
+
+    # Count available collector sections
+    section_count = "?"
+    try:
+        from _env_collectors import gather_env_info
+
+        data = gather_env_info()
+        sections = data.get("sections", {})
+        section_count = str(len(sections))
+    except Exception:  # nosec B110 — best-effort count; default "?" is fine
+        section_count = "?"
+
+    print(f"\n  ╭{separator}╮")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  │{'🖥  Environment Dashboard':^52}│")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  ├{separator}┤")  # noqa: T201
+    print(f"  │  Server:    {url:<37}│")  # noqa: T201
+    print(f"  │  Port:      {port:<37}│")  # noqa: T201
+    print(f"  │  Host:      127.0.0.1 (local only){'':<15}│")  # noqa: T201
+    print(f"  │  Reload:    enabled{'':<30}│")  # noqa: T201
+    print(f"  │  Started:   {now:<37}│")  # noqa: T201
+    print(f"  │  PID:       {os.getpid():<37}│")  # noqa: T201
+    print(f"  │  Python:    {py:<37}│")  # noqa: T201
+    print(f"  │  Platform:  {os_name:<37}│")  # noqa: T201
+    print(f"  │  Sections:  {section_count:<37}│")  # noqa: T201
+    print(f"  ├{separator}┤")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  │  Quick links:{'':<37}│")  # noqa: T201
+    print(f"  │    Dashboard:   {url + '/':<33}│")  # noqa: T201
+    print(f"  │    API JSON:    {url + '/api/report':<33}│")  # noqa: T201
+    print(f"  │    Summary:     {url + '/api/summary':<33}│")  # noqa: T201
+    print(f"  │    HTML export:  {url + '/export.html':<32}│")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  ├{separator}┤")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  │  Routes:{'':<43}│")  # noqa: T201
+    print(f"  │    GET /               Dashboard page{'':<14}│")  # noqa: T201
+    print(f"  │    GET /api/report     Full JSON report{'':<13}│")  # noqa: T201
+    print(f"  │    GET /api/summary    Report summary{'':<15}│")  # noqa: T201
+    print(f"  │    GET /export.html    Static HTML export{'':<12}│")  # noqa: T201
+    print(f"  │    GET /section/...    htmx partials{'':<16}│")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  │  Keyboard shortcuts:{'':<30}│")  # noqa: T201
+    print(f"  │    Ctrl+C      Stop the server{'':<19}│")  # noqa: T201
+    print(f"  │{'':^52}│")  # noqa: T201
+    print(f"  ╰{separator}╯\n")  # noqa: T201
 
 
 if __name__ == "__main__":

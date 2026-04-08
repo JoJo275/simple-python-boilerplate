@@ -248,6 +248,7 @@ body.dialog-open {
     display: flex;
     margin-top: var(--topbar-height);
     min-height: calc(100vh - var(--topbar-height));
+    position: relative;  /* containing block for particle canvas */
 }
 
 /* ========== Left sidebar ========== */
@@ -1631,6 +1632,13 @@ body.dialog-open {
     vertical-align: middle;
 }
 
+/* Override kv-table word-break for all non-path columns */
+.path-table th:not(:nth-child(2)),
+.path-table td:not(:nth-child(2)) {
+    white-space: nowrap !important;
+    word-break: normal !important;
+}
+
 /* Reset kv-table overrides for all path-table cells */
 .path-table td:first-child {
     width: 2.5rem;
@@ -2229,6 +2237,31 @@ body.dialog-open {
 #section-body-project_commands .kv-table.striped th:nth-child(3),
 #section-body-project_commands .kv-table.striped td:nth-child(3) {
     width: 30%;
+    white-space: nowrap;
+}
+
+/* Consistent column widths across all pre-commit hook stage tables */
+#section-body-precommit_hooks details .kv-table.striped {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#section-body-precommit_hooks details .kv-table.striped th:nth-child(1),
+#section-body-precommit_hooks details .kv-table.striped td:nth-child(1) {
+    width: 28%;
+}
+
+#section-body-precommit_hooks details .kv-table.striped th:nth-child(2),
+#section-body-precommit_hooks details .kv-table.striped td:nth-child(2) {
+    width: 50%;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+#section-body-precommit_hooks details .kv-table.striped th:nth-child(3),
+#section-body-precommit_hooks details .kv-table.striped td:nth-child(3) {
+    width: 22%;
     white-space: nowrap;
 }
 
@@ -3483,4 +3516,39 @@ details.warning-item.details-closing .warning-chevron {
 #section-body-disk_workspace .kv-table.striped td:nth-child(3),
 #section-body-disk_workspace .kv-table.striped th:nth-child(3) {
     width: 15%;
+}
+
+/* ========== Floating edge particles ========== */
+
+/* Canvas lives inside .dashboard-layout (position:relative).
+   Zero dimensions + default overflow:visible = no scroll impact.
+   z-index above sidebar (z90), below topbar (z300). */
+.particle-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.edge-particle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0%, #fff 60%, rgba(230, 233, 245, 0.95) 100%);
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+[data-theme="light"] .edge-particle {
+    background: radial-gradient(circle at 30% 30%, rgba(190, 195, 215, 0.95) 0%, rgba(160, 165, 185, 0.8) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .edge-particle {
+        display: none;
+    }
 }
