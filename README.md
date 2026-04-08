@@ -77,6 +77,7 @@ task docs:serve           # Live-reload docs at localhost:8000
 task docs:build           # Build docs (strict mode)
 task docs:commands        # Regenerate command reference
 task security             # Run bandit security linter
+task dashboard:serve      # Environment dashboard at localhost:8000
 ```
 
 > Run `task --list` for all commands, or see [Taskfile.yml](Taskfile.yml) directly.
@@ -152,6 +153,26 @@ See [docs/workflows.md](docs/workflows.md) for the full workflow inventory.
 | `scripts/test_containerfile.py`         | Test the Containerfile image: build, validate, clean up                  |
 | `scripts/test_docker_compose.py`        | Test docker compose stack: build, run, validate, clean up                |
 
+## Environment Dashboard
+
+A web-based environment inspection dashboard built with FastAPI + Jinja2 +
+htmx + Alpine.js. Collects data from 20 plugin-based collectors covering
+system info, Python runtimes, packages, git status, security, CI/CD, docs,
+disk usage, and more.
+
+```bash
+task dashboard:serve          # http://127.0.0.1:8000
+# or directly:
+hatch run dashboard:serve
+```
+
+Features: dark/light mode, 7 accent themes, real-time data freshness,
+redaction levels, copy-to-clipboard, pip package management, section
+guides, keyboard shortcuts, static HTML export, and JSON API.
+
+See [docs/guide/dashboard-guide.md](docs/guide/dashboard-guide.md) for
+the full guide.
+
 ## Using This Template
 
 See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-step setup guide.
@@ -163,10 +184,28 @@ See [docs/USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for a step-by-ste
     1. Replace `simple-python-boilerplate` / `simple_python_boilerplate` with your project name
     2. Update `pyproject.toml` (name, description, URLs, author)
     3. Update `mkdocs.yml` (`site_url`, `repo_url`, `site_name`)
-3. Delete placeholder code in `src/` and `tests/`
-4. Enable repository guards via repository variables (see [ADR 011][adr-011])
-5. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
-6. Install hooks: `task pre-commit:install`
+3. Run `python scripts/bootstrap.py` to set up the local environment
+4. Delete placeholder code in `src/` and `tests/`
+5. Enable repository guards via repository variables (see [ADR 011][adr-011])
+6. Install labels: `python scripts/apply_labels.py --set baseline --repo OWNER/REPO`
+
+**Customization workflow (export → edit → preview → apply):**
+
+```bash
+python scripts/customize.py                                         # generate customize-config.md
+# edit customize-config.md — fill in values, toggle checkboxes
+python scripts/customize.py --apply-from customize-config.md --dry-run  # preview changes
+python scripts/customize.py --apply-from customize-config.md            # apply for real
+```
+
+**Bootstrap (one-command setup):**
+
+```bash
+python scripts/bootstrap.py              # full setup: Hatch envs, hooks, verification
+python scripts/bootstrap.py --dry-run    # preview what would happen
+python scripts/bootstrap.py --ci-like    # run all checks like CI (quality + docs build)
+python scripts/bootstrap.py --strict     # include ruff + mypy quality pass
+```
 
 See [USING_THIS_TEMPLATE.md](docs/USING_THIS_TEMPLATE.md) for the full walkthrough, [resources_links.md](docs/notes/resources_links.md) for curated learning links, and [resources_written.md](docs/notes/resources_written.md) for self-written references.
 

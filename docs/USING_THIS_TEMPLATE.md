@@ -21,21 +21,87 @@ fit your project.
    renaming, license selection, and optional directory stripping:
 
     ```bash
-    python scripts/customize.py          # interactive
-    python scripts/customize.py --dry-run # preview changes first
+    python scripts/customize.py                  # generate customize-config.md (interactive)
+    python scripts/customize.py --non-interactive \
+        --project-name my-project --author "Jane Doe" \
+        --github-user janedoe                    # fully automated
+    ```
+
+    **Markdown config workflow** (export → edit → preview → apply):
+
+    ```bash
+    python scripts/customize.py                                             # 1. generate customize-config.md
+    # 2. edit customize-config.md — fill in your values, toggle checkboxes
+    python scripts/customize.py --apply-from customize-config.md --dry-run  # 3. preview (writes customize-report.md)
+    python scripts/customize.py --apply-from customize-config.md            # 4. apply for real
+    ```
+
+    **Just enable workflows** (without full customization):
+
+    ```bash
+    python scripts/customize.py --enable-workflows myorg/myrepo
+    python scripts/customize.py --enable-workflows myorg/myrepo --dry-run   # preview first
     ```
 
     Or do it manually: find-and-replace all placeholders (see
     [Placeholders to Replace](#placeholders-to-replace)), delete what you
     don't need, and customize the remaining files.
 
+    <details>
+    <summary><strong>All customize.py flags</strong></summary>
+
+    | Flag | Description |
+    | :--- | :---------- |
+    | `--non-interactive` | Skip prompts; use CLI flags for all values |
+    | `--project-name NAME` | Project name (lowercase-hyphenated) |
+    | `--package-name NAME` | Python package name (auto-derived if omitted) |
+    | `--author NAME` | Author name |
+    | `--github-user NAME` | GitHub username or organization |
+    | `--description TEXT` | One-line project description |
+    | `--cli-prefix PREFIX` | CLI command prefix (default: initials) |
+    | `--license ID` | License (apache-2.0, mit, bsd-3-clause, …) |
+    | `--strip DIR [...]` | Remove optional dirs (db, experiments, var, container, …) |
+    | `--template-cleanup ITEM [...]` | Clean up template items (adr-files, placeholder-code, …) |
+    | `--private-repo` | Strip open-source community files |
+    | `--force` | Skip already-customized safety check |
+    | `--enable-workflows SLUG` | Replace YOURNAME/YOURREPO in workflows |
+    | `--export-config [PATH]` | Export config to Markdown (default: customize-config.md) |
+    | `--apply-from PATH` | Apply config from edited Markdown file |
+    | `--dry-run` | Preview mode (no file modifications) |
+    | `-q`, `--quiet` | Suppress informational output |
+
+    </details>
+
 3. **Bootstrap your environment** — installs Hatch envs, pre-commit hooks,
    and verifies the setup:
 
     ```bash
-    python scripts/bootstrap.py          # full setup
-    python scripts/bootstrap.py --dry-run # preview
+    python scripts/bootstrap.py              # full setup
+    python scripts/bootstrap.py --dry-run    # preview what would happen
+    python scripts/bootstrap.py --strict     # include ruff + mypy quality pass
+    python scripts/bootstrap.py --ci-like    # run all checks like CI (quality + docs build)
     ```
+
+    <details>
+    <summary><strong>All bootstrap.py flags</strong></summary>
+
+    | Flag | Description |
+    | :--- | :---------- |
+    | `--dry-run` | Show what would happen without making changes |
+    | `--skip-hooks` | Skip pre-commit hook installation |
+    | `--skip-test-matrix` | Skip creating test.py3.x environments (faster) |
+    | `--strict` | Run optional quality pass (ruff + mypy) after setup |
+    | `--fix` | With --strict, auto-fix ruff issues where possible |
+    | `--ci-like` | Run all checks including quality + docs build |
+    | `--smoke` | Quick import/arg-parse health check; exit 0 immediately |
+
+    </details>
+
+    Bootstrap performs 12 steps: verify Python version, check git, check
+    Hatch, create all Hatch environments (default, docs, test matrix),
+    install pre-commit hooks (all stages), check Task runner, verify
+    editable install, build smoke test, wheel install test, template
+    placeholder validation, publishability checks, and CLI entry point check.
 
 > **What's the difference?** [`scripts/customize.py`](../scripts/customize.py)
 > rewrites files (renames packages, swaps placeholders, changes the license).
@@ -1008,6 +1074,75 @@ for details.
 
 If you don't need a documentation site, delete [mkdocs.yml](../mkdocs.yml)
 and the docs you don't need.
+
+---
+
+## Environment Dashboard
+
+A web-based environment inspection dashboard that runs locally and displays
+a comprehensive report of your development environment. Built with FastAPI,
+Jinja2, htmx, and Alpine.js.
+
+### What It Shows
+
+20 plugin-based collectors gather data across these categories:
+
+| Section | What it reports |
+| :------ | :-------------- |
+| System | OS, CPU, architecture, shell, locale |
+| Hardware | CPU/GPU specs, RAM, storage, thermals |
+| Runtimes | Python version, implementation, all installations |
+| Path | PATH entries with dead/duplicate/shadow detection |
+| Git | Branch, dirty state, remotes, stash count |
+| Venv | Virtual environment type and activation status |
+| Packages | Installed packages with versions |
+| Project | Repo structure, config files, build tools |
+| Project Commands | CLI commands from Taskfile, pyproject.toml |
+| Pip Environments | All Python installations with outdated package detection |
+| Network | DNS and HTTPS connectivity |
+| Filesystem | Disk space, temp dir, write permissions |
+| Container | Docker, CI, WSL, dev container detection |
+| Security | Secret detection, insecure PATH, SSH keys |
+| Pre-commit Hooks | Hook inventory by stage |
+| CI/CD Status | Workflow inventory and SHA-pinning status |
+| Dependency Health | Outdated and vulnerable packages |
+| Disk Workspace | Workspace size breakdown |
+| Docs Status | MkDocs config and documentation inventory |
+| Insights | Cross-section analysis and warnings |
+
+### Running the Dashboard
+
+```bash
+task dashboard:serve          # http://127.0.0.1:8000
+# or directly:
+hatch run dashboard:serve
+```
+
+### Features
+
+- **Dark/light mode** with 7 accent color themes
+- **Real-time data freshness** indicator with auto-refresh
+- **Redaction levels** (none, partial, full) for sensitive data
+- **Copy-to-clipboard** on key values
+- **Pip package management** — update outdated packages from the UI
+- **Section guides** — expandable help explaining what each section means
+- **Static HTML export** at `/export.html`
+- **JSON API** at `/api/report` and `/api/summary`
+- **Keyboard shortcuts** (`Ctrl+C` to stop)
+
+### Routes
+
+| Route | Purpose |
+| :---- | :------ |
+| `GET /` | Dashboard page |
+| `GET /api/report` | Full JSON report |
+| `GET /api/summary` | Summary JSON |
+| `GET /export.html` | Static HTML export |
+| `GET /section/...` | htmx partials |
+
+See [docs/guide/dashboard-guide.md](guide/dashboard-guide.md) for the full
+guide, and the [dashboard instructions](../.github/instructions/dashboard.instructions.md)
+for development conventions.
 
 ---
 

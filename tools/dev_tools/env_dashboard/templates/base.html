@@ -911,7 +911,7 @@
        Particles render via transform which has no layout side-effects.
        Init waits for htmx:afterSettle so the full page height is known. */
     (function() {
-        var COUNT = 500;
+        var COUNT = 700;
         var SPEED_MIN = 3;
         var SPEED_MAX = 8;
         var DRIFT_MAX = 5;
@@ -925,6 +925,7 @@
         var canvas, layoutEl, mainEl, particles = [], rafId;
         var started = false;
         var lastScatterHeight = 0;
+        var redistributeTimer = null;
 
         /* Height of the layout container (= scrollable content area) */
         function layoutHeight() {
@@ -949,12 +950,10 @@
             rafId = requestAnimationFrame(tick);
         }
 
-        /* Re-scatter particles across the full page when layout height grows
-           significantly (htmx sections loading after initial scatter). */
-        function redistributeIfNeeded() {
-            if (!started) return;
+        /* Scatter all particles uniformly across the full layout height. */
+        function doRedistribute() {
             var newH = layoutHeight();
-            if (newH <= lastScatterHeight * 1.15) return;
+            if (newH <= lastScatterHeight + 50) return;
             lastScatterHeight = newH;
             var edges = getEdges();
             for (var i = 0; i < particles.length; i++) {
@@ -966,6 +965,18 @@
                 p.opacity = 0.85;
                 p.fadingOut = false;
             }
+        }
+
+        /* Debounced redistribute — waits 300ms after the last htmx settle
+           so all sections finish loading before we scatter particles.
+           This ensures particles spread across the full page height. */
+        function scheduleRedistribute() {
+            if (!started) return;
+            if (redistributeTimer) clearTimeout(redistributeTimer);
+            redistributeTimer = setTimeout(function() {
+                redistributeTimer = null;
+                doRedistribute();
+            }, 300);
         }
 
         function rDrift() {
@@ -1096,7 +1107,7 @@
             if (!started) {
                 start();
             } else {
-                redistributeIfNeeded();
+                scheduleRedistribute();
             }
         });
         /* Fallback: if htmx never fires (e.g. cached page), start after 3s */
