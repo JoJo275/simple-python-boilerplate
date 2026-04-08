@@ -375,7 +375,8 @@ def _print_startup_banner(url: str, port: int) -> None:
     now = time.strftime("%H:%M:%S")
     py = platform.python_version()
     os_name = platform.system()
-    separator = "─" * 52
+    w = 52  # interior width
+    separator = "─" * w
 
     # Count available collector sections
     section_count = "?"
@@ -388,41 +389,60 @@ def _print_startup_banner(url: str, port: int) -> None:
     except Exception:  # nosec B110 — best-effort count; default "?" is fine
         section_count = "?"
 
-    print(f"\n  ╭{separator}╮")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  │{'🖥  Environment Dashboard':^52}│")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  ├{separator}┤")  # noqa: T201
-    print(f"  │  Server:    {url:<37}│")  # noqa: T201
-    print(f"  │  Port:      {port:<37}│")  # noqa: T201
-    print(f"  │  Host:      127.0.0.1 (local only){'':<15}│")  # noqa: T201
-    print(f"  │  Reload:    enabled{'':<30}│")  # noqa: T201
-    print(f"  │  Started:   {now:<37}│")  # noqa: T201
-    print(f"  │  PID:       {os.getpid():<37}│")  # noqa: T201
-    print(f"  │  Python:    {py:<37}│")  # noqa: T201
-    print(f"  │  Platform:  {os_name:<37}│")  # noqa: T201
-    print(f"  │  Sections:  {section_count:<37}│")  # noqa: T201
-    print(f"  ├{separator}┤")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  │  Quick links:{'':<37}│")  # noqa: T201
-    print(f"  │    Dashboard:   {url + '/':<33}│")  # noqa: T201
-    print(f"  │    API JSON:    {url + '/api/report':<33}│")  # noqa: T201
-    print(f"  │    Summary:     {url + '/api/summary':<33}│")  # noqa: T201
-    print(f"  │    HTML export:  {url + '/export.html':<32}│")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  ├{separator}┤")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  │  Routes:{'':<43}│")  # noqa: T201
-    print(f"  │    GET /               Dashboard page{'':<14}│")  # noqa: T201
-    print(f"  │    GET /api/report     Full JSON report{'':<13}│")  # noqa: T201
-    print(f"  │    GET /api/summary    Report summary{'':<15}│")  # noqa: T201
-    print(f"  │    GET /export.html    Static HTML export{'':<12}│")  # noqa: T201
-    print(f"  │    GET /section/...    htmx partials{'':<16}│")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  │  Keyboard shortcuts:{'':<30}│")  # noqa: T201
-    print(f"  │    Ctrl+C      Stop the server{'':<19}│")  # noqa: T201
-    print(f"  │{'':^52}│")  # noqa: T201
-    print(f"  ╰{separator}╯\n")  # noqa: T201
+    def row(text: str = "") -> str:
+        """Pad *text* to exactly *w* visible columns inside │…│ borders."""
+        # Emoji 🖥 occupies 2 terminal columns but len() counts 1 char.
+        extra = text.count("🖥")
+        return f"  │{text:<{w - extra}}│"
+
+    def center(text: str) -> str:
+        extra = text.count("🖥")
+        return f"  │{text:^{w - extra}}│"
+
+    pid = os.getpid()
+    dash_url = f"{url}/"
+    api_url = f"{url}/api/report"
+    summary_url = f"{url}/api/summary"
+    export_url = f"{url}/export.html"
+
+    lines = [
+        f"  ╭{separator}╮",
+        center(""),
+        center("🖥  Environment Dashboard"),
+        center(""),
+        f"  ├{separator}┤",
+        row(f"  Server:     {url}"),
+        row(f"  Port:       {port}"),
+        row("  Host:       127.0.0.1 (local only)"),
+        row("  Reload:     enabled"),
+        row(f"  Started:    {now}"),
+        row(f"  PID:        {pid}"),
+        row(f"  Python:     {py}"),
+        row(f"  Platform:   {os_name}"),
+        row(f"  Sections:   {section_count}"),
+        f"  ├{separator}┤",
+        row(),
+        row("  Quick links:"),
+        row(f"    Dashboard:    {dash_url}"),
+        row(f"    API JSON:     {api_url}"),
+        row(f"    Summary:      {summary_url}"),
+        row(f"    HTML export:  {export_url}"),
+        row(),
+        f"  ├{separator}┤",
+        row(),
+        row("  Routes:"),
+        row("    GET /              Dashboard page"),
+        row("    GET /api/report    Full JSON report"),
+        row("    GET /api/summary   Report summary"),
+        row("    GET /export.html   Static HTML export"),
+        row("    GET /section/...   htmx partials"),
+        row(),
+        row("  Keyboard shortcuts:"),
+        row("    Ctrl+C     Stop the server"),
+        row(),
+        f"  ╰{separator}╯",
+    ]
+    print("\n" + "\n".join(lines) + "\n")  # noqa: T201
 
 
 if __name__ == "__main__":
