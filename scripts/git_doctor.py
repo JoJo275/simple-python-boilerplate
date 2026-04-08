@@ -3500,11 +3500,26 @@ def run(
             print(f"    {sha} {msg_pad} {c.dim(author_pad)} {c.dim(cdate)}")
 
     # ── Stashes ──
+    _stash_count_colored = (
+        c.yellow(str(stash_count)) if stash_count > 0 else c.green(str(stash_count))
+    )
+    _section(f"Stashes  ({_stash_count_colored})")
     if stash_count > 0:
-        _section("Stashes")
         print(
-            f"    {c.yellow(str(stash_count))} stash(es) saved  {c.dim('shelved changes via git stash')}"
+            f"    {c.yellow(str(stash_count))} stash(es) saved  {c.dim('shelved changes via')} {c.cyan('git stash')}"
         )
+    else:
+        print(f"    {c.green('0')} stashes  {c.dim('no shelved changes')}")
+    print()
+    print(
+        f"    {c.dim('A stash is a snapshot of uncommitted changes saved locally via')}"
+    )
+    print(
+        f"    {c.cyan('git stash')}{c.dim('. Forgotten stashes may contain important work-in-progress.')}"
+    )
+    print(
+        f"    {c.dim('Run')} {c.cyan('git stash list')} {c.dim('to review,')} {c.cyan('git stash pop')} {c.dim('to restore.')}"
+    )
 
     # ── Release Branch ──
     _section("Release Branch")
