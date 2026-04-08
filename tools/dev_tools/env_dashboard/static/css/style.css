@@ -2164,6 +2164,41 @@ body.dialog-open {
 
 /* ========== Project Commands Section ========== */
 
+/* Smooth expand / collapse for all section dropdowns (matches memory module) */
+.section-card-body > details:not(.hw-module-details) {
+    interpolate-size: allow-keywords;
+}
+
+.section-card-body > details:not(.hw-module-details) > :not(summary):not(.env-summary) {
+    animation: none;
+}
+
+.section-card-body > details:not(.hw-module-details)::details-content {
+    overflow-y: clip;
+    height: 0;
+    opacity: 0;
+    transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.3s ease,
+                content-visibility 0.4s allow-discrete;
+}
+
+.section-card-body > details[open]:not(.closing):not(.hw-module-details)::details-content {
+    height: auto;
+    opacity: 1;
+}
+
+.section-card-body > details[open].closing:not(.hw-module-details)::details-content {
+    height: 0;
+    opacity: 0;
+}
+
+@starting-style {
+    .section-card-body > details[open]:not(.closing):not(.hw-module-details)::details-content {
+        height: 0;
+        opacity: 0;
+    }
+}
+
 /* Consistent column widths across all command runner tables */
 #section-body-project_commands .kv-table.striped {
     table-layout: fixed;
@@ -2493,10 +2528,6 @@ details.warning-item[open] .warning-chevron {
 /* ========== Inline Hint Arrows (expandable row hints) ========== */
 
 td.kv-label {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0 0.15rem;
     position: relative;
 }
 
@@ -3066,27 +3097,10 @@ td.kv-label {
 #quick-actions .section-card-body > details > :not(summary),
 #quick-actions .section-guide > .section-guide-body {
     overflow: hidden;
-    animation: qa-expand 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#quick-actions .section-card-body > details.qa-closing > :not(summary) {
-    animation: qa-collapse 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-#quick-actions .section-card-body > details.qa-closing > summary::after {
+#quick-actions .section-card-body > details.closing > summary::after {
     transform: rotate(0deg) !important;
-}
-
-@keyframes qa-expand {
-    0%   { opacity: 0; max-height: 0; }
-    40%  { opacity: 0.6; }
-    100% { opacity: 1; max-height: 2000px; }
-}
-
-@keyframes qa-collapse {
-    0%   { opacity: 1; max-height: 2000px; }
-    60%  { opacity: 0.3; }
-    100% { opacity: 0; max-height: 0; }
 }
 
 .quick-actions-grid {
@@ -3281,8 +3295,9 @@ td.kv-label {
     animation: dropdown-collapse 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+.section-card-body > details.closing > summary::after,
 .section-card-body > details.details-closing > summary::after,
-.section-card-body details.env-details.details-closing > summary::after {
+.section-card-body details.env-details.closing > summary::after {
     transform: rotate(0deg) !important;
 }
 

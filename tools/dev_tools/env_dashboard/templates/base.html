@@ -741,48 +741,34 @@
 
     /* Section-guide <details> — no custom animation, native toggle only. */
 
-    /* Animated close for Quick Actions category dropdowns */
-    document.addEventListener('click', (e) => {
-        const qa = document.getElementById('quick-actions');
-        if (!qa) return;
-        const summary = e.target.closest('#quick-actions .section-card-body > details > summary');
-        if (!summary) return;
-        const details = summary.parentElement;
-        if (!details.open) return;
-        // Already closing — ignore
-        if (details.classList.contains('qa-closing')) return;
-        e.preventDefault();
-        details.classList.add('qa-closing');
-        const content = details.querySelector(':not(summary)');
-        if (content) {
-            content.addEventListener('animationend', function handler() {
-                content.removeEventListener('animationend', handler);
-                details.classList.remove('qa-closing');
-                details.removeAttribute('open');
-            }, { once: true });
-        }
-        // Fallback if animationend doesn't fire
-        setTimeout(() => {
-            details.classList.remove('qa-closing');
-            if (details.open) details.removeAttribute('open');
-        }, 450);
-    });
-
     /* Universal smooth close animation for all <details> dropdowns */
     document.addEventListener('click', (e) => {
         const summary = e.target.closest('details > summary');
         if (!summary) return;
         const details = summary.parentElement;
         if (!details || !details.open) return;
-        // Skip elements already handled by specific handlers
+        // Skip elements with their own close handlers
         if (details.classList.contains('json-viewer-details')) return;
         if (details.classList.contains('section-guide')) return;
         if (details.classList.contains('dropdown')) return;
         if (details.classList.contains('kv-hint')) return;
-        if (details.closest('#quick-actions') && details.closest('.section-card-body')) return;
+        if (details.classList.contains('hw-module-details')) return;
         // Skip if already closing
+        if (details.classList.contains('closing')) return;
         if (details.classList.contains('details-closing')) return;
 
+        // Section-card-body details use ::details-content transition (.closing class)
+        if (details.parentElement && details.parentElement.classList.contains('section-card-body')) {
+            e.preventDefault();
+            details.classList.add('closing');
+            setTimeout(function() {
+                details.open = false;
+                details.classList.remove('closing');
+            }, 400);
+            return;
+        }
+
+        // All other details use keyframe animation (details-closing class)
         e.preventDefault();
         details.classList.add('details-closing');
 

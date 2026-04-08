@@ -22,22 +22,32 @@
 {% if proj.dependencies %}
 <details>
     <summary>Dependencies ({{ proj.dependencies|length }})</summary>
-    <ul class="list-compact">
-        {% for dep in proj.dependencies %}
-        <li class="mono">{{ dep }}</li>
-        {% endfor %}
-    </ul>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Package</th></tr>
+        </thead>
+        <tbody>
+            {% for dep in proj.dependencies %}
+            <tr><td class="mono">{{ dep }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </details>
 {% endif %}
 
 {% if proj.optional_dep_groups %}
 <details>
     <summary>Optional Dependency Groups ({{ proj.optional_dep_groups|length }})</summary>
-    <ul class="list-compact">
-        {% for group in proj.optional_dep_groups %}
-        <li class="mono">{{ group }}</li>
-        {% endfor %}
-    </ul>
+    <table class="kv-table striped">
+        <thead>
+            <tr><th>Group</th></tr>
+        </thead>
+        <tbody>
+            {% for group in proj.optional_dep_groups %}
+            <tr><td class="mono">{{ group }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </details>
 {% endif %}
 {% endif %}
