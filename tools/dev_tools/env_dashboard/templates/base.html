@@ -340,13 +340,12 @@
                 const ts = new Date().toLocaleTimeString();
                 this._addTerminalLine(`[${ts}] Refreshing scan...`, 'term-info');
                 try {
-                    const resp = await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
-                    if (resp.ok) {
-                        const ts2 = new Date().toLocaleTimeString();
-                        this._addTerminalLine(`[${ts2}] Scan complete — reloading`, 'term-success');
-                        htmx.trigger(document.body, 'scan-complete');
-                        window.location.reload();
-                    }
+                    // Invalidate cache and kick off a fresh background scan
+                    await fetch('/api/scan?redact=' + this.redactLevel, {method: 'POST'});
+                    // Wait for the scan to actually complete by fetching the full report
+                    await fetch('/api/report?redact=' + this.redactLevel);
+                    this._addTerminalLine(`[${new Date().toLocaleTimeString()}] Scan complete — reloading`, 'term-success');
+                    window.location.reload();
                 } finally {
                     this.scanning = false;
                 }
@@ -740,28 +739,7 @@
         navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 
-    /* Animated close for section-guide details panels */
-    document.addEventListener('click', (e) => {
-        const summary = e.target.closest('.section-guide > summary');
-        if (!summary) return;
-        const details = summary.parentElement;
-        if (!details.open) return;
-        e.preventDefault();
-        details.classList.add('guide-closing');
-        const body = details.querySelector('.section-guide-body');
-        if (body) {
-            body.addEventListener('animationend', function handler() {
-                body.removeEventListener('animationend', handler);
-                details.classList.remove('guide-closing');
-                details.removeAttribute('open');
-            }, { once: true });
-        }
-        // Fallback if animationend doesn't fire
-        setTimeout(() => {
-            details.classList.remove('guide-closing');
-            if (details.open) details.removeAttribute('open');
-        }, 500);
-    });
+    /* Section-guide <details> — no custom animation, native toggle only. */
 
     /* Animated close for Quick Actions category dropdowns */
     document.addEventListener('click', (e) => {
@@ -823,6 +801,15 @@
             if (details.open) details.removeAttribute('open');
         }, 450);
     });
+
+    /* Close other kv-hint tooltips when one opens (prevent overlap) */
+    document.addEventListener('toggle', (e) => {
+        const hint = e.target;
+        if (!hint.classList || !hint.classList.contains('kv-hint') || !hint.open) return;
+        document.querySelectorAll('details.kv-hint[open]').forEach((other) => {
+            if (other !== hint) other.removeAttribute('open');
+        });
+    }, true);
 
     /* Offline / server-down detection — show restart page instead of browser error */
     (function() {
