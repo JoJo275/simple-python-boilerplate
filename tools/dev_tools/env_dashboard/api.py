@@ -23,6 +23,7 @@ from tools.dev_tools.env_dashboard.collector import (
 from tools.dev_tools.env_dashboard.redact import parse_redact_param
 
 router = APIRouter()
+_background_tasks: set[asyncio.Task[Any]] = set()
 
 
 @router.get("/summary")
@@ -72,16 +73,17 @@ async def api_scan(
     redact: str | None = Query(default=None),
     tier: str = Query(default="standard"),
 ) -> JSONResponse:
-    """Trigger a fresh scan (cache invalidation + re-collection)."""
+    """Trigger a fresh scan in the background and return immediately."""
     invalidate_cache()
     redact_level = parse_redact_param(redact)
     tier_enum = _parse_tier(tier)
-    report = await get_report_async(
-        tier=tier_enum, redact_level=redact_level, force=True
+    # Run scan in background — caller doesn't have to wait
+    task = asyncio.create_task(
+        get_report_async(tier=tier_enum, redact_level=redact_level, force=True)
     )
-    return JSONResponse(
-        {"status": "ok", "timestamp": report.get("meta", {}).get("timestamp")}
-    )
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
+    return JSONResponse({"status": "started"})
 
 
 @router.get("/export.json")

@@ -42,3 +42,10 @@ Add new styles in the appropriate section or create a new labeled section.
 
 - Breakpoint: `768px` — sidebar hides, layout goes single-column
 - Terminal panel goes full-width bottom sheet on mobile
+
+## Browser Target
+
+- Primary development browser: **Opera GX** (Chromium-based)
+- Avoid `::details-content` pseudo-element — not reliably supported in Opera GX
+- Don't replace working `@keyframes` animations with custom ones for specific sections — the browser may not replay them on subsequent toggles
+- Use `!important` on padding/margin to lock values that base keyframes try to animate

@@ -48,6 +48,12 @@ applyTo: "tools/dev_tools/env_dashboard/**"
 - Class naming: BEM-ish — `.section-card`, `.section-card-body`, `.warning-item`
 - Keep mobile responsive: sidebar collapses at `768px`
 
+### Browser Target
+- Primary development browser: **Opera GX** (Chromium-based)
+- Avoid `::details-content` pseudo-element — Opera GX may not support it
+- Prefer proven CSS animation patterns (keyframes) over cutting-edge CSS transitions for `<details>`
+- Always test animations replay correctly on repeated open/close cycles
+
 ### JavaScript
 - Alpine.js `dashboard()` function in base.html holds all app state
 - No external JS dependencies — everything vendored

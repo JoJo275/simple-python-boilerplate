@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import atexit
 import contextlib
+import logging
 import os
 import signal
 import sys
@@ -37,6 +38,8 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+_logger = logging.getLogger(__name__)
 
 _HERE = Path(__file__).resolve().parent
 _REPO_ROOT = _HERE.parents[2]
@@ -176,7 +179,11 @@ def _cleanup_stale_processes(port: int) -> None:
        processes from the last session).
     2. Kill any Python process still listening on *port* (fallback — catches
        zombie sockets where the PID file was lost).
+    3. Retry up to 3 times — on Windows, taskkill /T can take a moment to
+       propagate through the process tree, and sockets linger in TIME_WAIT.
     """
+    import time
+
     my_pid = os.getpid()
     my_ppid = os.getppid()
 
@@ -187,18 +194,64 @@ def _cleanup_stale_processes(port: int) -> None:
             continue
         if not _is_python_process(pid):
             continue
-        if _kill_pid(pid):
+        if _kill_pid(pid, tree=True):
             print(f"  Killed stale PID {pid} from previous session")  # noqa: T201
     _remove_pid_file()
 
-    # Phase 2: Port-based cleanup (catches zombies the PID file missed)
-    _kill_port_holders(port)
+    # Phase 2: Port-based cleanup with retry — catches zombies the PID file
+    # missed and ensures they're actually dead before we try to bind.
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        _kill_port_holders(port)
+        time.sleep(0.8)
 
-    # Brief pause to let the OS release the socket
-    if stale_pids or sys.platform == "win32":
-        import time
+        # Check if any Python process is still LISTENING on the port
+        if not _port_has_listeners(port):
+            break
+        if attempt < max_attempts:
+            _logger.warning(
+                "Port %d still occupied, retrying (%d/%d)...",
+                port,
+                attempt,
+                max_attempts,
+            )
+            time.sleep(1.0)
+    else:
+        _logger.warning(
+            "Port %d may still be occupied after %d attempts",
+            port,
+            max_attempts,
+        )
 
-        time.sleep(0.5)
+
+def _port_has_listeners(port: int) -> bool:
+    """Return True if any process is LISTENING on *port* (Windows only)."""
+    if sys.platform != "win32":
+        return False
+    import subprocess  # nosec B404
+
+    try:
+        result = subprocess.run(  # nosec B603 B607
+            ["netstat", "-ano"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return False
+
+    my_pid = os.getpid()
+    my_ppid = os.getppid()
+    for line in result.stdout.splitlines():
+        if f":{port} " not in line or "LISTENING" not in line:
+            continue
+        parts = line.split()
+        if parts:
+            with contextlib.suppress(ValueError, IndexError):
+                pid = int(parts[-1])
+                if pid not in (my_pid, my_ppid, 0):
+                    return True
+    return False
 
 
 def _register_exit_handlers() -> None:

@@ -519,7 +519,8 @@ body.dialog-open {
     font-size: 0.65rem;
     font-weight: 700;
     flex-shrink: 0;
-    line-height: 1;
+    line-height: 0;
+    padding-left: 1px;
 }
 
 .warning-fail .warning-icon {
@@ -531,11 +532,13 @@ body.dialog-open {
     background: color-mix(in srgb, var(--color-warn) 15%, transparent);
     color: var(--color-warn);
     border: 1px solid color-mix(in srgb, var(--color-warn) 30%, transparent);
+    padding-bottom: 2px;
 }
 .warning-info .warning-icon {
     background: color-mix(in srgb, var(--color-info) 15%, transparent);
     color: var(--color-info);
     border: 1px solid color-mix(in srgb, var(--color-info) 30%, transparent);
+    padding-bottom: 2px;
 }
 
 /* ========== Section cards (stacked, not grid) ========== */
@@ -613,7 +616,7 @@ body.dialog-open {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.3rem var(--gap-md);
+    padding: 0.25rem var(--gap-md);
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--color-accent-bright);
@@ -687,7 +690,6 @@ body.dialog-open {
 
 .section-guide[open] > summary {
     opacity: 1;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 10%, transparent);
 }
 
 .section-guide-icon {
@@ -722,34 +724,9 @@ body.dialog-open {
     overflow: hidden;
 }
 
-/* Replay-friendly: animation class added/removed via toggle */
-.section-guide[open] > .section-guide-body {
-    animation: guide-expand 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Closing animation — JS adds .guide-closing, then removes [open] after transition */
-.section-guide.guide-closing > .section-guide-body {
-    animation: guide-collapse 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-.section-guide.guide-closing > summary::before {
-    transform: translateY(-70%) rotate(-45deg) !important;
-}
-
-@keyframes guide-expand {
-    0%   { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
-    40%  { opacity: 0.6; }
-    100% { opacity: 1; max-height: 1200px; padding-top: 0.5rem; padding-bottom: 0.6rem; }
-}
-
-@keyframes guide-collapse {
-    0%   { opacity: 1; max-height: 1200px; padding-top: 0.5rem; padding-bottom: 0.6rem; }
-    60%  { opacity: 0.3; }
-    100% { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
-}
-
 .section-guide-what {
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.4rem !important;
+    padding-top: 0 !important;
     color: #c9d1d9;
 }
 
@@ -830,6 +807,17 @@ body.dialog-open {
     text-decoration: underline;
 }
 
+/*
+ * System section guide — tighter top spacing.
+ * The base keyframes (guide-expand / guide-collapse) run as-is.
+ * !important padding locks the text position so the padding-
+ * animation in the base keyframes has no visual effect — only
+ * max-height + opacity animate, which is smooth.
+ */
+#section-system .section-guide-body {
+    padding: 0.15rem var(--gap-md) 0.5rem !important;
+}
+
 /* ========== Status badges ========== */
 .badge {
     display: inline-flex;
@@ -874,7 +862,7 @@ body.dialog-open {
     padding: 0.25rem 0.4rem;
     border-bottom: 1px solid var(--color-border);
     font-size: 0.78rem;
-    vertical-align: top;
+    vertical-align: middle;
     word-break: break-word;
     overflow-wrap: break-word;
 }
@@ -1572,10 +1560,11 @@ body.dialog-open {
     -webkit-mask-repeat: no-repeat;
 }
 
-/* Section card body — prevent horizontal overflow */
+/* Section card body — prevent horizontal overflow, but allow hint tooltips to escape */
 .section-card-body,
 .section-card > div:not(header) {
-    overflow-x: auto;
+    overflow-x: clip;
+    overflow-y: visible;
 }
 
 .section-card table {
@@ -2395,6 +2384,8 @@ details.warning-item[open] .warning-chevron {
     font-weight: 700;
     cursor: pointer;
     vertical-align: middle;
+    position: relative;
+    top: -3px;
     transition: all 0.15s ease;
     line-height: 1;
     flex-shrink: 0;
@@ -2503,7 +2494,7 @@ details.warning-item[open] .warning-chevron {
 
 td.kv-label {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 0 0.15rem;
     position: relative;
@@ -2513,7 +2504,7 @@ td.kv-label {
     display: inline-flex;
     align-items: center;
     gap: 0;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .kv-hint {
@@ -2526,6 +2517,15 @@ td.kv-label {
     margin: 0;
     border: none;
     border-bottom: none;
+    height: 16px;
+    overflow: visible;
+}
+
+/* Override Pico: details adds margin-bottom, and details[open]>summary adds
+   margin-bottom:var(--pico-spacing) which shifts the chevron upward */
+.kv-hint,
+.kv-hint[open] > summary {
+    margin-bottom: 0 !important;
 }
 
 .kv-hint summary {
@@ -2602,17 +2602,22 @@ td.kv-label {
 }
 
 @keyframes hint-expand {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; max-height: 0; }
+    to   { opacity: 1; max-height: 500px; }
+}
+
+.kv-hint[open] {
+    align-items: center;
 }
 
 .kv-hint .hint-text {
     position: absolute;
-    top: calc(100% + 4px);
+    top: 100%;
     left: 0;
-    z-index: 20;
+    z-index: 10;
     display: block;
     padding: 0.4rem 0.6rem;
+    margin-top: 0.25rem;
     font-size: 0.68rem;
     line-height: 1.45;
     color: var(--color-text-muted);

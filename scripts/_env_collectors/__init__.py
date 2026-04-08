@@ -12,6 +12,8 @@ Entry point::
 
 from __future__ import annotations
 
+import concurrent.futures
+import logging
 import time
 from enum import Enum
 from typing import Any
@@ -103,17 +105,32 @@ def gather_env_info(
     collector_classes = _discover_collectors()
     max_tier = _TIER_ORDER[tier]
 
-    # Collect from each plugin (skip InsightsCollector for now)
+    log = logging.getLogger(__name__)
+
+    # Separate InsightsCollector (runs last) from parallel collectors
     insights_cls = None
+    eligible: list[type[BaseCollector]] = []
     for cls in collector_classes:
         if cls.__name__ == "InsightsCollector":
             insights_cls = cls
             continue
         if _TIER_ORDER.get(cls.tier, 0) > max_tier:
             continue
+        eligible.append(cls)
+
+    # Run all collectors in parallel (I/O-bound: subprocess calls, fs scans)
+    def _run(cls: type[BaseCollector]) -> tuple[str, dict[str, Any]]:
         collector = cls()
-        result = collector.safe_collect()
-        sections[collector.name] = result
+        return collector.name, collector.safe_collect()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+        futures = [pool.submit(_run, cls) for cls in eligible]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                name, result = future.result()
+                sections[name] = result
+            except Exception:
+                log.exception("Parallel collector failed")
 
     # Derive insights from collected sections
     if insights_cls is not None and _TIER_ORDER.get(insights_cls.tier, 0) <= max_tier:
