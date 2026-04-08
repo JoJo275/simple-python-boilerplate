@@ -232,6 +232,27 @@ simple-python-boilerplate/
 | `python -m ruff format src/` | Format source code             |
 | `python -m mypy src/`        | Type check source code         |
 
+## Global Entry Points
+
+When the package is installed (`pipx install .` or `pip install -e ".[dev]"`),
+**21 CLI commands** become available globally. These are thin wrappers around
+the scripts in `scripts/` and let you run them from **any repository**.
+
+| Command | Equivalent |
+| --- | --- |
+| `spb-doctor` | `python scripts/doctor.py` |
+| `spb-git-doctor` | `python scripts/git_doctor.py` |
+| `spb-env-doctor` | `python scripts/env_doctor.py` |
+| `spb-repo-doctor` | `python scripts/repo_doctor.py` |
+| `spb-clean` | `python scripts/clean.py` |
+| `spb-env-inspect` | `python scripts/env_inspect.py` |
+| `spb-stats` | `python scripts/repo_sauron.py` |
+| `spb-dashboard` | `hatch run dashboard:serve` |
+
+All arguments are forwarded: `spb-git-doctor --json` works as expected.
+For the full list and cross-repo usage instructions, see the
+[Global Entry Points guide](../guide/entry-points.md).
+
 ## IDE Setup
 
 <!-- TODO (template users): Update the workspace file name and interpreter

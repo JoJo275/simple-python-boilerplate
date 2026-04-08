@@ -50,7 +50,7 @@
                 <span class="badge badge-fail">not writable</span>
             {% endif %}
             <small class="mono">{{ dir_info.path|default("") }}
-                {% if dir_info.path %}<button class="copy-btn" @click="copyClip($event, '{{ dir_info.path|e }}')" title="Copy to clipboard"></button>{% endif %}
+                {% if dir_info.path %}<button class="copy-btn" data-clip="{{ dir_info.path|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy to clipboard"></button>{% endif %}
             </small>
         </td>
     </tr>

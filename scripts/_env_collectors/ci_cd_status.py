@@ -94,6 +94,9 @@ def _parse_workflow_files(repo_root: Path) -> list[dict[str, str]]:
             tag_pinned = 0
             for use in uses_lines:
                 use = use.strip()
+                # Strip trailing YAML comments (e.g. "owner/repo@sha # comment")
+                if "#" in use:
+                    use = use[: use.index("#")].strip()
                 if "@" in use:
                     ref = use.split("@")[-1].strip()
                     if re.match(r"^[0-9a-f]{40}$", ref):

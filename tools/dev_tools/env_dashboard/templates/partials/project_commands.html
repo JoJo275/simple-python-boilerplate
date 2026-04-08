@@ -92,7 +92,7 @@
             <tr>
                 <td class="mono">
                     {{ cmd.name }}
-                    <button class="copy-btn" @click="copyClip($event, '{{ cmd.command|e }}')" title="Copy command"></button>
+                    <button class="copy-btn" data-clip="{{ cmd.command|e }}" @click="copyClip($event, $el.dataset.clip)" title="Copy command"></button>
                 </td>
                 <td><small>{{ cmd.description|default("") }}</small></td>
                 <td>

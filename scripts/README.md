@@ -53,6 +53,35 @@ Utility scripts for development and maintenance.
 
 ## Usage
 
+### Global Entry Points (spb-\* commands)
+
+All scripts are also available as **global CLI commands** when the package is
+installed with `pipx install .` (or `pip install .`). This lets you run them
+from **any repository**, not just this one.
+
+```bash
+# Install globally (one-time)
+pipx install .
+
+# Now run scripts from any directory:
+spb-doctor          # instead of python scripts/doctor.py
+spb-git-doctor      # instead of python scripts/git_doctor.py
+spb-env-doctor      # instead of python scripts/env_doctor.py
+spb-repo-doctor     # instead of python scripts/repo_doctor.py
+spb-clean           # instead of python scripts/clean.py
+spb-dashboard       # instead of hatch run dashboard:serve
+```
+
+The entry point automatically sets `SPB_REPO_ROOT` to your current working
+directory, so scripts discover the target repo from wherever you run them.
+All arguments are forwarded: `spb-git-doctor --json` works the same as
+`python scripts/git_doctor.py --json`.
+
+For the full list of 21 commands, see the
+[Global Entry Points guide](../docs/guide/entry-points.md).
+
+### Running scripts directly
+
 ```bash
 # One-command setup for fresh clones
 python scripts/bootstrap.py

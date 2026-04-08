@@ -83,6 +83,8 @@ nav:
   - Guide:
       - Getting Started: guide/getting-started.md
       - Using This Template: USING_THIS_TEMPLATE.md
+      - Global Entry Points: guide/entry-points.md
+      - Environment Dashboard: guide/dashboard-guide.md
       - Troubleshooting: guide/troubleshooting.md
       - Repo Layout: repo-layout.md
       - Tooling: tooling.md

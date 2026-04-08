@@ -146,6 +146,7 @@ Search your project for these placeholders and replace them with your values:
 | [.gitattributes](../.gitattributes)                                   | Binary/text overrides for project-specific file types            |
 | [.gitmessage.txt](../.gitmessage.txt)                                 | Commit template path if renamed or moved                         |
 | [release-please-config.json](../release-please-config.json)           | Package name and extra-files path                                |
+| [src/.../scripts\_cli.py](../src/simple_python_boilerplate/scripts_cli.py) | Entry point wrappers — update script list after adding/removing scripts |
 
 ---
 
@@ -261,6 +262,7 @@ check items off as you go.
 - [ ] Rename `src/simple_python_boilerplate/` to your package name
 - [ ] Update imports in test files to match new package name
 - [ ] Update `[project.scripts]` entry points in [pyproject.toml](../pyproject.toml)
+- [ ] Update [scripts\_cli.py](../src/simple_python_boilerplate/scripts_cli.py) — rename module paths and bundled-script references
 - [ ] Replace placeholder code in [src/](../src/) and [tests/](../tests/)
 
 ### Containers (if keeping)
