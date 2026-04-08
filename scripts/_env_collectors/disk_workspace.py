@@ -74,7 +74,7 @@ class DiskWorkspaceSizeCollector(BaseCollector):
         repo_root = find_repo_root()
 
         # Cache directories to measure
-        cache_dirs = {
+        cache_dirs: dict[str, list[Path]] = {
             "__pycache__": [],
             ".mypy_cache": [repo_root / ".mypy_cache"],
             ".ruff_cache": [repo_root / ".ruff_cache"],
@@ -82,10 +82,15 @@ class DiskWorkspaceSizeCollector(BaseCollector):
             ".git": [repo_root / ".git"],
             "dist": [repo_root / "dist"],
             "*.egg-info": [],
-            ".venv": [repo_root / ".venv"],
             "node_modules": [repo_root / "node_modules"],
             "site": [repo_root / "site"],
         }
+
+        # Discover all venvs (directories with pyvenv.cfg) at repo root
+        with contextlib.suppress(OSError):
+            for child in repo_root.iterdir():
+                if child.is_dir() and (child / "pyvenv.cfg").is_file():
+                    cache_dirs[child.name] = [child]
 
         # Find all __pycache__ directories
         with contextlib.suppress(OSError):

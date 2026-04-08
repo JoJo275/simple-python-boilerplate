@@ -110,6 +110,7 @@ def _parse_precommit_config(repo_root: Path) -> dict[str, Any]:
                             "repo": current_repo,
                             "rev": current_rev,
                             "stages": [],
+                            "language": "",
                         }
                     )
                     continue
@@ -120,6 +121,11 @@ def _parse_precommit_config(repo_root: Path) -> dict[str, Any]:
                         s.strip().strip("'\"") for s in stages_match.group(1).split(",")
                     ]
                     hooks[-1]["stages"] = stages
+                    continue
+
+                lang_match = re.match(r"language:\s*(.+)", stripped)
+                if lang_match and hooks:
+                    hooks[-1]["language"] = lang_match.group(1).strip()
                     continue
 
         # Group by stage — store full hook dicts for template access

@@ -1633,7 +1633,7 @@ body.dialog-open {
 
 /* Reset kv-table overrides for all path-table cells */
 .path-table td:first-child {
-    width: 3%;
+    width: 2.5rem;
     min-width: auto;
     max-width: none;
     white-space: nowrap;
@@ -1651,7 +1651,7 @@ body.dialog-open {
 /* # */
 .path-table th:nth-child(1),
 .path-table td:nth-child(1) {
-    width: 3%;
+    width: 2.5rem;
     white-space: nowrap;
     text-align: center;
 }
@@ -3459,4 +3459,28 @@ details.warning-item.details-closing .warning-chevron {
 
 .section-card-body details.kv-hint > .hint-text {
     padding: 0.3rem 0 0.2rem 0;
+}
+
+/* ========== Disk workspace tables ========== */
+
+#section-body-disk_workspace .kv-table.striped td:nth-child(2),
+#section-body-disk_workspace .kv-table.striped td:nth-child(3),
+#section-body-disk_workspace .kv-table.striped th:nth-child(2),
+#section-body-disk_workspace .kv-table.striped th:nth-child(3) {
+    text-align: right;
+    white-space: nowrap;
+}
+
+#section-body-disk_workspace .kv-table.striped td:nth-child(1) {
+    width: 60%;
+}
+
+#section-body-disk_workspace .kv-table.striped td:nth-child(2),
+#section-body-disk_workspace .kv-table.striped th:nth-child(2) {
+    width: 25%;
+}
+
+#section-body-disk_workspace .kv-table.striped td:nth-child(3),
+#section-body-disk_workspace .kv-table.striped th:nth-child(3) {
+    width: 15%;
 }
