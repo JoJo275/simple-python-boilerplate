@@ -195,6 +195,10 @@ task doctor
 python scripts/env_doctor.py
 task doctor:env
 
+# Environment inspection (packages, versions, PATH)
+python scripts/env_inspect.py
+task env:inspect
+
 # Git health dashboard
 python scripts/git_doctor.py
 task doctor:git
@@ -211,6 +215,45 @@ task doctor:all
 # One-command setup for fresh clones
 python scripts/bootstrap.py
 task bootstrap
+
+# Repository statistics dashboard
+python scripts/repo_sauron.py
+task stats
+
+# Check Python version support config
+python scripts/check_python_support.py
+task python:check
+
+# Interactive project customization
+python scripts/customize.py
+task customize
+
+# Check and report TODO items
+python scripts/check_todos.py
+task todo:check
+
+# Check stale known issues
+python scripts/check_known_issues.py
+task issues:check
+
+# Regenerate command reference docs
+python scripts/generate_command_reference.py
+task docs:commands
+```
+
+## Environment Dashboard
+
+The project includes a FastAPI web dashboard ([ADR 041](../adr/041-env-inspect-web-dashboard.md))
+for inspecting your development environment. It uses 20 plugin-based data
+collectors to gather system, project, and tooling information.
+
+```bash
+# Start the dashboard
+task dashboard:serve
+# or
+hatch run dashboard:serve
+
+# Opens at http://127.0.0.1:8000
 ```
 
 ## GitHub Actions Version Management
@@ -264,6 +307,38 @@ task actions:versions -- --color
 >
 > API responses are cached on disk (`.cache/workflow-versions/`, 1-hour TTL).
 > Set `WV_CACHE_TTL=0` to disable caching.
+
+## Container Testing
+
+```bash
+# Run all container tests (Containerfile + docker compose)
+task container:test
+
+# Test the Containerfile only
+task container:test:containerfile
+
+# Test docker compose stack
+task container:test:compose
+
+# Preview without running
+task container:test:dry-run
+```
+
+## Label Management
+
+```bash
+# Apply baseline labels to the current repo
+task labels:baseline
+
+# Apply full (extended) labels
+task labels:full
+
+# Preview without applying
+task labels:dry-run
+
+# Custom usage with flags
+task labels:apply -- --set baseline --repo OWNER/REPO --dry-run
+```
 
 ## Git Shortcuts
 

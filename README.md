@@ -28,7 +28,7 @@ A modern Python project template with `src/` layout, automated CI/CD, and batter
 | [**Linting**][adr-005]      | Ruff (lint + format), mypy (strict), bandit (security)      |
 | [**Testing**][adr-006]      | pytest, pytest-cov, Python 3.11–3.13 matrix                 |
 | [**Pre-commit**][adr-008]   | 47 hooks across 4 stages (commit, commit-msg, push, manual) |
-| [**CI/CD**][workflows]      | 36 GitHub Actions workflows, SHA-pinned                     |
+| [**CI/CD**][workflows]      | 37 GitHub Actions workflows, SHA-pinned                     |
 | [**Docs**][adr-020]         | MkDocs Material + mkdocstrings, auto-deploy to Pages        |
 | [**Release**][adr-021]      | release-please → automated changelog + versioning           |
 | [**Security**][adr-012]     | CodeQL, pip-audit, Trivy, dependency-review, gitleaks       |
@@ -101,7 +101,7 @@ tests/unit/                      # Unit tests
 tests/integration/               # Integration tests
 docs/                            # MkDocs documentation
 scripts/                         # Developer utility scripts
-.github/workflows/               # 36 CI/CD workflows
+.github/workflows/               # 37 CI/CD workflows
 db/                              # Database schema, migrations, seeds
 ```
 

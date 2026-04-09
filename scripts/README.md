@@ -41,6 +41,7 @@ Utility scripts for development and maintenance.
 | [test_docker_compose.py](test_docker_compose.py)               | Test docker compose stack: build, run, validate, clean up                |
 | [test_docker_compose.sh](test_docker_compose.sh)               | Bash equivalent of test_docker_compose.py                                |
 | [workflow_versions.py](workflow_versions.py)                   | Show/update version comments on SHA-pinned GitHub Actions                |
+| [\_env_collectors/](_env_collectors/)                           | Environment data collector plugins (20 modules) for the dashboard        |
 | [precommit/](precommit/)                                       | Custom pre-commit hook scripts                                           |
 | [sql/](sql/)                                                   | SQL scripts for database operations                                      |
 

@@ -238,6 +238,8 @@ action.
   flow through Taskfile → Hatch → Python tools
 - [Pull Requests](../development/pull-requests.md) — PR guidelines and
   conventions
+- [Environment Dashboard](dashboard-guide.md) — web-based environment
+  inspection dashboard (20 data collectors, live at `http://127.0.0.1:8000`)
 - [Using This Template](../USING_THIS_TEMPLATE.md) — full customization
   guide if you're forking the boilerplate
 

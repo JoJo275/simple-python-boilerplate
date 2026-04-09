@@ -25,7 +25,7 @@ entry points, CLI parsing, core logic, and (future) API/data layers.
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────┐   ┌────────────┐   ┌──────────────┐          │
-│  │  main.py   │──▶│   cli.py   │──▶│  engine.py   │          │
+│  │  main.py   │──▶│   cli.py  │──▶│   engine.py  │          │
 │  │  (entry    │   │  (argparse │   │  (core logic │          │
 │  │   points)  │   │   parsing) │   │   TypedDicts)│          │
 │  └────────────┘   └────────────┘   └──────┬───────┘          │
@@ -86,25 +86,31 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 │   ├── cli.py                   # Argument parsing, command dispatch
 │   ├── engine.py                # Core logic, TypedDict models, diagnostics
 │   ├── api.py                   # HTTP/REST interface (placeholder)
+│   ├── scripts_cli.py           # Entry point wrappers for spb-* CLI commands
 │   ├── sql/                     # Embedded SQL queries
 │   │   ├── __init__.py
 │   │   └── example_query.sql
 │   └── dev_tools/               # Repo maintenance utilities (scaffold)
 │       └── __init__.py
 │
-├── tests/                       # Test suite
+├── tests/                       # Test suite (45+ test files)
 │   ├── conftest.py              # Shared fixtures
 │   ├── unit/                    # Unit tests (fast, isolated)
 │   │   ├── conftest.py
 │   │   ├── test_example.py
 │   │   ├── test_version.py
 │   │   ├── test_api.py
+│   │   ├── test_engine.py
 │   │   ├── test_doctor.py
 │   │   ├── test_dep_versions.py
 │   │   ├── test_env_doctor.py
 │   │   ├── test_repo_doctor.py
 │   │   ├── test_archive_todos.py
-│   │   └── test_workflow_versions.py
+│   │   ├── test_workflow_versions.py
+│   │   ├── test_dashboard_*.py  # Dashboard API, routes, collector, export, redact
+│   │   ├── test_repo_links.py   # MkDocs hook tests (86 tests)
+│   │   ├── test_progress.py     # Progress bar/spinner tests
+│   │   └── ...                  # 45+ unit test files total
 │   └── integration/             # Integration tests (slower, cross-module)
 │       ├── conftest.py
 │       ├── test_cli_smoke.py
@@ -118,29 +124,62 @@ invoked. CLI, API, tests, or scripts can all call into it directly.
 │   ├── bootstrap.py             # One-command setup for fresh clones
 │   ├── changelog_check.py       # Verify CHANGELOG matches git tags
 │   ├── check_known_issues.py    # Check for stale resolved entries
+│   ├── check_python_support.py  # Python version support checker
 │   ├── check_todos.py           # Scan for TODO (template users) comments
 │   ├── clean.py                 # Remove build artifacts and caches
 │   ├── customize.py             # Interactive project customization
 │   ├── dep_versions.py          # Dependency version reporting
 │   ├── doctor.py                # Diagnostics bundle for bug reports
 │   ├── env_doctor.py            # Environment health check
+│   ├── env_inspect.py           # Environment, packages, PATH inspection
 │   ├── generate_command_reference.py # Generate docs/reference/commands.md
 │   ├── git_doctor.py            # Git health check and branch dashboard
 │   ├── repo_doctor.py           # Repository health checks
+│   ├── repo_sauron.py           # Repository statistics dashboard
+│   ├── test_containerfile.py    # Container build/test script
+│   ├── test_docker_compose.py   # Docker Compose test script
 │   ├── workflow_versions.py     # SHA-pinned action version reporting
+│   ├── _colors.py               # Shared color/terminal utilities
+│   ├── _container_common.py     # Shared container utilities
+│   ├── _doctor_common.py        # Shared doctor utilities
+│   ├── _imports.py              # Shared import/path utilities
+│   ├── _progress.py             # Progress bar and spinner utilities
+│   ├── _ui.py                   # Shared UI components
+│   ├── _env_collectors/         # Environment data collector plugins (20)
+│   │   ├── _base.py             # Base collector class
+│   │   ├── _redact.py           # Data redaction utilities
+│   │   ├── insights.py          # Cross-collector insights engine
+│   │   └── *.py                 # 17 data collectors (git, hardware, etc.)
 │   ├── precommit/               # Custom pre-commit hooks
+│   │   ├── auto_chmod_scripts.py
+│   │   ├── check_local_imports.py
 │   │   └── check_nul_bytes.py
 │   └── sql/                     # SQL utilities
 │       ├── reset.sql
 │       └── scratch.example.sql
 │
+├── tools/                       # Developer tools (not in package)
+│   └── dev_tools/
+│       └── env_dashboard/       # FastAPI + htmx web dashboard (ADR 041)
+│           ├── app.py           # FastAPI application factory
+│           ├── api.py           # REST API endpoints
+│           ├── routes.py        # HTML page routes
+│           ├── collector.py     # Dashboard ↔ collector integration
+│           ├── export.py        # Data export (JSON, Markdown)
+│           ├── redact.py        # Sensitive data redaction
+│           ├── static/          # CSS, JavaScript assets
+│           └── templates/       # Jinja2 templates (base, partials)
+│
 ├── docs/                        # Documentation (MkDocs source)
-│   ├── adr/                     # Architecture Decision Records (39)
+│   ├── adr/                     # Architecture Decision Records (44)
+│   ├── blueprints/              # Structural design proposals
 │   ├── design/                  # Architecture, tool decisions, database, CI/CD
 │   ├── development/             # Dev setup, commands, workflows, PRs
-│   ├── guide/                   # Getting started, troubleshooting
+│   ├── explorations/            # Early-stage evaluations
+│   ├── guide/                   # Getting started, troubleshooting, dashboard
+│   ├── implementation-plans/    # Step-by-step execution plans
 │   ├── notes/                   # Internal notes, TODOs, resources
-│   ├── reference/               # API reference (mkdocstrings)
+│   ├── reference/               # API reference, commands (auto-generated)
 │   ├── templates/               # Document templates (issues, PRs, security)
 │   └── *.md                     # Workflow, release, labeling, and reference docs
 │
@@ -237,7 +276,7 @@ Version is derived from git tags at build time via `hatch-vcs`
 
 ## CI/CD Architecture
 
-36 workflow files in `.github/workflows/`, all SHA-pinned
+37 workflow files in `.github/workflows/`, all SHA-pinned
 ([ADR 004](../adr/004-pin-action-shas.md)) with repository guard pattern
 ([ADR 011](../adr/011-repository-guard-pattern.md)).
 
@@ -261,8 +300,7 @@ PR opened / push to main
   ├── docs-build.yml        (MkDocs build — CI gate check)
   ├── docs-deploy.yml       (GitHub Pages deployment, path-filtered)
   ├── todo-check.yml        (report remaining TODO markers, warn-only)
-  ├── repo-doctor.yml       (repo structure checks, warn-only)
-  └── ci-gate.yml           (fan-in: single "gate" required check)
+  ├── repo-doctor.yml       (repo structure checks, warn-only)  ├── smoke-test.yml          (script --smoke import/argparse validation)  └── ci-gate.yml           (fan-in: single "gate" required check)
                            └── polls Checks API for all required jobs
                            └── only check listed in branch protection
 
@@ -313,8 +351,10 @@ Key architectural decisions are documented in [ADRs](../adr/README.md):
 | [025](../adr/025-container-strategy.md)            | Container strategy                       |
 | [029](../adr/029-testing-strategy.md)              | Testing strategy                         |
 | [031](../adr/031-script-conventions.md)            | Script conventions                       |
-| [032](../adr/032-dependency-grouping-strategy.md)  | Dependency grouping strategy             |
-
+| [032](../adr/032-dependency-grouping-strategy.md)  | Dependency grouping strategy             || [041](../adr/041-env-inspect-web-dashboard.md)     | Environment inspection web dashboard     |
+| [042](../adr/042-script-smoke-testing.md)           | Script smoke testing in CI               |
+| [043](../adr/043-collector-plugin-architecture.md)  | Collector plugin architecture            |
+| [044](../adr/044-copilot-skills-and-instructions.md)| Copilot skills and instructions          |
 Tool-level trade-off notes live in [tool-decisions.md](tool-decisions.md).
 
 ## External Dependencies

@@ -88,6 +88,9 @@ For lightweight tool comparisons, use [docs/design/tool-decisions.md](../design/
 | [039](039-developer-onboarding-automation.md)         | Developer onboarding automation (bootstrap and customize)          | Accepted |
 | [040](040-v1-release-readiness.md)                    | v1.0 release readiness checklist                                   | Accepted |
 | [041](041-env-inspect-web-dashboard.md)               | Environment inspection web dashboard                               | Accepted |
+| [042](042-script-smoke-testing.md)                    | Script smoke testing in CI                                         | Accepted |
+| [043](043-collector-plugin-architecture.md)           | Environment data collector plugin architecture                     | Accepted |
+| [044](044-copilot-skills-and-instructions.md)         | Copilot skills and instruction file architecture                   | Accepted |
 
 ## Archive
 

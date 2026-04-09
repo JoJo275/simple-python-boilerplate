@@ -376,7 +376,7 @@ CI/CD, packaging, and release configuration gates.
 
 ## CI/CD Workflows Included
 
-This template ships with **36 GitHub Actions workflows** in
+This template ships with **37 GitHub Actions workflows** in
 [.github/workflows/](../.github/workflows/) covering quality, security, PR
 hygiene, releases, docs, containers, and maintenance.
 
@@ -420,7 +420,7 @@ skip on forks and clones.
 
 ### Disabling Workflows You Don't Need
 
-Not every project needs all 36 workflows:
+Not every project needs all 37 workflows:
 
 | If you don't need…    | Remove these workflows                                        | Notes                                                                                         |
 | :-------------------- | :------------------------------------------------------------ | :-------------------------------------------------------------------------------------------- |
@@ -461,7 +461,7 @@ Not every project needs all 36 workflows:
 ## Pre-commit Hooks
 
 [Pre-commit hooks](https://pre-commit.com/) catch problems before code leaves
-your machine. This template includes **46 hooks** across four Git stages:
+your machine. This template includes **47 hooks** across four Git stages:
 
 | Stage          | When it runs       | Examples                                                             | Count |
 | :------------- | :----------------- | :------------------------------------------------------------------- | ----: |
@@ -1378,7 +1378,7 @@ should review both and remove or comment out anything that doesn't apply.
 | `tamasfe.even-better-toml`                      | TOML syntax for `pyproject.toml`                                                               |
 | `redhat.vscode-yaml`                            | YAML validation for workflows and configs                                                      |
 | `eamodio.gitlens`                               | Git blame, history, and annotations                                                            |
-| `GitHub.vscode-github-actions`                  | Workflow syntax validation and auto-complete (36 workflows in this project)                    |
+| `GitHub.vscode-github-actions`                  | Workflow syntax validation and auto-complete (37 workflows in this project)                    |
 | `task.vscode-task`                              | Task runner integration for `Taskfile.yml`                                                     |
 | `EditorConfig.EditorConfig`                     | Consistent editor settings across editors                                                      |
 | `streetsidesoftware.code-spell-checker`         | Spell checking in code and docs                                                                |

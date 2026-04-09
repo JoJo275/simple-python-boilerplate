@@ -88,7 +88,7 @@
 
 			// ── CI / GitHub Actions ─────────────────────────────
 			// GitHub Actions — syntax validation, auto-complete for action
-			// inputs, and workflow run status. This project has 36 workflow
+			// inputs, and workflow run status. This project has 37 workflow
 			// files in .github/workflows/.
 			"GitHub.vscode-github-actions",
 

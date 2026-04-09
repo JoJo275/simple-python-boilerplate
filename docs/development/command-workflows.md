@@ -54,11 +54,13 @@ The same pattern applies to every command:
 | `task fmt:check`     | `hatch run fmt-check`      | `fmt-check`  | `ruff format --check src/ tests/`              |
 | `task typecheck`     | `hatch run typecheck`      | `typecheck`  | `mypy src/`                                    |
 | `task security`      | `hatch run bandit -r src/` | _(direct)_   | `bandit -r src/`                               |
+| `task deptry`        | `hatch run deptry .`       | _(direct)_   | `deptry .`                                     |
 | `task check`         | `hatch run check`          | `check`      | lint + fmt-check + typecheck + test            |
 | `task test:matrix`   | `hatch run test:run`       | `test:run`   | pytest across Python 3.11–3.13                 |
 | `task docs:serve`    | `hatch run docs:serve`     | `docs:serve` | `mkdocs serve`                                 |
 | `task docs:build`    | `hatch run docs:build`     | `docs:build` | `mkdocs build --strict`                        |
 | `task docs:commands` | _(runs script directly)_   | —            | `python scripts/generate_command_reference.py` |
+| `task dashboard:serve` | `hatch run dashboard:serve` | `dashboard:serve` | FastAPI uvicorn server                  |
 
 <!-- TODO (template users): Update the table above after renaming Hatch scripts
      or adding new ones in pyproject.toml. Add rows for any domain-specific
@@ -234,6 +236,7 @@ workflows. Run `task --list-all` to see everything.
 | `task deps:versions`    | Show installed vs latest dep versions    |
 | `task deps:upgrade`     | Upgrade dependencies in `pyproject.toml` |
 | `task deps:outdated`    | Check for outdated packages              |
+| `task deps:update-comments` | Update version comments in pyproject.toml |
 | `task actions:versions` | Show SHA-pinned action versions          |
 | `task actions:upgrade`  | Upgrade SHA-pinned actions               |
 | `task actions:check`    | CI gate: exit non-zero if stale actions  |
@@ -244,11 +247,43 @@ workflows. Run `task --list-all` to see everything.
 | ------------------ | ---------------------------------------- |
 | `task build`       | Build source + wheel distributions       |
 | `task clean:all`   | Remove all build artifacts and caches    |
+| `task clean:build` | Clean build artifacts (Hatch only)       |
+| `task clean:todo`  | Archive completed TODO items             |
 | `task doctor`      | Print diagnostics bundle for bug reports |
 | `task doctor:repo` | Run repository health checks             |
 | `task commit`      | Interactive conventional commit          |
 | `task version`     | Show project version                     |
+| `task info`        | Show project metadata                    |
 | `task security`    | Run bandit security linter               |
+| `task deptry`      | Check for unused/missing dependencies    |
+| `task stats`       | Repository statistics dashboard          |
+| `task run`         | Run the application                      |
+| `task customize`   | Interactive project customization        |
+| `task todo:check`  | Find and report TODO items               |
+
+### Container
+
+| Task                             | What it does                                 |
+| -------------------------------- | -------------------------------------------- |
+| `task container:test`            | Run all container tests                      |
+| `task container:test:containerfile` | Test the Containerfile build              |
+| `task container:test:compose`    | Test the docker compose stack                |
+| `task container:test:dry-run`    | Preview container tests without running      |
+
+### Dashboard
+
+| Task                  | What it does                                          |
+| --------------------- | ----------------------------------------------------- |
+| `task dashboard:serve` | Start environment dashboard (http://127.0.0.1:8000) |
+
+### Labels
+
+| Task                  | What it does                            |
+| --------------------- | --------------------------------------- |
+| `task labels:apply`   | Apply GitHub labels (with flags)        |
+| `task labels:baseline`| Apply baseline labels to current repo   |
+| `task labels:full`    | Apply extended labels to current repo   |
+| `task labels:dry-run` | Preview baseline labels without applying|
 
 ### Doctor & Health Checks
 

@@ -4,7 +4,7 @@
      Keep it in sync whenever workflows are added, removed, or renamed.
      copilot-instructions.md and docs/design/architecture.md reference this file. -->
 
-This project has **36 workflow files** in `.github/workflows/`. All workflows
+This project has **37 workflow files** in `.github/workflows/`. All workflows
 follow the conventions described at the bottom of this page. Configure these workflows in their respective `.yml` file.
 
 ---
@@ -22,6 +22,7 @@ follow the conventions described at the bottom of this page. Configure these wor
 | **Spellcheck**         | [spellcheck.yml](../.github/workflows/spellcheck.yml)                 | push, PR, manual | `Spell check (codespell)`              | Fails CI on spelling mistakes                   |
 | **Spellcheck Autofix** | [spellcheck-autofix.yml](../.github/workflows/spellcheck-autofix.yml) | weekly, manual   | `Auto-fix typos`                       | Creates a PR to auto-fix spelling mistakes      |
 | **TODO Check**         | [todo-check.yml](../.github/workflows/todo-check.yml)                 | push, PR, manual | `Check template TODOs`                 | Reports remaining TODO (template users) markers |
+| **Smoke Test**         | [smoke-test.yml](../.github/workflows/smoke-test.yml)                 | push (path-filtered), PR (path-filtered), manual | `Script Smoke Test` | Runs `--smoke` on scripts to validate imports and argparse ([ADR 042](adr/042-script-smoke-testing.md)) |
 
 ### Security
 
@@ -134,6 +135,7 @@ Select-String -Path ".github\workflows\*.yml" -Pattern "ci-gate: required"
 - `license-check.yml` — only runs on `pyproject.toml`, `requirements*.txt` changes
 - `known-issues-check.yml` — schedule + tag-push only (no PR trigger)
 - `todo-check.yml` — non-blocking (continue-on-error); informational only
+- `smoke-test.yml` — only runs on `scripts/**` changes (path-filtered)
 - `repo-doctor.yml` — warn-only (always exits 0); informational only
 - `doctor-all.yml` — warn-only (all steps continue-on-error); informational only
 - `welcome.yml` — community engagement; no quality gate relevance

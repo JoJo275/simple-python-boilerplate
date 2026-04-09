@@ -110,6 +110,7 @@ How was this tested?
 - [ ] Documentation updated (if user-facing changes)
 - [ ] Type hints on public functions
 - [ ] ADR created (if significant decision — see `docs/adr/template.md`)
+- [ ] Command reference regenerated (if scripts changed — `task docs:commands`)
 ```
 
 ## Code Review Guidelines
@@ -219,7 +220,7 @@ common cause is a renamed workflow job. The `ci-gate.yml` references checks
 by their display name — if you rename a job, update `REQUIRED_CHECKS` in
 `ci-gate.yml` too.
 
-> **Path-filtered workflows** (bandit, docs-deploy, link-checker) are NOT
+> **Path-filtered workflows** (bandit, docs-deploy, link-checker, smoke-test) are NOT
 > in the CI gate because they don't run on every PR. If they don't trigger,
 > that's expected — see [workflows.md](../workflows.md) for the full list.
 
