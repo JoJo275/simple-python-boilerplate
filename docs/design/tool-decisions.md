@@ -124,6 +124,8 @@ pattern.
 | **auto-merge-dependabot.yml** | Auto-merge Dependabot     | Auto-approves and squash-merges minor/patch Dependabot PRs once CI passes.                                                                                                         |
 | **docs-build.yml**            | Docs CI gate              | Runs `mkdocs build --strict` on every PR. Part of CI gate.                                                                                                                         |
 | **docs-deploy.yml**           | Docs deployment           | Deploys to GitHub Pages on push to main. Path-filtered.                                                                                                                            |
+| **smoke-test.yml**            | Script smoke testing      | Runs `--smoke` flag on scripts in a matrix. Catches import/argparse regressions ([ADR 042](../adr/042-script-smoke-testing.md)).                                                   |
+| **doctor-all.yml**            | Full health check         | Runs all doctor scripts — warn-only comprehensive diagnostics in CI.                                                                                                               |
 
 <!-- TODO (template users): Remove workflows you don't need (e.g. container-*
      if you don't ship containers, docs-deploy if you don't use GitHub Pages).
@@ -423,3 +425,63 @@ decision.
 
 <!-- TODO (template users): Customise label definitions in labels/baseline.json
      and labels/extended.json to match your project's workflow. -->
+
+---
+
+## Environment Dashboard
+
+See [ADR 041](../adr/041-env-inspect-web-dashboard.md) for the web dashboard
+decision and [ADR 043](../adr/043-collector-plugin-architecture.md) for the
+collector plugin architecture.
+
+### Chosen
+
+| Tool / Pattern              | Purpose            | Why chosen                                                                                                              |
+| --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **FastAPI**                 | Web framework      | Async-native, automatic OpenAPI docs, lightweight. Already in the Python ecosystem — no new runtime.                    |
+| **Jinja2 + htmx**          | Frontend rendering | Server-side rendering with minimal JavaScript. htmx provides dynamic UI without a full SPA framework.                   |
+| **Alpine.js**              | Client-side state  | Lightweight (~15KB) declarative JS for toggles, filters, search. No build step.                                         |
+| **Plugin-based collectors** | Data gathering     | Auto-discovered modules in `scripts/_env_collectors/`. Adding a data source requires only creating a new file — no registry edits. |
+
+### Skipped
+
+| Tool / Pattern | Why skipped                                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Django**     | Full MVC framework — overkill for a single-page diagnostic dashboard. FastAPI is lighter and async-native.          |
+| **Flask**      | Viable alternative. FastAPI was chosen for automatic OpenAPI docs and native async support.                          |
+| **React/Vue**  | SPA frameworks add a Node.js build pipeline and significant complexity for a developer tool that shows system info. |
+
+---
+
+## Smoke Testing
+
+See [ADR 042](../adr/042-script-smoke-testing.md) for the architectural
+decision.
+
+### Chosen
+
+| Tool / Pattern     | Purpose                | Why chosen                                                                                                                         |
+| ------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **`--smoke` flag** | Script import/argparse validation | Each script's `--smoke` flag verifies imports resolve and argparse initialises, then exits 0. No real logic executed. |
+| **CI matrix**      | Per-script isolation   | GitHub Actions matrix strategy runs each script independently — one failure doesn't mask others.                                   |
+
+### Notes
+
+- The `--smoke` convention is implemented via the shared `_imports.py` module.
+- Only scripts that have adopted the `--smoke` flag are included in the matrix.
+  New scripts should add `--smoke` support to participate.
+
+---
+
+## Copilot Instructions
+
+See [ADR 044](../adr/044-copilot-skills-and-instructions.md) for the
+instruction architecture decision.
+
+### Chosen
+
+| Tool / Pattern                 | Purpose              | Why chosen                                                                                                     |
+| ------------------------------ | -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **`applyTo`-scoped files**     | Context targeting    | Copilot only loads instructions matching the current file pattern — no wasted context tokens.                   |
+| **Layered architecture**       | Separation of scope  | Global rules in `copilot-instructions.md`, file-specific rules in `.instructions.md`, procedures in `SKILL.md`.|
+| **SKILL.md multi-step recipes**| Procedure automation | Encodes sync steps (update index, regenerate docs, update instruction files) that humans forget.               |

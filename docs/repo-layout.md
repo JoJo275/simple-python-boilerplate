@@ -66,7 +66,7 @@ simple-python-boilerplate/
 │   └── schema.sql              # Database schema definition
 │
 ├── docs/                       # Project documentation
-│   ├── adr/                    # Architecture Decision Records (41 ADRs)
+│   ├── adr/                    # Architecture Decision Records (44 ADRs)
 │   │   ├── template.md         # ADR template
 │   │   ├── archive/            # Superseded ADRs
 │   │   └── README.md           # ADR index table

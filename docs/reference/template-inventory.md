@@ -35,6 +35,8 @@ the project consistent.
 | **VS Code**         | Workspace settings                    | [`*.code-workspace`](../../simple-python-boilerplate.code-workspace)                       | Extensions, settings, file exclusions                             |
 | **Experiment**      | API test, data exploration            | [`experiments/`](../../experiments/)                                                       | Throwaway scripts, not part of the package                        |
 | **Commit message**  | Conventional commit template          | [`.gitmessage.txt`](../../.gitmessage.txt)                                                 | `git config commit.template .gitmessage.txt`                      |
+| **Collector**       | Environment data collector plugin     | [`scripts/_env_collectors/`](../../scripts/_env_collectors/)                                 | Subclass `BaseCollector`, auto-discovered by dashboard            |
+| **Dashboard**       | Dashboard template / route            | [`tools/dev_tools/env_dashboard/`](../../tools/dev_tools/env_dashboard/)                   | FastAPI + Jinja2 + htmx + Alpine.js                               |
 | **Repo doctor**     | Health check rules                    | [`repo_doctor.d/*.toml`](../../repo_doctor.d/)                                             | Add new `.toml` rule files per category                           |
 
 ---
@@ -78,6 +80,13 @@ the project consistent.
 - Migrations: numbered (`NNN_description.sql`), idempotent, include rollback
 - Seeds: numbered, idempotent
 - Queries: documented with comments explaining purpose
+
+### Environment Collectors
+
+- Place in `scripts/_env_collectors/` as a new module
+- Subclass `BaseCollector`, implement `collect()` method
+- Auto-discovered by the dashboard ([ADR 043](../adr/043-collector-plugin-architecture.md))
+- See [collector conventions](../../.github/instructions/collectors.instructions.md) for the full pattern
 
 ---
 

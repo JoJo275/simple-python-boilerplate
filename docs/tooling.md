@@ -79,7 +79,7 @@ it's configured, and where to learn more.
 
 | Tool                                                                  | What it does                                                                                                             | Config                       | Docs                                                                   |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------- |
-| **[GitHub Actions](https://docs.github.com/en/actions)**              | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 36 workflows.                  | `.github/workflows/*.yml`    | [Actions docs](https://docs.github.com/en/actions)                     |
+| **[GitHub Actions](https://docs.github.com/en/actions)**              | CI/CD platform. Runs workflows on push, PR, schedule, or manual trigger. This project has 37 workflows.                  | `.github/workflows/*.yml`    | [Actions docs](https://docs.github.com/en/actions)                     |
 | **[release-please](https://github.com/googleapis/release-please)**    | Automates versioning and changelog generation from Conventional Commits. Creates a Release PR that you review and merge. | `release-please-config.json` | [release-please docs](https://github.com/googleapis/release-please)    |
 | **[Dependabot](https://docs.github.com/en/code-security/dependabot)** | Automatically opens PRs to update outdated or vulnerable dependencies.                                                   | `.github/dependabot.yml`     | [Dependabot docs](https://docs.github.com/en/code-security/dependabot) |
 
@@ -110,6 +110,16 @@ it's configured, and where to learn more.
 | **[validate-pyproject](https://validate-pyproject.readthedocs.io/)**          | Validates `pyproject.toml` against PEP 621 and packaging schemas. Catches config errors before CI. | — (validates `pyproject.toml`) | [validate-pyproject docs](https://validate-pyproject.readthedocs.io/)          |
 | **[actionlint](https://github.com/rhysd/actionlint)**                         | Lints GitHub Actions workflow files. Catches expression errors, unknown inputs, and runner issues. | — (lints `.github/workflows/`) | [actionlint docs](https://github.com/rhysd/actionlint)                         |
 | **[check-jsonschema](https://github.com/python-jsonschema/check-jsonschema)** | Validates YAML/JSON files against schemas from SchemaStore (workflows, Dependabot config, etc.).   | — (schema auto-detected)       | [check-jsonschema docs](https://github.com/python-jsonschema/check-jsonschema) |
+
+---
+
+## Developer Dashboard
+
+| Tool                                                                | What it does                                                                                                                   | Config                                       | Docs                                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------- |
+| **[FastAPI](https://fastapi.tiangolo.com/)**                        | Powers the environment dashboard web app at `http://127.0.0.1:8000`. Gathers system, project, and tooling data via 20 plugins. | `tools/dev_tools/env_dashboard/`             | [FastAPI docs](https://fastapi.tiangolo.com/)                 |
+| **[htmx](https://htmx.org/)**                                      | Provides dynamic UI updates without a full SPA framework. Used for dashboard section toggling and live refresh.                | Dashboard templates                          | [htmx docs](https://htmx.org/)                               |
+| **[Alpine.js](https://alpinejs.dev/)**                              | Lightweight client-side state for search, filters, and toggles in the dashboard.                                               | Dashboard templates                          | [Alpine.js docs](https://alpinejs.dev/)                       |
 
 ---
 

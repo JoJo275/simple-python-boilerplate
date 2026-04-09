@@ -49,7 +49,7 @@ Config: `.pre-commit-config.yaml` · Full inventory: [ADR 008](../docs/adr/008-p
 
 ### GitHub Actions Workflows
 
-~36 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
+~37 workflow files in `.github/workflows/`, all SHA-pinned ([ADR 004](../docs/adr/004-pin-action-shas.md)).
 **Canonical inventory:** `docs/workflows.md`. See `.github/workflows/.instructions.md` for conventions.
 
 ### Task Runner — Taskfile
@@ -254,10 +254,11 @@ not `yaml.load()`, parameterized SQL queries.
 
 - `docs/design/architecture.md` — System overview, data flows
 - `docs/design/tool-decisions.md` — Tool comparison notes
-- `docs/adr/` — 40 Architecture Decision Records
+- `docs/adr/` — 44 Architecture Decision Records
 
 Key ADRs: 001 (src/ layout), 008 (pre-commit hooks), 024 (CI gate),
-031 (script conventions), 040 (v1.0 readiness).
+031 (script conventions), 040 (v1.0 readiness), 041 (env dashboard),
+042 (smoke testing), 043 (collector plugins), 044 (Copilot instructions).
 
 **When numbers here conflict with those docs, the docs win.**
 

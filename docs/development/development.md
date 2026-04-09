@@ -326,7 +326,7 @@ Key hooks by stage:
 | `bandit`                  | bandit           | Security linting (excludes `tests/`)     |
 
 See [ADR 008](../adr/008-pre-commit-hooks.md) for the complete hook inventory
-(38 pre-commit, 1 commit-msg, 3 pre-push, 4 manual — 46 total).
+(38 pre-commit, 1 commit-msg, 4 pre-push, 4 manual — 47 total).
 
 #### Without pre-commit (raw Git hooks)
 
@@ -453,3 +453,19 @@ hatch env show
 - [Mypy Documentation](https://mypy.readthedocs.io/)
 - [Pytest Documentation](https://docs.pytest.org/)
 - [Conventional Commits](https://www.conventionalcommits.org/)
+
+## Environment Dashboard
+
+The project includes a web-based environment dashboard
+([ADR 041](../adr/041-env-inspect-web-dashboard.md)) powered by FastAPI,
+htmx, and Alpine.js. It runs 20 plugin-based data collectors to display
+system info, git status, dependency health, security posture, and more.
+
+```bash
+task dashboard:serve
+# or
+hatch run dashboard:serve
+# Opens at http://127.0.0.1:8000
+```
+
+See [Dashboard Guide](../guide/dashboard-guide.md) for full documentation.

@@ -66,11 +66,9 @@ from pathlib import Path
 
 # -- Local script modules (not third-party; live in scripts/) ----------------
 from _imports import find_repo_root
+from _progress import ProgressBar, Spinner
 
-# TODO (template users): Consider adding a Spinner from _progress.py for
-#   the generation phase when running --help on each script. See
-#   git_doctor.py for an example of spinner integration.
-SCRIPT_VERSION = "1.4.0"
+SCRIPT_VERSION = "1.5.0"
 
 # Theme color for this script's dashboard output.
 THEME = "white"
@@ -333,7 +331,8 @@ def _generate() -> str:
         "Pass extra arguments with `-- <args>` (e.g., `task test -- -v`).\n\n"
     )
 
-    tasks = _parse_taskfile_tasks()
+    with Spinner("Parsing Taskfile tasks"):
+        tasks = _parse_taskfile_tasks()
     if tasks:
         # Group tasks by prefix (before the colon)
         groups: dict[str, list[tuple[str, str]]] = {}
@@ -362,7 +361,9 @@ def _generate() -> str:
 
     up = _relpath_to_root()
     scripts = _collect_scripts()
+    bar = ProgressBar(total=len(scripts), label="Collecting script help")
     for script in scripts:
+        bar.update(script.name)
         rel = script.relative_to(ROOT).as_posix()
         parts.append(f"### `{script.name}`\n\n")
         parts.append(f"**File:** [`{rel}`]({up}/{rel})\n\n")
@@ -376,6 +377,7 @@ def _generate() -> str:
             parts.append("    ```\n\n")
         else:
             parts.append("*No `--help` output available.*\n\n")
+    bar.finish()
 
     # ── Shared modules ────────────────────────────────────────
     parts.append("## Shared Modules\n\n")
@@ -404,7 +406,8 @@ def _generate() -> str:
         "Enter with `hatch shell` or run commands with `hatch run <cmd>`.\n\n"
     )
 
-    env_output = _hatch_env_show()
+    with Spinner("Querying Hatch environments"):
+        env_output = _hatch_env_show()
     if env_output:
         parts.append("```text\n")
         parts.extend(f"{line}\n" for line in env_output.splitlines())

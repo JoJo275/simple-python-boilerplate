@@ -143,6 +143,15 @@ nav:
       - 033 – Prettier for Markdown: adr/033-prettier-for-markdown-formatting.md
       - 034 – Documentation Organization: adr/034-documentation-organization-strategy.md
       - 035 – Copilot Instructions: adr/035-copilot-instructions-as-context.md
+      - 036 – Diagnostic Tooling: adr/036-diagnostic-tooling-strategy.md
+      - 037 – Git Config as Code: adr/037-git-configuration-as-code.md
+      - 038 – VS Code Workspace: adr/038-vscode-workspace-configuration-strategy.md
+      - 039 – Onboarding Automation: adr/039-developer-onboarding-automation.md
+      - 040 – v1.0 Release Readiness: adr/040-v1-release-readiness.md
+      - 041 – Environment Dashboard: adr/041-env-inspect-web-dashboard.md
+      - 042 – Script Smoke Testing: adr/042-script-smoke-testing.md
+      - 043 – Collector Plugins: adr/043-collector-plugin-architecture.md
+      - 044 – Copilot Skills: adr/044-copilot-skills-and-instructions.md
   - Templates:
       - Overview: templates/README.md
       - Security Policy: templates/SECURITY_no_bounty.md
