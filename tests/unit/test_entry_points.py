@@ -220,3 +220,113 @@ class TestScriptWrappersDefined:
         func = getattr(ep, name, None)
         assert func is not None, f"Missing entry point function: {name}"
         assert callable(func)
+
+
+# ── Script wrapper delegation tests ──────────────────────────
+
+
+class TestScriptWrappersDelegation:
+    """Verify each wrapper delegates to _run_script / _run_dashboard."""
+
+    @pytest.mark.parametrize(
+        ("func_name", "expected_script"),
+        [
+            ("git_doctor", "git_doctor.py"),
+            ("env_doctor", "env_doctor.py"),
+            ("repo_doctor", "repo_doctor.py"),
+            ("doctor_bundle", "doctor.py"),
+            ("env_inspect", "env_inspect.py"),
+            ("repo_sauron", "repo_sauron.py"),
+            ("clean", "clean.py"),
+            ("bootstrap", "bootstrap.py"),
+            ("dep_versions", "dep_versions.py"),
+            ("workflow_versions", "workflow_versions.py"),
+            ("check_todos", "check_todos.py"),
+            ("check_python_support", "check_python_support.py"),
+            ("changelog_check", "changelog_check.py"),
+            ("apply_labels", "apply_labels.py"),
+            ("archive_todos", "archive_todos.py"),
+            ("customize", "customize.py"),
+            ("check_known_issues", "check_known_issues.py"),
+        ],
+    )
+    def test_wrapper_calls_run_script(self, func_name, expected_script):
+        import simple_python_boilerplate.entry_points as ep
+
+        with patch.object(ep, "_run_script") as mock_run:
+            mock_run.side_effect = SystemExit(0)
+            with pytest.raises(SystemExit):
+                getattr(ep, func_name)()
+            mock_run.assert_called_once_with(expected_script)
+
+    def test_dashboard_calls_run_dashboard(self):
+        import simple_python_boilerplate.entry_points as ep
+
+        with patch.object(ep, "_run_dashboard") as mock_run:
+            mock_run.side_effect = SystemExit(0)
+            with pytest.raises(SystemExit):
+                ep.dashboard()
+            mock_run.assert_called_once()
+
+
+# ── _run_dashboard PYTHONPATH branch ─────────────────────────
+
+
+class TestRunDashboardPythonpath:
+    """Cover the branch in _run_dashboard where PYTHONPATH already exists."""
+
+    def test_existing_pythonpath_appended(self, tmp_path):
+        from simple_python_boilerplate.entry_points import _run_dashboard
+
+        app = tmp_path / "dev_tools" / "env_dashboard" / "app.py"
+        app.parent.mkdir(parents=True)
+        app.write_text("print('dashboard')")
+
+        with (
+            patch(
+                "simple_python_boilerplate.entry_points._BUNDLED_TOOLS",
+                tmp_path,
+            ),
+            patch("sys.argv", ["spb-dashboard"]),
+            patch.dict("os.environ", {"PYTHONPATH": "/existing/path"}),
+            patch("subprocess.call", return_value=0) as mock_call,
+            pytest.raises(SystemExit),
+        ):
+            _run_dashboard()
+
+        env = mock_call.call_args[1].get("env") or mock_call.call_args.kwargs["env"]
+        assert "/existing/path" in env["PYTHONPATH"]
+
+
+# ── doctor() tool-not-found branch ───────────────────────────
+
+
+class TestDoctorToolNotFound:
+    """Cover the branch in doctor() where a tool path is None."""
+
+    def test_doctor_prints_not_found_tools(self, capsys, monkeypatch):
+        from simple_python_boilerplate.entry_points import doctor
+
+        monkeypatch.setattr("sys.argv", ["spb-doctor"])
+
+        fake_diag = {
+            "version": {
+                "package_version": "0.0.0",
+                "python_version": "3.13.0",
+                "platform": "TestOS 1.0",
+            },
+            "executable": "/usr/bin/python",
+            "prefix": "/usr",
+            "in_virtual_env": False,
+            "tools": {"pytest": None, "ruff": "/usr/bin/ruff"},
+            "config_files": {"pyproject.toml": True},
+        }
+
+        with patch(
+            "simple_python_boilerplate.engine.diagnose_environment",
+            return_value=fake_diag,
+        ):
+            doctor()
+
+        captured = capsys.readouterr()
+        assert "not found" in captured.out
