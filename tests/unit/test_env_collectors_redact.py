@@ -79,9 +79,7 @@ class TestStripUrlCreds:
         result = _strip_url_creds(url)
         assert "s3cret" not in result
         assert REDACTED in result
-        from urllib.parse import urlparse
-
-        assert urlparse(result).hostname == "github.com"
+        assert result.endswith("github.com/repo")
 
     def test_no_creds_unchanged(self):
         url = "https://github.com/repo"

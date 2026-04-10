@@ -64,8 +64,12 @@ async def section_partial(
     redact_level = parse_redact_param(redact)
     report = await get_report_async(tier=tier_enum, redact_level=redact_level)
     sections = report.get("sections", {})
-    section_data = sections.get(name, {})
 
+    # Validate name against known section keys to prevent path traversal
+    if name not in sections:
+        return HTMLResponse("Section not found", status_code=404)
+
+    section_data = sections[name]
     template_name = f"partials/{name}.html"
     templates = request.app.state.templates
     return templates.TemplateResponse(

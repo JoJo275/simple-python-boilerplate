@@ -27,25 +27,54 @@ _DEFAULT_TTL = 30  # seconds
 _executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
 
-class _Cache:
-    """Simple in-memory cache with TTL."""
+class _CacheEntry:
+    """Single cache entry for a (tier, redact_level) combination."""
+
+    __slots__ = ("current", "previous", "timestamp")
 
     def __init__(self) -> None:
         self.current: dict[str, Any] | None = None
         self.previous: dict[str, Any] | None = None
         self.timestamp: float = 0.0
-        self.ttl: float = _DEFAULT_TTL
 
-    def is_stale(self) -> bool:
-        return self.current is None or (time.monotonic() - self.timestamp) > self.ttl
+    def is_stale(self, ttl: float) -> bool:
+        return self.current is None or (time.monotonic() - self.timestamp) > ttl
 
     def update(self, data: dict[str, Any]) -> None:
         self.previous = self.current
         self.current = data
         self.timestamp = time.monotonic()
 
+
+class _Cache:
+    """In-memory cache keyed by (tier, redact_level) with TTL."""
+
+    def __init__(self) -> None:
+        self._entries: dict[tuple[object, RedactLevel], _CacheEntry] = {}
+        self.ttl: float = _DEFAULT_TTL
+
+    def _key(
+        self, tier: object, redact_level: RedactLevel
+    ) -> tuple[object, RedactLevel]:
+        return (tier, redact_level)
+
+    def get_entry(self, tier: object, redact_level: RedactLevel) -> _CacheEntry:
+        key = self._key(tier, redact_level)
+        if key not in self._entries:
+            self._entries[key] = _CacheEntry()
+        return self._entries[key]
+
+    def is_stale(self, tier: object, redact_level: RedactLevel) -> bool:
+        return self.get_entry(tier, redact_level).is_stale(self.ttl)
+
+    def update(
+        self, tier: object, redact_level: RedactLevel, data: dict[str, Any]
+    ) -> None:
+        self.get_entry(tier, redact_level).update(data)
+
     def invalidate(self) -> None:
-        self.timestamp = 0.0
+        for entry in self._entries.values():
+            entry.timestamp = 0.0
 
 
 _cache = _Cache()
@@ -75,10 +104,10 @@ def get_report(
     Returns:
         Full environment report dict.
     """
-    if force or _cache.is_stale():
+    if force or _cache.is_stale(tier, redact_level):
         data = gather_env_info(tier=tier, redact_level=redact_level)
-        _cache.update(data)
-    return _cache.current  # type: ignore[return-value]
+        _cache.update(tier, redact_level, data)
+    return _cache.get_entry(tier, redact_level).current  # type: ignore[return-value]
 
 
 async def get_report_async(
@@ -97,16 +126,19 @@ async def get_report_async(
     Returns:
         Full environment report dict.
     """
-    if force or _cache.is_stale():
+    if force or _cache.is_stale(tier, redact_level):
         loop = asyncio.get_running_loop()
         data = await loop.run_in_executor(_executor, _collect_sync, tier, redact_level)
-        _cache.update(data)
-    return _cache.current  # type: ignore[return-value]
+        _cache.update(tier, redact_level, data)
+    return _cache.get_entry(tier, redact_level).current  # type: ignore[return-value]
 
 
-def get_previous() -> dict[str, Any] | None:
+def get_previous(
+    tier: Tier = Tier.STANDARD,
+    redact_level: RedactLevel = RedactLevel.SECRETS,
+) -> dict[str, Any] | None:
     """Return the previous scan result (for diff)."""
-    return _cache.previous
+    return _cache.get_entry(tier, redact_level).previous
 
 
 def invalidate_cache() -> None:

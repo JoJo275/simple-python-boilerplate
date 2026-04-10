@@ -246,7 +246,7 @@ the scripts in `scripts/` and let you run them from **any repository**.
 | `spb-repo-doctor` | `python scripts/repo_doctor.py` |
 | `spb-clean` | `python scripts/clean.py` |
 | `spb-env-inspect` | `python scripts/env_inspect.py` |
-| `spb-stats` | `python scripts/repo_sauron.py` |
+| `spb-repo-stats` | `python scripts/repo_sauron.py` |
 | `spb-dashboard` | `hatch run dashboard:serve` |
 
 All arguments are forwarded: `spb-git-doctor --json` works as expected.

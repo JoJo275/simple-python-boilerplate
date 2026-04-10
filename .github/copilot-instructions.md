@@ -64,7 +64,7 @@ Utility scripts in `scripts/`. See `scripts/README.md` for inventory,
 
 ### Global Entry Points
 
-21 CLI commands (`spb-*`) defined in `[project.scripts]` in `pyproject.toml`.
+22 CLI commands (21 `spb-*` commands plus `spb`) defined in `[project.scripts]` in `pyproject.toml`.
 Thin wrappers in `src/simple_python_boilerplate/scripts_cli.py` run bundled
 scripts via subprocess with `SPB_REPO_ROOT` set to CWD, enabling cross-repo
 use via `pipx install .`. See `docs/guide/entry-points.md` for the full list.
