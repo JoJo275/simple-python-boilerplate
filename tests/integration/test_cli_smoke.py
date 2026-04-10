@@ -79,6 +79,23 @@ class TestDoctorEntryPoint:
         assert "doctor" in captured.out.lower()
         assert "Version" in captured.out or "version" in captured.out
 
+    def test_doctor_via_cli_run(
+        self,
+        capsys: pytest.CaptureFixture[str],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """``cli.run(parse_args(["doctor"]))`` should invoke doctor and exit 0."""
+        from simple_python_boilerplate.cli import parse_args, run
+
+        # doctor() internally calls argparse.parse_args() which reads sys.argv
+        monkeypatch.setattr("sys.argv", ["spb-doctor"])
+        args = parse_args(["doctor"])
+        exit_code = run(args)
+        assert exit_code == 0
+
+        captured = capsys.readouterr()
+        assert "doctor" in captured.out.lower()
+
 
 # ── CLI command integration tests ────────────────────────────
 
