@@ -128,13 +128,22 @@ def _validate_package_name(name: str) -> bool:
     return bool(_PACKAGE_NAME_RE.match(name)) and len(name) <= 200
 
 
-def _validate_python_exe(python_exe: str) -> bool:
-    """Validate that a python executable path looks legitimate."""
+def _validate_python_exe(python_exe: str) -> str | None:
+    """Validate a python executable path and return its resolved form.
+
+    Returns the resolved absolute path string if valid, or ``None`` if
+    the path is rejected.  Resolving eliminates ``..`` traversal and
+    symlink tricks so that CodeQL no longer flags an uncontrolled path.
+    """
     from pathlib import Path
 
-    p = Path(python_exe)
-    # Must exist + name must start with "python"
-    return p.is_file() and p.name.lower().startswith("python") and ".." not in str(p)
+    try:
+        p = Path(python_exe).resolve(strict=True)
+    except (OSError, ValueError):
+        return None
+    if p.is_file() and p.name.lower().startswith("python"):
+        return str(p)
+    return None
 
 
 async def _stream_pip_command(
@@ -173,14 +182,14 @@ async def api_pip_update(
             media_type="text/event-stream",
         )
 
-    exe = python_exe or sys.executable
-    if not _validate_python_exe(exe):
+    resolved_exe = _validate_python_exe(python_exe or sys.executable)
+    if resolved_exe is None:
         return StreamingResponse(
             iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
             media_type="text/event-stream",
         )
 
-    cmd = [exe, "-m", "pip", "install", "--upgrade", package]
+    cmd = [resolved_exe, "-m", "pip", "install", "--upgrade", package]
     return StreamingResponse(
         await _stream_pip_command(cmd),
         media_type="text/event-stream",
@@ -202,14 +211,14 @@ async def api_pip_uninstall(
             media_type="text/event-stream",
         )
 
-    exe = python_exe or sys.executable
-    if not _validate_python_exe(exe):
+    resolved_exe = _validate_python_exe(python_exe or sys.executable)
+    if resolved_exe is None:
         return StreamingResponse(
             iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
             media_type="text/event-stream",
         )
 
-    cmd = [exe, "-m", "pip", "uninstall", "-y", package]
+    cmd = [resolved_exe, "-m", "pip", "uninstall", "-y", package]
     return StreamingResponse(
         await _stream_pip_command(cmd),
         media_type="text/event-stream",
@@ -234,14 +243,14 @@ async def api_pip_install(
             media_type="text/event-stream",
         )
 
-    exe = python_exe or sys.executable
-    if not _validate_python_exe(exe):
+    resolved_exe = _validate_python_exe(python_exe or sys.executable)
+    if resolved_exe is None:
         return StreamingResponse(
             iter([f"data: {json.dumps({'error': 'Invalid Python executable'})}\n\n"]),
             media_type="text/event-stream",
         )
 
-    cmd = [exe, "-m", "pip", "install", package]
+    cmd = [resolved_exe, "-m", "pip", "install", package]
     return StreamingResponse(
         await _stream_pip_command(cmd),
         media_type="text/event-stream",
@@ -253,13 +262,13 @@ async def api_pip_check_updates(
     python_exe: str = Query(default=""),
 ) -> JSONResponse:
     """Check all outdated packages for a given Python environment."""
-    exe = python_exe or sys.executable
-    if not _validate_python_exe(exe):
+    resolved_exe = _validate_python_exe(python_exe or sys.executable)
+    if resolved_exe is None:
         return JSONResponse({"error": "Invalid Python executable"}, status_code=400)
 
     try:
         result = subprocess.run(  # nosec B603
-            [exe, "-m", "pip", "list", "--outdated", "--format=json"],
+            [resolved_exe, "-m", "pip", "list", "--outdated", "--format=json"],
             capture_output=True,
             text=True,
             timeout=60.0,
@@ -267,8 +276,10 @@ async def api_pip_check_updates(
         if result.returncode == 0 and result.stdout.strip():
             packages = json.loads(result.stdout)
             return JSONResponse({"outdated": packages})
-    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        return JSONResponse(
+            {"error": "Failed to check for package updates"}, status_code=500
+        )
 
     return JSONResponse({"outdated": []})
 
@@ -360,8 +371,8 @@ async def api_path_remove(
                 "remaining": len(new_entries),
             }
         )
-    except OSError as exc:
-        return JSONResponse({"error": str(exc)}, status_code=500)
+    except OSError:
+        return JSONResponse({"error": "Failed to modify PATH"}, status_code=500)
 
 
 @router.post("/shutdown")
