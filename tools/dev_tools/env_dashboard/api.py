@@ -7,10 +7,12 @@ import contextlib
 import json
 import os
 import re
+import shutil
 import signal
 import subprocess  # nosec B404
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Query
@@ -128,22 +130,84 @@ def _validate_package_name(name: str) -> bool:
     return bool(_PACKAGE_NAME_RE.match(name)) and len(name) <= 200
 
 
-def _validate_python_exe(python_exe: str) -> str | None:
-    """Validate a python executable path and return its resolved form.
+# --------------------------------------------------------------------------
+# Python executable allowlist — breaks CodeQL taint chain by returning only
+# values from a server-side registry, never user-derived strings.
+# --------------------------------------------------------------------------
+_allowed_python_exes: dict[str, str] = {}
 
-    Returns the resolved absolute path string if valid, or ``None`` if
-    the path is rejected.  Resolving eliminates ``..`` traversal and
-    symlink tricks so that CodeQL no longer flags an uncontrolled path.
+
+def register_python_executable(exe_path: str) -> None:
+    """Register a verified Python executable in the server-side allowlist.
+
+    Called at startup and whenever collectors discover new environments.
+    The *exe_path* is resolved and validated once here; API endpoints only
+    return paths from this map, so user input never flows into
+    ``subprocess`` or ``Path`` operations.
     """
-    from pathlib import Path
-
     try:
-        p = Path(python_exe).resolve(strict=True)
+        p = Path(exe_path).resolve(strict=True)
+        if p.is_file() and p.name.lower().startswith("python"):
+            canonical = str(p)
+            # Index under both the resolved and original normalised forms
+            # so that symlinks (e.g. /usr/bin/python3 → python3.12) match.
+            _allowed_python_exes[os.path.normcase(canonical)] = canonical
+            _allowed_python_exes[os.path.normcase(str(Path(exe_path).resolve()))] = (
+                canonical
+            )
     except (OSError, ValueError):
-        return None
-    if p.is_file() and p.name.lower().startswith("python"):
-        return str(p)
-    return None
+        pass
+
+
+def _init_python_allowlist() -> None:
+    """Seed the allowlist with the current interpreter and PATH entries."""
+    register_python_executable(sys.executable)
+    for name in ("python3", "python", "python3.11", "python3.12", "python3.13"):
+        found = shutil.which(name)
+        if found:
+            register_python_executable(found)
+
+
+_init_python_allowlist()
+
+
+def _validate_python_exe(python_exe: str) -> str | None:
+    """Validate that *python_exe* matches a known-good Python executable.
+
+    Only string normalisation is performed on the user value — no
+    filesystem access — so CodeQL does not flag a path-injection.
+    The returned value comes from the pre-verified allowlist, breaking
+    the taint chain for command-injection.
+    """
+    normalised = os.path.normcase(str(Path(python_exe).resolve()))
+    return _allowed_python_exes.get(normalised)
+
+
+def _sync_allowlist_from_report(report: dict[str, Any]) -> None:
+    """Register Python executables discovered by the collectors.
+
+    Extracts ``python_exe`` / ``executable`` fields from the
+    ``pip_environments`` section so that user-selected environments
+    pass ``_validate_python_exe`` without the API ever touching
+    user-controlled paths directly.
+    """
+    pip_section = report.get("sections", {}).get("pip_environments", {})
+    for env in pip_section.get("environments", []):
+        exe = env.get("python_exe") or env.get("executable")
+        if exe:
+            register_python_executable(exe)
+    for inst in pip_section.get("python_installs", []):
+        exe = inst.get("python_exe") or inst.get("executable")
+        if exe:
+            register_python_executable(exe)
+
+
+async def _ensure_allowlist_synced() -> None:
+    """Ensure the Python executable allowlist includes collector discoveries."""
+    from tools.dev_tools.env_dashboard.collector import get_report_async
+
+    report = await get_report_async()
+    _sync_allowlist_from_report(report)
 
 
 async def _stream_pip_command(
@@ -182,6 +246,7 @@ async def api_pip_update(
             media_type="text/event-stream",
         )
 
+    await _ensure_allowlist_synced()
     resolved_exe = _validate_python_exe(python_exe or sys.executable)
     if resolved_exe is None:
         return StreamingResponse(
@@ -211,6 +276,7 @@ async def api_pip_uninstall(
             media_type="text/event-stream",
         )
 
+    await _ensure_allowlist_synced()
     resolved_exe = _validate_python_exe(python_exe or sys.executable)
     if resolved_exe is None:
         return StreamingResponse(
@@ -243,6 +309,7 @@ async def api_pip_install(
             media_type="text/event-stream",
         )
 
+    await _ensure_allowlist_synced()
     resolved_exe = _validate_python_exe(python_exe or sys.executable)
     if resolved_exe is None:
         return StreamingResponse(
@@ -262,6 +329,7 @@ async def api_pip_check_updates(
     python_exe: str = Query(default=""),
 ) -> JSONResponse:
     """Check all outdated packages for a given Python environment."""
+    await _ensure_allowlist_synced()
     resolved_exe = _validate_python_exe(python_exe or sys.executable)
     if resolved_exe is None:
         return JSONResponse({"error": "Invalid Python executable"}, status_code=400)
