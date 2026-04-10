@@ -110,6 +110,7 @@ jobs:
             --exclude-loopback
             --exclude '^https://github\.com/.*/edit/'
             --exclude '^https://github\.com/.*/new/'
+            --exclude-path 'tools/dev_tools/env_dashboard/templates'
             '**/*.md'
             '**/*.html'
           # Fail on PRs (catch regressions) but not on schedule
