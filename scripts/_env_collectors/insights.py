@@ -267,13 +267,15 @@ def _version_satisfies(version: str, constraint: str) -> bool:
         return True  # can't parse, assume OK
     major, minor = int(match.group(1)), int(match.group(2))
 
-    # Parse constraints like ">=3.11", ">=3.11,<4"
+    # Parse constraints like ">=3.11", ">=3.11,<4", "<4"
     for part in constraint.split(","):
         part = part.strip()
-        m = re.match(r"([><=!]+)\s*(\d+)\.(\d+)", part)
+        m = re.match(r"([><=!]+)\s*(\d+)(?:\.(\d+))?", part)
         if not m:
             continue
-        op, req_maj, req_min = m.group(1), int(m.group(2)), int(m.group(3))
+        op = m.group(1)
+        req_maj = int(m.group(2))
+        req_min = int(m.group(3)) if m.group(3) is not None else 0
         ver = (major, minor)
         req = (req_maj, req_min)
         if op == ">=" and not (ver >= req):

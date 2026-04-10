@@ -59,33 +59,34 @@ Documentation = "https://JoJo275.github.io/simple-python-boilerplate/"
 Changelog = "https://github.com/JoJo275/simple-python-boilerplate/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/JoJo275/simple-python-boilerplate/issues"
 
-# CLI entry point - run with: spb
+# CLI entry points — all 22 commands live in entry_points.py
+# See src/simple_python_boilerplate/entry_points.py for the full inventory.
 [project.scripts]
-spb = "simple_python_boilerplate.main:main"
-spb-version = "simple_python_boilerplate.main:print_version"
-spb-doctor = "simple_python_boilerplate.main:doctor"
-spb-start = "simple_python_boilerplate.main:start"
+spb = "simple_python_boilerplate.entry_points:main"
+spb-version = "simple_python_boilerplate.entry_points:print_version"
+spb-doctor = "simple_python_boilerplate.entry_points:doctor"
+spb-start = "simple_python_boilerplate.entry_points:start"
 # Script entry points — globally available after `pipx install .`
 # Each command runs the bundled script from the user's current working
 # directory, so it inspects whichever repo you're in.
-spb-git-doctor = "simple_python_boilerplate.scripts_cli:git_doctor"
-spb-env-doctor = "simple_python_boilerplate.scripts_cli:env_doctor"
-spb-repo-doctor = "simple_python_boilerplate.scripts_cli:repo_doctor"
-spb-diag = "simple_python_boilerplate.scripts_cli:doctor_bundle"
-spb-env-inspect = "simple_python_boilerplate.scripts_cli:env_inspect"
-spb-repo-stats = "simple_python_boilerplate.scripts_cli:repo_sauron"
-spb-clean = "simple_python_boilerplate.scripts_cli:clean"
-spb-bootstrap = "simple_python_boilerplate.scripts_cli:bootstrap"
-spb-dep-versions = "simple_python_boilerplate.scripts_cli:dep_versions"
-spb-workflow-versions = "simple_python_boilerplate.scripts_cli:workflow_versions"
-spb-check-todos = "simple_python_boilerplate.scripts_cli:check_todos"
-spb-check-python = "simple_python_boilerplate.scripts_cli:check_python_support"
-spb-changelog-check = "simple_python_boilerplate.scripts_cli:changelog_check"
-spb-apply-labels = "simple_python_boilerplate.scripts_cli:apply_labels"
-spb-archive-todos = "simple_python_boilerplate.scripts_cli:archive_todos"
-spb-customize = "simple_python_boilerplate.scripts_cli:customize"
-spb-check-issues = "simple_python_boilerplate.scripts_cli:check_known_issues"
-spb-dashboard = "simple_python_boilerplate.scripts_cli:dashboard"
+spb-git-doctor = "simple_python_boilerplate.entry_points:git_doctor"
+spb-env-doctor = "simple_python_boilerplate.entry_points:env_doctor"
+spb-repo-doctor = "simple_python_boilerplate.entry_points:repo_doctor"
+spb-diag = "simple_python_boilerplate.entry_points:doctor_bundle"
+spb-env-inspect = "simple_python_boilerplate.entry_points:env_inspect"
+spb-repo-stats = "simple_python_boilerplate.entry_points:repo_sauron"
+spb-clean = "simple_python_boilerplate.entry_points:clean"
+spb-bootstrap = "simple_python_boilerplate.entry_points:bootstrap"
+spb-dep-versions = "simple_python_boilerplate.entry_points:dep_versions"
+spb-workflow-versions = "simple_python_boilerplate.entry_points:workflow_versions"
+spb-check-todos = "simple_python_boilerplate.entry_points:check_todos"
+spb-check-python = "simple_python_boilerplate.entry_points:check_python_support"
+spb-changelog-check = "simple_python_boilerplate.entry_points:changelog_check"
+spb-apply-labels = "simple_python_boilerplate.entry_points:apply_labels"
+spb-archive-todos = "simple_python_boilerplate.entry_points:archive_todos"
+spb-customize = "simple_python_boilerplate.entry_points:customize"
+spb-check-issues = "simple_python_boilerplate.entry_points:check_known_issues"
+spb-dashboard = "simple_python_boilerplate.entry_points:dashboard"
 
 # GUI entry points (no console window on Windows)
 # [project.gui-scripts]

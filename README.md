@@ -112,11 +112,39 @@ See [docs/repo-layout.md](docs/repo-layout.md) for the full annotated tree.
 <!-- TODO (template users): Replace these with your own CLI commands after
      updating [project.scripts] in pyproject.toml. -->
 
-```bash
-spb              # Main CLI command
-spb-version      # Print version info
-spb-doctor       # Diagnose environment issues
-```
+**21 `spb-*` commands** are available after installing the package.
+Install globally with `pipx install .` to use them from any repo on your machine.
+
+| Command | Purpose |
+| :------ | :------ |
+| `spb` | Main CLI command |
+| `spb-version` | Print version info |
+| `spb-start` | Start the application |
+| `spb-doctor` | Diagnose environment issues |
+| `spb-diag` | Full diagnostics bundle for bug reports |
+| `spb-git-doctor` | Git health dashboard and branch operations |
+| `spb-env-doctor` | Environment health check |
+| `spb-repo-doctor` | Repository structure health checks |
+| `spb-env-inspect` | Environment, packages, PATH inspection |
+| `spb-repo-stats` | Repository statistics dashboard |
+| `spb-clean` | Remove build artifacts and caches |
+| `spb-bootstrap` | One-command setup for fresh clones |
+| `spb-dep-versions` | Show/update dependency versions |
+| `spb-workflow-versions` | Show/update SHA-pinned action versions |
+| `spb-check-todos` | Scan for template TODO comments |
+| `spb-check-python` | Verify Python version consistency |
+| `spb-changelog-check` | Verify CHANGELOG matches git tags |
+| `spb-apply-labels` | Apply GitHub labels from JSON definitions |
+| `spb-archive-todos` | Archive completed TODOs |
+| `spb-customize` | Interactive project customization |
+| `spb-check-issues` | Flag stale entries in known-issues.md |
+| `spb-dashboard` | Start the environment inspection dashboard |
+
+All arguments are forwarded: `spb-git-doctor --json` works the same as
+`python scripts/git_doctor.py --json`.
+
+See [docs/guide/entry-points.md](docs/guide/entry-points.md) for installation
+options, how it works, and the full command reference.
 
 ## CI/CD Pipeline
 
