@@ -104,9 +104,9 @@ def run(args: argparse.Namespace) -> int:
         return 0
 
     if args.command == "doctor":
-        from simple_python_boilerplate.main import doctor
+        from simple_python_boilerplate.entry_points import doctor
 
-        doctor()  # doctor() in main.py handles formatting
+        doctor()  # doctor() in entry_points.py handles formatting
         return 0
 
     if args.command == "process":
