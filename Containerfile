@@ -45,8 +45,11 @@ RUN python -m pip install --no-cache-dir build
 ARG VERSION=""
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION}
 
-# Copy source and build the wheel
+# Copy source and directories referenced by force-include in pyproject.toml
 COPY src/ src/
+COPY scripts/ scripts/
+COPY tools/ tools/
+COPY repo_doctor.d/ repo_doctor.d/
 RUN python -m build --wheel --outdir /build/dist
 
 # ── Stage 2: Runtime ──────────────────────────────────────────

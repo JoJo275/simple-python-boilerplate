@@ -85,7 +85,7 @@ codify project conventions for AI-assisted development.
 ## Related Issue
 
 N/A — Feature development from blueprint
-[001-env-inspect-web-dashboard](docs/blueprints/001-env-inspect-web-dashboard.md).
+[001-env-inspect-web-dashboard](../blueprints/001-env-inspect-web-dashboard.md).
 
 ## Type of Change
 

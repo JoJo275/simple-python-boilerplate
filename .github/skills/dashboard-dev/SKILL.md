@@ -72,4 +72,4 @@ hatch run test -k test_dashboard_api  # API tests only
 
 - [ADR 041](../../docs/adr/041-env-inspect-web-dashboard.md) — Architecture decision
 - [Blueprint 001](../../docs/blueprints/001-env-inspect-web-dashboard.md) — Design document
-- [Dashboard instructions](../instructions/dashboard.instructions.md) — Coding conventions
+- [Dashboard instructions](../../instructions/dashboard.instructions.md) — Coding conventions
