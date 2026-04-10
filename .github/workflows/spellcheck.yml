@@ -57,5 +57,5 @@ jobs:
             --check-filenames \
             --check-hidden \
             --skip ".git,.venv,dist,build,.mypy_cache,.ruff_cache,__pycache__,*.egg-info,site,_typos.toml,*.min.js" \
-            --ignore-words-list "implementors" \
+            --ignore-words-list "implementors,FO" \
             .
