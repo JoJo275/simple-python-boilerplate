@@ -67,7 +67,7 @@
 } %}
 
 {# --- Commands by Runner --- #}
-{% for runner_name, commands in data.by_runner|default({})|items %}
+{% for runner_name, commands in (data.by_runner|default({})).items() %}
 {% set source_file = runner_source.get(runner_name, "") %}
 {% if not source_file %}
     {# Hatch envs and entry points derive from pyproject.toml #}

@@ -21,7 +21,7 @@
             <span class="badge badge-pass">Yes</span>
         {% elif value is sameas false %}
             <span class="badge">No</span>
-        {% elif value is string and value.startswith("***") %}
+        {% elif value is string and value.startswith("[REDACTED]") %}
             <span class="redacted">{{ value }}</span>
         {% else %}
             <span>{{ value }}</span>
