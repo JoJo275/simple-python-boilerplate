@@ -60,8 +60,7 @@ mkdocs-hooks/
 db/
 var/
 
-# Scripts, experiments, labels
-scripts/
+# Experiments, labels (not needed in image)
 experiments/
 labels/
 
@@ -80,7 +79,6 @@ _typos.toml
 .markdownlint-cli2.jsonc
 .editorconfig
 requirements-dev.txt
-repo_doctor.d/
 .repo-doctor.toml
 .readthedocs.yaml
 .prettierignore
