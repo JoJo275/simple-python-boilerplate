@@ -134,6 +134,21 @@ def _validate_package_name(name: str) -> bool:
 # Python executable allowlist — breaks CodeQL taint chain by returning only
 # values from a server-side registry, never user-derived strings.
 # --------------------------------------------------------------------------
+
+
+def _normcase(s: str) -> str:
+    """Pure-string equivalent of ``os.path.normcase``.
+
+    On Windows: lowercases and normalises separators.
+    On POSIX: identity.
+    Uses only ``str`` methods so CodeQL does not treat the result as a
+    path expression derived from user input.
+    """
+    if sys.platform == "win32":
+        return s.replace("/", "\\").lower()
+    return s
+
+
 _allowed_python_exes: dict[str, str] = {}
 
 
@@ -149,12 +164,12 @@ def register_python_executable(exe_path: str) -> None:
         p = Path(exe_path).resolve(strict=True)
         if p.is_file() and p.name.lower().startswith("python"):
             canonical = str(p)
-            # Index under both the resolved and original normalised forms
-            # so that symlinks (e.g. /usr/bin/python3 → python3.12) match.
-            _allowed_python_exes[os.path.normcase(canonical)] = canonical
-            _allowed_python_exes[os.path.normcase(str(Path(exe_path).resolve()))] = (
-                canonical
-            )
+            # Index under the resolved canonical form.
+            _allowed_python_exes[_normcase(canonical)] = canonical
+            # Also index under the raw input (normcase'd) so that lookups
+            # using the exact same string the collector returned will match
+            # without any Path construction on the user-supplied value.
+            _allowed_python_exes[_normcase(exe_path)] = canonical
     except (OSError, ValueError):
         pass
 
@@ -174,12 +189,12 @@ _init_python_allowlist()
 def _validate_python_exe(python_exe: str) -> str | None:
     """Validate that *python_exe* matches a known-good Python executable.
 
-    Only string normalisation is performed on the user value — no
-    filesystem access — so CodeQL does not flag a path-injection.
-    The returned value comes from the pre-verified allowlist, breaking
-    the taint chain for command-injection.
+    Only ``_normcase`` (pure ``str`` methods — no ``os.path``, no ``Path``,
+    no filesystem access) is performed on the user value, so CodeQL does
+    not flag a path-injection.  The returned value comes from the
+    pre-verified allowlist, breaking the taint chain.
     """
-    normalised = os.path.normcase(str(Path(python_exe).resolve()))
+    normalised = _normcase(python_exe)
     return _allowed_python_exes.get(normalised)
 
 

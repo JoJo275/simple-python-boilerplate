@@ -161,7 +161,12 @@
 			// MarkClick.md — click checkboxes directly in the editor to
 			// toggle them. Highlights unchecked (orange) and checked (green)
 			// with colored backgrounds. Ideal for customize-config.md.
-			"kyuukab.markclick-md"
+			"kyuukab.markclick-md",
+			// Five Server — live-reload dev server for HTML/CSS/JS preview.
+			"yandeu.five-server",
+			// Live Preview — Microsoft's embedded browser preview with
+			// live reload for HTML files, directly inside VS Code.
+			"ms-vscode.live-server"
 		]
 
 		// ── Unwanted Recommendations (optional) ─────────────────

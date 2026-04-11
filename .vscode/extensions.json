@@ -26,6 +26,8 @@
         "shd101wyy.markdown-preview-enhanced",
         "kamikillerto.vscode-colorize",
         "yzhang.markdown-all-in-one",
-        "kyuukab.markclick-md"
+        "kyuukab.markclick-md",
+        "yandeu.five-server",
+        "ms-vscode.live-server"
     ]
 }
