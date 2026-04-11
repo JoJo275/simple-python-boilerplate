@@ -9,6 +9,60 @@ Do not edit manually — changes will be overwritten on the next release.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v1.1.0...v1.2.0) (2026-04-11)
+
+
+### Features
+
+* Add container file detection and critical files display in project dashboard ([7b171d8](https://github.com/JoJo275/simple-python-boilerplate/commit/7b171d8c2db5733c2f8c15681ff45ee860be50a2))
+* Add detailed section guide to warnings panel and enhance UI animations for better user experience ([d5e22b2](https://github.com/JoJo275/simple-python-boilerplate/commit/d5e22b2fad0d3e5c16fa410bf75a63f65496da93))
+* Add devcontainer detection and display in container files section; enhance quick actions panel and summary indicators ([d8fe67e](https://github.com/JoJo275/simple-python-boilerplate/commit/d8fe67e2960f9ea11e1e39c1334ff0d87fb1e807))
+* Add environment dashboard documentation and enhance startup banner display ([e6ef960](https://github.com/JoJo275/simple-python-boilerplate/commit/e6ef9601004ba93ba6a87d122d2561193343255b))
+* Add Environment Dashboard with export functionality ([415345c](https://github.com/JoJo275/simple-python-boilerplate/commit/415345cf8d39abf9f54deccda7d7f7b7bffcad2b))
+* Add global entry points for utility scripts and enhance documentation ([859050c](https://github.com/JoJo275/simple-python-boilerplate/commit/859050c553c692cc73a97ec761ea1f007c56ef1a))
+* Add project commands collector and pip management features ([579319e](https://github.com/JoJo275/simple-python-boilerplate/commit/579319e496603a4ef6cd52216b7818be72f18994))
+* Add unit tests for environment collectors and related components ([67aa96e](https://github.com/JoJo275/simple-python-boilerplate/commit/67aa96ec8777c922b713209b6068bb97906eaa70))
+* Add unit tests for various scripts and update documentation navigation ([5a80ab9](https://github.com/JoJo275/simple-python-boilerplate/commit/5a80ab9b6366fb49e32d6989470b76df1eb25323))
+* add VSCode tasks for testing, linting, formatting, and documentation ([7353e13](https://github.com/JoJo275/simple-python-boilerplate/commit/7353e13b7a9f71c4433ddd8efe5951b165f4eb1c))
+* Add web development notes, implement graceful shutdown API, and enhance dashboard UI ([96cb16e](https://github.com/JoJo275/simple-python-boilerplate/commit/96cb16ea671feae7ab5460c368228719f67cc98f))
+* Enhance CI/CD status collector and dashboard with improved trigger extraction and display logic ([8ad75a9](https://github.com/JoJo275/simple-python-boilerplate/commit/8ad75a940222c4616a69d8950a5591a1158db155))
+* Enhance dashboard functionality with background scanning and improved CSS guidelines ([e1e49db](https://github.com/JoJo275/simple-python-boilerplate/commit/e1e49dbf35273a071995d2c84e23dbc70aad1891))
+* Enhance environment collectors with virtualenv discovery and improve dependency health display ([dc5d953](https://github.com/JoJo275/simple-python-boilerplate/commit/dc5d95357383ec6f557a67ac47906caeb8255904))
+* Enhance environment dashboard with new features and improvements ([4656319](https://github.com/JoJo275/simple-python-boilerplate/commit/465631999b298e8b4d6e6569ae68f09301793df5))
+* Enhance hardware information collection and display with additional memory module details and improved UI elements ([c8fb1c3](https://github.com/JoJo275/simple-python-boilerplate/commit/c8fb1c300abbeae99e5a7bbb564ee868dc82c9a5))
+* Enhance memory module details with improved animations and layout adjustments ([bf12eda](https://github.com/JoJo275/simple-python-boilerplate/commit/bf12eda52e1fce5f3a264eb8865cab2d25e84633))
+* Enhance project commands display with improved table layout for dependencies and optional groups ([80d85b3](https://github.com/JoJo275/simple-python-boilerplate/commit/80d85b3622a8368ca9de09d2dccbd642fc768ad7))
+* Enhance project environment dashboard with async report generation and terminal features ([9312df4](https://github.com/JoJo275/simple-python-boilerplate/commit/9312df4f8872ef7a7e36b24e37c6404e58798fe9))
+* Enhance section guides with common issues and related links for better user navigation ([179dac3](https://github.com/JoJo275/simple-python-boilerplate/commit/179dac360c3efa023dc2e5b94cca8e405e759599))
+* Enhance section guides with key concepts and improve path table layout for better clarity ([801255e](https://github.com/JoJo275/simple-python-boilerplate/commit/801255e30be84641586c13668a84a8a927ae8a40))
+* Enhance shutdown dialog behavior and improve scrolling animations ([7539bc8](https://github.com/JoJo275/simple-python-boilerplate/commit/7539bc858f8c4f1058bfa70ccde3e67df16a56b6))
+* Enhance shutdown process and improve static file caching; add section guides for better user guidance ([3b7b8bd](https://github.com/JoJo275/simple-python-boilerplate/commit/3b7b8bda754f63836c1cb85fc864d683998688f9))
+* Enhance stashes display and add chevron icons for improved UI in dashboard ([58260ac](https://github.com/JoJo275/simple-python-boilerplate/commit/58260acdd89c5c9067c0dda639521b587dd5a3b0))
+* Enhance system information collection and display ([6970dcc](https://github.com/JoJo275/simple-python-boilerplate/commit/6970dcc7f015133b245129a76909ec27a46ce1c2))
+* Enhance UI tooltips and hints across environment dashboard; improve styling and layout for better user experience ([8f0a830](https://github.com/JoJo275/simple-python-boilerplate/commit/8f0a830169915ef737014502427111fd82f52f5e))
+* Enhance UI with nested diamond navigation indicators, add freshness refresh button, and implement stale data banner ([28c1aa9](https://github.com/JoJo275/simple-python-boilerplate/commit/28c1aa9c03795e45bae3fd80222786a9bf0ade7a))
+* Enhance UI with radial gradients, update sidebar icons, and improve shutdown dialog styles ([9b1d543](https://github.com/JoJo275/simple-python-boilerplate/commit/9b1d5435827717cdb5b106927e3682980840a825))
+* Implement freshness indicator, enhance shutdown dialog, and add copy functionality for various fields ([8a07359](https://github.com/JoJo275/simple-python-boilerplate/commit/8a0735922af818deb020df95cdd76a92ed52b8da))
+* Implement PATH entry removal API and enhance UI for managing PATH entries ([fdd5028](https://github.com/JoJo275/simple-python-boilerplate/commit/fdd502866f4ef421038e061c2427feb8c7c73159))
+* Implement service worker for offline support and add offline page; enhance UI elements and restart commands ([0ff615c](https://github.com/JoJo275/simple-python-boilerplate/commit/0ff615cc08e307cc96241fd54419b4da0df2fbd3))
+* Improve shutdown dialog and terminal UI, enhance environment display in venv.html ([0bb74e7](https://github.com/JoJo275/simple-python-boilerplate/commit/0bb74e778e5be9cbbaf53de1ccc7cbc5ed473dd1))
+* Refactor dashboard styles and enhance theme selection functionality ([034bcf2](https://github.com/JoJo275/simple-python-boilerplate/commit/034bcf20c8f83a10720cf7b371f5f3529427e4df))
+* Refactor table styles and macros for improved layout and consistency in build tools section ([153172a](https://github.com/JoJo275/simple-python-boilerplate/commit/153172afa1839a960a9c025fe5b7a6938138ea6a))
+* Update stylesheet link to include cache-busting query parameter; refine shutdown dialog text for clarity ([76b634f](https://github.com/JoJo275/simple-python-boilerplate/commit/76b634ff22e7a5c695403716d127df70f81e6f07))
+* Update UI elements and improve layout for better clarity and consistency across panels ([8972ccf](https://github.com/JoJo275/simple-python-boilerplate/commit/8972ccf52f89facaa570aaefb7ff521840707780))
+
+
+### Bug Fixes
+
+* Add CSS-Tricks to .lycheeignore to handle non-browser request rejection ([c56cf0b](https://github.com/JoJo275/simple-python-boilerplate/commit/c56cf0bbe880b728fb8fde2a217ce02c0d4216f7))
+* Configure Live Preview to use integrated browser for proper request handling ([ecb8c1c](https://github.com/JoJo275/simple-python-boilerplate/commit/ecb8c1c73ca1b0396aa35e64a7dcd154ac637d86))
+* Enhance Python executable validation and registration in allowlist ([f78ab00](https://github.com/JoJo275/simple-python-boilerplate/commit/f78ab00da77f0493390e4392b7cae0e8c727fa2e))
+* Enhance validation of Python executable path in API handlers and improve error handling ([f7f8d6e](https://github.com/JoJo275/simple-python-boilerplate/commit/f7f8d6ea2cd7d170253f581571cf96bf6cdc26dd))
+* Enhance VS Code extension recommendations and improve Python executable normalization in API ([fe38d49](https://github.com/JoJo275/simple-python-boilerplate/commit/fe38d49f935a27b3d26bbe3349cc85d82a24cc62))
+* Update .containerignore and .dockerignore to clarify excluded directories; adjust SKILL.md links for accuracy; refine spellcheck workflows to skip additional file types ([3f56eb8](https://github.com/JoJo275/simple-python-boilerplate/commit/3f56eb8fbc2122cf70faba99ee439a4ce204e870))
+* Update CLI command names and enhance cache management in environment dashboard ([c37307d](https://github.com/JoJo275/simple-python-boilerplate/commit/c37307d7e00a73945053a0aafe16ceca9afaf4fc))
+* Update file paths in documentation and workflows for consistency ([4da882a](https://github.com/JoJo275/simple-python-boilerplate/commit/4da882ab0532065d3f6a17ed467b262925b82742))
+
 ## [1.1.0](https://github.com/JoJo275/simple-python-boilerplate/compare/v1.0.0...v1.1.0) (2026-04-02)
 
 
