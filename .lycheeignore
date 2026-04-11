@@ -72,6 +72,9 @@ https://cli\.github\.com/manual/installation
 # Sites that block automated crawlers / rate-limit aggressively
 # ──────────────────────────────────────────────────────────────
 
+# CSS-Tricks rejects non-browser requests (415 Unsupported Media Type)
+https://css-tricks\.com
+
 # LinkedIn blocks all non-browser requests
 https://www\.linkedin\.com
 
