@@ -241,5 +241,10 @@
         "rgba(255, 20, 147, 0.15)"
     ],
     "indentRainbow.indicatorStyle": "classic",
-    "indentRainbow.colorOnWhiteSpaceOnly": true
+    "indentRainbow.colorOnWhiteSpaceOnly": true,
+
+    // ── Live Preview ────────────────────────────────────────
+    // Use the integrated browser so web requests fire properly
+    // instead of opening an external browser window.
+    "livePreview.defaultPreviewType": "internalBrowser"
 }

@@ -162,7 +162,9 @@
         // The container runs Linux — set the default terminal to bash.
         // (.vscode/settings.json doesn't set a Linux terminal profile
         // because local development is on Windows.)
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        // Use integrated browser for Live Preview so requests fire properly.
+        "livePreview.defaultPreviewType": "internalBrowser"
       }
     }
   },
