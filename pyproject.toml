@@ -133,7 +133,7 @@ dev = [
     # match your [project] name — otherwise pip install -e ".[dev]" breaks.
     "simple-python-boilerplate[test]",
     "ruff>=0.11",  # Fast linter and formatter (v0.15.4)
-    "mypy>=1.15",  # Static type checker (v1.19.1)
+    "mypy>=1.20.1",  # Static type checker (v1.19.1)
     "pre-commit>=4.0",  # Git hooks for automated checks (v4.5.1)
     "bandit>=1.8",  # Security linter (v1.9.4)
     "commitizen>=4.4",  # Conventional commit helper + validator (v4.13.9)
