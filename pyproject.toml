@@ -152,7 +152,7 @@ extras = [
 docs = [
     "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
     "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
-    "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
+    "pymdown-extensions>=10.21.2",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
     "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
 ]
 dashboard = [
