@@ -123,7 +123,8 @@ spb-dashboard = "simple_python_boilerplate.entry_points:dashboard"
 test = [
     "pytest>=8.0",  # Testing framework (v8.4.2)
     "pytest-cov>=7.1.0",  # Code coverage for pytest (v7.0.0)
-    "mkdocs>=1.6",  # Needed by tests/unit/test_include_templates.py (v1.6.1)
+    "mkdocs>=1.6.1",  # Needed by tests/unit/test_include_templates.py (v1.6.1)
+
     # "pytest-asyncio>=0.24",  # For async test support
     # "pytest-mock>=3.14",     # Mocking utilities
     # "hypothesis>=6.100",     # Property-based testing
@@ -150,7 +151,7 @@ extras = [
     # "devtools>=0.12",  # Debug utilities: debug(variable)
 ]
 docs = [
-    "mkdocs>=1.6",  # Documentation site generator (v1.6.1)
+    "mkdocs>=1.6.1",  # Documentation site generator (v1.6.1)
     "mkdocs-material>=9.4",  # Material theme (palette toggle, code copy, etc.) (v9.7.1)
     "pymdown-extensions>=10.0",  # Markdown enhancements (tabbed alternate_style) (v10.20.1)
     "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)

@@ -92,7 +92,7 @@ jobs:
 
       # Persist the built artifacts so the publish job can use them
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # Upload a build artifact that can be used by… (v7.0.0)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
         with:
           name: dist
           path: dist/
@@ -132,7 +132,7 @@ jobs:
     steps:
       # Retrieve the dist/ artifacts uploaded by the build job
       - name: Download distribution artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # Download a build artifact that was previously… (v8.0.0)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
         with:
           name: dist
           path: dist/
@@ -140,7 +140,7 @@ jobs:
       # Publish to PyPI only when the secret exists
       - name: Publish to PyPI
         if: ${{ env.PUBLISH_TOKEN != '' }}
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # Upload Python distribution packages to PyPI (v1.13.0)
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # Upload Python distribution packages to PyPI (v1.13.0)
 
       # Fail with a helpful message when the secret is missing.
       # Using exit 0 so release workflow succeeds even without PyPI publishing.
@@ -183,7 +183,7 @@ jobs:
 
       # SPDX 2.3 JSON — primary format
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
         with:
           format: spdx-json
           output-file: sbom-spdx.json
@@ -191,7 +191,7 @@ jobs:
 
       # CycloneDX 1.x JSON — secondary format
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@17ae1740179002c89186b61233e0f892c3118b11 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # Creates an SBOM (Software Bill Of Materials)… (v0.23.0)
         with:
           format: cyclonedx-json
           output-file: sbom-cyclonedx.json
@@ -200,7 +200,7 @@ jobs:
       # Bundle both SBOMs into a single artifact for the
       # github-release job to download and attach.
       - name: Upload SBOM artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # Upload a build artifact that can be used by… (v7.0.0)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # Upload a build artifact that can be used by… (v7.0.0)
         with:
           name: sbom
           path: |
@@ -222,14 +222,14 @@ jobs:
     steps:
       # Retrieve the dist/ artifacts uploaded by the build job
       - name: Download distribution artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # Download a build artifact that was previously… (v8.0.0)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
         with:
           name: dist
           path: dist/
 
       # Retrieve the SBOM artifacts uploaded by the sbom job
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # Download a build artifact that was previously… (v8.0.0)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # Download a build artifact that was previously… (v8.0.0)
         with:
           name: sbom
           path: sbom/
