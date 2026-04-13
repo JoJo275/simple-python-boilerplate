@@ -156,7 +156,7 @@ docs = [
     "mkdocstrings[python]>=0.27",  # Auto-generate docs from docstrings (v1.0.3)
 ]
 dashboard = [
-    "fastapi[standard]>=0.115",  # Web framework + Uvicorn for env dashboard
+    "fastapi[standard]>=0.135.3",  # Web framework + Uvicorn for env dashboard
 ]
 
 # ============================================================================
